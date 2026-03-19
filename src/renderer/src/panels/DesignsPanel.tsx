@@ -30,7 +30,8 @@ export default function DesignsPanel() {
   const { data: vote, refetch: refetchVote } = useApi<ActiveVote>('/voting');
   const [title, setTitle] = useState('');
   const [type, setType] = useState('enemy');
-  const [voteOptions, setVoteOptions] = useState('');
+  const [voteOptionInput, setVoteOptionInput] = useState('');
+  const [voteOptionsList, setVoteOptionsList] = useState<string[]>([]);
   const [voteDuration, setVoteDuration] = useState(60);
 
   // Poll vote status every 2s when active
@@ -57,11 +58,21 @@ export default function DesignsPanel() {
     refetch();
   };
 
+  const addVoteOption = () => {
+    const opt = voteOptionInput.trim().toLowerCase();
+    if (!opt || voteOptionsList.includes(opt)) return;
+    setVoteOptionsList([...voteOptionsList, opt]);
+    setVoteOptionInput('');
+  };
+
+  const removeVoteOption = (opt: string) => {
+    setVoteOptionsList(voteOptionsList.filter((o) => o !== opt));
+  };
+
   const startVote = async () => {
-    const options = voteOptions.split('+').map((o) => o.trim()).filter(Boolean);
-    if (options.length < 2) return;
-    await apiPost('/voting/start', { title: '🎨 Chat Design', options, duration: voteDuration });
-    setVoteOptions('');
+    if (voteOptionsList.length < 2) return;
+    await apiPost('/voting/start', { title: '🎨 Chat Design', options: voteOptionsList, duration: voteDuration });
+    setVoteOptionsList([]);
     refetchVote();
   };
 
@@ -128,13 +139,26 @@ export default function DesignsPanel() {
           </div>
         ) : (
           <div className="vote-start">
-            <input
-              type="text"
-              placeholder="Optionen mit + trennen... z.B. feuer + eis + gift"
-              value={voteOptions}
-              onChange={(e) => setVoteOptions(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && startVote()}
-            />
+            <div className="vote-option-input">
+              <input
+                type="text"
+                placeholder="Option hinzufügen..."
+                value={voteOptionInput}
+                onChange={(e) => setVoteOptionInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && addVoteOption()}
+              />
+              <button onClick={addVoteOption}>+</button>
+            </div>
+            {voteOptionsList.length > 0 && (
+              <div className="vote-options-list">
+                {voteOptionsList.map((opt) => (
+                  <span key={opt} className="vote-option-tag">
+                    {opt}
+                    <button onClick={() => removeVoteOption(opt)}>×</button>
+                  </span>
+                ))}
+              </div>
+            )}
             <div className="vote-start-row">
               <select value={voteDuration} onChange={(e) => setVoteDuration(Number(e.target.value))}>
                 <option value={30}>30s</option>
@@ -142,7 +166,7 @@ export default function DesignsPanel() {
                 <option value={120}>2 Min</option>
                 <option value={300}>5 Min</option>
               </select>
-              <button onClick={startVote}>🗳️ Abstimmung starten</button>
+              <button onClick={startVote} disabled={voteOptionsList.length < 2}>🗳️ Abstimmung starten</button>
             </div>
           </div>
         )}

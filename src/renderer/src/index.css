@@ -229,7 +229,35 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .vote-controls { display: flex; gap: 8px; margin-top: 8px; }
 
 .vote-start { display: flex; flex-direction: column; gap: 8px; }
-.vote-start input { width: 100%; }
+
+.vote-option-input { display: flex; gap: 8px; }
+.vote-option-input input { flex: 1; }
+
+.vote-options-list { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.vote-option-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: #e67e2233;
+  border: 1px solid #e67e22;
+  border-radius: 12px;
+  font-size: 11px;
+  color: #e67e22;
+}
+
+.vote-option-tag button {
+  background: none;
+  border: none;
+  color: #e67e22;
+  font-size: 13px;
+  padding: 0 2px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.vote-option-tag button:hover { color: #e74c3c; }
 .vote-start-row { display: flex; gap: 8px; }
 .vote-start-row select { min-width: 70px; }
 .vote-start-row button { flex: 1; border-color: #e67e22; }
