@@ -68,6 +68,7 @@ export default function ExperimentPanel() {
   return (
     <div className="panel experiment-panel">
       <h2>🔬 Experiment</h2>
+      <p className="panel-desc">Setz dein Ziel für den Stream. Timer optional für "Kann ich X in 1h?"-Challenges.</p>
 
       <div className="experiment-input">
         <input

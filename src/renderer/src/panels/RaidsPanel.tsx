@@ -41,6 +41,7 @@ export default function RaidsPanel() {
   return (
     <div className="panel raids-panel">
       <h2>⚔️ Raid-Boss Queue</h2>
+      <p className="panel-desc">Raids werden automatisch getrackt. Jeder Raider wird zum Enemy im Spiel.</p>
 
       <div className="raid-list">
         {pending.length === 0 && <p className="empty">Keine Raids in der Queue</p>}

@@ -32,6 +32,7 @@ export default function RewardsPanel() {
   return (
     <div className="panel rewards-panel">
       <h2>🎁 Rewards</h2>
+      <p className="panel-desc">Channel Point Rewards die eingelöst wurden. Abhaken wenn erledigt.</p>
 
       <div className="reward-list">
         {pending.length === 0 && <p className="empty">Keine offenen Rewards</p>}

@@ -52,6 +52,7 @@ export default function SettingsPanel() {
   return (
     <div className="panel settings-panel">
       <h2>⚙️ Settings</h2>
+      <p className="panel-desc">Twitch-Verbindung konfigurieren und Bot steuern.</p>
 
       <div className="settings-section">
         <h3>Twitch Verbindung</h3>

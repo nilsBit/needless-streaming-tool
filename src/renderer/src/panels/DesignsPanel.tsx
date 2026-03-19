@@ -39,6 +39,7 @@ export default function DesignsPanel() {
   return (
     <div className="panel designs-panel">
       <h2>🎨 Chat Designs</h2>
+      <p className="panel-desc">1x im Monat designed der Chat ein Feature. Erstell ein Design und lass abstimmen.</p>
 
       <div className="design-create">
         <input

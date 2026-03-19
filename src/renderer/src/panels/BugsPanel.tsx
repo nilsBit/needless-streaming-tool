@@ -57,6 +57,7 @@ export default function BugsPanel() {
   return (
     <div className="panel bugs-panel">
       <h2>🐛 Bug-Roulette</h2>
+      <p className="panel-desc">Bugs sammeln, Rad drehen, Chat entscheidet was gefixt wird.</p>
 
       <div className="bug-input">
         <input
