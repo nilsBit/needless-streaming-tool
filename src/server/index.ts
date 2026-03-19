@@ -55,7 +55,9 @@ export async function startServer(): Promise<void> {
   app.use('/api/designs', designsRouter);
   app.use('/api/settings', settingsRouter);
   app.use('/api/actions', actionsRouter);
-  app.use('/auth', authRouter);
+  app.use('/api/auth', authRouter);
+  // Also mount callback without /api prefix (Twitch redirects here)
+  app.get('/auth/twitch/callback', (req, res) => res.redirect('/api/auth/twitch/callback'));
   app.use('/api/voting', votingRouter);
 
   // Static overlay files

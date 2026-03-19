@@ -16,13 +16,17 @@ export default function SettingsPanel() {
 
   const saveClientId = async () => {
     if (!clientId.trim()) return;
-    await apiPost('/auth/twitch/client-id', { client_id: clientId.trim() });
+    await fetch('http://localhost:4000/api/auth/twitch/client-id', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ client_id: clientId.trim() }),
+    });
     setClientId('');
     refetchClientId();
   };
 
   const connectTwitch = async () => {
-    const res = await fetch('http://localhost:4000/auth/twitch/url');
+    const res = await fetch('http://localhost:4000/api/auth/twitch/url');
     const data = await res.json();
     if (data.url) {
       window.open(data.url, '_blank', 'width=500,height=700');
@@ -94,7 +98,7 @@ export default function SettingsPanel() {
           <div className="reset-section">
             <button className="btn-reset-small" onClick={() => {
               setClientId('');
-              apiPost('/auth/twitch/client-id', { client_id: '' });
+              fetch('http://localhost:4000/api/auth/twitch/client-id', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ client_id: '' }) });
               refetchClientId();
             }}>Client-ID ändern</button>
           </div>

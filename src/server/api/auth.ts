@@ -62,7 +62,7 @@ router.get('/twitch/callback', (_req, res) => {
         const accessToken = params.get('access_token');
 
         if (accessToken) {
-          fetch('/auth/twitch/save', {
+          fetch('/api/auth/twitch/save', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ access_token: accessToken })
