@@ -1,6 +1,7 @@
 import React from 'react';
 import { useApi, apiPatch } from '../hooks/useApi';
 import { Reward } from '../../../shared/types';
+import { useWebSocket } from '../hooks/useWebSocket';
 import ChatCommands from '../components/ChatCommands';
 
 const REWARD_LABELS: Record<string, string> = {
@@ -13,6 +14,13 @@ const REWARD_LABELS: Record<string, string> = {
 
 export default function RewardsPanel() {
   const { data: rewards, refetch } = useApi<Reward[]>('/rewards');
+
+  // Live-Update wenn neuer Reward reinkommt
+  useWebSocket((event) => {
+    if (event === 'reward-redeemed' || event === 'reward-updated') {
+      refetch();
+    }
+  });
 
   const markDone = async (id: number) => {
     await apiPatch(`/rewards/${id}`, { status: 'done' });

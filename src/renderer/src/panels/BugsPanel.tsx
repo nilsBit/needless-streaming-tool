@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
 import { useApi, apiPost, apiPatch, apiDelete } from '../hooks/useApi';
 import { Bug } from '../../../shared/types';
+import { useWebSocket } from '../hooks/useWebSocket';
 import ChatCommands from '../components/ChatCommands';
 
 export default function BugsPanel() {
   const { data: bugs, refetch } = useApi<Bug[]>('/bugs');
   const [newBug, setNewBug] = useState('');
+
+  useWebSocket((event) => {
+    if (event === 'bug-created' || event === 'bug-updated' || event === 'bug-deleted') refetch();
+  });
   const [spinning, setSpinning] = useState(false);
   const [selectedBug, setSelectedBug] = useState<Bug | null>(null);
 

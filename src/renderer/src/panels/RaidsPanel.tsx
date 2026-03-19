@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApi, apiPatch } from '../hooks/useApi';
 import { Raid } from '../../../shared/types';
+import { useWebSocket } from '../hooks/useWebSocket';
 import ChatCommands from '../components/ChatCommands';
 
 const TIER_EMOJI: Record<string, string> = {
@@ -13,6 +14,10 @@ const TIER_EMOJI: Record<string, string> = {
 export default function RaidsPanel() {
   const { data: raids, refetch } = useApi<Raid[]>('/raids');
   const [editingId, setEditingId] = useState<number | null>(null);
+
+  useWebSocket((event) => {
+    if (event === 'raid-incoming' || event === 'raid-updated') refetch();
+  });
   const [enemyName, setEnemyName] = useState('');
 
   const setRaidStatus = async (id: number, status: string) => {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApi, apiPost, apiPatch, apiDelete } from '../hooks/useApi';
 import { Design } from '../../../shared/types';
+import { useWebSocket } from '../hooks/useWebSocket';
 import ChatCommands from '../components/ChatCommands';
 
 interface ActiveVote {
@@ -25,6 +26,10 @@ export default function DesignsPanel() {
   const [type, setType] = useState('enemy');
   const [voteOptionInput, setVoteOptionInput] = useState('');
   const [voteOptionsList, setVoteOptionsList] = useState<string[]>([]);
+
+  useWebSocket((event) => {
+    if (event === 'design-created' || event === 'design-updated' || event === 'design-deleted') refetch();
+  });
   const [voteDuration, setVoteDuration] = useState(60);
 
   // Poll vote status every 2s when active
