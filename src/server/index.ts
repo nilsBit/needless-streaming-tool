@@ -18,24 +18,21 @@ export async function startServer(): Promise<void> {
   initDatabase();
 
   const app = express();
-  app.use(express.json());
 
-  // CORS — nur localhost erlauben (Electron + OBS Overlays)
-  app.use((_req, res, next) => {
-    const origin = _req.headers.origin || '';
-    const allowed = [
-      'http://localhost:5173',   // Vite Dev
-      'http://localhost:4000',   // Overlays
-      'file://',                 // Electron Production
-    ];
-    if (!origin || allowed.some((a) => origin.startsWith(a))) {
+  // CORS — muss VOR allen anderen Middleware kommen
+  app.use((req, res, next) => {
+    const origin = req.headers.origin || '';
+    // Erlaube alle localhost origins (Vite dev kann auf verschiedenen Ports landen)
+    if (!origin || origin.startsWith('http://localhost:') || origin.startsWith('file://')) {
       res.header('Access-Control-Allow-Origin', origin || '*');
-      res.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE');
+      res.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
       res.header('Access-Control-Allow-Headers', 'Content-Type');
     }
-    if (_req.method === 'OPTIONS') { res.sendStatus(204); return; }
+    if (req.method === 'OPTIONS') { res.sendStatus(204); return; }
     next();
   });
+
+  app.use(express.json());
 
   // Health check
   app.get('/api/health', (_req, res) => {
