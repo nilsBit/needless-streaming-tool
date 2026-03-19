@@ -49,6 +49,13 @@ export default function ExperimentPanel() {
   const setStatus = async (status: string) => {
     await apiPatch('/stream-state', { experiment_status: status, timer_running: 0 });
     refetch();
+    // Auto-reset nach 3 Sekunden
+    setTimeout(async () => {
+      await apiPatch('/stream-state', { experiment_title: null, experiment_status: 'idle', timer_seconds: 0, timer_running: 0 });
+      setTitle('');
+      setSeconds(0);
+      refetch();
+    }, 3000);
   };
 
   const toggleTimer = async () => {
