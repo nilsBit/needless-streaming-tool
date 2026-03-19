@@ -1,6 +1,7 @@
 import React from 'react';
 import ErrorBoundary from './components/ErrorBoundary';
 import ExperimentPanel from './panels/ExperimentPanel';
+import TodosPanel from './panels/TodosPanel';
 import BugsPanel from './panels/BugsPanel';
 import RaidsPanel from './panels/RaidsPanel';
 import DesignsPanel from './panels/DesignsPanel';
@@ -17,6 +18,9 @@ export default function App() {
       <main className="panels">
         <ErrorBoundary fallback="Experiment">
           <ExperimentPanel />
+        </ErrorBoundary>
+        <ErrorBoundary fallback="Todos">
+          <TodosPanel />
         </ErrorBoundary>
         <ErrorBoundary fallback="Bug-Roulette">
           <BugsPanel />

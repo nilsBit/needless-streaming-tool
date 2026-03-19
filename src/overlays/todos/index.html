@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: transparent; font-family: -apple-system, sans-serif; overflow: hidden; }
+
+    .todos {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 16px;
+      background: rgba(13, 13, 13, 0.85);
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      backdrop-filter: blur(8px);
+      max-width: 300px;
+    }
+
+    .todos-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #e67e22;
+      margin-bottom: 4px;
+    }
+
+    .todo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #e0e0e0;
+      padding: 4px 0;
+    }
+
+    .todo.done {
+      opacity: 0.4;
+      text-decoration: line-through;
+    }
+
+    .todo-check {
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .todo.done .todo-check { color: #2ecc71; }
+
+    .empty {
+      font-size: 12px;
+      color: #555;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <div class="todos" id="todos">
+    <div class="todos-title">📋 Todos</div>
+    <div id="list"></div>
+  </div>
+
+  <script>
+    const ws = new WebSocket('ws://localhost:4000?overlay=1');
+    const list = document.getElementById('list');
+
+    function render(todos) {
+      list.innerHTML = '';
+      if (todos.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'empty';
+        empty.textContent = 'Keine Todos';
+        list.appendChild(empty);
+        return;
+      }
+
+      todos.forEach(t => {
+        const el = document.createElement('div');
+        el.className = 'todo' + (t.done ? ' done' : '');
+
+        const check = document.createElement('span');
+        check.className = 'todo-check';
+        check.textContent = t.done ? '☑' : '☐';
+
+        const title = document.createElement('span');
+        title.textContent = t.title;
+
+        el.appendChild(check);
+        el.appendChild(title);
+        list.appendChild(el);
+      });
+    }
+
+    function fetchTodos() {
+      fetch('http://localhost:4000/public/todos')
+        .then(r => r.json())
+        .then(render)
+        .catch(() => {});
+    }
+
+    ws.onmessage = (msg) => {
+      const { event } = JSON.parse(msg.data);
+      if (event === 'todo-updated') fetchTodos();
+    };
+
+    // Initial fetch
+    fetchTodos();
+  </script>
+</body>
+</html>

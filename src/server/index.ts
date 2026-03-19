@@ -13,6 +13,7 @@ import settingsRouter from './api/settings';
 import actionsRouter from './api/actions';
 import authRouter from './api/auth';
 import votingRouter from './api/voting';
+import todosRouter from './api/todos';
 import { connectBot } from './bot/index';
 import { getDb } from './db/index';
 import { rateLimit } from './middleware/rate-limit';
@@ -87,14 +88,20 @@ export async function startServer(): Promise<string> {
   app.use('/api/actions', actionsRouter);
   app.use('/api/auth', authRouter);
   app.use('/api/voting', votingRouter);
+  app.use('/api/todos', todosRouter);
 
   // Twitch OAuth callback redirect (no auth needed)
   app.get('/auth/twitch/callback', (req, res) => res.redirect('/api/auth/twitch/callback'));
 
-  // Public read-only endpoint for overlays (no auth needed)
+  // Public read-only endpoints for overlays (no auth needed)
   app.get('/public/stream-state', (_req, res) => {
     const state = getDb().prepare('SELECT * FROM stream_state WHERE id = 1').get();
     res.json(state);
+  });
+
+  app.get('/public/todos', (_req, res) => {
+    const todos = getDb().prepare('SELECT * FROM todos ORDER BY done ASC, sort_order ASC, created_at DESC').all();
+    res.json(todos);
   });
 
   // Static overlay files (no auth needed — public)

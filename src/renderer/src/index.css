@@ -322,6 +322,45 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn-reset-small { font-size: 11px; color: #666; border-color: #333; padding: 3px 8px; }
 .btn-reset-small:hover { color: #e0e0e0; }
 
+/* Todos Panel */
+.todo-input { display: flex; gap: 8px; }
+.todo-input input { flex: 1; }
+
+.todo-list { display: flex; flex-direction: column; gap: 4px; }
+
+.todo-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: #0d0d0d;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.todo-item.done { opacity: 0.4; }
+.todo-item.done .todo-title { text-decoration: line-through; }
+
+.todo-check {
+  background: none;
+  border: none;
+  font-size: 14px;
+  padding: 0;
+  cursor: pointer;
+  color: #e0e0e0;
+}
+.todo-check:hover { color: #2ecc71; background: none; }
+
+.todo-title { flex: 1; }
+
+.todo-delete {
+  padding: 2px 6px;
+  font-size: 11px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.todo-item:hover .todo-delete { opacity: 1; }
+
 /* Chat Commands */
 .chat-commands { margin-top: auto; }
 

@@ -45,6 +45,14 @@ export interface Design {
   created_at: string;
 }
 
+export interface Todo {
+  id: number;
+  title: string;
+  done: number;
+  sort_order: number;
+  created_at: string;
+}
+
 export interface BotConfig {
   channel: string;
   username: string;
