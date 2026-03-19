@@ -51,7 +51,9 @@ export default function ExperimentPanel() {
   }, [seconds]);
 
   const setExperiment = async () => {
-    await apiPatch('/stream-state', { experiment_title: title, experiment_status: 'in_progress', timer_seconds: 0, timer_running: 0 });
+    if (!title.trim()) return;
+    setIsEditing(false);
+    await apiPatch('/stream-state', { experiment_title: title.trim(), experiment_status: 'in_progress', timer_seconds: 0, timer_running: 0 });
     setSeconds(0);
     refetch();
   };
@@ -97,7 +99,7 @@ export default function ExperimentPanel() {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           onFocus={() => setIsEditing(true)}
-          onBlur={() => setIsEditing(false)}
+          onBlur={() => setTimeout(() => setIsEditing(false), 200)}
           onKeyDown={(e) => e.key === 'Enter' && setExperiment()}
         />
         <button onClick={setExperiment}>Start</button>
