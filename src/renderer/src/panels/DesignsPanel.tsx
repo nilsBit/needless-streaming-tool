@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useApi, apiPost, apiPatch } from '../hooks/useApi';
+import { useApi, apiPost, apiPatch, apiDelete } from '../hooks/useApi';
 
 interface Design {
   id: number;
@@ -33,6 +33,11 @@ export default function DesignsPanel() {
     refetch();
   };
 
+  const deleteDesign = async (id: number) => {
+    await apiDelete(`/designs/${id}`);
+    refetch();
+  };
+
   const active = designs?.filter((d) => d.status === 'active') || [];
   const completed = designs?.filter((d) => d.status === 'completed') || [];
 
@@ -62,7 +67,10 @@ export default function DesignsPanel() {
         {active.map((d) => (
           <div key={d.id} className="design-item active">
             <span>{TYPE_EMOJI[d.type] || '❓'} {d.title}</span>
-            <button onClick={() => completeDesign(d.id)}>✅ Fertig</button>
+            <div className="design-actions">
+              <button onClick={() => completeDesign(d.id)}>✅</button>
+              <button onClick={() => deleteDesign(d.id)}>🗑️</button>
+            </div>
           </div>
         ))}
 
@@ -72,6 +80,7 @@ export default function DesignsPanel() {
             {completed.slice(0, 5).map((d) => (
               <div key={d.id} className="design-item done">
                 <span>{TYPE_EMOJI[d.type]} {d.title}</span>
+                <button onClick={() => deleteDesign(d.id)}>🗑️</button>
               </div>
             ))}
           </>

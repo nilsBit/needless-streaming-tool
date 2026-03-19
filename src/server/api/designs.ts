@@ -41,4 +41,10 @@ router.patch('/:id', (req, res) => {
   res.json(design);
 });
 
+router.delete('/:id', (req, res) => {
+  getDb().prepare('DELETE FROM designs WHERE id = ?').run(req.params.id);
+  broadcast('design-deleted', { id: Number(req.params.id) });
+  res.status(204).send();
+});
+
 export default router;

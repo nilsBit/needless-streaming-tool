@@ -212,6 +212,8 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 }
 
 .design-item.done { opacity: 0.5; }
+.design-actions { display: flex; gap: 4px; }
+.design-actions button { padding: 2px 6px; font-size: 11px; }
 
 /* Rewards Panel */
 .reward-list { display: flex; flex-direction: column; gap: 4px; }
