@@ -3,6 +3,10 @@ import http from 'http';
 import path from 'path';
 import { initWebSocket } from './websocket/index';
 import { initDatabase } from './db/index';
+import streamStateRouter from './api/stream-state';
+import bugsRouter from './api/bugs';
+import raidsRouter from './api/raids';
+import rewardsRouter from './api/rewards';
 
 const PORT = 4000;
 
@@ -17,10 +21,14 @@ export async function startServer(): Promise<void> {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 
+  // API routes
+  app.use('/api/stream-state', streamStateRouter);
+  app.use('/api/bugs', bugsRouter);
+  app.use('/api/raids', raidsRouter);
+  app.use('/api/rewards', rewardsRouter);
+
   // Static overlay files
   app.use('/overlay', express.static(path.join(__dirname, '../overlays')));
-
-  // API routes (added in Task 5-7)
 
   const server = http.createServer(app);
   initWebSocket(server);
@@ -32,6 +40,3 @@ export async function startServer(): Promise<void> {
     });
   });
 }
-
-// Export app for route registration
-export { default as express } from 'express';
