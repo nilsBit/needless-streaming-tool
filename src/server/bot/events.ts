@@ -15,30 +15,14 @@ export function registerEvents(client: Client) {
 
     const raid = getDb().prepare('SELECT * FROM raids WHERE id = ?').get(result.lastInsertRowid);
 
-    // Notify overlays
     broadcast('raid-incoming', raid);
 
-    // Chat message
     const tierEmoji = enemy_tier === 'boss' ? '👑' : enemy_tier === 'mini-boss' ? '💀' : enemy_tier === 'elite' ? '⚔️' : '🗡️';
     client.say(channel, `${tierEmoji} RAID von ${username} mit ${viewerCount} Viewern! Neuer ${enemy_tier}-Enemy wird gebaut!`);
 
     console.log(`[Bot] Raid: ${username} (${viewerCount} viewers, ${enemy_tier})`);
   });
 
-  // Channel point redemptions (via chat — full API needs EventSub)
-  client.on('message', (channel, tags, message) => {
-    if (tags['custom-reward-id']) {
-      const rewardId = tags['custom-reward-id'];
-      const userName = tags['display-name'] || tags.username || 'Unknown';
-
-      const result = getDb().prepare(
-        'INSERT INTO rewards (user_name, reward_type, data) VALUES (?, ?, ?)'
-      ).run(userName, rewardId, JSON.stringify({ message, reward_id: rewardId }));
-
-      const reward = getDb().prepare('SELECT * FROM rewards WHERE id = ?').get(result.lastInsertRowid);
-      broadcast('reward-redeemed', reward);
-
-      console.log(`[Bot] Reward: ${userName} redeemed ${rewardId}`);
-    }
-  });
+  // Channel point redemptions are handled by EventSub (eventsub.ts)
+  // No chat-based reward handler needed
 }
