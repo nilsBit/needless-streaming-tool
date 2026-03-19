@@ -311,6 +311,16 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .bot-controls { display: flex; gap: 8px; }
 
+.setup-step { display: flex; flex-direction: column; gap: 6px; }
+.setup-info { font-size: 12px; color: #888; }
+
+.client-id-input { display: flex; gap: 8px; }
+.client-id-input input { flex: 1; }
+
+.reset-section { margin-top: 4px; }
+.btn-reset-small { font-size: 11px; color: #666; border-color: #333; padding: 3px 8px; }
+.btn-reset-small:hover { color: #e0e0e0; }
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }

@@ -2,41 +2,46 @@ import React, { useState, useEffect } from 'react';
 import { useApi, apiPost } from '../hooks/useApi';
 import { TwitchConfigResponse, BotStatus } from '../../../shared/types';
 
+interface ClientIdResponse {
+  configured: boolean;
+  client_id_preview: string | null;
+}
+
 export default function SettingsPanel() {
   const { data: config, refetch: refetchConfig } = useApi<TwitchConfigResponse>('/settings/twitch');
   const { data: botStatus, refetch: refetchBot } = useApi<BotStatus>('/settings/bot-status');
+  const { data: clientIdInfo, refetch: refetchClientId } = useApi<ClientIdResponse>('/auth/twitch/client-id');
 
-  const [channel, setChannel] = useState('');
-  const [username, setUsername] = useState('');
-  const [token, setToken] = useState('');
+  const [clientId, setClientId] = useState('');
 
-  useEffect(() => {
-    if (config?.configured) {
-      setChannel(config.channel || '');
-      setUsername(config.username || '');
-    }
-  }, [config]);
-
-  const saveConfig = async () => {
-    if (!channel || !username || !token) return;
-    await apiPost('/settings/twitch', {
-      channel,
-      username,
-      oauth_token: token.startsWith('oauth:') ? token : `oauth:${token}`,
-    });
-    setToken('');
-    refetchConfig();
+  const saveClientId = async () => {
+    if (!clientId.trim()) return;
+    await apiPost('/auth/twitch/client-id', { client_id: clientId.trim() });
+    setClientId('');
+    refetchClientId();
   };
 
-  const connectBot = async () => {
-    await apiPost('/settings/bot/connect', {});
-    refetchBot();
+  const connectTwitch = async () => {
+    const res = await fetch('http://localhost:4000/auth/twitch/url');
+    const data = await res.json();
+    if (data.url) {
+      window.open(data.url, '_blank', 'width=500,height=700');
+    }
   };
 
   const disconnectBot = async () => {
     await apiPost('/settings/bot/disconnect', {});
     refetchBot();
   };
+
+  // Poll bot status every 3s (to detect connection after OAuth callback)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refetchBot();
+      refetchConfig();
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [refetchBot, refetchConfig]);
 
   return (
     <div className="panel settings-panel">
@@ -51,29 +56,49 @@ export default function SettingsPanel() {
           <span>{botStatus?.connected ? `Verbunden mit #${botStatus.channel}` : 'Nicht verbunden'}</span>
         </div>
 
-        <div className="settings-form">
-          <label>
-            Channel
-            <input type="text" value={channel} onChange={(e) => setChannel(e.target.value)} placeholder="dein_channel" />
-          </label>
-          <label>
-            Bot Username
-            <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="dein_bot_name" />
-          </label>
-          <label>
-            OAuth Token
-            <input type="password" value={token} onChange={(e) => setToken(e.target.value)} placeholder={config?.has_token ? '••••••• (gespeichert)' : 'oauth:xxx...'} />
-          </label>
-          <button onClick={saveConfig}>💾 Speichern</button>
-        </div>
+        {!clientIdInfo?.configured ? (
+          <div className="setup-step">
+            <p className="setup-info">Schritt 1: Erstelle eine App auf dev.twitch.tv und trage die Client-ID ein.</p>
+            <div className="client-id-input">
+              <input
+                type="text"
+                placeholder="Twitch Client-ID..."
+                value={clientId}
+                onChange={(e) => setClientId(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && saveClientId()}
+              />
+              <button onClick={saveClientId}>💾</button>
+            </div>
+          </div>
+        ) : (
+          <div className="setup-step">
+            <p className="setup-info">Client-ID: {clientIdInfo.client_id_preview}</p>
+          </div>
+        )}
 
         <div className="bot-controls">
           {botStatus?.connected ? (
             <button className="btn-disconnect" onClick={disconnectBot}>🔌 Trennen</button>
           ) : (
-            <button className="btn-connect" onClick={connectBot}>🔗 Verbinden</button>
+            <button
+              className="btn-connect"
+              onClick={connectTwitch}
+              disabled={!clientIdInfo?.configured}
+            >
+              🔗 Mit Twitch verbinden
+            </button>
           )}
         </div>
+
+        {clientIdInfo?.configured && (
+          <div className="reset-section">
+            <button className="btn-reset-small" onClick={() => {
+              setClientId('');
+              apiPost('/auth/twitch/client-id', { client_id: '' });
+              refetchClientId();
+            }}>Client-ID ändern</button>
+          </div>
+        )}
       </div>
     </div>
   );

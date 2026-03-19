@@ -10,6 +10,7 @@ import rewardsRouter from './api/rewards';
 import designsRouter from './api/designs';
 import settingsRouter from './api/settings';
 import actionsRouter from './api/actions';
+import authRouter from './api/auth';
 import votingRouter from './api/voting';
 import { connectBot } from './bot/index';
 
@@ -54,6 +55,7 @@ export async function startServer(): Promise<void> {
   app.use('/api/designs', designsRouter);
   app.use('/api/settings', settingsRouter);
   app.use('/api/actions', actionsRouter);
+  app.use('/auth', authRouter);
   app.use('/api/voting', votingRouter);
 
   // Static overlay files
