@@ -7,6 +7,8 @@ import streamStateRouter from './api/stream-state';
 import bugsRouter from './api/bugs';
 import raidsRouter from './api/raids';
 import rewardsRouter from './api/rewards';
+import settingsRouter from './api/settings';
+import { connectBot } from './bot/index';
 
 const PORT = 4000;
 
@@ -26,6 +28,7 @@ export async function startServer(): Promise<void> {
   app.use('/api/bugs', bugsRouter);
   app.use('/api/raids', raidsRouter);
   app.use('/api/rewards', rewardsRouter);
+  app.use('/api/settings', settingsRouter);
 
   // Static overlay files
   app.use('/overlay', express.static(path.join(__dirname, '../overlays')));
@@ -36,6 +39,10 @@ export async function startServer(): Promise<void> {
   return new Promise((resolve) => {
     server.listen(PORT, () => {
       console.log(`[Server] Running on http://localhost:${PORT}`);
+
+      // Auto-connect bot if configured
+      connectBot().catch(() => {});
+
       resolve();
     });
   });

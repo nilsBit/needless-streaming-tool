@@ -45,4 +45,9 @@ CREATE TABLE IF NOT EXISTS stream_state (
 );
 
 INSERT OR IGNORE INTO stream_state (id) VALUES (1);
+
+CREATE TABLE IF NOT EXISTS settings (
+  key   TEXT PRIMARY KEY,
+  value TEXT NOT NULL
+);
 `;
