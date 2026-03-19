@@ -1,10 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { useApi, apiPost } from '../hooks/useApi';
+import { useApi, apiPost, getApiToken } from '../hooks/useApi';
 import { TwitchConfigResponse, BotStatus } from '../../../shared/types';
 
 interface ClientIdResponse {
   configured: boolean;
   client_id_preview: string | null;
+}
+
+function authFetch(url: string, options: RequestInit = {}) {
+  const token = getApiToken();
+  return fetch(url, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+      ...(options.headers || {}),
+    },
+  });
 }
 
 export default function SettingsPanel() {
@@ -16,9 +28,8 @@ export default function SettingsPanel() {
 
   const saveClientId = async () => {
     if (!clientId.trim()) return;
-    await fetch('http://localhost:4000/api/auth/twitch/client-id', {
+    await authFetch('http://localhost:4000/api/auth/twitch/client-id', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ client_id: clientId.trim() }),
     });
     setClientId('');
@@ -27,8 +38,7 @@ export default function SettingsPanel() {
 
   const connectTwitch = async () => {
     try {
-      // Server opens the URL in system browser and returns success
-      const res = await fetch('http://localhost:4000/api/auth/twitch/open', { method: 'POST' });
+      const res = await authFetch('http://localhost:4000/api/auth/twitch/open', { method: 'POST' });
       const data = await res.json();
       if (!data.success) {
         console.error('[Settings] Failed to open Twitch auth:', data.error);
@@ -43,7 +53,6 @@ export default function SettingsPanel() {
     refetchBot();
   };
 
-  // Poll bot status every 3s (to detect connection after OAuth callback)
   useEffect(() => {
     const interval = setInterval(() => {
       refetchBot();
@@ -101,9 +110,12 @@ export default function SettingsPanel() {
 
         {clientIdInfo?.configured && (
           <div className="reset-section">
-            <button className="btn-reset-small" onClick={() => {
+            <button className="btn-reset-small" onClick={async () => {
               setClientId('');
-              fetch('http://localhost:4000/api/auth/twitch/client-id', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ client_id: '' }) });
+              await authFetch('http://localhost:4000/api/auth/twitch/client-id', {
+                method: 'POST',
+                body: JSON.stringify({ client_id: '' }),
+              });
               refetchClientId();
             }}>Client-ID ändern</button>
           </div>

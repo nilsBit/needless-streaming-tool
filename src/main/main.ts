@@ -6,6 +6,7 @@ import { createTray } from './tray';
 
 let mainWindow: BrowserWindow | null = null;
 let isQuitting = false;
+let apiToken: string = '';
 
 const isDev = !app.isPackaged;
 
@@ -30,10 +31,13 @@ function createWindow() {
     });
   });
 
+  // Pass API token to renderer via URL hash (not visible in server logs)
   if (isDev) {
-    mainWindow.loadURL('http://localhost:5173');
+    mainWindow.loadURL(`http://localhost:5173#token=${apiToken}`);
   } else {
-    mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
+    mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'), {
+      hash: `token=${apiToken}`,
+    });
   }
 
   // Minimize to tray instead of closing
@@ -52,7 +56,7 @@ function createWindow() {
 }
 
 app.whenReady().then(async () => {
-  await startServer();
+  apiToken = await startServer();
   createWindow();
   registerHotkeys();
 });
