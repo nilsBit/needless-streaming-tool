@@ -7,6 +7,7 @@ import streamStateRouter from './api/stream-state';
 import bugsRouter from './api/bugs';
 import raidsRouter from './api/raids';
 import rewardsRouter from './api/rewards';
+import designsRouter from './api/designs';
 import settingsRouter from './api/settings';
 import { connectBot } from './bot/index';
 
@@ -28,6 +29,7 @@ export async function startServer(): Promise<void> {
   app.use('/api/bugs', bugsRouter);
   app.use('/api/raids', raidsRouter);
   app.use('/api/rewards', rewardsRouter);
+  app.use('/api/designs', designsRouter);
   app.use('/api/settings', settingsRouter);
 
   // Static overlay files

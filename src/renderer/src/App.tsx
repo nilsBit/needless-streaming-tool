@@ -1,4 +1,10 @@
 import React from 'react';
+import ExperimentPanel from './panels/ExperimentPanel';
+import BugsPanel from './panels/BugsPanel';
+import RaidsPanel from './panels/RaidsPanel';
+import DesignsPanel from './panels/DesignsPanel';
+import RewardsPanel from './panels/RewardsPanel';
+import SettingsPanel from './panels/SettingsPanel';
 
 export default function App() {
   return (
@@ -8,12 +14,12 @@ export default function App() {
         <span className="status">Stream Toolkit</span>
       </header>
       <main className="panels">
-        <div className="panel">Experiment Control</div>
-        <div className="panel">Bug-Roulette</div>
-        <div className="panel">Raid-Boss Queue</div>
-        <div className="panel">Chat Designs</div>
-        <div className="panel">Rewards Log</div>
-        <div className="panel">Settings</div>
+        <ExperimentPanel />
+        <BugsPanel />
+        <RaidsPanel />
+        <DesignsPanel />
+        <RewardsPanel />
+        <SettingsPanel />
       </main>
     </div>
   );

@@ -20,6 +20,7 @@ body {
 .app-header h1 { font-size: 18px; font-weight: 600; }
 .status { font-size: 12px; color: #888; }
 
+/* Panels Grid */
 .panels {
   flex: 1;
   display: grid;
@@ -27,6 +28,7 @@ body {
   grid-template-rows: repeat(2, 1fr);
   gap: 12px;
   padding: 12px;
+  overflow: hidden;
 }
 
 .panel {
@@ -34,6 +36,216 @@ body {
   border: 1px solid #2a2a2a;
   border-radius: 8px;
   padding: 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.panel h2 { font-size: 14px; font-weight: 600; color: #fff; }
+.panel h3 { font-size: 12px; font-weight: 500; color: #666; margin-top: 8px; }
+.empty { font-size: 12px; color: #555; font-style: italic; }
+
+/* Inputs */
+input, select {
+  background: #0d0d0d;
+  border: 1px solid #333;
+  border-radius: 4px;
+  padding: 6px 10px;
+  color: #e0e0e0;
+  font-size: 13px;
+  outline: none;
+}
+
+input:focus, select:focus { border-color: #e67e22; }
+input::placeholder { color: #555; }
+
+/* Buttons */
+button {
+  background: #2a2a2a;
+  border: 1px solid #333;
+  border-radius: 4px;
+  padding: 6px 12px;
+  color: #e0e0e0;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+button:hover { background: #333; }
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-done { border-color: #2ecc71; }
+.btn-done:hover { background: #2ecc7133; }
+.btn-failed { border-color: #e74c3c; }
+.btn-failed:hover { background: #e74c3c33; }
+.btn-reset { border-color: #666; }
+.btn-connect { border-color: #2ecc71; }
+.btn-connect:hover { background: #2ecc7133; }
+.btn-disconnect { border-color: #e74c3c; }
+.btn-disconnect:hover { background: #e74c3c33; }
+
+/* Status Dot */
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+/* Experiment Panel */
+.experiment-input { display: flex; gap: 8px; }
+.experiment-input input { flex: 1; }
+
+.experiment-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: #0d0d0d;
+  border-radius: 4px;
+}
+
+.experiment-title { font-weight: 600; font-size: 13px; }
+.experiment-state { color: #888; font-size: 11px; margin-left: auto; text-transform: uppercase; }
+
+.timer { display: flex; align-items: center; gap: 8px; }
+.timer-display { font-size: 28px; font-weight: 700; font-family: 'SF Mono', monospace; color: #e67e22; }
+
+.experiment-actions { display: flex; gap: 8px; }
+
+/* Bugs Panel */
+.bug-input { display: flex; gap: 8px; }
+.bug-input input { flex: 1; }
+
+.btn-roulette {
+  width: 100%;
+  padding: 10px;
   font-size: 14px;
+  border-color: #e67e22;
+}
+.btn-roulette:hover { background: #e67e2233; }
+
+.roulette-result {
+  padding: 8px;
+  background: #e67e2222;
+  border: 1px solid #e67e22;
+  border-radius: 4px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.bug-list { display: flex; flex-direction: column; gap: 4px; }
+
+.bug-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  background: #0d0d0d;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.bug-item.fixed { opacity: 0.5; text-decoration: line-through; }
+.bug-actions { display: flex; gap: 4px; }
+.bug-actions button { padding: 2px 6px; font-size: 11px; }
+
+/* Raids Panel */
+.raid-list { display: flex; flex-direction: column; gap: 6px; }
+
+.raid-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  background: #0d0d0d;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.raid-item.done { opacity: 0.5; flex-direction: row; justify-content: space-between; align-items: center; }
+
+.raid-info { display: flex; align-items: center; gap: 8px; }
+.raid-tier { font-size: 16px; }
+.raid-name { font-weight: 600; }
+.raid-viewers { color: #888; }
+.raid-tier-label { color: #e67e22; font-size: 11px; text-transform: uppercase; margin-left: auto; }
+
+.raid-actions { display: flex; align-items: center; gap: 6px; }
+.raid-edit { display: flex; gap: 6px; }
+.raid-edit input { flex: 1; }
+.enemy-name { color: #e67e22; font-size: 11px; }
+.raid-status-label { color: #666; font-size: 11px; }
+
+/* Designs Panel */
+.design-create { display: flex; gap: 8px; }
+.design-create input { flex: 1; }
+.design-create select { width: 120px; }
+
+.design-list { display: flex; flex-direction: column; gap: 4px; }
+
+.design-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  background: #0d0d0d;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.design-item.done { opacity: 0.5; }
+
+/* Rewards Panel */
+.reward-list { display: flex; flex-direction: column; gap: 4px; }
+
+.reward-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  background: #0d0d0d;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.reward-item.done { opacity: 0.5; }
+.reward-info { display: flex; gap: 8px; }
+.reward-user { font-weight: 600; }
+.reward-type { color: #888; }
+
+/* Settings Panel */
+.settings-section { display: flex; flex-direction: column; gap: 12px; }
+
+.bot-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
   color: #888;
 }
+
+.settings-form label input { font-size: 13px; }
+
+.bot-controls { display: flex; gap: 8px; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #444; }
