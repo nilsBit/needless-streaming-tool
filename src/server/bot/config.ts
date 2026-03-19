@@ -1,11 +1,6 @@
 import { getDb } from '../db/index';
 import { safeStorage } from 'electron';
-
-export interface BotConfig {
-  channel: string;
-  username: string;
-  oauth_token: string;
-}
+import { BotConfig } from '../../shared/types';
 
 function encryptToken(token: string): string {
   if (safeStorage.isEncryptionAvailable()) {

@@ -1,31 +1,55 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 
 type MessageHandler = (event: string, data: unknown) => void;
 
 export function useWebSocket(onMessage: MessageHandler) {
-  const wsRef = useRef<WebSocket | null>(null);
   const handlersRef = useRef<MessageHandler>(onMessage);
   handlersRef.current = onMessage;
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:4000');
-    wsRef.current = ws;
+    let ws: WebSocket | null = null;
+    let reconnectTimeout: ReturnType<typeof setTimeout>;
+    let attempts = 0;
+    let disposed = false;
 
-    ws.onmessage = (msg) => {
-      try {
-        const { event, data } = JSON.parse(msg.data);
-        handlersRef.current(event, data);
-      } catch {}
-    };
+    function connect() {
+      if (disposed) return;
 
-    ws.onclose = () => {
-      setTimeout(() => {
-        if (wsRef.current === ws) {
-          wsRef.current = null;
+      ws = new WebSocket('ws://localhost:4000');
+
+      ws.onopen = () => {
+        attempts = 0;
+        console.log('[WS] Connected');
+      };
+
+      ws.onmessage = (msg) => {
+        try {
+          const { event, data } = JSON.parse(msg.data);
+          handlersRef.current(event, data);
+        } catch (err) {
+          console.error('[WS] Failed to parse message:', err);
         }
-      }, 3000);
-    };
+      };
 
-    return () => { ws.close(); };
+      ws.onclose = () => {
+        if (disposed) return;
+        attempts++;
+        const delay = Math.min(1000 * Math.pow(2, attempts), 10000);
+        console.log(`[WS] Disconnected. Reconnecting in ${delay}ms...`);
+        reconnectTimeout = setTimeout(connect, delay);
+      };
+
+      ws.onerror = () => {
+        ws?.close();
+      };
+    }
+
+    connect();
+
+    return () => {
+      disposed = true;
+      clearTimeout(reconnectTimeout);
+      ws?.close();
+    };
   }, []);
 }

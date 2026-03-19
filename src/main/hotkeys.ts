@@ -12,39 +12,51 @@ function apiCall(method: string, path: string, body?: unknown) {
   };
 
   const req = http.request(options);
+  req.on('error', (err) => console.error(`[Hotkey] API call failed: ${path}`, err.message));
   if (data) req.write(data);
   req.end();
 }
 
-export function registerHotkeys() {
-  // Ctrl+Shift+E — Experiment toggle
-  globalShortcut.register('CommandOrControl+Shift+E', () => {
-    // Fetch current state, then toggle
-    http.get('http://localhost:4000/api/stream-state', (res) => {
+function apiGet(path: string): Promise<unknown> {
+  return new Promise((resolve, reject) => {
+    http.get(`http://localhost:4000${path}`, (res) => {
       let data = '';
       res.on('data', (c) => data += c);
       res.on('end', () => {
-        const state = JSON.parse(data);
-        if (state.experiment_status === 'in_progress') {
-          apiCall('PATCH', '/api/stream-state', { experiment_status: 'idle', timer_running: 0 });
-        } else {
-          apiCall('PATCH', '/api/stream-state', { experiment_status: 'in_progress' });
+        try {
+          resolve(JSON.parse(data));
+        } catch {
+          reject(new Error(`Invalid JSON from ${path}`));
         }
       });
-    });
+    }).on('error', reject);
+  });
+}
+
+export function registerHotkeys() {
+  // Ctrl+Shift+E — Experiment toggle
+  globalShortcut.register('CommandOrControl+Shift+E', async () => {
+    try {
+      const state = await apiGet('/api/stream-state') as { experiment_status: string };
+      if (state.experiment_status === 'in_progress') {
+        apiCall('PATCH', '/api/stream-state', { experiment_status: 'idle', timer_running: 0 });
+      } else {
+        apiCall('PATCH', '/api/stream-state', { experiment_status: 'in_progress' });
+      }
+    } catch (err) {
+      console.error('[Hotkey] Experiment toggle failed:', err);
+    }
     console.log('[Hotkey] Ctrl+Shift+E — Experiment toggle');
   });
 
   // Ctrl+Shift+T — Timer toggle
-  globalShortcut.register('CommandOrControl+Shift+T', () => {
-    http.get('http://localhost:4000/api/stream-state', (res) => {
-      let data = '';
-      res.on('data', (c) => data += c);
-      res.on('end', () => {
-        const state = JSON.parse(data);
-        apiCall('PATCH', '/api/stream-state', { timer_running: state.timer_running ? 0 : 1 });
-      });
-    });
+  globalShortcut.register('CommandOrControl+Shift+T', async () => {
+    try {
+      const state = await apiGet('/api/stream-state') as { timer_running: number };
+      apiCall('PATCH', '/api/stream-state', { timer_running: state.timer_running ? 0 : 1 });
+    } catch (err) {
+      console.error('[Hotkey] Timer toggle failed:', err);
+    }
     console.log('[Hotkey] Ctrl+Shift+T — Timer toggle');
   });
 

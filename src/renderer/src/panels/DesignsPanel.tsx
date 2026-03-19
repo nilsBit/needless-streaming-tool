@@ -1,14 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApi, apiPost, apiPatch, apiDelete } from '../hooks/useApi';
-
-interface Design {
-  id: number;
-  title: string;
-  type: string;
-  poll_data: string | null;
-  status: string;
-  created_at: string;
-}
+import { Design } from '../../../shared/types';
 
 interface ActiveVote {
   active?: boolean;

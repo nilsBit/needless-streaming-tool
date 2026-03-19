@@ -1,13 +1,7 @@
 import { Client } from 'tmi.js';
 import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
-
-function calculateTier(viewerCount: number): string {
-  if (viewerCount >= 100) return 'boss';
-  if (viewerCount >= 50) return 'mini-boss';
-  if (viewerCount >= 10) return 'elite';
-  return 'mob';
-}
+import { calculateTier } from '../../shared/types';
 
 export function registerEvents(client: Client) {
   // Raid incoming

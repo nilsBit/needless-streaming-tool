@@ -1,20 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useApi, apiPost } from '../hooks/useApi';
-
-interface TwitchConfig {
-  configured: boolean;
-  channel?: string;
-  username?: string;
-  has_token?: boolean;
-}
-
-interface BotStatus {
-  connected: boolean;
-  channel: string | null;
-}
+import { TwitchConfigResponse, BotStatus } from '../../../shared/types';
 
 export default function SettingsPanel() {
-  const { data: config, refetch: refetchConfig } = useApi<TwitchConfig>('/settings/twitch');
+  const { data: config, refetch: refetchConfig } = useApi<TwitchConfigResponse>('/settings/twitch');
   const { data: botStatus, refetch: refetchBot } = useApi<BotStatus>('/settings/bot-status');
 
   const [channel, setChannel] = useState('');

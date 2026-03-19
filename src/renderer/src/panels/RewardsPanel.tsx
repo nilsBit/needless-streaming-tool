@@ -1,14 +1,6 @@
 import React from 'react';
 import { useApi, apiPatch } from '../hooks/useApi';
-
-interface Reward {
-  id: number;
-  user_name: string;
-  reward_type: string;
-  data: string | null;
-  status: string;
-  created_at: string;
-}
+import { Reward } from '../../../shared/types';
 
 const REWARD_LABELS: Record<string, string> = {
   spawn_enemys: '💥 Spawn 50 Enemys',

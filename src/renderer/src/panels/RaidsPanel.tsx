@@ -1,15 +1,6 @@
 import React, { useState } from 'react';
 import { useApi, apiPatch } from '../hooks/useApi';
-
-interface Raid {
-  id: number;
-  streamer_name: string;
-  viewer_count: number;
-  enemy_tier: string;
-  enemy_name: string | null;
-  status: string;
-  created_at: string;
-}
+import { Raid } from '../../../shared/types';
 
 const TIER_EMOJI: Record<string, string> = {
   mob: '🗡️',

@@ -1,13 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApi, apiPatch } from '../hooks/useApi';
-
-interface StreamState {
-  experiment_title: string | null;
-  experiment_status: string;
-  timer_seconds: number;
-  timer_running: number;
-  is_live: number;
-}
+import { StreamState } from '../../../shared/types';
 
 export default function ExperimentPanel() {
   const { data: state, refetch } = useApi<StreamState>('/stream-state');
@@ -15,6 +8,7 @@ export default function ExperimentPanel() {
   const [isEditing, setIsEditing] = useState(false);
   const [timerDisplay, setTimerDisplay] = useState('00:00');
   const [seconds, setSeconds] = useState(0);
+  const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (state) {
@@ -65,12 +59,15 @@ export default function ExperimentPanel() {
   const setStatus = async (status: string) => {
     await apiPatch('/stream-state', { experiment_status: status, timer_running: 0 });
     refetch();
+    // Clear previous reset timer if exists
+    if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
     // Auto-reset nach 3 Sekunden
-    setTimeout(async () => {
+    resetTimerRef.current = setTimeout(async () => {
       await apiPatch('/stream-state', { experiment_title: null, experiment_status: 'idle', timer_seconds: 0, timer_running: 0 });
       setTitle('');
       setSeconds(0);
       refetch();
+      resetTimerRef.current = null;
     }, 3000);
   };
 

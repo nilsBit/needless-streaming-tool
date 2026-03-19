@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import { getBotConfig, saveBotConfig, BotConfig } from '../bot/config';
+import { getBotConfig, saveBotConfig } from '../bot/config';
 import { connectBot, disconnectBot, getBotStatus } from '../bot/index';
+import { BotConfig } from '../../shared/types';
 
 const router = Router();
 
-// GET twitch config (ohne Token)
 router.get('/twitch', (_req, res) => {
   const config = getBotConfig();
   if (!config) {
@@ -19,7 +19,6 @@ router.get('/twitch', (_req, res) => {
   });
 });
 
-// POST save twitch config
 router.post('/twitch', (req, res) => {
   const { channel, username, oauth_token } = req.body as BotConfig;
   if (!channel || !username || !oauth_token) {
@@ -30,21 +29,26 @@ router.post('/twitch', (req, res) => {
   res.json({ success: true });
 });
 
-// GET bot status
 router.get('/bot-status', (_req, res) => {
   res.json(getBotStatus());
 });
 
-// POST connect bot
 router.post('/bot/connect', async (_req, res) => {
-  const success = await connectBot();
-  res.json({ connected: success });
+  try {
+    const success = await connectBot();
+    res.json({ connected: success });
+  } catch (err) {
+    res.status(500).json({ error: 'Bot connection failed', details: String(err) });
+  }
 });
 
-// POST disconnect bot
 router.post('/bot/disconnect', async (_req, res) => {
-  await disconnectBot();
-  res.json({ connected: false });
+  try {
+    await disconnectBot();
+    res.json({ connected: false });
+  } catch (err) {
+    res.status(500).json({ error: 'Bot disconnect failed', details: String(err) });
+  }
 });
 
 export default router;

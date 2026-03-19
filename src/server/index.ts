@@ -33,7 +33,13 @@ export async function startServer(): Promise<void> {
     next();
   });
 
-  app.use(express.json());
+  app.use(express.json({ limit: '100kb' }));
+
+  // CSP für Overlays
+  app.use('/overlay', (_req, res, next) => {
+    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src ws://localhost:4000 http://localhost:4000");
+    next();
+  });
 
   // Health check
   app.get('/api/health', (_req, res) => {

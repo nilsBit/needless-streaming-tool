@@ -1,15 +1,10 @@
 import { Router } from 'express';
 import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
+import { calculateTier, VALID_RAID_STATUS } from '../../shared/types';
+import { validateEnum, requireRow } from './validate';
 
 const router = Router();
-
-function calculateTier(viewerCount: number): string {
-  if (viewerCount >= 100) return 'boss';
-  if (viewerCount >= 50) return 'mini-boss';
-  if (viewerCount >= 10) return 'elite';
-  return 'mob';
-}
 
 router.get('/', (_req, res) => {
   const raids = getDb().prepare('SELECT * FROM raids ORDER BY created_at DESC').all();
@@ -36,6 +31,12 @@ router.post('/', (req, res) => {
 router.patch('/:id', (req, res) => {
   const { enemy_name, status } = req.body;
   const db = getDb();
+
+  if (!validateEnum(status, VALID_RAID_STATUS, 'status', res)) return;
+
+  const existing = db.prepare('SELECT * FROM raids WHERE id = ?').get(req.params.id);
+  if (!requireRow(existing, res)) return;
+
   const fields: string[] = [];
   const values: unknown[] = [];
 

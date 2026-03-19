@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
+import { VALID_EXPERIMENT_STATUS } from '../../shared/types';
+import { validateEnum } from './validate';
 
 const router = Router();
 
@@ -12,6 +14,8 @@ router.get('/', (_req, res) => {
 router.patch('/', (req, res) => {
   const { experiment_title, experiment_status, timer_seconds, timer_running, is_live } = req.body;
   const db = getDb();
+
+  if (!validateEnum(experiment_status, VALID_EXPERIMENT_STATUS, 'experiment_status', res)) return;
 
   const fields: string[] = [];
   const values: unknown[] = [];

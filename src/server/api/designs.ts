@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
+import { VALID_DESIGN_STATUS, VALID_DESIGN_TYPE } from '../../shared/types';
+import { validateEnum, requireRow } from './validate';
 
 const router = Router();
 
@@ -12,6 +14,7 @@ router.get('/', (_req, res) => {
 router.post('/', (req, res) => {
   const { title, type } = req.body;
   if (!title || !type) { res.status(400).json({ error: 'title and type required' }); return; }
+  if (!validateEnum(type, VALID_DESIGN_TYPE, 'type', res)) return;
 
   const result = getDb().prepare('INSERT INTO designs (title, type) VALUES (?, ?)').run(title, type);
   const design = getDb().prepare('SELECT * FROM designs WHERE id = ?').get(result.lastInsertRowid);
@@ -23,6 +26,13 @@ router.post('/', (req, res) => {
 router.patch('/:id', (req, res) => {
   const { title, type, poll_data, status } = req.body;
   const db = getDb();
+
+  if (!validateEnum(status, VALID_DESIGN_STATUS, 'status', res)) return;
+  if (!validateEnum(type, VALID_DESIGN_TYPE, 'type', res)) return;
+
+  const existing = db.prepare('SELECT * FROM designs WHERE id = ?').get(req.params.id);
+  if (!requireRow(existing, res)) return;
+
   const fields: string[] = [];
   const values: unknown[] = [];
 
@@ -42,6 +52,9 @@ router.patch('/:id', (req, res) => {
 });
 
 router.delete('/:id', (req, res) => {
+  const existing = getDb().prepare('SELECT * FROM designs WHERE id = ?').get(req.params.id);
+  if (!requireRow(existing, res)) return;
+
   getDb().prepare('DELETE FROM designs WHERE id = ?').run(req.params.id);
   broadcast('design-deleted', { id: Number(req.params.id) });
   res.status(204).send();

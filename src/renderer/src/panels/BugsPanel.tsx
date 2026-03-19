@@ -1,13 +1,6 @@
 import React, { useState } from 'react';
 import { useApi, apiPost, apiPatch, apiDelete } from '../hooks/useApi';
-
-interface Bug {
-  id: number;
-  title: string;
-  description: string | null;
-  status: string;
-  created_at: string;
-}
+import { Bug } from '../../../shared/types';
 
 export default function BugsPanel() {
   const { data: bugs, refetch } = useApi<Bug[]>('/bugs');

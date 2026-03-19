@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
+import { VALID_REWARD_STATUS } from '../../shared/types';
+import { validateEnum, requireRow } from './validate';
 
 const router = Router();
 
@@ -39,6 +41,10 @@ router.post('/', (req, res) => {
 router.patch('/:id', (req, res) => {
   const { status } = req.body;
   if (!status) { res.status(400).json({ error: 'status required' }); return; }
+  if (!validateEnum(status, VALID_REWARD_STATUS, 'status', res)) return;
+
+  const existing = getDb().prepare('SELECT * FROM rewards WHERE id = ?').get(req.params.id);
+  if (!requireRow(existing, res)) return;
 
   getDb().prepare('UPDATE rewards SET status = ? WHERE id = ?').run(status, req.params.id);
   const reward = getDb().prepare('SELECT * FROM rewards WHERE id = ?').get(req.params.id);

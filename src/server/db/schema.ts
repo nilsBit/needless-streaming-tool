@@ -1,4 +1,10 @@
+export const SCHEMA_VERSION = 1;
+
 export const SCHEMA = `
+CREATE TABLE IF NOT EXISTS schema_version (
+  version INTEGER PRIMARY KEY
+);
+
 CREATE TABLE IF NOT EXISTS raids (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,
   streamer_name TEXT NOT NULL,

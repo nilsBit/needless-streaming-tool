@@ -1,27 +1,7 @@
 import { Client } from 'tmi.js';
 import { getDb } from '../db/index';
 import { startVote, castVote, getActiveVote, endVote } from './voting';
-
-interface StreamState {
-  experiment_title: string | null;
-  experiment_status: string;
-  timer_seconds: number;
-  timer_running: number;
-  is_live: number;
-}
-
-interface Bug {
-  id: number;
-  title: string;
-  status: string;
-}
-
-interface Raid {
-  streamer_name: string;
-  enemy_tier: string;
-  enemy_name: string | null;
-  status: string;
-}
+import { StreamState, Bug, Raid } from '../../shared/types';
 
 const startTime = Date.now();
 
@@ -82,7 +62,6 @@ export function registerCommands(client: Client) {
         const subCommand = args[0]?.toLowerCase();
 
         if (subCommand === 'start') {
-          // !design start 60 enemy weapon upgrade
           const duration = parseInt(args[1], 10) || 60;
           const options = args.slice(2);
           if (options.length < 2) {

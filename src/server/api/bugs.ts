@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
+import { VALID_BUG_STATUS } from '../../shared/types';
+import { validateEnum, requireRow } from './validate';
 
 const router = Router();
 
@@ -24,6 +26,11 @@ router.patch('/:id', (req, res) => {
   const { title, description, status } = req.body;
   const db = getDb();
 
+  if (!validateEnum(status, VALID_BUG_STATUS, 'status', res)) return;
+
+  const existing = db.prepare('SELECT * FROM bugs WHERE id = ?').get(req.params.id);
+  if (!requireRow(existing, res)) return;
+
   const fields: string[] = [];
   const values: unknown[] = [];
 
@@ -42,6 +49,9 @@ router.patch('/:id', (req, res) => {
 });
 
 router.delete('/:id', (req, res) => {
+  const existing = getDb().prepare('SELECT * FROM bugs WHERE id = ?').get(req.params.id);
+  if (!requireRow(existing, res)) return;
+
   getDb().prepare('DELETE FROM bugs WHERE id = ?').run(req.params.id);
   broadcast('bug-deleted', { id: Number(req.params.id) });
   res.status(204).send();
