@@ -2,6 +2,7 @@ import tmi from 'tmi.js';
 import { getBotConfig } from './config';
 import { registerCommands } from './commands';
 import { registerEvents } from './events';
+import { connectEventSub, disconnectEventSub } from './eventsub';
 import { broadcast } from '../websocket/index';
 
 let client: tmi.Client | null = null;
@@ -41,6 +42,10 @@ export async function connectBot(): Promise<boolean> {
     connected = true;
     broadcast('bot-status', { connected: true, channel: config.channel });
     console.log(`[Bot] Connected to #${config.channel}`);
+
+    // Start EventSub for channel point redemptions
+    connectEventSub().catch((err) => console.error('[Bot] EventSub failed:', err));
+
     return true;
   } catch (err) {
     console.error('[Bot] Connection failed:', err);
@@ -51,6 +56,7 @@ export async function connectBot(): Promise<boolean> {
 }
 
 export async function disconnectBot(): Promise<void> {
+  disconnectEventSub();
   if (client && connected) {
     await client.disconnect();
     connected = false;
