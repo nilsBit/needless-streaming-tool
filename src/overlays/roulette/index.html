@@ -97,9 +97,14 @@
         resultEl.style.display = 'none';
 
         // Render items
-        itemsEl.innerHTML = bugs.map(b =>
-          `<div class="wheel-item" data-id="${b.id}">${b.title}</div>`
-        ).join('');
+        itemsEl.innerHTML = '';
+        bugs.forEach(b => {
+          const div = document.createElement('div');
+          div.className = 'wheel-item';
+          div.dataset.id = String(b.id);
+          div.textContent = b.title;
+          itemsEl.appendChild(div);
+        });
 
         const items = itemsEl.querySelectorAll('.wheel-item');
 

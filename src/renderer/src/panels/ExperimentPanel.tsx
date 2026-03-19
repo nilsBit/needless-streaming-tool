@@ -12,26 +12,42 @@ interface StreamState {
 export default function ExperimentPanel() {
   const { data: state, refetch } = useApi<StreamState>('/stream-state');
   const [title, setTitle] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
   const [timerDisplay, setTimerDisplay] = useState('00:00');
   const [seconds, setSeconds] = useState(0);
 
   useEffect(() => {
     if (state) {
-      setTitle(state.experiment_title || '');
+      // Nur syncen wenn der User nicht gerade tippt
+      if (!isEditing) {
+        setTitle(state.experiment_title || '');
+      }
       setSeconds(state.timer_seconds);
     }
-  }, [state]);
+  }, [state, isEditing]);
 
   useEffect(() => {
     if (!state?.timer_running) return;
+    let syncCounter = 0;
     const interval = setInterval(() => {
       setSeconds((s) => {
         const next = s + 1;
-        apiPatch('/stream-state', { timer_seconds: next });
+        syncCounter++;
+        // Nur alle 10 Sekunden zum Server syncen statt jede Sekunde
+        if (syncCounter % 10 === 0) {
+          apiPatch('/stream-state', { timer_seconds: next });
+        }
         return next;
       });
     }, 1000);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      // Beim Stoppen den finalen Stand syncen
+      setSeconds((s) => {
+        apiPatch('/stream-state', { timer_seconds: s });
+        return s;
+      });
+    };
   }, [state?.timer_running]);
 
   useEffect(() => {
@@ -83,6 +99,8 @@ export default function ExperimentPanel() {
           placeholder="Experiment-Titel..."
           value={title}
           onChange={(e) => setTitle(e.target.value)}
+          onFocus={() => setIsEditing(true)}
+          onBlur={() => setIsEditing(false)}
           onKeyDown={(e) => e.key === 'Enter' && setExperiment()}
         />
         <button onClick={setExperiment}>Start</button>

@@ -70,10 +70,18 @@
       change_music: '🎵 Musik wechseln!',
     };
 
-    function showAlert(html, type = '') {
+    function showAlert(title, subtitle, type = '') {
       const el = document.createElement('div');
       el.className = 'alert ' + type;
-      el.innerHTML = html;
+      const titleEl = document.createElement('span');
+      titleEl.textContent = title;
+      el.appendChild(titleEl);
+      if (subtitle) {
+        const sub = document.createElement('div');
+        sub.className = 'sub';
+        sub.textContent = subtitle;
+        el.appendChild(sub);
+      }
       container.appendChild(el);
       setTimeout(() => el.remove(), 5000);
     }
@@ -84,24 +92,26 @@
       switch (event) {
         case 'raid-incoming':
           showAlert(
-            `${TIER_EMOJI[data.enemy_tier] || '⚔️'} RAID!<div class="sub">${data.streamer_name} mit ${data.viewer_count} Viewern — ${data.enemy_tier} Enemy!</div>`,
+            `${TIER_EMOJI[data.enemy_tier] || '⚔️'} RAID!`,
+            `${data.streamer_name} mit ${data.viewer_count} Viewern — ${data.enemy_tier} Enemy!`,
             'raid'
           );
           break;
 
         case 'reward-redeemed':
           showAlert(
-            `${REWARD_LABELS[data.reward_type] || '🎁 Reward!'}<div class="sub">von ${data.user_name}</div>`,
+            REWARD_LABELS[data.reward_type] || '🎁 Reward!',
+            `von ${data.user_name}`,
             'reward'
           );
           break;
 
         case 'compile-pray':
-          showAlert('⚡ COMPILE & PRAY ⚡<div class="sub">Läuft es? Oder crashed es?</div>', 'compile');
+          showAlert('⚡ COMPILE & PRAY ⚡', 'Läuft es? Oder crashed es?', 'compile');
           break;
 
         case 'roulette-result':
-          showAlert(`🎰 BUG-ROULETTE<div class="sub">➡️ ${data.title}</div>`, 'compile');
+          showAlert('🎰 BUG-ROULETTE', `➡️ ${data.title}`, 'compile');
           break;
       }
     };

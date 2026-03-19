@@ -8,10 +8,16 @@ export function useApi<T>(endpoint: string) {
 
   const refetch = useCallback(async () => {
     setLoading(true);
-    const res = await fetch(`${API_BASE}${endpoint}`);
-    const json = await res.json();
-    setData(json);
-    setLoading(false);
+    try {
+      const res = await fetch(`${API_BASE}${endpoint}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      setData(json);
+    } catch (err) {
+      console.error(`[useApi] ${endpoint}:`, err);
+    } finally {
+      setLoading(false);
+    }
   }, [endpoint]);
 
   useEffect(() => { refetch(); }, [refetch]);
@@ -19,24 +25,43 @@ export function useApi<T>(endpoint: string) {
   return { data, loading, refetch };
 }
 
-export async function apiPost<T>(endpoint: string, body: unknown): Promise<T> {
-  const res = await fetch(`${API_BASE}${endpoint}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  return res.json();
+export async function apiPost<T>(endpoint: string, body: unknown): Promise<T | null> {
+  try {
+    const res = await fetch(`${API_BASE}${endpoint}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  } catch (err) {
+    console.error(`[apiPost] ${endpoint}:`, err);
+    return null;
+  }
 }
 
-export async function apiPatch<T>(endpoint: string, body: unknown): Promise<T> {
-  const res = await fetch(`${API_BASE}${endpoint}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  return res.json();
+export async function apiPatch<T>(endpoint: string, body: unknown): Promise<T | null> {
+  try {
+    const res = await fetch(`${API_BASE}${endpoint}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  } catch (err) {
+    console.error(`[apiPatch] ${endpoint}:`, err);
+    return null;
+  }
 }
 
-export async function apiDelete(endpoint: string): Promise<void> {
-  await fetch(`${API_BASE}${endpoint}`, { method: 'DELETE' });
+export async function apiDelete(endpoint: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_BASE}${endpoint}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return true;
+  } catch (err) {
+    console.error(`[apiDelete] ${endpoint}:`, err);
+    return false;
+  }
 }

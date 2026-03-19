@@ -67,13 +67,24 @@
 
         const total = data.options.reduce((sum, o) => sum + o.votes, 0) || 1;
 
-        optionsEl.innerHTML = data.options.map(o => `
-          <div class="poll-option">
-            <span class="poll-label">${o.label}</span>
-            <span class="poll-count">${o.votes}</span>
-          </div>
-          <div class="poll-bar" style="width: ${(o.votes / total) * 100}%"></div>
-        `).join('');
+        optionsEl.innerHTML = '';
+        data.options.forEach(o => {
+          const opt = document.createElement('div');
+          opt.className = 'poll-option';
+          const label = document.createElement('span');
+          label.className = 'poll-label';
+          label.textContent = o.label;
+          const count = document.createElement('span');
+          count.className = 'poll-count';
+          count.textContent = String(o.votes);
+          opt.appendChild(label);
+          opt.appendChild(count);
+          optionsEl.appendChild(opt);
+          const bar = document.createElement('div');
+          bar.className = 'poll-bar';
+          bar.style.width = ((o.votes / total) * 100) + '%';
+          optionsEl.appendChild(bar);
+        });
       }
 
       if (event === 'poll-close') {

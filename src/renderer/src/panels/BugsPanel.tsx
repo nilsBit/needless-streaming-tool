@@ -40,15 +40,17 @@ export default function BugsPanel() {
     setSelectedBug(null);
 
     let count = 0;
-    const interval = setInterval(() => {
+    const spin = () => {
       const random = openBugs[Math.floor(Math.random() * openBugs.length)];
       setSelectedBug(random);
       count++;
       if (count > 15) {
-        clearInterval(interval);
         setSpinning(false);
+        return;
       }
-    }, 100 + count * 20);
+      setTimeout(spin, 100 + count * 30);
+    };
+    spin();
   };
 
   const openBugs = bugs?.filter((b) => b.status === 'open') || [];
