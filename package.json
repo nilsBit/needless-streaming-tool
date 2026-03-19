@@ -5,7 +5,7 @@
   "main": "dist/main/main.js",
   "scripts": {
     "dev": "concurrently \"npm run dev:renderer\" \"npm run dev:main\"",
-    "dev:main": "tsc -p tsconfig.node.json && electron dist/main/main.js",
+    "dev:main": "nodemon",
     "dev:renderer": "vite",
     "build": "tsc -p tsconfig.node.json && vite build && electron-builder",
     "typecheck": "tsc --noEmit"
@@ -27,8 +27,10 @@
     "concurrently": "^9.0.0",
     "electron": "^33.0.0",
     "electron-builder": "^25.0.0",
+    "nodemon": "^3.1.14",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5.6.0",
     "vite": "^6.0.0"
   }
