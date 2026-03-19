@@ -321,6 +321,10 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn-reset-small { font-size: 11px; color: #666; border-color: #333; padding: 3px 8px; }
 .btn-reset-small:hover { color: #e0e0e0; }
 
+/* Error Boundary */
+.error-panel { border-color: #e74c3c; }
+.error-message { font-size: 11px; color: #e74c3c; font-family: 'SF Mono', monospace; word-break: break-all; }
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }

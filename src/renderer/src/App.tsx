@@ -1,4 +1,5 @@
 import React from 'react';
+import ErrorBoundary from './components/ErrorBoundary';
 import ExperimentPanel from './panels/ExperimentPanel';
 import BugsPanel from './panels/BugsPanel';
 import RaidsPanel from './panels/RaidsPanel';
@@ -14,12 +15,24 @@ export default function App() {
         <span className="status">Stream Toolkit</span>
       </header>
       <main className="panels">
-        <ExperimentPanel />
-        <BugsPanel />
-        <RaidsPanel />
-        <DesignsPanel />
-        <RewardsPanel />
-        <SettingsPanel />
+        <ErrorBoundary fallback="Experiment">
+          <ExperimentPanel />
+        </ErrorBoundary>
+        <ErrorBoundary fallback="Bug-Roulette">
+          <BugsPanel />
+        </ErrorBoundary>
+        <ErrorBoundary fallback="Raid-Boss Queue">
+          <RaidsPanel />
+        </ErrorBoundary>
+        <ErrorBoundary fallback="Chat Designs">
+          <DesignsPanel />
+        </ErrorBoundary>
+        <ErrorBoundary fallback="Rewards">
+          <RewardsPanel />
+        </ErrorBoundary>
+        <ErrorBoundary fallback="Settings">
+          <SettingsPanel />
+        </ErrorBoundary>
       </main>
     </div>
   );

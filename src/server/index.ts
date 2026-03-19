@@ -15,6 +15,7 @@ import authRouter from './api/auth';
 import votingRouter from './api/voting';
 import { connectBot } from './bot/index';
 import { getDb } from './db/index';
+import { rateLimit } from './middleware/rate-limit';
 
 const PORT = 4000;
 
@@ -37,6 +38,7 @@ export async function startServer(): Promise<string> {
   });
 
   app.use(express.json({ limit: '100kb' }));
+  app.use(rateLimit);
 
   // CSP für Overlays
   app.use('/overlay', (_req, res, next) => {
