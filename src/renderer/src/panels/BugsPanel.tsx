@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApi, apiPost, apiPatch, apiDelete } from '../hooks/useApi';
 import { Bug } from '../../../shared/types';
 import { useWebSocket } from '../hooks/useWebSocket';
@@ -7,10 +7,22 @@ import ChatCommands from '../components/ChatCommands';
 export default function BugsPanel() {
   const { data: bugs, refetch } = useApi<Bug[]>('/bugs');
   const [newBug, setNewBug] = useState('');
+  const [cooldown, setCooldown] = useState(0);
 
-  useWebSocket((event) => {
+  useWebSocket((event, data) => {
     if (event === 'bug-created' || event === 'bug-updated' || event === 'bug-deleted') refetch();
+    if (event === 'roulette-cooldown') setCooldown((data as { remaining_seconds: number }).remaining_seconds);
   });
+
+  // Cooldown countdown
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const interval = setInterval(() => {
+      setCooldown((c) => Math.max(0, c - 1));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [cooldown > 0]);
+
   const [spinning, setSpinning] = useState(false);
   const [selectedBug, setSelectedBug] = useState<Bug | null>(null);
 
@@ -74,9 +86,9 @@ export default function BugsPanel() {
       <button
         className="btn-roulette"
         onClick={spinRoulette}
-        disabled={spinning || openBugs.length === 0}
+        disabled={spinning || openBugs.length === 0 || cooldown > 0}
       >
-        {spinning ? '🎰 Spinning...' : '🎰 Drehen!'}
+        {spinning ? '🎰 Spinning...' : cooldown > 0 ? `⏳ Cooldown ${cooldown}s` : '🎰 Drehen!'}
       </button>
 
       {selectedBug && !spinning && (

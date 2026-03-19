@@ -2,6 +2,7 @@ import WebSocket from 'ws';
 import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
 import { getBotConfig } from './config';
+import { triggerRoulette } from '../api/actions';
 
 let ws: WebSocket | null = null;
 let sessionId: string | null = null;
@@ -82,6 +83,11 @@ function handleRedemption(event: Record<string, unknown>) {
 
   const reward = getDb().prepare('SELECT * FROM rewards WHERE id = ?').get(result.lastInsertRowid);
   broadcast('reward-redeemed', reward);
+
+  // Auto-trigger roulette when someone redeems bug_roulette
+  if (rewardType === 'bug_roulette') {
+    triggerRoulette();
+  }
 }
 
 export async function connectEventSub(): Promise<boolean> {
