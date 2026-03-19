@@ -58,7 +58,7 @@ export default function DesignsPanel() {
   };
 
   const startVote = async () => {
-    const options = voteOptions.split(',').map((o) => o.trim()).filter(Boolean);
+    const options = voteOptions.split('+').map((o) => o.trim()).filter(Boolean);
     if (options.length < 2) return;
     await apiPost('/voting/start', { title: '🎨 Chat Design', options, duration: voteDuration });
     setVoteOptions('');
@@ -130,7 +130,7 @@ export default function DesignsPanel() {
           <div className="vote-start">
             <input
               type="text"
-              placeholder="Optionen (komma-getrennt)... z.B. feuer,eis,gift"
+              placeholder="Optionen mit + trennen... z.B. feuer + eis + gift"
               value={voteOptions}
               onChange={(e) => setVoteOptions(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && startVote()}
