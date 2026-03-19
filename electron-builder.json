@@ -1,0 +1,15 @@
+{
+  "appId": "com.thelab.stream-toolkit",
+  "productName": "The Lab",
+  "directories": {
+    "output": "release"
+  },
+  "files": [
+    "dist/**/*",
+    "data/**/*"
+  ],
+  "mac": {
+    "target": "dmg",
+    "icon": "assets/icon.icns"
+  }
+}
