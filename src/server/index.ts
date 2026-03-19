@@ -89,7 +89,9 @@ export async function startServer(): Promise<string> {
   app.get('/auth/twitch/callback', (req, res) => res.redirect('/api/auth/twitch/callback'));
 
   // Static overlay files (no auth needed — public)
-  app.use('/overlay', express.static(path.join(__dirname, '../overlays')));
+  // In dev: serve from src/overlays, in production: from dist/overlays
+  const overlayPath = path.join(process.cwd(), 'src', 'overlays');
+  app.use('/overlay', express.static(overlayPath));
 
   const server = http.createServer(app);
   initWebSocket(server);
