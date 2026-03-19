@@ -37,15 +37,20 @@ export default function RewardsPanel() {
 
       <div className="reward-list">
         {pending.length === 0 && <p className="empty">Keine offenen Rewards</p>}
-        {pending.map((r) => (
-          <div key={r.id} className="reward-item">
-            <div className="reward-info">
-              <span className="reward-user">{r.user_name}</span>
-              <span className="reward-type">{REWARD_LABELS[r.reward_type] || r.reward_type}</span>
+        {pending.map((r) => {
+          const parsed = r.data ? JSON.parse(r.data) : {};
+          const userInput = parsed.user_input || '';
+          return (
+            <div key={r.id} className="reward-item">
+              <div className="reward-info">
+                <span className="reward-user">{r.user_name}</span>
+                <span className="reward-type">{REWARD_LABELS[r.reward_type] || r.reward_type}</span>
+                {userInput && <span className="reward-input">"{userInput}"</span>}
+              </div>
+              <button onClick={() => markDone(r.id)}>✅</button>
             </div>
-            <button onClick={() => markDone(r.id)}>✅</button>
-          </div>
-        ))}
+          );
+        })}
 
         {done.length > 0 && (
           <>

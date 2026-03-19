@@ -282,6 +282,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .reward-info { display: flex; gap: 8px; }
 .reward-user { font-weight: 600; }
 .reward-type { color: #888; }
+.reward-input { color: #e67e22; font-style: italic; font-size: 11px; display: block; margin-top: 2px; }
 
 /* Settings Panel */
 .settings-section { display: flex; flex-direction: column; gap: 12px; }
