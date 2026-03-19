@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApi, apiPatch } from '../hooks/useApi';
 import { StreamState } from '../../../shared/types';
+import ChatCommands from '../components/ChatCommands';
 
 export default function ExperimentPanel() {
   const { data: state, refetch } = useApi<StreamState>('/stream-state');
@@ -124,6 +125,10 @@ export default function ExperimentPanel() {
           </div>
         </>
       )}
+      <ChatCommands commands={[
+        { cmd: '!experiment', desc: 'Zeigt aktuelles Experiment + Status' },
+        { cmd: '!uptime', desc: 'Wie lange läuft der Stream' },
+      ]} />
     </div>
   );
 }

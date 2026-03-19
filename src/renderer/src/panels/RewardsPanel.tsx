@@ -1,6 +1,7 @@
 import React from 'react';
 import { useApi, apiPatch } from '../hooks/useApi';
 import { Reward } from '../../../shared/types';
+import ChatCommands from '../components/ChatCommands';
 
 const REWARD_LABELS: Record<string, string> = {
   spawn_enemys: '💥 Spawn 50 Enemys',
@@ -50,6 +51,13 @@ export default function RewardsPanel() {
           </>
         )}
       </div>
+      <ChatCommands commands={[
+        { cmd: '500 CP', desc: 'Spawn 50 Enemys' },
+        { cmd: '1.000 CP', desc: 'Enemy nach mir benennen' },
+        { cmd: '2.000 CP', desc: 'Bug-Roulette drehen' },
+        { cmd: '5.000 CP', desc: 'Feature Request' },
+        { cmd: '200 CP', desc: 'Musik wechseln' },
+      ]} />
     </div>
   );
 }

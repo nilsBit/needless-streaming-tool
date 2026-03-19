@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApi, apiPost, apiPatch, apiDelete } from '../hooks/useApi';
 import { Design } from '../../../shared/types';
+import ChatCommands from '../components/ChatCommands';
 
 interface ActiveVote {
   active?: boolean;
@@ -188,6 +189,12 @@ export default function DesignsPanel() {
           </>
         )}
       </div>
+      <ChatCommands commands={[
+        { cmd: '!design start 60 opt1 opt2', desc: 'Abstimmung starten' },
+        { cmd: '!design end', desc: 'Abstimmung beenden' },
+        { cmd: '!design status', desc: 'Aktueller Stand' },
+        { cmd: '!vote <option>', desc: 'Für eine Option stimmen' },
+      ]} />
     </div>
   );
 }

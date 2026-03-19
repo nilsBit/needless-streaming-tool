@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApi, apiPatch } from '../hooks/useApi';
 import { Raid } from '../../../shared/types';
+import ChatCommands from '../components/ChatCommands';
 
 const TIER_EMOJI: Record<string, string> = {
   mob: '🗡️',
@@ -80,6 +81,9 @@ export default function RaidsPanel() {
           ))}
         </div>
       )}
+      <ChatCommands commands={[
+        { cmd: '!raid-stats', desc: 'Zeigt Raid-Boss Queue' },
+      ]} />
     </div>
   );
 }

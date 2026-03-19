@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApi, apiPost, apiPatch, apiDelete } from '../hooks/useApi';
 import { Bug } from '../../../shared/types';
+import ChatCommands from '../components/ChatCommands';
 
 export default function BugsPanel() {
   const { data: bugs, refetch } = useApi<Bug[]>('/bugs');
@@ -101,6 +102,9 @@ export default function BugsPanel() {
           </>
         )}
       </div>
+      <ChatCommands commands={[
+        { cmd: '!bugs', desc: 'Zeigt offene Bugs' },
+      ]} />
     </div>
   );
 }
