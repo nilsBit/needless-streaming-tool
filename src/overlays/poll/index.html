@@ -53,7 +53,7 @@
   </div>
 
   <script>
-    const ws = new WebSocket('ws://localhost:4000');
+    const ws = new WebSocket('ws://localhost:4000?overlay=1');
     const poll = document.getElementById('poll');
     const pollTitle = document.getElementById('poll-title');
     const optionsEl = document.getElementById('options');

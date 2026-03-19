@@ -14,6 +14,7 @@ import actionsRouter from './api/actions';
 import authRouter from './api/auth';
 import votingRouter from './api/voting';
 import { connectBot } from './bot/index';
+import { getDb } from './db/index';
 
 const PORT = 4000;
 
@@ -88,8 +89,13 @@ export async function startServer(): Promise<string> {
   // Twitch OAuth callback redirect (no auth needed)
   app.get('/auth/twitch/callback', (req, res) => res.redirect('/api/auth/twitch/callback'));
 
+  // Public read-only endpoint for overlays (no auth needed)
+  app.get('/public/stream-state', (_req, res) => {
+    const state = getDb().prepare('SELECT * FROM stream_state WHERE id = 1').get();
+    res.json(state);
+  });
+
   // Static overlay files (no auth needed — public)
-  // In dev: serve from src/overlays, in production: from dist/overlays
   const overlayPath = path.join(process.cwd(), 'src', 'overlays');
   app.use('/overlay', express.static(overlayPath));
 

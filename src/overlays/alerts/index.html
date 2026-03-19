@@ -57,7 +57,7 @@
   <div class="alert-container" id="container"></div>
 
   <script>
-    const ws = new WebSocket('ws://localhost:4000');
+    const ws = new WebSocket('ws://localhost:4000?overlay=1');
     const container = document.getElementById('container');
 
     const TIER_EMOJI = { mob: '🗡️', elite: '⚔️', 'mini-boss': '💀', boss: '👑' };
