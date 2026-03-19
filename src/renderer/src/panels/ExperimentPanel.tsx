@@ -12,7 +12,6 @@ export default function ExperimentPanel() {
 
   useEffect(() => {
     if (state) {
-      // Nur syncen wenn der User nicht gerade tippt
       if (!isEditing) {
         setTitle(state.experiment_title || '');
       }
@@ -27,7 +26,6 @@ export default function ExperimentPanel() {
       setSeconds((s) => {
         const next = s + 1;
         syncCounter++;
-        // Nur alle 10 Sekunden zum Server syncen statt jede Sekunde
         if (syncCounter % 10 === 0) {
           apiPatch('/stream-state', { timer_seconds: next });
         }
@@ -36,7 +34,6 @@ export default function ExperimentPanel() {
     }, 1000);
     return () => {
       clearInterval(interval);
-      // Beim Stoppen den finalen Stand syncen
       setSeconds((s) => {
         apiPatch('/stream-state', { timer_seconds: s });
         return s;
@@ -50,20 +47,18 @@ export default function ExperimentPanel() {
     setTimerDisplay(`${mins}:${secs}`);
   }, [seconds]);
 
-  const setExperiment = async () => {
+  const startExperiment = async () => {
     if (!title.trim()) return;
     setIsEditing(false);
-    await apiPatch('/stream-state', { experiment_title: title.trim(), experiment_status: 'in_progress', timer_seconds: 0, timer_running: 0 });
+    await apiPatch('/stream-state', { experiment_title: title.trim(), experiment_status: 'in_progress', timer_seconds: 0, timer_running: 1 });
     setSeconds(0);
     refetch();
   };
 
-  const setStatus = async (status: string) => {
+  const finishExperiment = async (status: string) => {
     await apiPatch('/stream-state', { experiment_status: status, timer_running: 0 });
     refetch();
-    // Clear previous reset timer if exists
     if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
-    // Auto-reset nach 3 Sekunden
     resetTimerRef.current = setTimeout(async () => {
       await apiPatch('/stream-state', { experiment_title: null, experiment_status: 'idle', timer_seconds: 0, timer_running: 0 });
       setTitle('');
@@ -78,50 +73,54 @@ export default function ExperimentPanel() {
     refetch();
   };
 
-  const resetExperiment = async () => {
+  const cancelExperiment = async () => {
     await apiPatch('/stream-state', { experiment_title: null, experiment_status: 'idle', timer_seconds: 0, timer_running: 0 });
     setTitle('');
     setSeconds(0);
     refetch();
   };
 
+  const isActive = state?.experiment_title && state.experiment_status !== 'idle';
   const statusColor = state?.experiment_status === 'in_progress' ? '#e74c3c' : state?.experiment_status === 'done' ? '#2ecc71' : state?.experiment_status === 'failed' ? '#e74c3c' : '#888';
+  const statusLabel = state?.experiment_status === 'in_progress' ? 'Läuft' : state?.experiment_status === 'done' ? 'Geschafft!' : state?.experiment_status === 'failed' ? 'Gescheitert' : '';
 
   return (
     <div className="panel experiment-panel">
       <h2>🔬 Experiment</h2>
-      <p className="panel-desc">Setz dein Ziel für den Stream. Timer optional für "Kann ich X in 1h?"-Challenges.</p>
+      <p className="panel-desc">Setz dein Ziel für den Stream. Timer startet automatisch.</p>
 
-      <div className="experiment-input">
-        <input
-          type="text"
-          placeholder="Experiment-Titel..."
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          onFocus={() => setIsEditing(true)}
-          onBlur={() => setTimeout(() => setIsEditing(false), 200)}
-          onKeyDown={(e) => e.key === 'Enter' && setExperiment()}
-        />
-        <button onClick={setExperiment}>Start</button>
-      </div>
-
-      {state?.experiment_title && (
+      {!isActive ? (
+        <div className="experiment-input">
+          <input
+            type="text"
+            placeholder="Was willst du heute schaffen?"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            onFocus={() => setIsEditing(true)}
+            onBlur={() => setTimeout(() => setIsEditing(false), 200)}
+            onKeyDown={(e) => e.key === 'Enter' && startExperiment()}
+          />
+          <button onClick={startExperiment}>Los!</button>
+        </div>
+      ) : (
         <>
           <div className="experiment-status">
             <span className="status-dot" style={{ background: statusColor }} />
-            <span className="experiment-title">{state.experiment_title}</span>
-            <span className="experiment-state">{state.experiment_status}</span>
+            <span className="experiment-title">{state?.experiment_title}</span>
+            <span className="experiment-state">{statusLabel}</span>
           </div>
 
           <div className="timer">
             <span className="timer-display">{timerDisplay}</span>
-            <button onClick={toggleTimer}>{state.timer_running ? '⏸️' : '▶️'}</button>
+            <button onClick={toggleTimer} title={state?.timer_running ? 'Pausieren' : 'Weiter'}>
+              {state?.timer_running ? '⏸️' : '▶️'}
+            </button>
           </div>
 
           <div className="experiment-actions">
-            <button className="btn-done" onClick={() => setStatus('done')}>✅ Done</button>
-            <button className="btn-failed" onClick={() => setStatus('failed')}>❌ Failed</button>
-            <button className="btn-reset" onClick={resetExperiment}>🔄 Reset</button>
+            <button className="btn-done" onClick={() => finishExperiment('done')}>✅ Geschafft</button>
+            <button className="btn-failed" onClick={() => finishExperiment('failed')}>❌ Nicht geschafft</button>
+            <button className="btn-reset" onClick={cancelExperiment}>Abbrechen</button>
           </div>
         </>
       )}
