@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: transparent; font-family: -apple-system, sans-serif; overflow: hidden; }
+
+    .roulette {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 24px;
+    }
+
+    .roulette.active { display: flex; }
+
+    .wheel-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #e67e22;
+    }
+
+    .wheel-items {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      width: 300px;
+    }
+
+    .wheel-item {
+      padding: 10px 16px;
+      background: rgba(26, 26, 26, 0.9);
+      border: 1px solid #2a2a2a;
+      border-radius: 6px;
+      color: #888;
+      font-size: 14px;
+      transition: all 0.1s;
+    }
+
+    .wheel-item.selected {
+      background: rgba(230, 126, 34, 0.2);
+      border-color: #e67e22;
+      color: #fff;
+      font-weight: 700;
+      transform: scale(1.05);
+    }
+
+    .wheel-item.winner {
+      background: rgba(230, 126, 34, 0.4);
+      border-color: #e67e22;
+      color: #fff;
+      font-weight: 700;
+      font-size: 18px;
+      transform: scale(1.1);
+      animation: winPulse 0.5s ease infinite;
+    }
+
+    @keyframes winPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(230, 126, 34, 0.4); }
+      50% { box-shadow: 0 0 20px 4px rgba(230, 126, 34, 0.2); }
+    }
+
+    .result-text {
+      font-size: 16px;
+      color: #e0e0e0;
+      padding: 12px 24px;
+      background: rgba(13, 13, 13, 0.9);
+      border: 2px solid #e67e22;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="roulette" id="roulette">
+    <div class="wheel-title">🎰 BUG-ROULETTE</div>
+    <div class="wheel-items" id="items"></div>
+    <div class="result-text" id="result" style="display:none"></div>
+  </div>
+
+  <script>
+    const ws = new WebSocket('ws://localhost:4000');
+    const roulette = document.getElementById('roulette');
+    const itemsEl = document.getElementById('items');
+    const resultEl = document.getElementById('result');
+
+    ws.onmessage = (msg) => {
+      const { event, data } = JSON.parse(msg.data);
+
+      if (event === 'roulette-spin') {
+        const bugs = data.bugs;
+        const winnerId = data.winner_id;
+
+        roulette.classList.add('active');
+        resultEl.style.display = 'none';
+
+        // Render items
+        itemsEl.innerHTML = bugs.map(b =>
+          `<div class="wheel-item" data-id="${b.id}">${b.title}</div>`
+        ).join('');
+
+        const items = itemsEl.querySelectorAll('.wheel-item');
+
+        // Spinning animation
+        let count = 0;
+        let currentIdx = 0;
+        const totalSpins = 20 + Math.floor(Math.random() * 10);
+
+        const interval = setInterval(() => {
+          items.forEach(el => el.classList.remove('selected'));
+          currentIdx = count % items.length;
+          items[currentIdx].classList.add('selected');
+          count++;
+
+          if (count >= totalSpins) {
+            clearInterval(interval);
+
+            // Find winner
+            items.forEach(el => el.classList.remove('selected'));
+            const winnerEl = itemsEl.querySelector(`[data-id="${winnerId}"]`);
+            if (winnerEl) {
+              winnerEl.classList.add('winner');
+              const winnerBug = bugs.find(b => b.id === winnerId);
+              resultEl.textContent = `➡️ ${winnerBug?.title || 'Bug'}`;
+              resultEl.style.display = 'block';
+            }
+
+            // Auto-hide after 8s
+            setTimeout(() => {
+              roulette.classList.remove('active');
+            }, 8000);
+          }
+        }, 80 + count * 8);
+      }
+    };
+  </script>
+</body>
+</html>

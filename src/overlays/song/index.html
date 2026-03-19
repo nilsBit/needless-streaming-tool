@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: transparent; font-family: -apple-system, sans-serif; overflow: hidden; }
+
+    .song {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 16px;
+      background: rgba(13, 13, 13, 0.8);
+      border: 1px solid #2a2a2a;
+      border-radius: 6px;
+      backdrop-filter: blur(8px);
+    }
+
+    .song.visible { display: flex; }
+
+    .song-icon { font-size: 16px; }
+
+    .song-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .song-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #e0e0e0;
+    }
+
+    .song-requester {
+      font-size: 11px;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+  <div class="song" id="song">
+    <span class="song-icon">🎵</span>
+    <div class="song-info">
+      <span class="song-title" id="song-title"></span>
+      <span class="song-requester" id="song-requester"></span>
+    </div>
+  </div>
+
+  <script>
+    const ws = new WebSocket('ws://localhost:4000');
+    const song = document.getElementById('song');
+    const songTitle = document.getElementById('song-title');
+    const songRequester = document.getElementById('song-requester');
+
+    ws.onmessage = (msg) => {
+      const { event, data } = JSON.parse(msg.data);
+
+      if (event === 'song-update') {
+        song.classList.add('visible');
+        songTitle.textContent = data.title || 'Unknown';
+        songRequester.textContent = data.requester ? `Requested by ${data.requester}` : '';
+      }
+
+      if (event === 'song-clear') {
+        song.classList.remove('visible');
+      }
+    };
+  </script>
+</body>
+</html>

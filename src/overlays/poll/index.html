@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: transparent; font-family: -apple-system, sans-serif; overflow: hidden; }
+
+    .poll {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      padding: 16px;
+      background: rgba(13, 13, 13, 0.85);
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      backdrop-filter: blur(8px);
+      width: 300px;
+    }
+
+    .poll.visible { display: flex; }
+
+    .poll-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #e67e22;
+    }
+
+    .poll-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      background: #1a1a1a;
+      border-radius: 4px;
+    }
+
+    .poll-label { font-size: 13px; color: #e0e0e0; flex: 1; }
+    .poll-count { font-size: 13px; color: #e67e22; font-weight: 700; }
+
+    .poll-bar {
+      height: 3px;
+      background: #e67e22;
+      border-radius: 2px;
+      transition: width 0.3s;
+    }
+  </style>
+</head>
+<body>
+  <div class="poll" id="poll">
+    <div class="poll-title" id="poll-title"></div>
+    <div id="options"></div>
+  </div>
+
+  <script>
+    const ws = new WebSocket('ws://localhost:4000');
+    const poll = document.getElementById('poll');
+    const pollTitle = document.getElementById('poll-title');
+    const optionsEl = document.getElementById('options');
+
+    ws.onmessage = (msg) => {
+      const { event, data } = JSON.parse(msg.data);
+
+      if (event === 'poll-update') {
+        poll.classList.add('visible');
+        pollTitle.textContent = data.title;
+
+        const total = data.options.reduce((sum, o) => sum + o.votes, 0) || 1;
+
+        optionsEl.innerHTML = data.options.map(o => `
+          <div class="poll-option">
+            <span class="poll-label">${o.label}</span>
+            <span class="poll-count">${o.votes}</span>
+          </div>
+          <div class="poll-bar" style="width: ${(o.votes / total) * 100}%"></div>
+        `).join('');
+      }
+
+      if (event === 'poll-close') {
+        setTimeout(() => poll.classList.remove('visible'), 5000);
+      }
+    };
+  </script>
+</body>
+</html>

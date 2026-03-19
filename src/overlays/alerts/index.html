@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: transparent; font-family: -apple-system, sans-serif; overflow: hidden; }
+
+    .alert-container {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .alert {
+      padding: 16px 32px;
+      background: rgba(13, 13, 13, 0.9);
+      border: 2px solid #e67e22;
+      border-radius: 12px;
+      color: #e0e0e0;
+      font-size: 18px;
+      font-weight: 700;
+      text-align: center;
+      backdrop-filter: blur(8px);
+      animation: alertIn 0.4s ease-out, alertOut 0.4s ease-in forwards;
+      animation-delay: 0s, 4s;
+    }
+
+    .alert .sub {
+      font-size: 13px;
+      font-weight: 400;
+      color: #888;
+      margin-top: 4px;
+    }
+
+    .alert.raid { border-color: #e74c3c; }
+    .alert.reward { border-color: #2ecc71; }
+    .alert.compile { border-color: #e67e22; }
+
+    @keyframes alertIn {
+      from { opacity: 0; transform: translateY(-20px) scale(0.9); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes alertOut {
+      from { opacity: 1; }
+      to { opacity: 0; transform: translateY(-10px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="alert-container" id="container"></div>
+
+  <script>
+    const ws = new WebSocket('ws://localhost:4000');
+    const container = document.getElementById('container');
+
+    const TIER_EMOJI = { mob: '🗡️', elite: '⚔️', 'mini-boss': '💀', boss: '👑' };
+
+    const REWARD_LABELS = {
+      spawn_enemys: '💥 Spawn 50 Enemys!',
+      name_enemy: '📛 Enemy benennen!',
+      bug_roulette: '🎰 Bug-Roulette!',
+      feature_request: '💡 Feature Request!',
+      change_music: '🎵 Musik wechseln!',
+    };
+
+    function showAlert(html, type = '') {
+      const el = document.createElement('div');
+      el.className = 'alert ' + type;
+      el.innerHTML = html;
+      container.appendChild(el);
+      setTimeout(() => el.remove(), 5000);
+    }
+
+    ws.onmessage = (msg) => {
+      const { event, data } = JSON.parse(msg.data);
+
+      switch (event) {
+        case 'raid-incoming':
+          showAlert(
+            `${TIER_EMOJI[data.enemy_tier] || '⚔️'} RAID!<div class="sub">${data.streamer_name} mit ${data.viewer_count} Viewern — ${data.enemy_tier} Enemy!</div>`,
+            'raid'
+          );
+          break;
+
+        case 'reward-redeemed':
+          showAlert(
+            `${REWARD_LABELS[data.reward_type] || '🎁 Reward!'}<div class="sub">von ${data.user_name}</div>`,
+            'reward'
+          );
+          break;
+
+        case 'compile-pray':
+          showAlert('⚡ COMPILE & PRAY ⚡<div class="sub">Läuft es? Oder crashed es?</div>', 'compile');
+          break;
+
+        case 'roulette-result':
+          showAlert(`🎰 BUG-ROULETTE<div class="sub">➡️ ${data.title}</div>`, 'compile');
+          break;
+      }
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: transparent; font-family: 'SF Mono', monospace; overflow: hidden; }
+
+    .banner {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 20px;
+      background: rgba(13, 13, 13, 0.85);
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      backdrop-filter: blur(8px);
+    }
+
+    .banner.visible { display: flex; }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .status-dot.in_progress { background: #e74c3c; animation: pulse 1.5s infinite; }
+    .status-dot.done { background: #2ecc71; }
+    .status-dot.failed { background: #e74c3c; }
+    .status-dot.idle { background: #888; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #e0e0e0;
+    }
+
+    .timer {
+      font-size: 20px;
+      font-weight: 700;
+      color: #e67e22;
+      margin-left: auto;
+    }
+
+    .status-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: #888;
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+<body>
+  <div class="banner" id="banner">
+    <div class="status-dot" id="dot"></div>
+    <span class="title" id="title"></span>
+    <span class="status-label" id="status-label"></span>
+    <span class="timer" id="timer"></span>
+  </div>
+
+  <script>
+    const ws = new WebSocket('ws://localhost:4000');
+    const banner = document.getElementById('banner');
+    const dot = document.getElementById('dot');
+    const title = document.getElementById('title');
+    const statusLabel = document.getElementById('status-label');
+    const timer = document.getElementById('timer');
+
+    function formatTime(s) {
+      const m = Math.floor(s / 60).toString().padStart(2, '0');
+      const sec = (s % 60).toString().padStart(2, '0');
+      return `${m}:${sec}`;
+    }
+
+    function update(state) {
+      if (!state.experiment_title || state.experiment_status === 'idle') {
+        banner.classList.remove('visible');
+        return;
+      }
+
+      banner.classList.add('visible');
+      title.textContent = state.experiment_title;
+      statusLabel.textContent = state.experiment_status;
+      dot.className = 'status-dot ' + state.experiment_status;
+      timer.textContent = state.timer_running || state.timer_seconds > 0
+        ? formatTime(state.timer_seconds)
+        : '';
+    }
+
+    ws.onmessage = (msg) => {
+      const { event, data } = JSON.parse(msg.data);
+      if (event === 'stream-state') update(data);
+    };
+
+    // Initial fetch
+    fetch('http://localhost:4000/api/stream-state')
+      .then(r => r.json())
+      .then(update);
+  </script>
+</body>
+</html>
