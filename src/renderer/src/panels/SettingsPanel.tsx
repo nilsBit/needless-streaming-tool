@@ -26,10 +26,15 @@ export default function SettingsPanel() {
   };
 
   const connectTwitch = async () => {
-    const res = await fetch('http://localhost:4000/api/auth/twitch/url');
-    const data = await res.json();
-    if (data.url) {
-      window.open(data.url, '_blank', 'width=500,height=700');
+    try {
+      // Server opens the URL in system browser and returns success
+      const res = await fetch('http://localhost:4000/api/auth/twitch/open', { method: 'POST' });
+      const data = await res.json();
+      if (!data.success) {
+        console.error('[Settings] Failed to open Twitch auth:', data.error);
+      }
+    } catch (err) {
+      console.error('[Settings] Failed to connect:', err);
     }
   };
 

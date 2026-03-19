@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { shell } from 'electron';
 import { getDb } from '../db/index';
 import { saveBotConfig } from '../bot/config';
 import { connectBot } from '../bot/index';
@@ -30,6 +31,21 @@ router.get('/twitch/url', (_req, res) => {
   const url = `https://id.twitch.tv/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${TWITCH_SCOPES}`;
 
   res.json({ url });
+});
+
+// POST — open Twitch auth in system browser
+router.post('/twitch/open', (_req, res) => {
+  const clientId = getClientId();
+  if (!clientId) {
+    res.status(400).json({ success: false, error: 'Client ID not configured' });
+    return;
+  }
+
+  const redirectUri = 'http://localhost:4000/auth/twitch/callback';
+  const url = `https://id.twitch.tv/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${TWITCH_SCOPES}`;
+
+  shell.openExternal(url);
+  res.json({ success: true });
 });
 
 // GET — OAuth callback page (Twitch redirects here with token in hash)
