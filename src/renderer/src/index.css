@@ -212,6 +212,28 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 }
 
 .design-item.done { opacity: 0.5; }
+
+/* Voting */
+.vote-section { padding: 8px; background: #0d0d0d; border-radius: 4px; }
+
+.vote-active h3 { font-size: 12px; color: #e67e22; margin-bottom: 8px; }
+
+.vote-results { display: flex; flex-direction: column; gap: 6px; }
+
+.vote-bar-row { display: flex; align-items: center; gap: 8px; }
+.vote-label { font-size: 12px; min-width: 60px; color: #e0e0e0; }
+.vote-bar-bg { flex: 1; height: 8px; background: #2a2a2a; border-radius: 4px; overflow: hidden; }
+.vote-bar-fill { height: 100%; background: #e67e22; border-radius: 4px; transition: width 0.3s; }
+.vote-count { font-size: 12px; color: #e67e22; font-weight: 700; min-width: 20px; text-align: right; }
+
+.vote-controls { display: flex; gap: 8px; margin-top: 8px; }
+
+.vote-start { display: flex; flex-direction: column; gap: 8px; }
+.vote-start input { width: 100%; }
+.vote-start-row { display: flex; gap: 8px; }
+.vote-start-row select { min-width: 70px; }
+.vote-start-row button { flex: 1; border-color: #e67e22; }
+.vote-start-row button:hover { background: #e67e2233; }
 .design-actions { display: flex; gap: 4px; }
 .design-actions button { padding: 2px 6px; font-size: 11px; }
 

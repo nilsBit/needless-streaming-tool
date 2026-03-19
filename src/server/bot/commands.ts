@@ -1,5 +1,6 @@
 import { Client } from 'tmi.js';
 import { getDb } from '../db/index';
+import { startVote, castVote, getActiveVote, endVote } from './voting';
 
 interface StreamState {
   experiment_title: string | null;
@@ -73,6 +74,66 @@ export function registerCommands(client: Client) {
       case '!uptime': {
         const uptime = Math.floor((Date.now() - startTime) / 1000 / 60);
         client.say(channel, `⏱️ Stream läuft seit ${uptime} Minuten`);
+        break;
+      }
+
+      case '!design': {
+        const args = message.trim().split(/\s+/).slice(1);
+        const subCommand = args[0]?.toLowerCase();
+
+        if (subCommand === 'start') {
+          // !design start 60 enemy weapon upgrade
+          const duration = parseInt(args[1], 10) || 60;
+          const options = args.slice(2);
+          if (options.length < 2) {
+            client.say(channel, '❌ Mindestens 2 Optionen: !design start 60 option1 option2 ...');
+            break;
+          }
+          const success = startVote('🎨 Chat Design', options, duration);
+          if (success) {
+            client.say(channel, `🎨 ABSTIMMUNG! Schreibt !vote <option> — Optionen: ${options.join(', ')} — ${duration}s Zeit!`);
+          } else {
+            client.say(channel, '❌ Es läuft bereits eine Abstimmung!');
+          }
+        } else if (subCommand === 'end') {
+          const result = endVote();
+          if (result) {
+            const sorted = Object.entries(result.counts).sort((a, b) => b[1] - a[1]);
+            const resultText = sorted.map(([opt, count]) => `${opt}: ${count}`).join(' | ');
+            client.say(channel, `🎨 ERGEBNIS: ${resultText} — Gewinner: ${result.winner} 🏆`);
+          } else {
+            client.say(channel, '❌ Keine aktive Abstimmung.');
+          }
+        } else if (subCommand === 'status') {
+          const vote = getActiveVote();
+          if (vote) {
+            const countsText = vote.options.map((o) => `${o}: ${vote.counts[o] || 0}`).join(' | ');
+            client.say(channel, `🎨 Abstimmung: ${countsText} — noch ${vote.remaining}s`);
+          } else {
+            client.say(channel, '❌ Keine aktive Abstimmung.');
+          }
+        } else {
+          client.say(channel, '🎨 Befehle: !design start <sekunden> <opt1> <opt2> ... | !design end | !design status');
+        }
+        break;
+      }
+
+      case '!vote': {
+        const option = message.trim().split(/\s+/).slice(1).join(' ');
+        const username = tags['display-name'] || tags.username || 'anon';
+        if (!option) {
+          client.say(channel, '❌ Schreib !vote <option>');
+          break;
+        }
+        const success = castVote(username, option);
+        if (!success) {
+          const vote = getActiveVote();
+          if (!vote) {
+            client.say(channel, '❌ Keine aktive Abstimmung.');
+          } else {
+            client.say(channel, `❌ Ungültige Option. Wähle: ${vote.options.join(', ')}`);
+          }
+        }
         break;
       }
     }
