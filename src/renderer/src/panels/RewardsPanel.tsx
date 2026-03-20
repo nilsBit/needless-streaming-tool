@@ -1,5 +1,5 @@
 import React from 'react';
-import { useApi, apiPatch } from '../hooks/useApi';
+import { useApi, apiPatch, apiDelete } from '../hooks/useApi';
 import { Reward } from '../../../shared/types';
 import { useWebSocket } from '../hooks/useWebSocket';
 import ChatCommands from '../components/ChatCommands';
@@ -24,6 +24,11 @@ export default function RewardsPanel() {
 
   const markDone = async (id: number) => {
     await apiPatch(`/rewards/${id}`, { status: 'done' });
+    refetch();
+  };
+
+  const clearDone = async () => {
+    await apiDelete('/rewards/clear-done');
     refetch();
   };
 
@@ -55,6 +60,7 @@ export default function RewardsPanel() {
         {done.length > 0 && (
           <>
             <h3>Erledigt ({done.length})</h3>
+            <button onClick={clearDone}>🗑️ Erledigte löschen</button>
             {done.slice(0, 10).map((r) => (
               <div key={r.id} className="reward-item done">
                 <span>{r.user_name}</span>

@@ -53,4 +53,10 @@ router.patch('/:id', (req, res) => {
   res.json(reward);
 });
 
+router.delete('/clear-done', (_req, res) => {
+  getDb().prepare("DELETE FROM rewards WHERE status = 'done'").run();
+  broadcast('reward-updated', null);
+  res.json({ ok: true });
+});
+
 export default router;

@@ -1,7 +1,7 @@
 import { Client } from 'tmi.js';
 import { getDb } from '../db/index';
 import { startVote, castVote, getActiveVote, endVote } from './voting';
-import { StreamState, Bug, Raid } from '../../shared/types';
+import { StreamState, Bug, Raid, Todo } from '../../shared/types';
 
 const startTime = Date.now();
 
@@ -93,6 +93,17 @@ export function registerCommands(client: Client) {
           }
         } else {
           client.say(channel, '🎨 Befehle: !design start <sekunden> <opt1> <opt2> ... | !design end | !design status');
+        }
+        break;
+      }
+
+      case '!todo': {
+        const todos = getDb().prepare('SELECT * FROM todos WHERE done = 0').all() as Todo[];
+        if (todos.length === 0) {
+          client.say(channel, '📋 Keine Todos!');
+        } else {
+          const list = todos.map((t, i) => `${i + 1}. ${t.title}`).join(' | ');
+          client.say(channel, `📋 Todos: ${list}`);
         }
         break;
       }
