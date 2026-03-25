@@ -23,6 +23,14 @@ export function initDatabase(dbPath?: string): Database.Database {
   db.pragma('journal_mode = WAL');
   db.exec(SCHEMA);
 
+  // Migration: project_name Spalte zu stream_state (v2)
+  try {
+    db.prepare('SELECT project_name FROM stream_state LIMIT 1').get();
+  } catch {
+    db.exec('ALTER TABLE stream_state ADD COLUMN project_name TEXT');
+    console.log('[DB] Migrated: added project_name to stream_state');
+  }
+
   // Check schema version and run migrations if needed
   const versionRow = db.prepare('SELECT version FROM schema_version ORDER BY version DESC LIMIT 1').get() as { version: number } | undefined;
   const currentVersion = versionRow?.version || 0;
