@@ -97,6 +97,16 @@ export function registerCommands(client: Client) {
         break;
       }
 
+      case '!progress': {
+        const state = getDb().prepare('SELECT project_name FROM stream_state WHERE id = 1').get() as { project_name: string | null };
+        const items = getDb().prepare('SELECT * FROM project_items').all() as Array<{ status: string }>;
+        const done = items.filter((i) => i.status === 'done').length;
+        const total = items.length;
+        const name = state?.project_name || 'Kein Projekt';
+        client.say(channel, `📊 ${name} — ${done}/${total} Features fertig`);
+        break;
+      }
+
       case '!vote': {
         const option = message.trim().split(/\s+/).slice(1).join(' ');
         const username = tags['display-name'] || tags.username || 'anon';
