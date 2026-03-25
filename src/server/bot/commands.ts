@@ -1,7 +1,7 @@
 import { Client } from 'tmi.js';
 import { getDb } from '../db/index';
 import { startVote, castVote, getActiveVote, endVote } from './voting';
-import { StreamState, Bug, Raid, Todo } from '../../shared/types';
+import { StreamState, Bug, Todo } from '../../shared/types';
 
 const startTime = Date.now();
 
@@ -31,17 +31,6 @@ export function registerCommands(client: Client) {
         } else {
           const list = bugs.map((b, i) => `${i + 1}. ${b.title}`).join(' | ');
           client.say(channel, `🐛 Offene Bugs (${bugs.length}): ${list}`);
-        }
-        break;
-      }
-
-      case '!raid-stats': {
-        const raids = getDb().prepare('SELECT * FROM raids WHERE status = ? ORDER BY created_at DESC LIMIT 5').all('pending') as Raid[];
-        if (raids.length === 0) {
-          client.say(channel, 'Keine Raids in der Queue!');
-        } else {
-          const list = raids.map((r) => `${r.streamer_name} (${r.enemy_tier})`).join(' | ');
-          client.say(channel, `⚔️ Raid-Boss Queue (${raids.length}): ${list}`);
         }
         break;
       }

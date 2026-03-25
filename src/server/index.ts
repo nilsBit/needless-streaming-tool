@@ -6,7 +6,6 @@ import { initDatabase } from './db/index';
 import { generateApiToken, validateApiToken, getApiToken } from './auth-token';
 import streamStateRouter from './api/stream-state';
 import bugsRouter from './api/bugs';
-import raidsRouter from './api/raids';
 import rewardsRouter from './api/rewards';
 import designsRouter from './api/designs';
 import settingsRouter from './api/settings';
@@ -81,7 +80,6 @@ export async function startServer(): Promise<string> {
   // API routes
   app.use('/api/stream-state', streamStateRouter);
   app.use('/api/bugs', bugsRouter);
-  app.use('/api/raids', raidsRouter);
   app.use('/api/rewards', rewardsRouter);
   app.use('/api/designs', designsRouter);
   app.use('/api/settings', settingsRouter);
