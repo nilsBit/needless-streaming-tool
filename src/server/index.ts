@@ -14,6 +14,7 @@ import authRouter from './api/auth';
 import votingRouter from './api/voting';
 import todosRouter from './api/todos';
 import progressRouter from './api/progress';
+import clipsRouter from './api/clips';
 import { connectBot } from './bot/index';
 import { getDb } from './db/index';
 import { rateLimit } from './middleware/rate-limit';
@@ -89,6 +90,7 @@ export async function startServer(): Promise<string> {
   app.use('/api/voting', votingRouter);
   app.use('/api/todos', todosRouter);
   app.use('/api/progress', progressRouter);
+  app.use('/api/clips', clipsRouter);
 
   // Twitch OAuth callback redirect (no auth needed)
   app.get('/auth/twitch/callback', (req, res) => res.redirect('/api/auth/twitch/callback'));
