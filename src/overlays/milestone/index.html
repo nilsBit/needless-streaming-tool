@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: transparent; font-family: -apple-system, sans-serif; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; }
+  .alert { opacity: 0; transform: scale(0.8); transition: all 0.3s ease; text-align: center; padding: 24px 40px; border-radius: 12px; }
+  .alert.visible { opacity: 1; transform: scale(1); }
+  .alert.minor { background: rgba(52,152,219,0.9); }
+  .alert.major { background: rgba(243,156,18,0.9); }
+  .alert.epic { background: rgba(231,76,60,0.9); border: 2px solid #fff; box-shadow: 0 0 40px rgba(231,76,60,0.5); }
+  .emoji { font-size: 48px; }
+  .message { color: #fff; font-size: 20px; font-weight: 600; margin-top: 8px; }
+  .label { color: rgba(255,255,255,0.7); font-size: 14px; text-transform: uppercase; margin-top: 4px; }
+</style>
+</head>
+<body>
+<div class="alert" id="alert">
+  <div class="emoji" id="emoji"></div>
+  <div class="message" id="message"></div>
+  <div class="label" id="label"></div>
+</div>
+<script>
+  const DURATION = { minor: 2000, major: 4000, epic: 6000 };
+  const EMOJI = { minor: '✨', major: '🎉', epic: '🏆' };
+  let hideTimeout = null;
+
+  const ws = new WebSocket('ws://localhost:4000?overlay=1');
+
+  ws.onmessage = (e) => {
+    try {
+      const msg = JSON.parse(e.data);
+      if (msg.event === 'milestone-trigger') show(msg.data);
+    } catch {}
+  };
+
+  function show(data) {
+    const el = document.getElementById('alert');
+    const level = data.level || 'minor';
+
+    el.className = 'alert ' + level;
+    document.getElementById('emoji').textContent = EMOJI[level] || '✨';
+    document.getElementById('message').textContent = data.message || 'Milestone!';
+    document.getElementById('label').textContent = level.toUpperCase();
+
+    el.classList.add('visible');
+
+    if (hideTimeout) clearTimeout(hideTimeout);
+    hideTimeout = setTimeout(() => {
+      el.classList.remove('visible');
+    }, DURATION[level] || 2000);
+  }
+
+  ws.onclose = () => setTimeout(() => location.reload(), 3000);
+</script>
+</body>
+</html>
