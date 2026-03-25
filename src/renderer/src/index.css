@@ -24,24 +24,32 @@ body {
 .panels {
   flex: 1;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(2, 1fr);
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: auto;
   gap: 12px;
   padding: 12px;
   overflow: auto;
 }
 
-@media (max-width: 1000px) {
+/* Settings panel takes extra space in bottom row */
+.panels > :nth-child(7) { grid-column: 3 / 5; }
+
+@media (max-width: 1200px) {
+  .panels {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .panels > :nth-child(7) { grid-column: auto; }
+}
+
+@media (max-width: 800px) {
   .panels {
     grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: auto;
   }
 }
 
-@media (max-width: 650px) {
+@media (max-width: 500px) {
   .panels {
     grid-template-columns: 1fr;
-    grid-template-rows: auto;
   }
 }
 
@@ -398,6 +406,144 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 /* Error Boundary */
 .error-panel { border-color: #e74c3c; }
 .error-message { font-size: 11px; color: #e74c3c; font-family: 'SF Mono', monospace; word-break: break-all; }
+
+/* Progress Panel */
+.progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.project-name { cursor: pointer; font-size: 13px; }
+.project-name:hover { color: #e67e22; }
+
+.project-name-edit { display: flex; gap: 6px; flex: 1; }
+.project-name-edit input { flex: 1; }
+
+.progress-count { font-size: 11px; color: #888; white-space: nowrap; }
+
+.progress-bar-container {
+  height: 6px;
+  background: #2a2a2a;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: #e67e22;
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+
+.progress-items { display: flex; flex-direction: column; gap: 4px; }
+
+.progress-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  background: #0d0d0d;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.progress-item.status-done { opacity: 0.5; }
+.progress-item.status-done .item-title { text-decoration: line-through; }
+
+.status-toggle {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 14px;
+  cursor: pointer;
+  line-height: 1;
+}
+.status-toggle:hover { background: none; }
+
+.item-title { flex: 1; }
+
+.add-item { display: flex; gap: 8px; }
+.add-item input { flex: 1; }
+
+.btn-delete-small {
+  padding: 2px 6px;
+  font-size: 11px;
+  color: #555;
+  border-color: #2a2a2a;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.progress-item:hover .btn-delete-small,
+.clip-item:hover .btn-delete-small,
+.milestone-item:hover .btn-delete-small { opacity: 1; }
+
+/* Clips Panel */
+.clip-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.tag-btn {
+  padding: 3px 8px;
+  font-size: 11px;
+  border-color: #333;
+}
+
+.tag-btn.active {
+  border-color: #e67e22;
+  background: #e67e2233;
+  color: #e67e22;
+}
+
+.clip-custom { display: flex; gap: 6px; flex-wrap: wrap; }
+.clip-custom input { flex: 1; min-width: 100px; }
+
+.clip-list { display: flex; flex-direction: column; gap: 4px; }
+
+.clip-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  background: #0d0d0d;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.clip-time { color: #666; font-size: 11px; white-space: nowrap; }
+.clip-tag { color: #e67e22; white-space: nowrap; }
+.clip-note { flex: 1; color: #888; font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Milestones Panel */
+.milestone-input input { width: 100%; }
+
+.milestone-buttons { display: flex; gap: 8px; }
+
+.milestone-trigger {
+  flex: 1;
+  padding: 10px;
+  font-size: 13px;
+  border-width: 1px;
+  border-style: solid;
+}
+
+.milestone-trigger:hover { opacity: 0.8; }
+
+.milestone-history { display: flex; flex-direction: column; gap: 4px; }
+
+.milestone-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  background: #0d0d0d;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.ms-emoji { font-size: 14px; }
+.ms-message { flex: 1; }
+.ms-time { color: #666; font-size: 11px; white-space: nowrap; }
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }

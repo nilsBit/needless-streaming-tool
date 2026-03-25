@@ -2,8 +2,10 @@ import React from 'react';
 import ErrorBoundary from './components/ErrorBoundary';
 import ExperimentPanel from './panels/ExperimentPanel';
 import BugsPanel from './panels/BugsPanel';
+import ProgressPanel from './panels/ProgressPanel';
 import DesignsPanel from './panels/DesignsPanel';
-import RewardsPanel from './panels/RewardsPanel';
+import ClipsPanel from './panels/ClipsPanel';
+import MilestonesPanel from './panels/MilestonesPanel';
 import SettingsPanel from './panels/SettingsPanel';
 
 export default function App() {
@@ -20,11 +22,17 @@ export default function App() {
         <ErrorBoundary fallback="Bug-Roulette">
           <BugsPanel />
         </ErrorBoundary>
+        <ErrorBoundary fallback="Progress Tracker">
+          <ProgressPanel />
+        </ErrorBoundary>
         <ErrorBoundary fallback="Chat Designs">
           <DesignsPanel />
         </ErrorBoundary>
-        <ErrorBoundary fallback="Rewards">
-          <RewardsPanel />
+        <ErrorBoundary fallback="Clip Moments">
+          <ClipsPanel />
+        </ErrorBoundary>
+        <ErrorBoundary fallback="Milestones">
+          <MilestonesPanel />
         </ErrorBoundary>
         <ErrorBoundary fallback="Settings">
           <SettingsPanel />
