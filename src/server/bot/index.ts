@@ -55,6 +55,16 @@ export async function connectBot(): Promise<boolean> {
   }
 }
 
+export function sayInChat(message: string) {
+  if (!client || !connected) return;
+  const config = getBotConfig();
+  if (config?.channel) {
+    client.say(config.channel, message).catch((err: Error) => {
+      console.error('[Bot] Say failed:', err.message);
+    });
+  }
+}
+
 export async function disconnectBot(): Promise<void> {
   disconnectEventSub();
   if (client && connected) {
