@@ -57,6 +57,52 @@ router.patch('/:id', (req, res) => {
   res.json(clip);
 });
 
+// GET all session dates
+router.get('/sessions', (_req, res) => {
+  const sessions = getDb().prepare(
+    'SELECT session_date, COUNT(*) as count FROM clips GROUP BY session_date ORDER BY session_date DESC'
+  ).all();
+  res.json(sessions);
+});
+
+// GET export as DaVinci Resolve CSV
+router.get('/export', (req, res) => {
+  let sessionDate = req.query.session_date as string;
+  if (sessionDate === 'today') sessionDate = new Date().toISOString().split('T')[0];
+  if (!sessionDate) { res.status(400).json({ error: 'session_date required' }); return; }
+
+  const clips = getDb().prepare(
+    'SELECT * FROM clips WHERE session_date = ? ORDER BY created_at ASC'
+  ).all(sessionDate) as Array<{ tag: string; note: string | null; created_at: string }>;
+
+  if (clips.length === 0) { res.status(404).json({ error: 'No clips for this date' }); return; }
+
+  // Find the earliest clip as reference (stream start approximation)
+  const firstClipTime = new Date(clips[0].created_at).getTime();
+
+  const csvRows = ['Name,Start,End,Note'];
+  for (const clip of clips) {
+    const clipTime = new Date(clip.created_at).getTime();
+    const offsetSeconds = Math.floor((clipTime - firstClipTime) / 1000);
+    const timecode = formatTimecode(offsetSeconds);
+    const name = clip.tag;
+    const note = (clip.note || '').replace(/,/g, ';').replace(/"/g, "'");
+    csvRows.push(`${name},${timecode},${timecode},${note}`);
+  }
+
+  const csv = csvRows.join('\n');
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', `attachment; filename="clips-${sessionDate}.csv"`);
+  res.send(csv);
+});
+
+function formatTimecode(totalSeconds: number): string {
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}:00`;
+}
+
 router.delete('/:id', (req, res) => {
   getDb().prepare('DELETE FROM clips WHERE id = ?').run(req.params.id);
   broadcast('clip-deleted', { id: Number(req.params.id) });
