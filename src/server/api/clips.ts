@@ -5,6 +5,7 @@ import { syncClipToNotion } from './notion-sync';
 
 const router = Router();
 
+// GET clips (filterable by session_date and tag)
 router.get('/', (req, res) => {
   const { session_date, tag } = req.query;
   let query = 'SELECT * FROM clips';
@@ -21,6 +22,67 @@ router.get('/', (req, res) => {
   res.json(clips);
 });
 
+// GET all session dates — MUST be before /:id routes
+router.get('/sessions', (_req, res) => {
+  const sessions = getDb().prepare(
+    'SELECT session_date, COUNT(*) as count FROM clips GROUP BY session_date ORDER BY session_date DESC'
+  ).all();
+  res.json(sessions);
+});
+
+// GET export as DaVinci Resolve CSV — MUST be before /:id routes
+router.get('/export', (req, res) => {
+  let sessionDate = req.query.session_date as string;
+  if (sessionDate === 'today') sessionDate = new Date().toISOString().split('T')[0];
+  if (!sessionDate) { res.status(400).json({ error: 'session_date required' }); return; }
+
+  const clips = getDb().prepare(
+    'SELECT * FROM clips WHERE session_date = ? ORDER BY created_at ASC'
+  ).all(sessionDate) as Array<{ tag: string; note: string | null; created_at: string }>;
+
+  if (clips.length === 0) { res.status(404).json({ error: 'No clips for this date' }); return; }
+
+  const firstClipTime = new Date(clips[0].created_at).getTime();
+
+  const csvRows = ['Name,Start,End,Note'];
+  for (const clip of clips) {
+    const clipTime = new Date(clip.created_at).getTime();
+    const offsetSeconds = Math.floor((clipTime - firstClipTime) / 1000);
+    const timecode = formatTimecode(offsetSeconds);
+    const name = clip.tag;
+    const note = (clip.note || '').replace(/,/g, ';').replace(/"/g, "'");
+    csvRows.push(`${name},${timecode},${timecode},${note}`);
+  }
+
+  const csv = csvRows.join('\n');
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', `attachment; filename="clips-${sessionDate}.csv"`);
+  res.send(csv);
+});
+
+// POST sync all clips of a session to Notion — MUST be before /:id routes
+router.post('/sync', async (req, res) => {
+  let sessionDate = (req.query.session_date || req.body.session_date) as string;
+  if (sessionDate === 'today') sessionDate = new Date().toISOString().split('T')[0];
+  if (!sessionDate) { res.status(400).json({ error: 'session_date required' }); return; }
+
+  const clips = getDb().prepare(
+    'SELECT * FROM clips WHERE session_date = ? ORDER BY created_at ASC'
+  ).all(sessionDate) as Array<{ id: number; tag: string; note: string | null; session_date: string; created_at: string }>;
+
+  if (clips.length === 0) { res.status(404).json({ error: 'No clips for this date' }); return; }
+
+  let synced = 0;
+  let failed = 0;
+  for (const clip of clips) {
+    const ok = await syncClipToNotion(clip);
+    if (ok) synced++; else failed++;
+  }
+
+  res.json({ session_date: sessionDate, total: clips.length, synced, failed });
+});
+
+// POST new clip
 router.post('/', (req, res) => {
   const { tag, note } = req.body;
   if (!tag) { res.status(400).json({ error: 'tag required' }); return; }
@@ -39,6 +101,7 @@ router.post('/', (req, res) => {
   res.status(201).json(clip);
 });
 
+// PATCH clip — /:id routes AFTER named routes
 router.patch('/:id', (req, res) => {
   const { tag, note } = req.body;
   const db = getDb();
@@ -62,43 +125,11 @@ router.patch('/:id', (req, res) => {
   res.json(clip);
 });
 
-// GET all session dates
-router.get('/sessions', (_req, res) => {
-  const sessions = getDb().prepare(
-    'SELECT session_date, COUNT(*) as count FROM clips GROUP BY session_date ORDER BY session_date DESC'
-  ).all();
-  res.json(sessions);
-});
-
-// GET export as DaVinci Resolve CSV
-router.get('/export', (req, res) => {
-  let sessionDate = req.query.session_date as string;
-  if (sessionDate === 'today') sessionDate = new Date().toISOString().split('T')[0];
-  if (!sessionDate) { res.status(400).json({ error: 'session_date required' }); return; }
-
-  const clips = getDb().prepare(
-    'SELECT * FROM clips WHERE session_date = ? ORDER BY created_at ASC'
-  ).all(sessionDate) as Array<{ tag: string; note: string | null; created_at: string }>;
-
-  if (clips.length === 0) { res.status(404).json({ error: 'No clips for this date' }); return; }
-
-  // Find the earliest clip as reference (stream start approximation)
-  const firstClipTime = new Date(clips[0].created_at).getTime();
-
-  const csvRows = ['Name,Start,End,Note'];
-  for (const clip of clips) {
-    const clipTime = new Date(clip.created_at).getTime();
-    const offsetSeconds = Math.floor((clipTime - firstClipTime) / 1000);
-    const timecode = formatTimecode(offsetSeconds);
-    const name = clip.tag;
-    const note = (clip.note || '').replace(/,/g, ';').replace(/"/g, "'");
-    csvRows.push(`${name},${timecode},${timecode},${note}`);
-  }
-
-  const csv = csvRows.join('\n');
-  res.setHeader('Content-Type', 'text/csv');
-  res.setHeader('Content-Disposition', `attachment; filename="clips-${sessionDate}.csv"`);
-  res.send(csv);
+// DELETE clip
+router.delete('/:id', (req, res) => {
+  getDb().prepare('DELETE FROM clips WHERE id = ?').run(req.params.id);
+  broadcast('clip-deleted', { id: Number(req.params.id) });
+  res.status(204).send();
 });
 
 function formatTimecode(totalSeconds: number): string {
@@ -107,33 +138,5 @@ function formatTimecode(totalSeconds: number): string {
   const s = totalSeconds % 60;
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}:00`;
 }
-
-// POST sync all clips of a session to Notion
-router.post('/sync', async (req, res) => {
-  let sessionDate = (req.query.session_date || req.body.session_date) as string;
-  if (sessionDate === 'today') sessionDate = new Date().toISOString().split('T')[0];
-  if (!sessionDate) { res.status(400).json({ error: 'session_date required' }); return; }
-
-  const clips = getDb().prepare(
-    'SELECT * FROM clips WHERE session_date = ? ORDER BY created_at ASC'
-  ).all(sessionDate) as Array<{ id: number; tag: string; note: string | null; session_date: string; created_at: string }>;
-
-  if (clips.length === 0) { res.status(404).json({ error: 'No clips for this date' }); return; }
-
-  let synced = 0;
-  let failed = 0;
-  for (const clip of clips) {
-    const ok = await syncClipToNotion(clip);
-    if (ok) synced++; else failed++;
-  }
-
-  res.json({ session_date: sessionDate, total: clips.length, synced, failed });
-});
-
-router.delete('/:id', (req, res) => {
-  getDb().prepare('DELETE FROM clips WHERE id = ?').run(req.params.id);
-  broadcast('clip-deleted', { id: Number(req.params.id) });
-  res.status(204).send();
-});
 
 export default router;
