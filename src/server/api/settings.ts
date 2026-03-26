@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { getBotConfig, saveBotConfig } from '../bot/config';
 import { connectBot, disconnectBot, getBotStatus } from '../bot/index';
 import { BotConfig } from '../../shared/types';
+import { getFixedToken } from '../auth-token';
 
 const router = Router();
 
@@ -49,6 +50,12 @@ router.post('/bot/disconnect', async (_req, res) => {
   } catch (err) {
     res.status(500).json({ error: 'Bot disconnect failed', details: String(err) });
   }
+});
+
+// Fixed API token for Stream Deck
+router.get('/api-token', (_req, res) => {
+  const token = getFixedToken();
+  res.json({ token: token || null });
 });
 
 export default router;
