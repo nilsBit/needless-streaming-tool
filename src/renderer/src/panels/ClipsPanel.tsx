@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
 import { useApi, apiPost, apiDelete, getApiToken } from '../hooks/useApi';
+
+interface SyncResult {
+  synced: number;
+  failed: number;
+  total: number;
+}
 import { Clip } from '../../../shared/types';
 import { useWebSocket } from '../hooks/useWebSocket';
 
@@ -26,6 +32,7 @@ export default function ClipsPanel() {
   const [note, setNote] = useState('');
   const [selectedTag, setSelectedTag] = useState('highlight');
   const [collapsedDays, setCollapsedDays] = useState<Set<string>>(new Set());
+  const [syncingDay, setSyncingDay] = useState<string | null>(null);
 
   useWebSocket((event) => {
     if (event.startsWith('clip-')) { refetchClips(); refetchSessions(); }
@@ -42,6 +49,15 @@ export default function ClipsPanel() {
     await apiDelete(`/clips/${id}`);
     refetchClips();
     refetchSessions();
+  };
+
+  const syncToNotion = async (sessionDate: string) => {
+    setSyncingDay(sessionDate);
+    const result = await apiPost<SyncResult>('/clips/sync', { session_date: sessionDate });
+    if (result) {
+      console.log(`[Clips] Synced ${result.synced}/${result.total} clips to Notion`);
+    }
+    setSyncingDay(null);
   };
 
   const exportDay = (sessionDate: string) => {
@@ -115,6 +131,9 @@ export default function ClipsPanel() {
                 <span className="day-toggle">{isCollapsed ? '▶' : '▼'}</span>
                 <span className="day-date">{isToday ? `Heute (${date})` : date}</span>
                 <span className="day-count">{dayClips.length} Clips</span>
+                <button className="btn-export" onClick={(e) => { e.stopPropagation(); syncToNotion(date); }} disabled={syncingDay === date}>
+                  {syncingDay === date ? '⏳' : '📤'} Notion
+                </button>
                 <button className="btn-export" onClick={(e) => { e.stopPropagation(); exportDay(date); }}>📥 DaVinci</button>
               </div>
 

@@ -108,6 +108,28 @@ function formatTimecode(totalSeconds: number): string {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}:00`;
 }
 
+// POST sync all clips of a session to Notion
+router.post('/sync', async (req, res) => {
+  let sessionDate = (req.query.session_date || req.body.session_date) as string;
+  if (sessionDate === 'today') sessionDate = new Date().toISOString().split('T')[0];
+  if (!sessionDate) { res.status(400).json({ error: 'session_date required' }); return; }
+
+  const clips = getDb().prepare(
+    'SELECT * FROM clips WHERE session_date = ? ORDER BY created_at ASC'
+  ).all(sessionDate) as Array<{ id: number; tag: string; note: string | null; session_date: string; created_at: string }>;
+
+  if (clips.length === 0) { res.status(404).json({ error: 'No clips for this date' }); return; }
+
+  let synced = 0;
+  let failed = 0;
+  for (const clip of clips) {
+    const ok = await syncClipToNotion(clip);
+    if (ok) synced++; else failed++;
+  }
+
+  res.json({ session_date: sessionDate, total: clips.length, synced, failed });
+});
+
 router.delete('/:id', (req, res) => {
   getDb().prepare('DELETE FROM clips WHERE id = ?').run(req.params.id);
   broadcast('clip-deleted', { id: Number(req.params.id) });
