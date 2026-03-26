@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
+import { syncClipToNotion } from './notion-sync';
 
 const router = Router();
 
@@ -29,8 +30,12 @@ router.post('/', (req, res) => {
     'INSERT INTO clips (tag, note, session_date) VALUES (?, ?, ?)'
   ).run(tag, note || null, sessionDate);
 
-  const clip = getDb().prepare('SELECT * FROM clips WHERE id = ?').get(result.lastInsertRowid);
+  const clip = getDb().prepare('SELECT * FROM clips WHERE id = ?').get(result.lastInsertRowid) as { id: number; tag: string; note: string | null; session_date: string; created_at: string };
   broadcast('clip-created', clip);
+
+  // Auto-sync to Notion (fire and forget)
+  syncClipToNotion(clip).catch(() => {});
+
   res.status(201).json(clip);
 });
 
