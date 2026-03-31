@@ -72,7 +72,6 @@ function handleRedemption(event: Record<string, unknown>) {
   let rewardType = rewardId;
   const titleLower = rewardTitle.toLowerCase();
   if (titleLower.includes('spawn')) rewardType = 'spawn_enemys';
-  else if (titleLower.includes('enemy') && titleLower.includes('benennen')) rewardType = 'name_enemy';
   else if (titleLower.includes('roulette')) rewardType = 'bug_roulette';
   else if (titleLower.includes('feature')) rewardType = 'feature_request';
   else if (titleLower.includes('musik') || titleLower.includes('song')) rewardType = 'change_music';

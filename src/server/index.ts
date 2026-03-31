@@ -6,7 +6,6 @@ import { initDatabase } from './db/index';
 import { generateApiToken, validateApiToken, getApiToken } from './auth-token';
 import streamStateRouter from './api/stream-state';
 import bugsRouter from './api/bugs';
-import raidsRouter from './api/raids';
 import rewardsRouter from './api/rewards';
 import designsRouter from './api/designs';
 import settingsRouter from './api/settings';
@@ -14,6 +13,9 @@ import actionsRouter from './api/actions';
 import authRouter from './api/auth';
 import votingRouter from './api/voting';
 import todosRouter from './api/todos';
+import progressRouter from './api/progress';
+import clipsRouter from './api/clips';
+import milestonesRouter from './api/milestones';
 import { connectBot } from './bot/index';
 import { getDb } from './db/index';
 import { rateLimit } from './middleware/rate-limit';
@@ -81,7 +83,6 @@ export async function startServer(): Promise<string> {
   // API routes
   app.use('/api/stream-state', streamStateRouter);
   app.use('/api/bugs', bugsRouter);
-  app.use('/api/raids', raidsRouter);
   app.use('/api/rewards', rewardsRouter);
   app.use('/api/designs', designsRouter);
   app.use('/api/settings', settingsRouter);
@@ -89,6 +90,9 @@ export async function startServer(): Promise<string> {
   app.use('/api/auth', authRouter);
   app.use('/api/voting', votingRouter);
   app.use('/api/todos', todosRouter);
+  app.use('/api/progress', progressRouter);
+  app.use('/api/clips', clipsRouter);
+  app.use('/api/milestones', milestonesRouter);
 
   // Twitch OAuth callback redirect (no auth needed)
   app.get('/auth/twitch/callback', (req, res) => res.redirect('/api/auth/twitch/callback'));
@@ -102,6 +106,12 @@ export async function startServer(): Promise<string> {
   app.get('/public/todos', (_req, res) => {
     const todos = getDb().prepare('SELECT * FROM todos ORDER BY done ASC, sort_order ASC, created_at DESC').all();
     res.json(todos);
+  });
+
+  app.get('/public/progress', (_req, res) => {
+    const state = getDb().prepare('SELECT project_name FROM stream_state WHERE id = 1').get() as { project_name: string | null };
+    const items = getDb().prepare('SELECT * FROM project_items ORDER BY sort_order ASC').all();
+    res.json({ project_name: state?.project_name || null, items });
   });
 
   // Static overlay files (no auth needed — public)

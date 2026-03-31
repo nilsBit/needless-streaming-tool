@@ -85,6 +85,24 @@ export function registerHotkeys() {
     console.log('[Hotkey] Ctrl+Shift+R — Roulette');
   });
 
+  // Ctrl+Shift+1 — Milestone Minor
+  globalShortcut.register('CommandOrControl+Shift+1', () => {
+    apiCall('POST', '/api/milestones', { level: 'minor' });
+    console.log('[Hotkey] Ctrl+Shift+1 — Milestone Minor');
+  });
+
+  // Ctrl+Shift+2 — Milestone Major
+  globalShortcut.register('CommandOrControl+Shift+2', () => {
+    apiCall('POST', '/api/milestones', { level: 'major' });
+    console.log('[Hotkey] Ctrl+Shift+2 — Milestone Major');
+  });
+
+  // Ctrl+Shift+3 — Milestone Epic
+  globalShortcut.register('CommandOrControl+Shift+3', () => {
+    apiCall('POST', '/api/milestones', { level: 'epic' });
+    console.log('[Hotkey] Ctrl+Shift+3 — Milestone Epic');
+  });
+
   console.log('[Hotkeys] Registered all global shortcuts');
 }
 

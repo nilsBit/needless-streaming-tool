@@ -1,4 +1,4 @@
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 export const SCHEMA = `
 CREATE TABLE IF NOT EXISTS schema_version (
@@ -47,7 +47,8 @@ CREATE TABLE IF NOT EXISTS stream_state (
   experiment_status TEXT DEFAULT 'idle',
   timer_seconds     INTEGER DEFAULT 0,
   timer_running     INTEGER DEFAULT 0,
-  is_live           INTEGER DEFAULT 0
+  is_live           INTEGER DEFAULT 0,
+  project_name      TEXT
 );
 
 INSERT OR IGNORE INTO stream_state (id) VALUES (1);
@@ -63,5 +64,28 @@ CREATE TABLE IF NOT EXISTS todos (
 CREATE TABLE IF NOT EXISTS settings (
   key   TEXT PRIMARY KEY,
   value TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS project_items (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  title       TEXT NOT NULL,
+  status      TEXT DEFAULT 'pending',
+  sort_order  INTEGER DEFAULT 0,
+  created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS clips (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  tag           TEXT NOT NULL,
+  note          TEXT,
+  session_date  TEXT NOT NULL,
+  created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS milestones (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  level       TEXT NOT NULL,
+  message     TEXT,
+  created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 `;

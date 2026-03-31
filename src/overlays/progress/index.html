@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: transparent; font-family: -apple-system, sans-serif; overflow: hidden; }
+  .container { padding: 12px 20px; background: rgba(13,13,13,0.85); border-radius: 8px; border: 1px solid #2a2a2a; display: inline-block; }
+  .project-name { color: #e0e0e0; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+  .bar-container { width: 200px; height: 8px; background: #2a2a2a; border-radius: 4px; overflow: hidden; }
+  .bar-fill { height: 100%; background: #2ecc71; transition: width 0.5s ease; border-radius: 4px; }
+  .count { color: #888; font-size: 12px; margin-top: 4px; }
+</style>
+</head>
+<body>
+<div class="container" id="overlay">
+  <div class="project-name" id="name">—</div>
+  <div class="bar-container"><div class="bar-fill" id="bar"></div></div>
+  <div class="count" id="count">0/0</div>
+</div>
+<script>
+  const ws = new WebSocket('ws://localhost:4000?overlay=1');
+
+  async function fetchProgress() {
+    try {
+      const res = await fetch('http://localhost:4000/public/progress');
+      const data = await res.json();
+      update(data);
+    } catch {}
+  }
+
+  function update(data) {
+    const name = data.project_name || '—';
+    const items = data.items || [];
+    const done = items.filter(i => i.status === 'done').length;
+    const total = items.length;
+    const pct = total > 0 ? (done / total) * 100 : 0;
+
+    document.getElementById('name').textContent = name;
+    document.getElementById('bar').style.width = pct + '%';
+    document.getElementById('count').textContent = done + '/' + total + ' Features';
+  }
+
+  ws.onmessage = (e) => {
+    try {
+      const msg = JSON.parse(e.data);
+      if (msg.event && msg.event.startsWith('progress-')) fetchProgress();
+    } catch {}
+  };
+
+  ws.onclose = () => setTimeout(() => location.reload(), 3000);
+  fetchProgress();
+</script>
+</body>
+</html>

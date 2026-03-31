@@ -7,6 +7,7 @@ export interface StreamState {
   timer_seconds: number;
   timer_running: number;
   is_live: number;
+  project_name: string | null;
 }
 
 export interface Bug {
@@ -14,16 +15,6 @@ export interface Bug {
   title: string;
   description: string | null;
   status: 'open' | 'fixed' | 'wontfix';
-  created_at: string;
-}
-
-export interface Raid {
-  id: number;
-  streamer_name: string;
-  viewer_count: number;
-  enemy_tier: 'mob' | 'elite' | 'mini-boss' | 'boss';
-  enemy_name: string | null;
-  status: 'pending' | 'built' | 'in-game';
   created_at: string;
 }
 
@@ -39,7 +30,7 @@ export interface Reward {
 export interface Design {
   id: number;
   title: string;
-  type: 'enemy' | 'weapon' | 'upgrade';
+  type: string;
   poll_data: string | null;
   status: 'active' | 'completed';
   created_at: string;
@@ -71,17 +62,33 @@ export interface TwitchConfigResponse {
   has_token?: boolean;
 }
 
+export interface ProjectItem {
+  id: number;
+  title: string;
+  status: 'pending' | 'in_progress' | 'done';
+  sort_order: number;
+  created_at: string;
+}
+
+export interface Clip {
+  id: number;
+  tag: string;
+  note: string | null;
+  session_date: string;
+  created_at: string;
+}
+
+export interface Milestone {
+  id: number;
+  level: 'minor' | 'major' | 'epic';
+  message: string | null;
+  created_at: string;
+}
+
 // Valid status values for validation
 export const VALID_BUG_STATUS = ['open', 'fixed', 'wontfix'] as const;
-export const VALID_RAID_STATUS = ['pending', 'built', 'in-game'] as const;
 export const VALID_REWARD_STATUS = ['pending', 'done'] as const;
 export const VALID_DESIGN_STATUS = ['active', 'completed'] as const;
 export const VALID_EXPERIMENT_STATUS = ['idle', 'in_progress', 'done', 'failed'] as const;
-export const VALID_DESIGN_TYPE = ['enemy', 'weapon', 'upgrade'] as const;
-
-export function calculateTier(viewerCount: number): Raid['enemy_tier'] {
-  if (viewerCount >= 100) return 'boss';
-  if (viewerCount >= 50) return 'mini-boss';
-  if (viewerCount >= 10) return 'elite';
-  return 'mob';
-}
+export const VALID_PROJECT_ITEM_STATUS = ['pending', 'in_progress', 'done'] as const;
+export const VALID_MILESTONE_LEVEL = ['minor', 'major', 'epic'] as const;

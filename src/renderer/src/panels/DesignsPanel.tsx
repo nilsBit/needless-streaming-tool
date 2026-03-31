@@ -13,17 +13,11 @@ interface ActiveVote {
   remaining?: number;
 }
 
-const TYPE_EMOJI: Record<string, string> = {
-  enemy: '👾',
-  weapon: '🗡️',
-  upgrade: '⬆️',
-};
 
 export default function DesignsPanel() {
   const { data: designs, refetch } = useApi<Design[]>('/designs');
   const { data: vote, refetch: refetchVote } = useApi<ActiveVote>('/voting');
   const [title, setTitle] = useState('');
-  const [type, setType] = useState('enemy');
   const [voteOptionInput, setVoteOptionInput] = useState('');
   const [voteOptionsList, setVoteOptionsList] = useState<string[]>([]);
 
@@ -41,7 +35,7 @@ export default function DesignsPanel() {
 
   const createDesign = async () => {
     if (!title.trim()) return;
-    await apiPost('/designs', { title, type });
+    await apiPost('/designs', { title, type: 'general' });
     setTitle('');
     refetch();
   };
@@ -101,11 +95,6 @@ export default function DesignsPanel() {
           onChange={(e) => setTitle(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && createDesign()}
         />
-        <select value={type} onChange={(e) => setType(e.target.value)}>
-          <option value="enemy">👾 Enemy</option>
-          <option value="weapon">🗡️ Weapon</option>
-          <option value="upgrade">⬆️ Upgrade</option>
-        </select>
         <button onClick={createDesign}>+</button>
       </div>
 
@@ -174,7 +163,7 @@ export default function DesignsPanel() {
         {active.length === 0 && <p className="empty">Kein aktives Design</p>}
         {active.map((d) => (
           <div key={d.id} className="design-item active">
-            <span>{TYPE_EMOJI[d.type] || '❓'} {d.title}</span>
+            <span>🎨 {d.title}</span>
             <div className="design-actions">
               <button onClick={() => completeDesign(d.id)}>✅</button>
               <button onClick={() => deleteDesign(d.id)}>🗑️</button>
@@ -187,7 +176,7 @@ export default function DesignsPanel() {
             <h3>Abgeschlossen ({completed.length})</h3>
             {completed.slice(0, 5).map((d) => (
               <div key={d.id} className="design-item done">
-                <span>{TYPE_EMOJI[d.type]} {d.title}</span>
+                <span>🎨 {d.title}</span>
                 <button onClick={() => deleteDesign(d.id)}>🗑️</button>
               </div>
             ))}

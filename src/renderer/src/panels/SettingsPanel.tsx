@@ -23,6 +23,19 @@ export default function SettingsPanel() {
   const { data: config, refetch: refetchConfig } = useApi<TwitchConfigResponse>('/settings/twitch');
   const { data: botStatus, refetch: refetchBot } = useApi<BotStatus>('/settings/bot-status');
   const { data: clientIdInfo, refetch: refetchClientId } = useApi<ClientIdResponse>('/auth/twitch/client-id');
+  const { data: tokenInfo } = useApi<{ token: string | null }>('/settings/api-token');
+  const { data: notionInfo, refetch: refetchNotion } = useApi<{ configured: boolean; preview: string | null }>('/settings/notion');
+
+  const [tokenCopied, setTokenCopied] = useState(false);
+  const [notionToken, setNotionToken] = useState('');
+
+  const copyToken = () => {
+    if (tokenInfo?.token) {
+      navigator.clipboard.writeText(tokenInfo.token);
+      setTokenCopied(true);
+      setTimeout(() => setTokenCopied(false), 2000);
+    }
+  };
 
   const [clientId, setClientId] = useState('');
 
@@ -120,6 +133,57 @@ export default function SettingsPanel() {
             }}>Client-ID ändern</button>
           </div>
         )}
+      </div>
+
+      <div className="settings-section">
+        <h3>Notion Integration</h3>
+        <p className="setup-info">Clips werden automatisch in Notion gesynct. Erstelle eine Integration auf notion.so/my-integrations und teile die Clips-DB mit der Integration.</p>
+
+        {!notionInfo?.configured ? (
+          <div className="client-id-input">
+            <input
+              type="text"
+              placeholder="Notion Internal Integration Token (ntn_...)"
+              value={notionToken}
+              onChange={(e) => setNotionToken(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && (async () => {
+                await apiPost('/settings/notion', { token: notionToken.trim() });
+                setNotionToken('');
+                refetchNotion();
+              })()}
+            />
+            <button onClick={async () => {
+              await apiPost('/settings/notion', { token: notionToken.trim() });
+              setNotionToken('');
+              refetchNotion();
+            }}>💾</button>
+          </div>
+        ) : (
+          <div className="setup-step">
+            <p className="setup-info">Token: {notionInfo.preview}</p>
+            <button className="btn-reset-small" onClick={async () => {
+              await apiPost('/settings/notion', { token: '' });
+              refetchNotion();
+            }}>Token ändern</button>
+          </div>
+        )}
+      </div>
+
+      <div className="settings-section">
+        <h3>Stream Deck API Token</h3>
+        <p className="setup-info">Diesen Token im Stream Deck HTTP-Plugin als Bearer Token verwenden. Bleibt gleich nach Neustart.</p>
+        {tokenInfo?.token ? (
+          <div className="api-token-display">
+            <code className="token-value">{tokenInfo.token.substring(0, 12)}...{tokenInfo.token.substring(tokenInfo.token.length - 8)}</code>
+            <button onClick={copyToken}>{tokenCopied ? '✅ Kopiert' : '📋 Kopieren'}</button>
+          </div>
+        ) : (
+          <p className="empty">Token wird geladen...</p>
+        )}
+        <div className="api-endpoints">
+          <p className="setup-info" style={{ marginTop: '8px' }}>Base URL: <code>http://localhost:4000/api</code></p>
+          <p className="setup-info">Header: <code>Authorization: Bearer &lt;token&gt;</code></p>
+        </div>
       </div>
     </div>
   );
