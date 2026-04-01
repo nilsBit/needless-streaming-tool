@@ -25,6 +25,22 @@
     flex-direction: column;
     align-items: center;
     gap: 10px;
+    opacity: 0;
+    transform: scale(0.5);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    pointer-events: none;
+  }
+
+  .container.visible {
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: auto;
+  }
+
+  .container.hiding {
+    opacity: 0;
+    transform: scale(0.8) translateY(-20px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
   }
 
   .pixel-box {
@@ -113,8 +129,6 @@
     <div class="wheel-rotate" id="wheel"></div>
   </div>
 
-  <button class="spin-btn" id="spinBtn" onclick="spin()">► DREHEN</button>
-
   <div class="result pixel-box hidden" id="resultBox">
     <div class="result-label">ERGEBNIS</div>
     <div class="result-value" id="resultValue"></div>
@@ -140,6 +154,26 @@ let N, ANG;
 const R=140, CX=160, CY=160;
 let rotation=0, spinning=false, total=0;
 let pendingWinnerId = null;
+let hideTimeout = null;
+const RESULT_DISPLAY_MS = 6000; // Show result for 6 seconds then hide
+const container = () => document.querySelector('.container');
+
+function showOverlay() {
+  if (hideTimeout) { clearTimeout(hideTimeout); hideTimeout = null; }
+  const el = container();
+  el.classList.remove('hiding');
+  el.classList.add('visible');
+}
+
+function hideOverlay() {
+  const el = container();
+  el.classList.add('hiding');
+  el.classList.remove('visible');
+  setTimeout(() => {
+    el.classList.remove('hiding');
+    document.getElementById('resultBox').classList.add('hidden');
+  }, 800);
+}
 
 // Fetch bugs from API and build segments
 async function loadBugs() {
@@ -237,8 +271,7 @@ function buildOrbs(){
 function spin(){
   if(spinning || !SEGMENTS.length) return;
   spinning=true;
-  document.getElementById('spinBtn').disabled=true;
-  document.getElementById('spinBtn').textContent='. . .';
+  showOverlay();
   document.getElementById('resultBox').classList.add('hidden');
   document.getElementById('pointer').classList.add('active');
 
@@ -278,16 +311,14 @@ function spin(){
       sub.textContent = 'MUSS GEFIXT WERDEN';
 
       spinning=false;
-      document.getElementById('spinBtn').disabled=false;
-      document.getElementById('spinBtn').textContent='► DREHEN';
       document.getElementById('pointer').classList.remove('active');
+
+      // Hide overlay after showing result
+      hideTimeout = setTimeout(() => { hideOverlay(); }, RESULT_DISPLAY_MS);
     }
   }
   requestAnimationFrame(anim);
 }
-
-// Also need public bugs endpoint
-// Add to server: app.get('/public/bugs', ...)
 
 loadBugs();
 </script>
