@@ -1,109 +1,309 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: transparent; font-family: -apple-system, sans-serif; overflow: hidden; }
+<meta charset="UTF-8">
+<title>Pixel Todo - OBS Overlay</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
-    .todos {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      padding: 16px;
-      background: rgba(13, 13, 13, 0.85);
-      border: 1px solid #2a2a2a;
-      border-radius: 8px;
-      backdrop-filter: blur(8px);
-      max-width: 300px;
-    }
+  html, body {
+    background: transparent !important;
+    background-color: rgba(0,0,0,0) !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    padding-top: 20px;
+    font-family: 'Press Start 2P', monospace;
+    image-rendering: pixelated;
+    overflow: hidden;
+  }
 
-    .todos-title {
-      font-size: 14px;
-      font-weight: 700;
-      color: #e67e22;
-      margin-bottom: 4px;
-    }
+  .container {
+    width: 100%;
+    max-width: 420px;
+    padding: 0 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
 
-    .todo {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      color: #e0e0e0;
-      padding: 4px 0;
-    }
+  .pixel-box {
+    background: rgba(10,10,10,0.85);
+    border: 2px solid #333;
+    box-shadow: inset -2px -2px 0 #000, inset 2px 2px 0 #1a1a1a, 4px 4px 0 rgba(0,0,0,0.8);
+  }
 
-    .todo.done {
-      opacity: 0.4;
-      text-decoration: line-through;
-    }
+  .header {
+    text-align: center;
+    margin-bottom: 2px;
+  }
 
-    .todo-check {
-      font-size: 14px;
-      flex-shrink: 0;
-    }
+  .header-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
 
-    .todo.done .todo-check { color: #2ecc71; }
+  .header h1 {
+    font-size: 18px;
+    color: #e0e0e0;
+    letter-spacing: 4px;
+    text-shadow: 2px 2px 0 #000, -1px -1px 0 #333;
+    margin: 0;
+  }
 
-    .empty {
-      font-size: 12px;
-      color: #555;
-      font-style: italic;
-    }
-  </style>
+  .header-sub {
+    font-size: 6px;
+    color: #2a2a2a;
+    letter-spacing: 3px;
+    margin-top: 4px;
+  }
+
+  .progress-box { padding: 8px 12px; }
+  .progress-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .progress-label { font-size: 6px; color: #555; letter-spacing: 2px; }
+  .progress-count { font-size: 8px; color: #888; }
+
+  .bar-outer {
+    height: 8px;
+    background: #0a0a0a;
+    border: 1px solid #222;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    background: repeating-linear-gradient(90deg, #555 0px, #555 4px, #444 4px, #444 8px);
+    transition: width 0.3s ease;
+  }
+
+  .bar-tick {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: #1a1a1a;
+  }
+
+  .bar-pct { text-align: right; font-size: 6px; color: #444; margin-top: 3px; }
+
+  .todo-list { padding: 8px; max-height: 400px; overflow-y: auto; }
+
+  .todo-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    border-bottom: 1px solid #1a1a1a;
+    animation: fadeIn 0.2s ease-out forwards;
+    opacity: 0;
+  }
+
+  .todo-item:last-child { border-bottom: none; }
+
+  .checkbox {
+    width: 16px;
+    height: 16px;
+    min-width: 16px;
+    background: #0a0a0a;
+    border: 2px solid #444;
+    box-shadow: inset -1px -1px 0 #000, inset 1px 1px 0 #1a1a1a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    image-rendering: pixelated;
+  }
+
+  .checkbox.checked {
+    background: #333;
+    box-shadow: inset 2px 2px 0 #222;
+  }
+
+  .todo-text {
+    flex: 1;
+    font-size: 8px;
+    color: #aaa;
+    line-height: 1.6;
+    word-break: break-word;
+  }
+
+  .todo-text.done {
+    color: #333;
+    text-decoration: line-through;
+  }
+
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 4px;
+  }
+
+  .footer-text {
+    font-size: 6px;
+    color: #2a2a2a;
+    letter-spacing: 2px;
+  }
+
+  .empty-msg {
+    text-align: center;
+    padding: 20px 0;
+    color: #222;
+    font-size: 7px;
+    letter-spacing: 2px;
+  }
+
+  @keyframes fadeIn {
+    0% { opacity: 0; transform: translateY(6px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #0a0a0a; }
+  ::-webkit-scrollbar-thumb { background: #333; border: 1px solid #222; }
+</style>
 </head>
 <body>
-  <div class="todos" id="todos">
-    <div class="todos-title">📋 Todos</div>
-    <div id="list"></div>
+
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-row">
+      <svg width="16" height="16" viewBox="0 0 8 8" style="image-rendering:pixelated;opacity:0.3">
+        <rect x="1" y="0" width="6" height="1" fill="#1a1a1a"/>
+        <rect x="0" y="1" width="8" height="1" fill="#1a1a1a"/>
+        <rect x="0" y="2" width="2" height="1" fill="#1a1a1a"/><rect x="3" y="2" width="2" height="1" fill="#1a1a1a"/><rect x="6" y="2" width="2" height="1" fill="#1a1a1a"/>
+        <rect x="0" y="3" width="8" height="1" fill="#1a1a1a"/>
+        <rect x="1" y="4" width="6" height="1" fill="#1a1a1a"/>
+        <rect x="2" y="5" width="1" height="1" fill="#1a1a1a"/><rect x="4" y="5" width="1" height="1" fill="#1a1a1a"/>
+        <rect x="2" y="2" width="1" height="1" fill="#333"/><rect x="5" y="2" width="1" height="1" fill="#333"/>
+      </svg>
+      <h1>TODO</h1>
+      <svg width="16" height="16" viewBox="0 0 8 8" style="image-rendering:pixelated;opacity:0.3">
+        <rect x="1" y="0" width="6" height="1" fill="#1a1a1a"/>
+        <rect x="0" y="1" width="8" height="1" fill="#1a1a1a"/>
+        <rect x="0" y="2" width="2" height="1" fill="#1a1a1a"/><rect x="3" y="2" width="2" height="1" fill="#1a1a1a"/><rect x="6" y="2" width="2" height="1" fill="#1a1a1a"/>
+        <rect x="0" y="3" width="8" height="1" fill="#1a1a1a"/>
+        <rect x="1" y="4" width="6" height="1" fill="#1a1a1a"/>
+        <rect x="2" y="5" width="1" height="1" fill="#1a1a1a"/><rect x="4" y="5" width="1" height="1" fill="#1a1a1a"/>
+        <rect x="2" y="2" width="1" height="1" fill="#333"/><rect x="5" y="2" width="1" height="1" fill="#333"/>
+      </svg>
+    </div>
+    <div class="header-sub">QUEST LOG</div>
   </div>
 
-  <script>
-    const ws = new WebSocket('ws://localhost:4000?overlay=1');
-    const list = document.getElementById('list');
+  <!-- Progress -->
+  <div class="pixel-box progress-box">
+    <div class="progress-top">
+      <span class="progress-label">FORTSCHRITT</span>
+      <span class="progress-count" id="progressCount">0/0</span>
+    </div>
+    <div class="bar-outer">
+      <div class="bar-fill" id="barFill" style="width:0%"></div>
+      <div class="bar-tick" style="left:10%"></div>
+      <div class="bar-tick" style="left:20%"></div>
+      <div class="bar-tick" style="left:30%"></div>
+      <div class="bar-tick" style="left:40%"></div>
+      <div class="bar-tick" style="left:50%"></div>
+      <div class="bar-tick" style="left:60%"></div>
+      <div class="bar-tick" style="left:70%"></div>
+      <div class="bar-tick" style="left:80%"></div>
+      <div class="bar-tick" style="left:90%"></div>
+    </div>
+    <div class="bar-pct" id="barPct">0%</div>
+  </div>
 
-    function render(todos) {
-      list.innerHTML = '';
-      if (todos.length === 0) {
-        const empty = document.createElement('div');
-        empty.className = 'empty';
-        empty.textContent = 'Keine Todos';
-        list.appendChild(empty);
-        return;
-      }
+  <!-- Todo List -->
+  <div class="pixel-box todo-list" id="todoList">
+    <div class="empty-msg">LADE QUESTS...</div>
+  </div>
 
-      todos.forEach(t => {
-        const el = document.createElement('div');
-        el.className = 'todo' + (t.done ? ' done' : '');
+  <!-- Footer -->
+  <div class="footer">
+    <span class="footer-text" id="openCount">0 OFFEN</span>
+    <span class="footer-text" style="color:#1a1a1a">▪ PIXEL TODO v1 ▪</span>
+  </div>
+</div>
 
-        const check = document.createElement('span');
-        check.className = 'todo-check';
-        check.textContent = t.done ? '☑' : '☐';
+<script>
+let todos = [];
 
-        const title = document.createElement('span');
-        title.textContent = t.title;
+async function fetchTodos() {
+  try {
+    const res = await fetch('http://localhost:4000/public/todos');
+    todos = await res.json();
+    render();
+  } catch (err) {
+    console.error('[Todo] Fetch failed:', err);
+  }
+}
 
-        el.appendChild(check);
-        el.appendChild(title);
-        list.appendChild(el);
-      });
+function render() {
+  const total = todos.length;
+  const doneCount = todos.filter(t => t.done).length;
+  const openCount = total - doneCount;
+  const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
+
+  document.getElementById('progressCount').textContent = doneCount + '/' + total;
+  document.getElementById('barFill').style.width = pct + '%';
+  document.getElementById('barPct').textContent = pct + '%';
+  document.getElementById('openCount').textContent = openCount + ' OFFEN';
+
+  const list = document.getElementById('todoList');
+
+  if (total === 0) {
+    list.innerHTML = '<div class="empty-msg">KEINE QUESTS VORHANDEN</div>';
+    return;
+  }
+
+  // Sort: open first, then done
+  const sorted = [...todos].sort((a, b) => {
+    if (a.done !== b.done) return a.done ? 1 : -1;
+    return (a.sort_order || 0) - (b.sort_order || 0);
+  });
+
+  let html = '';
+  sorted.forEach((todo, i) => {
+    const checkClass = todo.done ? 'checkbox checked' : 'checkbox';
+    const textClass = todo.done ? 'todo-text done' : 'todo-text';
+    const checkmark = todo.done
+      ? '<svg width="10" height="10" viewBox="0 0 10 10" style="image-rendering:pixelated"><rect x="1" y="5" width="2" height="2" fill="#ccc"/><rect x="3" y="7" width="2" height="2" fill="#ccc"/><rect x="5" y="5" width="2" height="2" fill="#ccc"/><rect x="7" y="3" width="2" height="2" fill="#ccc"/><rect x="9" y="1" width="1" height="2" fill="#ccc"/></svg>'
+      : '';
+
+    html += '<div class="todo-item" style="animation-delay:' + (i * 0.05) + 's">'
+      + '<div class="' + checkClass + '">' + checkmark + '</div>'
+      + '<span class="' + textClass + '">' + escapeHtml(todo.title) + '</span>'
+      + '</div>';
+  });
+
+  list.innerHTML = html;
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// WebSocket for live updates
+const ws = new WebSocket('ws://localhost:4000?overlay=1');
+
+ws.onmessage = (e) => {
+  try {
+    const msg = JSON.parse(e.data);
+    if (msg.event && (msg.event.startsWith('todo-') || msg.event === 'todos-cleared')) {
+      fetchTodos();
     }
+  } catch {}
+};
 
-    function fetchTodos() {
-      fetch('http://localhost:4000/public/todos')
-        .then(r => r.json())
-        .then(render)
-        .catch(() => {});
-    }
+ws.onclose = () => setTimeout(() => location.reload(), 3000);
 
-    ws.onmessage = (msg) => {
-      const { event } = JSON.parse(msg.data);
-      if (event === 'todo-updated') fetchTodos();
-    };
-
-    // Initial fetch
-    fetchTodos();
-  </script>
+fetchTodos();
+</script>
 </body>
 </html>
