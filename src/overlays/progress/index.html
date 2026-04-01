@@ -19,8 +19,6 @@
   <div class="count" id="count">0/0</div>
 </div>
 <script>
-  const ws = new WebSocket('ws://localhost:4000?overlay=1');
-
   async function fetchProgress() {
     try {
       const res = await fetch('http://localhost:4000/public/progress');
@@ -41,15 +39,33 @@
     document.getElementById('count').textContent = done + '/' + total + ' Features';
   }
 
-  ws.onmessage = (e) => {
-    try {
-      const msg = JSON.parse(e.data);
-      if (msg.event && msg.event.startsWith('progress-')) fetchProgress();
-    } catch {}
-  };
+  function connectWS() {
+    const ws = new WebSocket('ws://localhost:4000?overlay=1');
 
-  ws.onclose = () => setTimeout(() => location.reload(), 3000);
-  fetchProgress();
+    ws.onopen = () => {
+      console.log('[Progress] WebSocket connected');
+      fetchProgress();
+    };
+
+    ws.onmessage = (e) => {
+      try {
+        const msg = JSON.parse(e.data);
+        if (msg.event && msg.event.startsWith('progress-')) fetchProgress();
+      } catch {}
+    };
+
+    ws.onclose = () => {
+      console.log('[Progress] WebSocket closed, reconnecting...');
+      setTimeout(connectWS, 2000);
+    };
+
+    ws.onerror = () => ws.close();
+  }
+
+  connectWS();
+
+  // Also poll every 10s as fallback
+  setInterval(fetchProgress, 10000);
 </script>
 </body>
 </html>
