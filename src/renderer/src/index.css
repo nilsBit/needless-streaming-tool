@@ -355,7 +355,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 }
 .todo-check:hover { color: #2ecc71; background: none; }
 
-.todo-title { flex: 1; }
+.todo-title { flex: 1; color: #fff; }
 
 .todo-delete {
   padding: 2px 6px;
