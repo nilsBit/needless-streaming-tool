@@ -9,9 +9,18 @@ export default function BugsPanel() {
   const [newBug, setNewBug] = useState('');
   const [cooldown, setCooldown] = useState(0);
 
+  const [spinning, setSpinning] = useState(false);
+  const [selectedBug, setSelectedBug] = useState<Bug | null>(null);
+
   useWebSocket((event, data) => {
     if (event === 'bug-created' || event === 'bug-updated' || event === 'bug-deleted') refetch();
     if (event === 'roulette-cooldown') setCooldown((data as { remaining_seconds: number }).remaining_seconds);
+    if (event === 'roulette-result') {
+      const result = data as { title: string; id: number };
+      const found = bugs?.find((b) => b.id === result.id);
+      if (found) setSelectedBug(found);
+      setSpinning(false);
+    }
   });
 
   // Cooldown countdown
@@ -22,9 +31,6 @@ export default function BugsPanel() {
     }, 1000);
     return () => clearInterval(interval);
   }, [cooldown > 0]);
-
-  const [spinning, setSpinning] = useState(false);
-  const [selectedBug, setSelectedBug] = useState<Bug | null>(null);
 
   const addBug = async () => {
     if (!newBug.trim()) return;
@@ -43,25 +49,18 @@ export default function BugsPanel() {
     refetch();
   };
 
-  const spinRoulette = () => {
+  const spinRoulette = async () => {
     const openBugs = bugs?.filter((b) => b.status === 'open') || [];
     if (openBugs.length === 0) return;
 
     setSpinning(true);
     setSelectedBug(null);
 
-    let count = 0;
-    const spin = () => {
-      const random = openBugs[Math.floor(Math.random() * openBugs.length)];
-      setSelectedBug(random);
-      count++;
-      if (count > 15) {
-        setSpinning(false);
-        return;
-      }
-      setTimeout(spin, 100 + count * 30);
-    };
-    spin();
+    const result = await apiPost<{ winner: { id: number; title: string } }>('/actions/roulette', {});
+    if (!result) {
+      setSpinning(false);
+    }
+    // Result comes back via WebSocket 'roulette-result' event
   };
 
   const openBugs = bugs?.filter((b) => b.status === 'open') || [];
