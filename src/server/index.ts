@@ -103,6 +103,11 @@ export async function startServer(): Promise<string> {
     res.json(state);
   });
 
+  app.get('/public/bugs', (_req, res) => {
+    const bugs = getDb().prepare('SELECT * FROM bugs ORDER BY created_at DESC').all();
+    res.json(bugs);
+  });
+
   app.get('/public/todos', (_req, res) => {
     const todos = getDb().prepare('SELECT * FROM todos ORDER BY done ASC, sort_order ASC, created_at DESC').all();
     res.json(todos);
