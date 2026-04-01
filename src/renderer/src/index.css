@@ -31,14 +31,10 @@ body {
   overflow: auto;
 }
 
-/* Settings panel takes extra space in bottom row */
-.panels > :nth-child(7) { grid-column: 3 / 5; }
-
 @media (max-width: 1200px) {
   .panels {
     grid-template-columns: repeat(3, 1fr);
   }
-  .panels > :nth-child(7) { grid-column: auto; }
 }
 
 @media (max-width: 800px) {

@@ -6,6 +6,7 @@ import ProgressPanel from './panels/ProgressPanel';
 import DesignsPanel from './panels/DesignsPanel';
 import ClipsPanel from './panels/ClipsPanel';
 import MilestonesPanel from './panels/MilestonesPanel';
+import TodosPanel from './panels/TodosPanel';
 import SettingsPanel from './panels/SettingsPanel';
 
 export default function App() {
@@ -33,6 +34,9 @@ export default function App() {
         </ErrorBoundary>
         <ErrorBoundary fallback="Milestones">
           <MilestonesPanel />
+        </ErrorBoundary>
+        <ErrorBoundary fallback="Todos">
+          <TodosPanel />
         </ErrorBoundary>
         <ErrorBoundary fallback="Settings">
           <SettingsPanel />
