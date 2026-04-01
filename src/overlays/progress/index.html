@@ -2,70 +2,367 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
+<title>Progress Tracker - OBS Overlay</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: transparent; font-family: -apple-system, sans-serif; overflow: hidden; }
-  .container { padding: 12px 20px; background: rgba(13,13,13,0.85); border-radius: 8px; border: 1px solid #2a2a2a; display: inline-block; }
-  .project-name { color: #e0e0e0; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
-  .bar-container { width: 200px; height: 8px; background: #2a2a2a; border-radius: 4px; overflow: hidden; }
-  .bar-fill { height: 100%; background: #2ecc71; transition: width 0.5s ease; border-radius: 4px; }
-  .count { color: #888; font-size: 12px; margin-top: 4px; }
+
+  html, body {
+    background: transparent !important;
+    background-color: rgba(0,0,0,0) !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    padding-top: 20px;
+    font-family: 'Press Start 2P', monospace;
+    image-rendering: pixelated;
+    overflow: hidden;
+    zoom: 1.5;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 560px;
+    padding: 0 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .pixel-box {
+    background: rgba(10,10,10,0.85);
+    border: 2px solid #333;
+    box-shadow: inset -2px -2px 0 #000, inset 2px 2px 0 #1a1a1a, 4px 4px 0 rgba(0,0,0,0.8);
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 2px;
+  }
+
+  .header-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .header h1 {
+    font-size: 24px;
+    color: #e0e0e0;
+    letter-spacing: 4px;
+    text-shadow: 2px 2px 0 #000, -1px -1px 0 #333;
+    margin: 0;
+  }
+
+  .header-sub {
+    font-size: 8px;
+    color: #2a2a2a;
+    letter-spacing: 3px;
+    margin-top: 4px;
+  }
+
+  .project-name {
+    font-size: 10px;
+    color: #888;
+    letter-spacing: 2px;
+    text-align: center;
+  }
+
+  .progress-box { padding: 8px 12px; }
+  .progress-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .progress-label { font-size: 8px; color: #555; letter-spacing: 2px; }
+  .progress-count { font-size: 10px; color: #888; }
+
+  .bar-outer {
+    height: 12px;
+    background: #0a0a0a;
+    border: 1px solid #222;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    background: repeating-linear-gradient(90deg, #555 0px, #555 4px, #444 4px, #444 8px);
+    transition: width 0.5s ease;
+  }
+
+  .bar-tick {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: #1a1a1a;
+  }
+
+  .bar-pct { text-align: right; font-size: 8px; color: #444; margin-top: 3px; }
+
+  .item-list { padding: 8px; max-height: 400px; overflow-y: auto; }
+
+  .item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    border-bottom: 1px solid #1a1a1a;
+    animation: fadeIn 0.2s ease-out forwards;
+    opacity: 0;
+  }
+
+  .item:last-child { border-bottom: none; }
+
+  .checkbox {
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    background: #0a0a0a;
+    border: 2px solid #444;
+    box-shadow: inset -1px -1px 0 #000, inset 1px 1px 0 #1a1a1a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    image-rendering: pixelated;
+  }
+
+  .checkbox.done {
+    background: #333;
+    box-shadow: inset 2px 2px 0 #222;
+  }
+
+  .checkbox.in-progress {
+    background: #1a1a0a;
+    border-color: #554400;
+    box-shadow: inset 2px 2px 0 #111;
+  }
+
+  .status-icon {
+    font-size: 8px;
+    min-width: 14px;
+    text-align: center;
+  }
+
+  .item-text {
+    flex: 1;
+    font-size: 11px;
+    color: #aaa;
+    line-height: 1.6;
+    word-break: break-word;
+  }
+
+  .item-text.done {
+    color: #333;
+    text-decoration: line-through;
+  }
+
+  .item-text.in-progress {
+    color: #cc9900;
+  }
+
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 4px;
+  }
+
+  .footer-text {
+    font-size: 8px;
+    color: #2a2a2a;
+    letter-spacing: 2px;
+  }
+
+  .empty-msg {
+    text-align: center;
+    padding: 20px 0;
+    color: #222;
+    font-size: 9px;
+    letter-spacing: 2px;
+  }
+
+  @keyframes fadeIn {
+    0% { opacity: 0; transform: translateY(6px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #0a0a0a; }
+  ::-webkit-scrollbar-thumb { background: #333; border: 1px solid #222; }
 </style>
 </head>
 <body>
-<div class="container" id="overlay">
-  <div class="project-name" id="name">—</div>
-  <div class="bar-container"><div class="bar-fill" id="bar"></div></div>
-  <div class="count" id="count">0/0</div>
+
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-row">
+      <svg width="24" height="24" viewBox="0 0 8 8" style="image-rendering:pixelated;opacity:0.3">
+        <rect x="2" y="0" width="4" height="1" fill="#1a1a1a"/>
+        <rect x="1" y="1" width="6" height="1" fill="#1a1a1a"/>
+        <rect x="1" y="2" width="6" height="4" fill="#1a1a1a"/>
+        <rect x="2" y="6" width="4" height="1" fill="#1a1a1a"/>
+        <rect x="3" y="7" width="2" height="1" fill="#1a1a1a"/>
+        <rect x="2" y="3" width="1" height="2" fill="#333"/>
+        <rect x="5" y="3" width="1" height="2" fill="#333"/>
+        <rect x="3" y="2" width="2" height="1" fill="#444"/>
+      </svg>
+      <h1>PROGRESS</h1>
+      <svg width="24" height="24" viewBox="0 0 8 8" style="image-rendering:pixelated;opacity:0.3">
+        <rect x="2" y="0" width="4" height="1" fill="#1a1a1a"/>
+        <rect x="1" y="1" width="6" height="1" fill="#1a1a1a"/>
+        <rect x="1" y="2" width="6" height="4" fill="#1a1a1a"/>
+        <rect x="2" y="6" width="4" height="1" fill="#1a1a1a"/>
+        <rect x="3" y="7" width="2" height="1" fill="#1a1a1a"/>
+        <rect x="2" y="3" width="1" height="2" fill="#333"/>
+        <rect x="5" y="3" width="1" height="2" fill="#333"/>
+        <rect x="3" y="2" width="2" height="1" fill="#444"/>
+      </svg>
+    </div>
+    <div class="header-sub">FEATURE TRACKER</div>
+  </div>
+
+  <!-- Project Name -->
+  <div class="project-name" id="projectName">—</div>
+
+  <!-- Progress Bar -->
+  <div class="pixel-box progress-box">
+    <div class="progress-top">
+      <span class="progress-label">FORTSCHRITT</span>
+      <span class="progress-count" id="progressCount">0/0</span>
+    </div>
+    <div class="bar-outer">
+      <div class="bar-fill" id="barFill" style="width:0%"></div>
+      <div class="bar-tick" style="left:10%"></div>
+      <div class="bar-tick" style="left:20%"></div>
+      <div class="bar-tick" style="left:30%"></div>
+      <div class="bar-tick" style="left:40%"></div>
+      <div class="bar-tick" style="left:50%"></div>
+      <div class="bar-tick" style="left:60%"></div>
+      <div class="bar-tick" style="left:70%"></div>
+      <div class="bar-tick" style="left:80%"></div>
+      <div class="bar-tick" style="left:90%"></div>
+    </div>
+    <div class="bar-pct" id="barPct">0%</div>
+  </div>
+
+  <!-- Item List -->
+  <div class="pixel-box item-list" id="itemList">
+    <div class="empty-msg">LADE FEATURES...</div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <span class="footer-text" id="openCount">0 OFFEN</span>
+    <span class="footer-text" style="color:#1a1a1a">▪ PROGRESS v1 ▪</span>
+  </div>
 </div>
+
 <script>
-  async function fetchProgress() {
+let items = [];
+let projectName = '—';
+
+async function fetchProgress() {
+  try {
+    const res = await fetch('http://localhost:4000/public/progress');
+    const data = await res.json();
+    projectName = data.project_name || '—';
+    items = data.items || [];
+    render();
+  } catch (err) {
+    console.error('[Progress] Fetch failed:', err);
+  }
+}
+
+function render() {
+  const total = items.length;
+  const doneCount = items.filter(i => i.status === 'done').length;
+  const inProgressCount = items.filter(i => i.status === 'in_progress').length;
+  const openCount = total - doneCount;
+  const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
+
+  document.getElementById('projectName').textContent = projectName;
+  document.getElementById('progressCount').textContent = doneCount + '/' + total;
+  document.getElementById('barFill').style.width = pct + '%';
+  document.getElementById('barPct').textContent = pct + '%';
+  document.getElementById('openCount').textContent = openCount + ' OFFEN';
+
+  const list = document.getElementById('itemList');
+
+  if (total === 0) {
+    list.innerHTML = '<div class="empty-msg">KEINE FEATURES VORHANDEN</div>';
+    return;
+  }
+
+  // Sort: in_progress first, then pending, then done
+  const sorted = [...items].sort((a, b) => {
+    const order = { in_progress: 0, pending: 1, done: 2 };
+    const ao = order[a.status] ?? 1;
+    const bo = order[b.status] ?? 1;
+    if (ao !== bo) return ao - bo;
+    return (a.sort_order || 0) - (b.sort_order || 0);
+  });
+
+  let html = '';
+  sorted.forEach((item, i) => {
+    const isDone = item.status === 'done';
+    const isInProgress = item.status === 'in_progress';
+
+    let checkClass = 'checkbox';
+    if (isDone) checkClass += ' done';
+    else if (isInProgress) checkClass += ' in-progress';
+
+    let textClass = 'item-text';
+    if (isDone) textClass += ' done';
+    else if (isInProgress) textClass += ' in-progress';
+
+    let checkmark = '';
+    if (isDone) {
+      checkmark = '<svg width="10" height="10" viewBox="0 0 10 10" style="image-rendering:pixelated"><rect x="1" y="5" width="2" height="2" fill="#ccc"/><rect x="3" y="7" width="2" height="2" fill="#ccc"/><rect x="5" y="5" width="2" height="2" fill="#ccc"/><rect x="7" y="3" width="2" height="2" fill="#ccc"/><rect x="9" y="1" width="1" height="2" fill="#ccc"/></svg>';
+    } else if (isInProgress) {
+      checkmark = '<span style="font-size:8px;color:#cc9900">►</span>';
+    }
+
+    html += '<div class="item" style="animation-delay:' + (i * 0.05) + 's">'
+      + '<div class="' + checkClass + '">' + checkmark + '</div>'
+      + '<span class="' + textClass + '">' + escapeHtml(item.title) + '</span>'
+      + '</div>';
+  });
+
+  list.innerHTML = html;
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function connectWS() {
+  const ws = new WebSocket('ws://localhost:4000?overlay=1');
+
+  ws.onopen = () => {
+    console.log('[Progress] WebSocket connected');
+    fetchProgress();
+  };
+
+  ws.onmessage = (e) => {
     try {
-      const res = await fetch('http://localhost:4000/public/progress');
-      const data = await res.json();
-      update(data);
+      const msg = JSON.parse(e.data);
+      if (msg.event && msg.event.startsWith('progress-')) fetchProgress();
     } catch {}
-  }
+  };
 
-  function update(data) {
-    const name = data.project_name || '—';
-    const items = data.items || [];
-    const done = items.filter(i => i.status === 'done').length;
-    const total = items.length;
-    const pct = total > 0 ? (done / total) * 100 : 0;
+  ws.onclose = () => {
+    console.log('[Progress] WebSocket closed, reconnecting...');
+    setTimeout(connectWS, 2000);
+  };
 
-    document.getElementById('name').textContent = name;
-    document.getElementById('bar').style.width = pct + '%';
-    document.getElementById('count').textContent = done + '/' + total + ' Features';
-  }
+  ws.onerror = () => ws.close();
+}
 
-  function connectWS() {
-    const ws = new WebSocket('ws://localhost:4000?overlay=1');
-
-    ws.onopen = () => {
-      console.log('[Progress] WebSocket connected');
-      fetchProgress();
-    };
-
-    ws.onmessage = (e) => {
-      try {
-        const msg = JSON.parse(e.data);
-        if (msg.event && msg.event.startsWith('progress-')) fetchProgress();
-      } catch {}
-    };
-
-    ws.onclose = () => {
-      console.log('[Progress] WebSocket closed, reconnecting...');
-      setTimeout(connectWS, 2000);
-    };
-
-    ws.onerror = () => ws.close();
-  }
-
-  connectWS();
-
-  // Also poll every 10s as fallback
-  setInterval(fetchProgress, 10000);
+connectWS();
+setInterval(fetchProgress, 10000);
 </script>
 </body>
 </html>
