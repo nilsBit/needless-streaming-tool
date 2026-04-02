@@ -2,30 +2,290 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
+<title>Achievement - OBS Overlay</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: transparent; font-family: -apple-system, sans-serif; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; }
-  .alert { opacity: 0; transform: scale(0.8); transition: all 0.3s ease; text-align: center; padding: 24px 40px; border-radius: 12px; }
-  .alert.visible { opacity: 1; transform: scale(1); }
-  .alert.minor { background: rgba(52,152,219,0.9); }
-  .alert.major { background: rgba(243,156,18,0.9); }
-  .alert.epic { background: rgba(231,76,60,0.9); border: 2px solid #fff; box-shadow: 0 0 40px rgba(231,76,60,0.5); }
-  .emoji { font-size: 48px; }
-  .message { color: #fff; font-size: 20px; font-weight: 600; margin-top: 8px; }
-  .label { color: rgba(255,255,255,0.7); font-size: 14px; text-transform: uppercase; margin-top: 4px; }
+
+  html, body {
+    background: transparent !important;
+    background-color: rgba(0,0,0,0) !important;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    height: 100vh;
+    padding-top: 40px;
+    font-family: 'Press Start 2P', monospace;
+    image-rendering: pixelated;
+    overflow: hidden;
+  }
+
+  .achievement {
+    opacity: 0;
+    transform: translateY(-40px) scale(0.9);
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 24px 14px 16px;
+    background: rgba(10,10,10,0.92);
+    border: 2px solid #333;
+    box-shadow: inset -2px -2px 0 #000, inset 2px 2px 0 #1a1a1a, 6px 6px 0 rgba(0,0,0,0.8);
+    min-width: 360px;
+    max-width: 560px;
+  }
+
+  .achievement.visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    transition: opacity 0.4s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .achievement.hiding {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  /* Level-specific border glow */
+  .achievement.minor { border-color: #444; }
+  .achievement.major { border-color: #554400; box-shadow: inset -2px -2px 0 #000, inset 2px 2px 0 #1a1a1a, 6px 6px 0 rgba(0,0,0,0.8), 0 0 20px rgba(204,153,0,0.15); }
+  .achievement.epic { border-color: #553300; box-shadow: inset -2px -2px 0 #000, inset 2px 2px 0 #1a1a1a, 6px 6px 0 rgba(0,0,0,0.8), 0 0 30px rgba(255,170,0,0.25), 0 0 60px rgba(255,170,0,0.1); }
+
+  /* Icon box */
+  .icon-box {
+    width: 52px;
+    height: 52px;
+    min-width: 52px;
+    background: #0a0a0a;
+    border: 2px solid #333;
+    box-shadow: inset 2px 2px 0 #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .achievement.minor .icon-box { border-color: #444; }
+  .achievement.major .icon-box { border-color: #554400; background: #0f0d06; }
+  .achievement.epic .icon-box { border-color: #664400; background: #110e06; }
+
+  /* Pixel shield icon */
+  .icon-box svg { image-rendering: pixelated; }
+
+  /* Text content */
+  .text-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+  }
+
+  .achievement-label {
+    font-size: 6px;
+    letter-spacing: 3px;
+    color: #555;
+  }
+
+  .achievement.minor .achievement-label { color: #555; }
+  .achievement.major .achievement-label { color: #665500; }
+  .achievement.epic .achievement-label { color: #886600; }
+
+  .achievement-title {
+    font-size: 10px;
+    color: #e0e0e0;
+    text-shadow: 1px 1px 0 #000;
+    line-height: 1.5;
+    word-break: break-word;
+  }
+
+  .achievement.major .achievement-title { color: #ffcc44; }
+  .achievement.epic .achievement-title { color: #ffaa00; text-shadow: 1px 1px 0 #000, 0 0 8px rgba(255,170,0,0.3); }
+
+  .achievement-sub {
+    font-size: 6px;
+    color: #333;
+    letter-spacing: 2px;
+  }
+
+  .achievement.major .achievement-sub { color: #443300; }
+  .achievement.epic .achievement-sub { color: #554400; }
+
+  /* Shine effect for epic */
+  .shine {
+    display: none;
+    position: absolute;
+    top: 0; left: -100%; width: 60%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,200,50,0.08), transparent);
+    animation: shineAnim 3s ease-in-out infinite;
+  }
+
+  .achievement.epic .shine { display: block; }
+
+  @keyframes shineAnim {
+    0% { left: -100%; }
+    50% { left: 200%; }
+    100% { left: 200%; }
+  }
+
+  /* Sparkle particles for epic */
+  .sparkles {
+    display: none;
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .achievement.epic .sparkles { display: block; }
+
+  .sparkle {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: #ffcc44;
+    animation: sparkleFloat 2s ease-in-out infinite;
+  }
+
+  @keyframes sparkleFloat {
+    0% { opacity: 0; transform: translateY(0); }
+    30% { opacity: 0.8; }
+    100% { opacity: 0; transform: translateY(-20px); }
+  }
 </style>
 </head>
 <body>
-<div class="alert" id="alert">
-  <div class="emoji" id="emoji"></div>
-  <div class="message" id="message"></div>
-  <div class="label" id="label"></div>
-</div>
-<script>
-  const DURATION = { minor: 2000, major: 4000, epic: 6000 };
-  const EMOJI = { minor: '✨', major: '🎉', epic: '🏆' };
-  let hideTimeout = null;
 
+<div class="achievement" id="achievement">
+  <div class="shine"></div>
+  <div class="sparkles" id="sparkles"></div>
+
+  <div class="icon-box">
+    <svg id="icon" width="32" height="32" viewBox="0 0 16 16" style="image-rendering:pixelated"></svg>
+  </div>
+
+  <div class="text-content">
+    <div class="achievement-label" id="label">ACHIEVEMENT UNLOCKED</div>
+    <div class="achievement-title" id="title">Milestone!</div>
+    <div class="achievement-sub" id="sub"></div>
+  </div>
+</div>
+
+<script>
+const DURATION = { minor: 3000, major: 5000, epic: 8000 };
+
+const ICONS = {
+  minor: `
+    <rect x="6" y="1" width="4" height="1" fill="#888"/>
+    <rect x="5" y="2" width="6" height="1" fill="#888"/>
+    <rect x="4" y="3" width="8" height="1" fill="#777"/>
+    <rect x="4" y="4" width="8" height="3" fill="#666"/>
+    <rect x="5" y="7" width="6" height="1" fill="#555"/>
+    <rect x="6" y="8" width="4" height="1" fill="#555"/>
+    <rect x="7" y="9" width="2" height="1" fill="#444"/>
+    <rect x="6" y="10" width="4" height="2" fill="#555"/>
+    <rect x="5" y="12" width="6" height="1" fill="#666"/>
+    <rect x="7" y="4" width="2" height="2" fill="#aaa"/>
+  `,
+  major: `
+    <rect x="6" y="0" width="4" height="1" fill="#cc9900"/>
+    <rect x="5" y="1" width="6" height="1" fill="#cc9900"/>
+    <rect x="4" y="2" width="8" height="1" fill="#aa8800"/>
+    <rect x="3" y="3" width="10" height="1" fill="#aa8800"/>
+    <rect x="3" y="4" width="10" height="3" fill="#997700"/>
+    <rect x="4" y="7" width="8" height="1" fill="#886600"/>
+    <rect x="5" y="8" width="6" height="1" fill="#886600"/>
+    <rect x="6" y="9" width="4" height="1" fill="#775500"/>
+    <rect x="5" y="10" width="6" height="2" fill="#886600"/>
+    <rect x="4" y="12" width="8" height="1" fill="#997700"/>
+    <rect x="6" y="4" width="4" height="2" fill="#eebb33"/>
+    <rect x="7" y="3" width="2" height="1" fill="#ffcc44"/>
+  `,
+  epic: `
+    <rect x="7" y="0" width="2" height="1" fill="#ffaa00"/>
+    <rect x="6" y="1" width="4" height="1" fill="#ffcc44"/>
+    <rect x="5" y="2" width="6" height="1" fill="#ffcc44"/>
+    <rect x="4" y="3" width="8" height="1" fill="#eebb33"/>
+    <rect x="3" y="4" width="10" height="1" fill="#ddaa22"/>
+    <rect x="2" y="5" width="12" height="2" fill="#cc9900"/>
+    <rect x="3" y="7" width="10" height="1" fill="#bb8800"/>
+    <rect x="4" y="8" width="8" height="1" fill="#aa7700"/>
+    <rect x="5" y="9" width="6" height="1" fill="#996600"/>
+    <rect x="6" y="10" width="4" height="1" fill="#885500"/>
+    <rect x="5" y="11" width="6" height="2" fill="#996600"/>
+    <rect x="4" y="13" width="8" height="1" fill="#aa7700"/>
+    <rect x="6" y="5" width="4" height="2" fill="#ffdd66"/>
+    <rect x="7" y="4" width="2" height="1" fill="#ffee88"/>
+    <rect x="7" y="3" width="2" height="1" fill="#fff"/>
+    <rect x="1" y="5" width="1" height="2" fill="#ffaa00"/>
+    <rect x="14" y="5" width="1" height="2" fill="#ffaa00"/>
+    <rect x="0" y="6" width="1" height="1" fill="#cc8800"/>
+    <rect x="15" y="6" width="1" height="1" fill="#cc8800"/>
+  `,
+};
+
+const LABELS = {
+  minor: 'ACHIEVEMENT',
+  major: 'ACHIEVEMENT UNLOCKED',
+  epic: '★ LEGENDARY ACHIEVEMENT ★',
+};
+
+const SUBS = {
+  minor: '',
+  major: 'WELL DONE',
+  epic: 'LEGENDARY',
+};
+
+let hideTimeout = null;
+
+function buildSparkles() {
+  let html = '';
+  for (let i = 0; i < 12; i++) {
+    const left = Math.random() * 100;
+    const top = 60 + Math.random() * 40;
+    const delay = Math.random() * 2;
+    const dur = 1.5 + Math.random() * 1.5;
+    html += `<div class="sparkle" style="left:${left}%;top:${top}%;animation-delay:${delay}s;animation-duration:${dur}s"></div>`;
+  }
+  document.getElementById('sparkles').innerHTML = html;
+}
+
+function show(data) {
+  const el = document.getElementById('achievement');
+  const level = data.level || 'minor';
+
+  // Reset
+  el.className = 'achievement ' + level;
+
+  // Icon
+  document.getElementById('icon').innerHTML = ICONS[level] || ICONS.minor;
+
+  // Text
+  document.getElementById('label').textContent = LABELS[level] || 'ACHIEVEMENT';
+  document.getElementById('title').textContent = data.message || 'Milestone!';
+  document.getElementById('sub').textContent = SUBS[level] || '';
+
+  // Sparkles for epic
+  if (level === 'epic') buildSparkles();
+
+  // Show
+  requestAnimationFrame(() => {
+    el.classList.add('visible');
+  });
+
+  // Hide after duration
+  if (hideTimeout) clearTimeout(hideTimeout);
+  hideTimeout = setTimeout(() => {
+    el.classList.remove('visible');
+    el.classList.add('hiding');
+    setTimeout(() => {
+      el.className = 'achievement';
+    }, 700);
+  }, DURATION[level] || 3000);
+}
+
+// WebSocket
+function connectWS() {
   const ws = new WebSocket('ws://localhost:4000?overlay=1');
 
   ws.onmessage = (e) => {
@@ -35,24 +295,11 @@
     } catch {}
   };
 
-  function show(data) {
-    const el = document.getElementById('alert');
-    const level = data.level || 'minor';
+  ws.onclose = () => setTimeout(connectWS, 2000);
+  ws.onerror = () => ws.close();
+}
 
-    el.className = 'alert ' + level;
-    document.getElementById('emoji').textContent = EMOJI[level] || '✨';
-    document.getElementById('message').textContent = data.message || 'Milestone!';
-    document.getElementById('label').textContent = level.toUpperCase();
-
-    el.classList.add('visible');
-
-    if (hideTimeout) clearTimeout(hideTimeout);
-    hideTimeout = setTimeout(() => {
-      el.classList.remove('visible');
-    }, DURATION[level] || 2000);
-  }
-
-  ws.onclose = () => setTimeout(() => location.reload(), 3000);
+connectWS();
 </script>
 </body>
 </html>
