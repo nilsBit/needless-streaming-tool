@@ -3,6 +3,7 @@ import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
 import { getBotConfig } from './config';
 import { triggerRoulette } from '../api/actions';
+import { changeScene, findSceneForReward } from '../obs/index';
 
 let ws: WebSocket | null = null;
 let sessionId: string | null = null;
@@ -60,7 +61,7 @@ async function subscribeToRedemptions(token: string, clientId: string, userId: s
   }
 }
 
-function handleRedemption(event: Record<string, unknown>) {
+async function handleRedemption(event: Record<string, unknown>) {
   const userName = (event.user_name as string) || 'Unknown';
   const rewardTitle = (event.reward as Record<string, unknown>)?.title as string || 'Unknown';
   const rewardId = (event.reward as Record<string, unknown>)?.id as string || '';
@@ -75,6 +76,7 @@ function handleRedemption(event: Record<string, unknown>) {
   else if (titleLower.includes('roulette')) rewardType = 'bug_roulette';
   else if (titleLower.includes('feature')) rewardType = 'feature_request';
   else if (titleLower.includes('musik') || titleLower.includes('song')) rewardType = 'change_music';
+  else if (titleLower.includes('scene') || titleLower.includes('szene')) rewardType = 'scene_change';
 
   const result = getDb().prepare(
     'INSERT INTO rewards (user_name, reward_type, data) VALUES (?, ?, ?)'
@@ -86,6 +88,24 @@ function handleRedemption(event: Record<string, unknown>) {
   // Auto-trigger roulette when someone redeems bug_roulette
   if (rewardType === 'bug_roulette') {
     triggerRoulette();
+  }
+
+  // Scene change: check mappings first (fixed reward → scene), then fallback to user input
+  const mappedScene = findSceneForReward(rewardTitle);
+  if (mappedScene) {
+    const sceneResult = await changeScene(mappedScene);
+    if (sceneResult.success) {
+      console.log(`[EventSub] Scene changed to "${mappedScene}" via mapping by ${userName}`);
+    } else {
+      console.log(`[EventSub] Mapped scene change failed for "${mappedScene}": ${sceneResult.error}`);
+    }
+  } else if (rewardType === 'scene_change' && userInput) {
+    const sceneResult = await changeScene(userInput.trim());
+    if (sceneResult.success) {
+      console.log(`[EventSub] Scene changed to "${userInput}" by ${userName}`);
+    } else {
+      console.log(`[EventSub] Scene change failed for "${userInput}": ${sceneResult.error}`);
+    }
   }
 }
 

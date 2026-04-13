@@ -44,8 +44,24 @@ export function initDatabase(dbPath?: string): Database.Database {
 }
 
 function runMigrations(from: number, to: number) {
-  // Future migrations go here:
-  // if (from < 2) { db.exec('ALTER TABLE ...'); }
+  if (from < 4) {
+    // Milestones: add title, status, completed_at columns (idempotent)
+    try { db.exec('ALTER TABLE milestones ADD COLUMN title TEXT NOT NULL DEFAULT \'\''); } catch {}
+    try { db.exec('ALTER TABLE milestones ADD COLUMN status TEXT DEFAULT \'pending\''); } catch {}
+    try { db.exec('ALTER TABLE milestones ADD COLUMN completed_at DATETIME'); } catch {}
+    // Migrate existing milestones: use message as title, mark as completed
+    db.exec(`UPDATE milestones SET title = COALESCE(message, level), status = 'completed', completed_at = created_at WHERE title = ''`);
+    console.log('[DB] Migrated: milestones table updated with title, status, completed_at');
+  }
+
+  if (from < 5) {
+    // Migrate hardcoded Notion clips database ID to settings
+    const existing = db.prepare('SELECT value FROM settings WHERE key = ?').get('notion_clips_db') as { value: string } | undefined;
+    if (!existing) {
+      db.prepare('INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)').run('notion_clips_db', '063fe6bb48384ddfab0afebf32244308');
+      console.log('[DB] Migrated: moved Notion clips DB ID to settings');
+    }
+  }
 
   db.prepare('INSERT OR REPLACE INTO schema_version (version) VALUES (?)').run(to);
   console.log(`[DB] Migrated from v${from} to v${to}`);

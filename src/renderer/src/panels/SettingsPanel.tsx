@@ -25,9 +25,11 @@ export default function SettingsPanel() {
   const { data: clientIdInfo, refetch: refetchClientId } = useApi<ClientIdResponse>('/auth/twitch/client-id');
   const { data: tokenInfo } = useApi<{ token: string | null }>('/settings/api-token');
   const { data: notionInfo, refetch: refetchNotion } = useApi<{ configured: boolean; preview: string | null }>('/settings/notion');
+  const { data: notionDbInfo, refetch: refetchNotionDb } = useApi<{ configured: boolean; database_id: string | null }>('/settings/notion/database');
 
   const [tokenCopied, setTokenCopied] = useState(false);
   const [notionToken, setNotionToken] = useState('');
+  const [notionDbId, setNotionDbId] = useState('');
 
   const copyToken = () => {
     if (tokenInfo?.token) {
@@ -165,6 +167,36 @@ export default function SettingsPanel() {
               await apiPost('/settings/notion', { token: '' });
               refetchNotion();
             }}>Token ändern</button>
+          </div>
+        )}
+
+        <p className="setup-info" style={{ marginTop: '12px' }}>Clips-Datenbank ID — die Notion-Datenbank in die Clips gesynct werden.</p>
+        {!notionDbInfo?.configured ? (
+          <div className="client-id-input">
+            <input
+              type="text"
+              placeholder="Notion Database ID oder URL..."
+              value={notionDbId}
+              onChange={(e) => setNotionDbId(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && (async () => {
+                await apiPost('/settings/notion/database', { database_id: notionDbId.trim() });
+                setNotionDbId('');
+                refetchNotionDb();
+              })()}
+            />
+            <button onClick={async () => {
+              await apiPost('/settings/notion/database', { database_id: notionDbId.trim() });
+              setNotionDbId('');
+              refetchNotionDb();
+            }}>💾</button>
+          </div>
+        ) : (
+          <div className="setup-step">
+            <p className="setup-info">Database: {notionDbInfo.database_id?.substring(0, 8)}...{notionDbInfo.database_id?.substring(24)}</p>
+            <button className="btn-reset-small" onClick={async () => {
+              await apiPost('/settings/notion/database', { database_id: '' });
+              refetchNotionDb();
+            }}>Database ändern</button>
           </div>
         )}
       </div>

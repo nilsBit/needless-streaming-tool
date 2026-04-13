@@ -1,10 +1,12 @@
 import { getDb } from '../db/index';
 
-// Notion database ID for clips
-const NOTION_CLIPS_DB = '063fe6bb48384ddfab0afebf32244308';
-
 function getNotionToken(): string | null {
   const row = getDb().prepare('SELECT value FROM settings WHERE key = ?').get('notion_token') as { value: string } | undefined;
+  return row?.value || null;
+}
+
+function getNotionClipsDbId(): string | null {
+  const row = getDb().prepare('SELECT value FROM settings WHERE key = ?').get('notion_clips_db') as { value: string } | undefined;
   return row?.value || null;
 }
 
@@ -23,6 +25,12 @@ export async function syncClipToNotion(clip: ClipRow): Promise<boolean> {
     return false;
   }
 
+  const dbId = getNotionClipsDbId();
+  if (!dbId) {
+    console.log('[Notion] No clips database ID configured — skipping sync');
+    return false;
+  }
+
   const time = new Date(clip.created_at).toLocaleTimeString('de-DE', {
     hour: '2-digit', minute: '2-digit', second: '2-digit',
   });
@@ -36,7 +44,7 @@ export async function syncClipToNotion(clip: ClipRow): Promise<boolean> {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        parent: { database_id: NOTION_CLIPS_DB },
+        parent: { database_id: dbId },
         properties: {
           'Clip': { title: [{ text: { content: `${clip.tag} — ${time}` } }] },
           'Tag': { select: { name: clip.tag } },

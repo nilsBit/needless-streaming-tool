@@ -70,6 +70,25 @@ router.post('/notion', (req, res) => {
   res.json({ success: true });
 });
 
+// Notion Clips Database ID
+router.get('/notion/database', (_req, res) => {
+  const row = getDb().prepare('SELECT value FROM settings WHERE key = ?').get('notion_clips_db') as { value: string } | undefined;
+  res.json({ configured: !!row?.value, database_id: row?.value || null });
+});
+
+router.post('/notion/database', (req, res) => {
+  const { database_id } = req.body;
+  if (database_id === undefined) { res.status(400).json({ error: 'database_id required' }); return; }
+  if (database_id) {
+    // Clean up: accept full Notion URLs or just the ID
+    const cleanId = database_id.replace(/[-]/g, '').replace(/.*\/([a-f0-9]{32}).*/, '$1');
+    getDb().prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('notion_clips_db', cleanId);
+  } else {
+    getDb().prepare('DELETE FROM settings WHERE key = ?').run('notion_clips_db');
+  }
+  res.json({ success: true });
+});
+
 // Fixed API token for Stream Deck
 router.get('/api-token', (_req, res) => {
   const token = getFixedToken();

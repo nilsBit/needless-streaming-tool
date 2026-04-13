@@ -2,11 +2,12 @@ import { Client } from 'tmi.js';
 import { getDb } from '../db/index';
 import { startVote, castVote, getActiveVote, endVote } from './voting';
 import { StreamState, Bug, Todo } from '../../shared/types';
+import { changeScene, getScenes } from '../obs/index';
 
 const startTime = Date.now();
 
 export function registerCommands(client: Client) {
-  client.on('message', (channel, tags, message, self) => {
+  client.on('message', async (channel, tags, message, self) => {
     if (self) return;
     if (!message.startsWith('!')) return;
 
@@ -104,6 +105,33 @@ export function registerCommands(client: Client) {
         const total = items.length;
         const name = state?.project_name || 'Kein Projekt';
         client.say(channel, `📊 ${name} — ${done}/${total} Features fertig`);
+        break;
+      }
+
+      case '!scene': {
+        const isMod = tags.mod || tags.badges?.broadcaster === '1';
+        if (!isMod) {
+          client.say(channel, '❌ Nur Mods und Broadcaster können Szenen wechseln!');
+          break;
+        }
+
+        const sceneName = message.trim().split(/\s+/).slice(1).join(' ');
+        if (!sceneName) {
+          const scenes = await getScenes();
+          if (scenes.length > 0) {
+            client.say(channel, `🎬 Verfügbare Szenen: ${scenes.join(', ')}`);
+          } else {
+            client.say(channel, '❌ OBS nicht verbunden oder keine Szenen gefunden.');
+          }
+          break;
+        }
+
+        const result = await changeScene(sceneName);
+        if (result.success) {
+          client.say(channel, `🎬 Scene gewechselt zu: ${sceneName}`);
+        } else {
+          client.say(channel, `❌ Scene-Wechsel fehlgeschlagen: ${result.error || 'Unbekannter Fehler'}`);
+        }
         break;
       }
 

@@ -16,7 +16,9 @@ import todosRouter from './api/todos';
 import progressRouter from './api/progress';
 import clipsRouter from './api/clips';
 import milestonesRouter from './api/milestones';
+import obsRouter from './api/obs';
 import { connectBot } from './bot/index';
+import { connectObs } from './obs/index';
 import { getDb } from './db/index';
 import { rateLimit } from './middleware/rate-limit';
 
@@ -93,6 +95,7 @@ export async function startServer(): Promise<string> {
   app.use('/api/progress', progressRouter);
   app.use('/api/clips', clipsRouter);
   app.use('/api/milestones', milestonesRouter);
+  app.use('/api/obs', obsRouter);
 
   // Twitch OAuth callback redirect (no auth needed)
   app.get('/auth/twitch/callback', (req, res) => res.redirect('/api/auth/twitch/callback'));
@@ -131,6 +134,7 @@ export async function startServer(): Promise<string> {
       console.log(`[Server] Running on http://localhost:${PORT}`);
 
       connectBot().catch(() => {});
+      connectObs().catch(() => {});
 
       resolve(token);
     });
