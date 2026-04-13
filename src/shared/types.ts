@@ -80,8 +80,11 @@ export interface Clip {
 
 export interface Milestone {
   id: number;
+  title: string;
   level: 'minor' | 'major' | 'epic';
+  status: 'pending' | 'completed';
   message: string | null;
+  completed_at: string | null;
   created_at: string;
 }
 
@@ -92,3 +95,4 @@ export const VALID_DESIGN_STATUS = ['active', 'completed'] as const;
 export const VALID_EXPERIMENT_STATUS = ['idle', 'in_progress', 'done', 'failed'] as const;
 export const VALID_PROJECT_ITEM_STATUS = ['pending', 'in_progress', 'done'] as const;
 export const VALID_MILESTONE_LEVEL = ['minor', 'major', 'epic'] as const;
+export const VALID_MILESTONE_STATUS = ['pending', 'completed'] as const;

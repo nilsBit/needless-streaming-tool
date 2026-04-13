@@ -17,62 +17,104 @@ body {
   border-bottom: 1px solid #2a2a2a;
 }
 
-.app-header h1 { font-size: 18px; font-weight: 600; }
-.status { font-size: 12px; color: #888; }
+.app-header h1 { font-size: 20px; font-weight: 600; }
+
+/* Tab Navigation */
+.tab-nav {
+  display: flex;
+  gap: 4px;
+}
+
+.tab-btn {
+  padding: 8px 16px;
+  font-size: 14px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: #888;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+
+.tab-btn:hover { color: #e0e0e0; background: #2a2a2a; }
+.tab-btn.active { color: #e67e22; background: #e67e2215; border-color: #e67e2244; }
 
 /* Panels Grid */
 .panels {
   flex: 1;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: auto;
-  gap: 12px;
-  padding: 12px;
+  grid-template-columns: repeat(2, 1fr);
+  grid-auto-rows: min-content;
+  align-content: start;
+  gap: 16px;
+  padding: 20px;
   overflow: auto;
 }
 
-@media (max-width: 1200px) {
-  .panels {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (max-width: 800px) {
-  .panels {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 500px) {
+@media (max-width: 700px) {
   .panels {
     grid-template-columns: 1fr;
   }
+}
+
+/* Panel Wrapper (collapse) */
+.panel-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-collapse-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 6px 6px 0 0;
+  color: #888;
+  font-size: 13px;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.panel-collapse-btn:hover { color: #e0e0e0; background: #222; }
+
+.collapse-icon { font-size: 10px; color: #555; }
+.collapse-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+
+.panel-wrapper.collapsed .panel-collapse-btn {
+  border-radius: 6px;
+}
+
+.panel-wrapper .panel {
+  border-top: none;
+  border-radius: 0 0 8px 8px;
 }
 
 .panel {
   background: #1a1a1a;
   border: 1px solid #2a2a2a;
   border-radius: 8px;
-  padding: 16px;
+  padding: 18px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
-.panel h2 { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: -4px; }
-.panel-desc { font-size: 11px; color: #555; line-height: 1.4; }
-.panel h3 { font-size: 12px; font-weight: 500; color: #666; margin-top: 8px; }
-.empty { font-size: 12px; color: #555; font-style: italic; }
+.panel h2 { display: none; }
+.panel-desc { font-size: 13px; color: #555; line-height: 1.4; }
+.panel h3 { font-size: 14px; font-weight: 500; color: #666; margin-top: 8px; }
+.empty { font-size: 13px; color: #555; font-style: italic; }
 
 /* Inputs */
 input, select {
   background: #0d0d0d;
   border: 1px solid #333;
   border-radius: 4px;
-  padding: 6px 10px;
+  padding: 8px 12px;
   color: #e0e0e0;
-  font-size: 13px;
+  font-size: 14px;
   outline: none;
 }
 
@@ -84,9 +126,9 @@ button {
   background: #2a2a2a;
   border: 1px solid #333;
   border-radius: 4px;
-  padding: 6px 12px;
+  padding: 8px 14px;
   color: #e0e0e0;
-  font-size: 12px;
+  font-size: 14px;
   cursor: pointer;
   transition: background 0.15s;
 }
@@ -126,11 +168,11 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   border-radius: 4px;
 }
 
-.experiment-title { font-weight: 600; font-size: 13px; }
-.experiment-state { color: #888; font-size: 11px; margin-left: auto; text-transform: uppercase; }
+.experiment-title { font-weight: 600; font-size: 14px; }
+.experiment-state { color: #888; font-size: 13px; margin-left: auto; text-transform: uppercase; }
 
 .timer { display: flex; align-items: center; gap: 8px; }
-.timer-display { font-size: 28px; font-weight: 700; font-family: 'SF Mono', monospace; color: #e67e22; }
+.timer-display { font-size: 32px; font-weight: 700; font-family: 'SF Mono', monospace; color: #e67e22; }
 
 .experiment-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
@@ -140,14 +182,14 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .btn-roulette {
   width: 100%;
-  padding: 10px;
-  font-size: 14px;
+  padding: 12px;
+  font-size: 15px;
   border-color: #e67e22;
 }
 .btn-roulette:hover { background: #e67e2233; }
 
 .roulette-result {
-  padding: 8px;
+  padding: 10px;
   background: #e67e2222;
   border: 1px solid #e67e22;
   border-radius: 4px;
@@ -155,21 +197,21 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   text-align: center;
 }
 
-.bug-list { display: flex; flex-direction: column; gap: 4px; }
+.bug-list { display: flex; flex-direction: column; gap: 6px; }
 
 .bug-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 8px;
+  padding: 8px 10px;
   background: #0d0d0d;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .bug-item.fixed { opacity: 0.5; text-decoration: line-through; }
 .bug-actions { display: flex; gap: 4px; }
-.bug-actions button { padding: 2px 6px; font-size: 11px; }
+.bug-actions button { padding: 4px 8px; font-size: 12px; }
 
 /* Raids Panel */
 .raid-list { display: flex; flex-direction: column; gap: 6px; }
@@ -178,10 +220,10 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 8px;
+  padding: 10px;
   background: #0d0d0d;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .raid-item.done { opacity: 0.5; flex-direction: row; justify-content: space-between; align-items: center; }
@@ -190,13 +232,13 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .raid-tier { font-size: 16px; }
 .raid-name { font-weight: 600; }
 .raid-viewers { color: #888; }
-.raid-tier-label { color: #e67e22; font-size: 11px; text-transform: uppercase; margin-left: auto; }
+.raid-tier-label { color: #e67e22; font-size: 12px; text-transform: uppercase; margin-left: auto; }
 
 .raid-actions { display: flex; align-items: center; gap: 6px; }
 .raid-edit { display: flex; gap: 6px; }
 .raid-edit input { flex: 1; }
-.enemy-name { color: #e67e22; font-size: 11px; }
-.raid-status-label { color: #666; font-size: 11px; }
+.enemy-name { color: #e67e22; font-size: 12px; }
+.raid-status-label { color: #666; font-size: 12px; }
 
 /* Designs Panel */
 .design-create { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -209,10 +251,10 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 8px;
+  padding: 8px 10px;
   background: #0d0d0d;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .design-item.done { opacity: 0.5; }
@@ -220,15 +262,15 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 /* Voting */
 .vote-section { padding: 8px; background: #0d0d0d; border-radius: 4px; }
 
-.vote-active h3 { font-size: 12px; color: #e67e22; margin-bottom: 8px; }
+.vote-active h3 { font-size: 14px; color: #e67e22; margin-bottom: 8px; }
 
 .vote-results { display: flex; flex-direction: column; gap: 6px; }
 
 .vote-bar-row { display: flex; align-items: center; gap: 8px; }
-.vote-label { font-size: 12px; min-width: 60px; color: #e0e0e0; }
+.vote-label { font-size: 14px; min-width: 60px; color: #e0e0e0; }
 .vote-bar-bg { flex: 1; height: 8px; background: #2a2a2a; border-radius: 4px; overflow: hidden; }
 .vote-bar-fill { height: 100%; background: #e67e22; border-radius: 4px; transition: width 0.3s; }
-.vote-count { font-size: 12px; color: #e67e22; font-weight: 700; min-width: 20px; text-align: right; }
+.vote-count { font-size: 14px; color: #e67e22; font-weight: 700; min-width: 20px; text-align: right; }
 
 .vote-controls { display: flex; gap: 8px; margin-top: 8px; }
 
@@ -243,11 +285,11 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 3px 8px;
+  padding: 4px 10px;
   background: #e67e2233;
   border: 1px solid #e67e22;
   border-radius: 12px;
-  font-size: 11px;
+  font-size: 13px;
   color: #e67e22;
 }
 
@@ -267,7 +309,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .vote-start-row button { flex: 1; border-color: #e67e22; }
 .vote-start-row button:hover { background: #e67e2233; }
 .design-actions { display: flex; gap: 4px; }
-.design-actions button { padding: 2px 6px; font-size: 11px; }
+.design-actions button { padding: 4px 8px; font-size: 12px; }
 
 /* Rewards Panel */
 .reward-list { display: flex; flex-direction: column; gap: 4px; }
@@ -276,17 +318,17 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 8px;
+  padding: 8px 10px;
   background: #0d0d0d;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .reward-item.done { opacity: 0.5; }
 .reward-info { display: flex; gap: 8px; }
 .reward-user { font-weight: 600; }
 .reward-type { color: #888; }
-.reward-input { color: #e67e22; font-style: italic; font-size: 11px; display: block; margin-top: 2px; }
+.reward-input { color: #e67e22; font-style: italic; font-size: 13px; display: block; margin-top: 2px; }
 
 /* Settings Panel */
 .settings-section { display: flex; flex-direction: column; gap: 12px; }
@@ -295,7 +337,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .settings-form {
@@ -308,22 +350,22 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font-size: 11px;
+  font-size: 13px;
   color: #888;
 }
 
-.settings-form label input { font-size: 13px; }
+.settings-form label input { font-size: 14px; }
 
 .bot-controls { display: flex; gap: 8px; }
 
 .setup-step { display: flex; flex-direction: column; gap: 6px; }
-.setup-info { font-size: 12px; color: #888; }
+.setup-info { font-size: 13px; color: #888; }
 
 .client-id-input { display: flex; gap: 8px; }
 .client-id-input input { flex: 1; }
 
 .reset-section { margin-top: 4px; }
-.btn-reset-small { font-size: 11px; color: #666; border-color: #333; padding: 3px 8px; }
+.btn-reset-small { font-size: 12px; color: #666; border-color: #333; padding: 4px 10px; }
 .btn-reset-small:hover { color: #e0e0e0; }
 
 /* Todos Panel */
@@ -336,10 +378,10 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 8px;
+  padding: 8px 10px;
   background: #0d0d0d;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .todo-item.done { opacity: 0.4; }
@@ -348,7 +390,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .todo-check {
   background: none;
   border: none;
-  font-size: 14px;
+  font-size: 16px;
   padding: 0;
   cursor: pointer;
   color: #e0e0e0;
@@ -358,8 +400,8 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .todo-title { flex: 1; color: #fff; }
 
 .todo-delete {
-  padding: 2px 6px;
-  font-size: 11px;
+  padding: 4px 8px;
+  font-size: 12px;
   opacity: 0;
   transition: opacity 0.15s;
 }
@@ -371,7 +413,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .chat-commands-toggle {
   width: 100%;
   text-align: left;
-  font-size: 11px;
+  font-size: 12px;
   color: #555;
   border: none;
   background: none;
@@ -386,7 +428,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   display: flex;
   gap: 8px;
   align-items: center;
-  font-size: 11px;
+  font-size: 12px;
   color: #666;
 }
 
@@ -394,14 +436,14 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   background: #0d0d0d;
   padding: 2px 6px;
   border-radius: 3px;
-  font-size: 10px;
+  font-size: 11px;
   color: #e67e22;
   white-space: nowrap;
 }
 
 /* Error Boundary */
 .error-panel { border-color: #e74c3c; }
-.error-message { font-size: 11px; color: #e74c3c; font-family: 'SF Mono', monospace; word-break: break-all; }
+.error-message { font-size: 13px; color: #e74c3c; font-family: 'SF Mono', monospace; word-break: break-all; }
 
 /* Progress Panel */
 .progress-header {
@@ -411,16 +453,16 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   gap: 8px;
 }
 
-.project-name { cursor: pointer; font-size: 13px; }
+.project-name { cursor: pointer; font-size: 14px; }
 .project-name:hover { color: #e67e22; }
 
 .project-name-edit { display: flex; gap: 6px; flex: 1; }
 .project-name-edit input { flex: 1; }
 
-.progress-count { font-size: 11px; color: #888; white-space: nowrap; }
+.progress-count { font-size: 13px; color: #888; white-space: nowrap; }
 
 .progress-bar-container {
-  height: 6px;
+  height: 8px;
   background: #2a2a2a;
   border-radius: 3px;
   overflow: hidden;
@@ -433,16 +475,16 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   transition: width 0.3s;
 }
 
-.progress-items { display: flex; flex-direction: column; gap: 4px; }
+.progress-items { display: flex; flex-direction: column; gap: 6px; }
 
 .progress-item {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 5px 8px;
+  padding: 8px 10px;
   background: #0d0d0d;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .progress-item.status-done { opacity: 0.5; }
@@ -452,7 +494,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   background: none;
   border: none;
   padding: 0;
-  font-size: 14px;
+  font-size: 16px;
   cursor: pointer;
   line-height: 1;
 }
@@ -464,8 +506,8 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .add-item input { flex: 1; }
 
 .btn-delete-small {
-  padding: 2px 6px;
-  font-size: 11px;
+  padding: 4px 8px;
+  font-size: 12px;
   color: #555;
   border-color: #2a2a2a;
   opacity: 0;
@@ -480,8 +522,8 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .clip-tags { display: flex; flex-wrap: wrap; gap: 6px; }
 
 .tag-btn {
-  padding: 3px 8px;
-  font-size: 11px;
+  padding: 5px 10px;
+  font-size: 13px;
   border-color: #333;
 }
 
@@ -500,46 +542,93 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 5px 8px;
+  padding: 8px 10px;
   background: #0d0d0d;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 14px;
 }
 
-.clip-time { color: #666; font-size: 11px; white-space: nowrap; }
+.clip-time { color: #666; font-size: 13px; white-space: nowrap; }
 .clip-tag { color: #e67e22; white-space: nowrap; }
 .clip-note { flex: 1; color: #888; font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* Milestones Panel */
-.milestone-input input { width: 100%; }
-
-.milestone-buttons { display: flex; gap: 8px; }
-
-.milestone-trigger {
-  flex: 1;
-  padding: 10px;
-  font-size: 13px;
-  border-width: 1px;
-  border-style: solid;
+.milestone-list,
+.milestone-history {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.milestone-trigger:hover { opacity: 0.8; }
-
-.milestone-history { display: flex; flex-direction: column; gap: 4px; }
+.milestone-history h3 {
+  font-size: 13px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+}
 
 .milestone-item {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 5px 8px;
+  padding: 8px 10px;
   background: #0d0d0d;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 14px;
 }
 
-.ms-emoji { font-size: 14px; }
-.ms-message { flex: 1; }
-.ms-time { color: #666; font-size: 11px; white-space: nowrap; }
+.milestone-item.completed { opacity: 0.45; }
+.milestone-item.completed .ms-title { text-decoration: line-through; }
+
+.milestone-item .status-toggle {
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-size: 16px;
+  padding: 0;
+  line-height: 1;
+}
+
+.milestone-item .status-toggle.done {
+  cursor: default;
+  font-size: 16px;
+}
+
+.ms-level { font-size: 16px; }
+.ms-title { flex: 1; }
+.ms-time { color: #666; font-size: 13px; white-space: nowrap; }
+
+.milestone-add {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.milestone-add input {
+  flex: 1;
+  min-width: 0;
+}
+
+.milestone-level-select {
+  display: flex;
+  gap: 2px;
+}
+
+.level-btn {
+  padding: 6px 8px;
+  font-size: 15px;
+  background: transparent;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0.35;
+  transition: opacity 0.15s;
+}
+
+.level-btn.active { opacity: 1; }
+.level-btn:hover { opacity: 0.7; }
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }

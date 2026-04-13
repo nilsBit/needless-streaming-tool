@@ -262,7 +262,7 @@ function show(data) {
 
   // Text
   document.getElementById('label').textContent = LABELS[level] || 'ACHIEVEMENT';
-  document.getElementById('title').textContent = data.message || 'Milestone!';
+  document.getElementById('title').textContent = data.title || data.message || 'Milestone!';
   document.getElementById('sub').textContent = SUBS[level] || '';
 
   // Sparkles for epic

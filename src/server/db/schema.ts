@@ -1,4 +1,4 @@
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 5;
 
 export const SCHEMA = `
 CREATE TABLE IF NOT EXISTS schema_version (
@@ -83,9 +83,12 @@ CREATE TABLE IF NOT EXISTS clips (
 );
 
 CREATE TABLE IF NOT EXISTS milestones (
-  id          INTEGER PRIMARY KEY AUTOINCREMENT,
-  level       TEXT NOT NULL,
-  message     TEXT,
-  created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  title         TEXT NOT NULL,
+  level         TEXT NOT NULL,
+  status        TEXT DEFAULT 'pending',
+  message       TEXT,
+  completed_at  DATETIME,
+  created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 `;
