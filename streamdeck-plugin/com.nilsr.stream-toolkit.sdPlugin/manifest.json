@@ -1,0 +1,24 @@
+{
+  "Author": "NilsR",
+  "CodePath": "bin/plugin.js",
+  "Description": "Stream Toolkit integration for The Lab stream",
+  "Name": "Stream Toolkit",
+  "Icon": "imgs/plugin/marketplace",
+  "SDKVersion": 2,
+  "Software": { "MinimumVersion": "6.4" },
+  "Version": "1.0.0",
+  "OS": [{ "Platform": "windows", "MinimumVersion": "10" }],
+  "UUID": "com.nilsr.stream-toolkit",
+  "Actions": [
+    { "Name": "Clip: Highlight", "UUID": "com.nilsr.stream-toolkit.clip.highlight", "Icon": "imgs/actions/clip/action", "Tooltip": "Create a highlight clip", "Controllers": ["Keypad"], "States": [{ "Image": "imgs/actions/clip/key" }] },
+    { "Name": "Clip: Fail", "UUID": "com.nilsr.stream-toolkit.clip.fail", "Icon": "imgs/actions/clip/action", "Tooltip": "Create a fail clip", "Controllers": ["Keypad"], "States": [{ "Image": "imgs/actions/clip/key" }] },
+    { "Name": "Clip: Funny", "UUID": "com.nilsr.stream-toolkit.clip.funny", "Icon": "imgs/actions/clip/action", "Tooltip": "Create a funny clip", "Controllers": ["Keypad"], "States": [{ "Image": "imgs/actions/clip/key" }] },
+    { "Name": "Clip: Tutorial", "UUID": "com.nilsr.stream-toolkit.clip.tutorial", "Icon": "imgs/actions/clip/action", "Tooltip": "Create a tutorial clip", "Controllers": ["Keypad"], "States": [{ "Image": "imgs/actions/clip/key" }] },
+    { "Name": "Clip: Bug", "UUID": "com.nilsr.stream-toolkit.clip.bug", "Icon": "imgs/actions/clip/action", "Tooltip": "Create a bug clip", "Controllers": ["Keypad"], "States": [{ "Image": "imgs/actions/clip/key" }] },
+    { "Name": "Compile & Pray", "UUID": "com.nilsr.stream-toolkit.compile-pray", "Icon": "imgs/actions/compile-pray/action", "Tooltip": "Trigger Compile & Pray alert", "Controllers": ["Keypad"], "States": [{ "Image": "imgs/actions/compile-pray/key" }] },
+    { "Name": "Bug Roulette", "UUID": "com.nilsr.stream-toolkit.bug-roulette", "Icon": "imgs/actions/bug-roulette/action", "Tooltip": "Spin the Bug Roulette", "Controllers": ["Keypad"], "States": [{ "Image": "imgs/actions/bug-roulette/key" }] },
+    { "Name": "OBS Scene", "UUID": "com.nilsr.stream-toolkit.obs-scene", "Icon": "imgs/actions/obs-scene/action", "Tooltip": "Switch to a specific OBS scene", "Controllers": ["Keypad"], "States": [{ "Image": "imgs/actions/obs-scene/key" }], "PropertyInspectorPath": "ui/obs-scene.html" },
+    { "Name": "Stream Status", "UUID": "com.nilsr.stream-toolkit.stream-status", "Icon": "imgs/actions/stream-status/action", "Tooltip": "Shows LIVE or OFFLINE", "Controllers": ["Keypad"], "States": [{ "Image": "imgs/actions/stream-status/key" }] },
+    { "Name": "Open Bugs", "UUID": "com.nilsr.stream-toolkit.open-bugs", "Icon": "imgs/actions/open-bugs/action", "Tooltip": "Shows number of open bugs", "Controllers": ["Keypad"], "States": [{ "Image": "imgs/actions/open-bugs/key" }] }
+  ]
+}
