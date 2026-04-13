@@ -6,8 +6,11 @@ const router = Router();
 
 function getCustomOverlayDir(): string {
   try {
-    const { app } = require('electron');
-    return path.join(app.getPath('userData'), 'custom-overlays');
+    const electron = require('electron');
+    const electronApp = electron?.app;
+    if (electronApp?.isPackaged) {
+      return path.join(electronApp.getPath('userData'), 'custom-overlays');
+    }
   } catch {}
   return path.join(process.cwd(), 'data', 'custom-overlays');
 }

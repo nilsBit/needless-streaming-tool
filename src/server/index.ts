@@ -131,8 +131,13 @@ export async function startServer(): Promise<string> {
   // Custom user overlays (from userData dir)
   let customOverlayPath: string;
   try {
-    const { app: electronApp } = require('electron');
-    customOverlayPath = path.join(electronApp.getPath('userData'), 'custom-overlays');
+    const electron = require('electron');
+    const electronApp = electron?.app;
+    if (electronApp?.isPackaged) {
+      customOverlayPath = path.join(electronApp.getPath('userData'), 'custom-overlays');
+    } else {
+      customOverlayPath = path.join(process.cwd(), 'data', 'custom-overlays');
+    }
   } catch {
     customOverlayPath = path.join(process.cwd(), 'data', 'custom-overlays');
   }

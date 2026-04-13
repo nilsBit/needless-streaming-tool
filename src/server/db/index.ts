@@ -8,9 +8,10 @@ function getDbPath(): string {
   // In Electron production: use app.getPath('userData')
   // In development: use cwd/data/
   try {
-    const { app } = require('electron');
-    if (app.isPackaged) {
-      return path.join(app.getPath('userData'), 'stream.db');
+    const electron = require('electron');
+    const electronApp = electron?.app;
+    if (electronApp?.isPackaged) {
+      return path.join(electronApp.getPath('userData'), 'stream.db');
     }
   } catch {}
   return path.join(process.cwd(), 'data', 'stream.db');
