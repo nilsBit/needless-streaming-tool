@@ -17,6 +17,7 @@ import progressRouter from './api/progress';
 import clipsRouter from './api/clips';
 import milestonesRouter from './api/milestones';
 import obsRouter from './api/obs';
+import customOverlaysRouter from './api/custom-overlays';
 import { connectBot } from './bot/index';
 import { connectObs } from './obs/index';
 import { getDb } from './db/index';
@@ -96,6 +97,7 @@ export async function startServer(): Promise<string> {
   app.use('/api/clips', clipsRouter);
   app.use('/api/milestones', milestonesRouter);
   app.use('/api/obs', obsRouter);
+  app.use('/api/overlays', customOverlaysRouter);
 
   // Twitch OAuth callback redirect (no auth needed)
   app.get('/auth/twitch/callback', (req, res) => res.redirect('/api/auth/twitch/callback'));
@@ -125,6 +127,18 @@ export async function startServer(): Promise<string> {
   // Static overlay files (no auth needed — public)
   const overlayPath = path.join(process.cwd(), 'src', 'overlays');
   app.use('/overlay', express.static(overlayPath));
+
+  // Custom user overlays (from userData dir)
+  let customOverlayPath: string;
+  try {
+    const { app: electronApp } = require('electron');
+    customOverlayPath = path.join(electronApp.getPath('userData'), 'custom-overlays');
+  } catch {
+    customOverlayPath = path.join(process.cwd(), 'data', 'custom-overlays');
+  }
+  const fs = require('fs');
+  if (!fs.existsSync(customOverlayPath)) fs.mkdirSync(customOverlayPath, { recursive: true });
+  app.use('/overlay/custom', express.static(customOverlayPath));
 
   const server = http.createServer(app);
   initWebSocket(server);
