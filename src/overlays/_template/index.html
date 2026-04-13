@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Custom Overlay Template</title>
+
+  <!--
+    ============================================================
+    STREAM TOOLKIT — OVERLAY TEMPLATE
+    ============================================================
+
+    Dieses Template ist die Grundlage fuer eigene Overlays.
+    Kopiere diesen Ordner, benenne ihn um, und passe CSS + HTML an.
+
+    REGELN:
+    1. Der Ordner-Name = die URL.
+       Ordner "mein-overlay" → http://localhost:4000/overlay/mein-overlay/index.html
+    2. Alles in EINER Datei (HTML + CSS + JS). Keine externen Dateien noetig.
+    3. Background MUSS transparent sein (fuer OBS Browser Source).
+    4. WebSocket verbindet sich IMMER mit: ws://localhost:4000?overlay=1
+    5. Daten holen ueber: http://localhost:4000/public/<endpoint>
+
+    VERFUEGBARE WEBSOCKET-EVENTS:
+    ┌──────────────────────────────┬─────────────────────────────────────┐
+    │ Event                        │ Beschreibung                        │
+    ├──────────────────────────────┼─────────────────────────────────────┤
+    │ stream-state                 │ Stream-Status geaendert             │
+    │ bug-created / bug-updated    │ Bug hinzugefuegt/geaendert          │
+    │ bug-deleted                  │ Bug geloescht                       │
+    │ reward-redeemed              │ Channel Point Reward eingeloest     │
+    │ raid-incoming                │ Raid empfangen                      │
+    │ todo-created / todo-updated  │ Todo hinzugefuegt/geaendert         │
+    │ todo-deleted / todos-cleared │ Todo geloescht/alle geloescht       │
+    │ progress-updated             │ Projekt-Fortschritt geaendert       │
+    │ progress-item-*              │ Progress Item CRUD                  │
+    │ milestone-trigger            │ Achievement ausgeloest              │
+    │ song-update / song-clear     │ Song anzeigen/ausblenden            │
+    │ compile-pray                 │ Compile-Gebet ausgeloest            │
+    │ roulette-spin                │ Roulette dreht sich                 │
+    │ roulette-result              │ Roulette Ergebnis                   │
+    │ design-vote-started          │ Design-Abstimmung gestartet         │
+    │ design-vote-ended            │ Design-Abstimmung beendet           │
+    │ bot-status                   │ Bot verbunden/getrennt              │
+    │ obs-status                   │ OBS verbunden/getrennt              │
+    │ obs-scene-changed            │ OBS Szene gewechselt                │
+    │ clip-created                 │ Clip markiert                       │
+    └──────────────────────────────┴─────────────────────────────────────┘
+
+    VERFUEGBARE PUBLIC API ENDPOINTS (kein Token noetig):
+    - GET /public/stream-state   → { experiment_title, experiment_status, ... }
+    - GET /public/bugs           → [ { id, title, status, ... }, ... ]
+    - GET /public/todos          → [ { id, title, done, ... }, ... ]
+    - GET /public/progress       → { project_name, items: [...] }
+
+    DESIGN-STYLES:
+    Es gibt zwei Styles im Toolkit — verwende welchen du willst:
+    - "Pixel Art" → Font: 'Press Start 2P', pixelated borders, retro look
+    - "Modern"   → Font: system-ui, backdrop blur, rounded corners
+    Oder mach dein eigenes Design. Alles erlaubt.
+  -->
+
+  <!-- Optional: Pixel-Art Font (entfernen wenn nicht gebraucht) -->
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+  <style>
+    /* =============================================
+       RESET & TRANSPARENZ (NICHT AENDERN!)
+       ============================================= */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      background: transparent !important;
+      background-color: rgba(0,0,0,0) !important;
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* =============================================
+       AB HIER: DEIN DESIGN
+       Aendere alles was du willst!
+       ============================================= */
+
+    /* --- VARIANTE A: Pixel Art Style --- */
+    .overlay {
+      font-family: 'Press Start 2P', monospace;
+      image-rendering: pixelated;
+      padding: 16px;
+      color: #ccc;
+      font-size: 10px;
+    }
+
+    .pixel-box {
+      background: rgba(10, 10, 10, 0.85);
+      border: 2px solid #333;
+      box-shadow:
+        inset -2px -2px 0 #000,
+        inset 2px 2px 0 #1a1a1a,
+        4px 4px 0 rgba(0, 0, 0, 0.8);
+      padding: 12px;
+    }
+
+    .title {
+      color: #e67e22;
+      font-size: 11px;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 0 #000;
+    }
+
+    /* --- VARIANTE B: Modern Style (auskommentiert) ---
+    .overlay {
+      font-family: -apple-system, 'Segoe UI', sans-serif;
+      padding: 16px;
+      color: #eee;
+      font-size: 14px;
+    }
+
+    .modern-box {
+      background: rgba(13, 13, 13, 0.9);
+      border: 2px solid #e67e22;
+      border-radius: 8px;
+      backdrop-filter: blur(8px);
+      padding: 16px;
+    }
+    */
+
+    /* Items */
+    .item {
+      padding: 6px 0;
+      border-bottom: 1px solid #222;
+      animation: fadeIn 0.3s ease forwards;
+      opacity: 0;
+    }
+
+    .item:last-child {
+      border-bottom: none;
+    }
+
+    .empty-msg {
+      color: #555;
+      text-align: center;
+      padding: 20px;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      0%   { opacity: 0; transform: translateY(6px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%      { opacity: 0.4; }
+    }
+
+    /* Notification (fuer temporaere Einblendungen) */
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      opacity: 0;
+      transform: translateX(100px);
+      transition: all 0.4s ease;
+    }
+
+    .notification.visible {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .notification.hiding {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- =============================================
+       DEIN HTML
+       Passe die Struktur an dein Overlay an.
+       ============================================= -->
+  <div class="overlay">
+    <div class="pixel-box">
+      <div class="title">MEIN OVERLAY</div>
+      <div id="content">
+        <div class="empty-msg">LADE DATEN...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =============================================
+    // KONFIGURATION
+    // Passe diese Werte an dein Overlay an.
+    // =============================================
+    const OVERLAY_NAME = 'MeinOverlay';              // Fuer Logs
+    const API_ENDPOINT = '/public/todos';             // Welche Daten holen
+    const WS_EVENTS = ['todo-created', 'todo-updated', 'todo-deleted']; // Auf welche Events reagieren
+    const POLL_INTERVAL = 10000;                      // Backup-Polling in ms (0 = aus)
+
+    // =============================================
+    // DATEN
+    // =============================================
+    let data = [];
+
+    // HTML escapen (IMMER verwenden bei User-Input!)
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    // =============================================
+    // DATEN LADEN
+    // =============================================
+    async function fetchData() {
+      try {
+        const res = await fetch('http://localhost:4000' + API_ENDPOINT);
+        data = await res.json();
+        render();
+      } catch (err) {
+        console.error('[' + OVERLAY_NAME + '] Fetch failed:', err);
+      }
+    }
+
+    // =============================================
+    // RENDERN
+    // Hier baust du dein HTML zusammen.
+    // =============================================
+    function render() {
+      const container = document.getElementById('content');
+
+      // Array oder Object?
+      const items = Array.isArray(data) ? data : data.items || [];
+
+      if (items.length === 0) {
+        container.innerHTML = '<div class="empty-msg">KEINE DATEN</div>';
+        return;
+      }
+
+      let html = '';
+      items.forEach(function(item, i) {
+        html += '<div class="item" style="animation-delay:' + (i * 0.05) + 's">'
+          + escapeHtml(item.title || item.name || JSON.stringify(item))
+          + '</div>';
+      });
+
+      container.innerHTML = html;
+    }
+
+    // =============================================
+    // WEBSOCKET VERBINDUNG
+    // (Normalerweise nicht aendern!)
+    // =============================================
+    let ws;
+
+    function connectWS() {
+      ws = new WebSocket('ws://localhost:4000?overlay=1');
+
+      ws.onopen = function() {
+        console.log('[' + OVERLAY_NAME + '] WebSocket connected');
+        fetchData(); // Daten laden bei Verbindung
+      };
+
+      ws.onmessage = function(e) {
+        try {
+          var msg = JSON.parse(e.data);
+
+          // Pruefen ob das Event fuer uns relevant ist
+          var isRelevant = WS_EVENTS.some(function(evt) {
+            return msg.event === evt || msg.event && msg.event.startsWith(evt);
+          });
+
+          if (isRelevant) {
+            fetchData(); // Neu laden bei relevantem Event
+          }
+
+          // Optional: Direkt auf Event-Daten reagieren
+          // if (msg.event === 'mein-event') {
+          //   showNotification(msg.data);
+          // }
+        } catch (err) {}
+      };
+
+      ws.onclose = function() {
+        console.log('[' + OVERLAY_NAME + '] WebSocket closed, reconnecting...');
+        setTimeout(connectWS, 2000);
+      };
+
+      ws.onerror = function() {
+        ws.close();
+      };
+    }
+
+    // =============================================
+    // HILFSFUNKTIONEN
+    // =============================================
+
+    // Temporaere Notification anzeigen (fuer Alerts etc.)
+    // Erstelle ein Element mit class="notification" im HTML
+    function showNotification(element, durationMs) {
+      durationMs = durationMs || 5000;
+      element.classList.add('visible');
+      setTimeout(function() {
+        element.classList.add('hiding');
+        element.classList.remove('visible');
+        setTimeout(function() {
+          element.classList.remove('hiding');
+        }, 500);
+      }, durationMs);
+    }
+
+    // =============================================
+    // START
+    // =============================================
+    connectWS();
+
+    // Backup-Polling (falls WebSocket kurz weg ist)
+    if (POLL_INTERVAL > 0) {
+      setInterval(fetchData, POLL_INTERVAL);
+    }
+  </script>
+</body>
+</html>
