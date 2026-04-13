@@ -26,10 +26,15 @@ export default function SettingsPanel() {
   const { data: tokenInfo } = useApi<{ token: string | null }>('/settings/api-token');
   const { data: notionInfo, refetch: refetchNotion } = useApi<{ configured: boolean; preview: string | null }>('/settings/notion');
   const { data: notionDbInfo, refetch: refetchNotionDb } = useApi<{ configured: boolean; database_id: string | null }>('/settings/notion/database');
+  const { data: obsConfig, refetch: refetchObs } = useApi<{ configured: boolean; host?: string; port?: number; has_password?: boolean }>('/obs/config');
+  const { data: obsStatus, refetch: refetchObsStatus } = useApi<{ connected: boolean }>('/obs/status');
 
   const [tokenCopied, setTokenCopied] = useState(false);
   const [notionToken, setNotionToken] = useState('');
   const [notionDbId, setNotionDbId] = useState('');
+  const [obsHost, setObsHost] = useState('localhost');
+  const [obsPort, setObsPort] = useState('4455');
+  const [obsPassword, setObsPassword] = useState('');
 
   const copyToken = () => {
     if (tokenInfo?.token) {
@@ -72,9 +77,10 @@ export default function SettingsPanel() {
     const interval = setInterval(() => {
       refetchBot();
       refetchConfig();
+      refetchObsStatus();
     }, 3000);
     return () => clearInterval(interval);
-  }, [refetchBot, refetchConfig]);
+  }, [refetchBot, refetchConfig, refetchObsStatus]);
 
   return (
     <div className="panel settings-panel">
@@ -197,6 +203,89 @@ export default function SettingsPanel() {
               await apiPost('/settings/notion/database', { database_id: '' });
               refetchNotionDb();
             }}>Database ändern</button>
+          </div>
+        )}
+      </div>
+
+      <div className="settings-section">
+        <h3>OBS Verbindung</h3>
+        <p className="setup-info">OBS Studio WebSocket-Verbindung. Aktiviere in OBS unter Tools → WebSocket Server Settings.</p>
+
+        <div className="bot-status">
+          <span className="status-dot" style={{ background: obsStatus?.connected ? '#2ecc71' : '#e74c3c' }} />
+          <span>{obsStatus?.connected ? 'Verbunden mit OBS' : 'Nicht verbunden'}</span>
+        </div>
+
+        {!obsConfig?.configured ? (
+          <div className="obs-config-form">
+            <div className="client-id-input">
+              <input
+                type="text"
+                placeholder="Host (localhost)"
+                value={obsHost}
+                onChange={(e) => setObsHost(e.target.value)}
+                style={{ flex: 2 }}
+              />
+              <input
+                type="text"
+                placeholder="Port (4455)"
+                value={obsPort}
+                onChange={(e) => setObsPort(e.target.value)}
+                style={{ flex: 1 }}
+              />
+            </div>
+            <div className="client-id-input" style={{ marginTop: '4px' }}>
+              <input
+                type="password"
+                placeholder="Passwort (optional)"
+                value={obsPassword}
+                onChange={(e) => setObsPassword(e.target.value)}
+              />
+              <button onClick={async () => {
+                await apiPost('/obs/config', {
+                  host: obsHost.trim() || 'localhost',
+                  port: parseInt(obsPort) || 4455,
+                  password: obsPassword,
+                });
+                setObsPassword('');
+                refetchObs();
+              }}>💾</button>
+            </div>
+          </div>
+        ) : (
+          <div className="setup-step">
+            <p className="setup-info">Config: {obsConfig.host}:{obsConfig.port} {obsConfig.has_password ? '(mit Passwort)' : '(ohne Passwort)'}</p>
+          </div>
+        )}
+
+        <div className="bot-controls">
+          {obsStatus?.connected ? (
+            <button className="btn-disconnect" onClick={async () => {
+              await apiPost('/obs/disconnect', {});
+              refetchObsStatus();
+            }}>🔌 OBS trennen</button>
+          ) : (
+            <button
+              className="btn-connect"
+              onClick={async () => {
+                await apiPost('/obs/connect', {});
+                refetchObsStatus();
+              }}
+              disabled={!obsConfig?.configured}
+            >
+              🔗 Mit OBS verbinden
+            </button>
+          )}
+        </div>
+
+        {obsConfig?.configured && (
+          <div className="reset-section">
+            <button className="btn-reset-small" onClick={async () => {
+              await apiPost('/obs/config', { host: '', port: 0, password: '' });
+              setObsHost('localhost');
+              setObsPort('4455');
+              refetchObs();
+            }}>Config ändern</button>
           </div>
         )}
       </div>
