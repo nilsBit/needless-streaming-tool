@@ -1107,7 +1107,9 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn-install-inline:hover { background: #d35400; }
 .btn-install-inline:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* Help Panel */
+/* Help Panel — full width */
+.panel-wrapper:has(.help-panel) { grid-column: 1 / -1; }
+
 .help-sections { display: flex; flex-direction: column; gap: 2px; }
 
 .help-section {
