@@ -51,10 +51,125 @@ body {
   overflow: auto;
 }
 
-@media (max-width: 700px) {
+@media (max-width: 900px) {
   .panels {
     grid-template-columns: 1fr;
+    padding: 12px;
+    gap: 12px;
   }
+}
+
+@media (max-width: 600px) {
+  .app-header {
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+
+  .app-header h1 { font-size: 17px; }
+
+  .tab-nav {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tab-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .panels {
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .panel { padding: 12px; gap: 10px; }
+  .panel-desc { font-size: 12px; }
+  .panel h3 { font-size: 13px; }
+
+  .panel-collapse-btn {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  /* Settings */
+  .settings-section h3 { font-size: 12px; }
+  .setup-info { font-size: 11px; }
+  .client-id-input { flex-direction: column; }
+  .client-id-input input { width: 100%; }
+  .bot-status { font-size: 12px; }
+  .api-token-display { flex-direction: column; gap: 6px; }
+  .token-value { font-size: 10px; word-break: break-all; }
+
+  /* Overlays */
+  .overlay-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .overlay-actions { width: 100%; justify-content: flex-end; }
+
+  /* Help */
+  .help-table-row {
+    flex-direction: column;
+    gap: 2px;
+  }
+  .help-cell-key { min-width: unset; }
+
+  /* Onboarding */
+  .onboarding-card {
+    padding: 16px;
+    max-width: 100%;
+  }
+
+  .welcome-icon { font-size: 48px; }
+  .onboarding-step h1 { font-size: 20px; }
+  .onboarding-step h2 { font-size: 16px; }
+
+  .setup-instruction {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  .instruction-number {
+    min-width: 20px;
+    height: 20px;
+    font-size: 10px;
+  }
+
+  .onboarding-info-box { font-size: 11px; }
+  .info-label { min-width: 100px; }
+  .info-mono { font-size: 10px; }
+
+  .input-row { flex-direction: column; }
+  .input-row input { width: 100%; }
+
+  .step-nav { flex-direction: column; gap: 8px; }
+  .step-nav-right { width: 100%; justify-content: flex-end; }
+  .btn-primary { width: 100%; text-align: center; }
+  .btn-back { width: 100%; text-align: center; }
+
+  .token-display-onboarding {
+    flex-direction: column;
+    gap: 6px;
+  }
+  .token-display-onboarding code { font-size: 10px; word-break: break-all; }
+
+  .overlay-list-onboarding { max-height: 150px; }
+  .overlay-item-onboarding {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .done-checklist { max-width: 100%; }
+  .done-item { font-size: 13px; }
+
+  /* Language toggle */
+  .language-toggle { width: 100%; }
+  .lang-btn { flex: 1; }
 }
 
 /* Panel Wrapper (collapse) */
