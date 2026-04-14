@@ -35,7 +35,7 @@ export default function TwitchStep() {
   return (
     <div className="onboarding-step">
       <h2>Twitch verbinden</h2>
-      <p className="step-desc">Verbinde deinen Twitch-Account damit der Bot im Chat funktioniert.</p>
+      <p className="step-desc">Damit der Bot in deinem Chat funktioniert, brauchst du eine Twitch-App. Das klingt kompliziert, dauert aber nur 2 Minuten.</p>
 
       <div className="onboarding-status">
         <span className="status-dot" style={{ background: botStatus?.connected ? '#2ecc71' : '#e74c3c' }} />
@@ -43,28 +43,63 @@ export default function TwitchStep() {
       </div>
 
       {!clientIdInfo?.configured ? (
-        <div className="onboarding-field">
-          <label>1. Erstelle eine App auf dev.twitch.tv und trage die Client-ID ein:</label>
+        <>
+          <div className="onboarding-steps-list">
+            <div className="setup-instruction">
+              <span className="instruction-number">1</span>
+              <span>Oeffne <strong>dev.twitch.tv</strong> in deinem Browser und logge dich mit deinem Twitch-Account ein</span>
+            </div>
+            <div className="setup-instruction">
+              <span className="instruction-number">2</span>
+              <span>Klicke oben rechts auf <strong>"Your Console"</strong>, dann links auf <strong>"Applications"</strong></span>
+            </div>
+            <div className="setup-instruction">
+              <span className="instruction-number">3</span>
+              <span>Klicke auf <strong>"Register Your Application"</strong> und fuege folgende Daten ein:</span>
+            </div>
+          </div>
+
+          <div className="onboarding-info-box">
+            <div className="info-row"><span className="info-label">Name:</span><span>Stream Toolkit (oder beliebig)</span></div>
+            <div className="info-row"><span className="info-label">OAuth Redirect URL:</span><span className="info-mono">http://localhost:4000/auth/twitch/callback</span></div>
+            <div className="info-row"><span className="info-label">Category:</span><span>Chat Bot</span></div>
+          </div>
+
+          <div className="onboarding-steps-list">
+            <div className="setup-instruction">
+              <span className="instruction-number">4</span>
+              <span>Klicke auf <strong>"Create"</strong>, dann auf <strong>"Manage"</strong> bei deiner neuen App</span>
+            </div>
+            <div className="setup-instruction">
+              <span className="instruction-number">5</span>
+              <span>Kopiere die <strong>"Client ID"</strong> und fuege sie hier ein:</span>
+            </div>
+          </div>
+
           <div className="input-row">
             <input
               type="text"
-              placeholder="Twitch Client-ID..."
+              placeholder="Client-ID hier einfuegen..."
               value={clientId}
               onChange={(e) => setClientId(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && saveClientId()}
             />
             <button onClick={saveClientId}>Speichern</button>
           </div>
-        </div>
+        </>
       ) : (
         <>
-          <div className="onboarding-field">
-            <label>Client-ID: {clientIdInfo.client_id_preview}</label>
-          </div>
+          <div className="onboarding-check">Client-ID gespeichert: {clientIdInfo.client_id_preview}</div>
           {!botStatus?.connected && (
-            <button className="btn-primary" onClick={connectTwitch}>
-              Mit Twitch verbinden
-            </button>
+            <>
+              <p className="step-desc">Klicke jetzt auf den Button — es oeffnet sich ein Twitch-Login in deinem Browser. Erlaube den Zugriff und du wirst automatisch verbunden.</p>
+              <button className="btn-primary" onClick={connectTwitch}>
+                Mit Twitch verbinden
+              </button>
+            </>
+          )}
+          {botStatus?.connected && (
+            <div className="onboarding-check">Twitch ist verbunden! Der Bot ist live in deinem Chat.</div>
           )}
         </>
       )}

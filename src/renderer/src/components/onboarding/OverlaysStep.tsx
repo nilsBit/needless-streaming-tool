@@ -19,10 +19,28 @@ export default function OverlaysStep() {
   return (
     <div className="onboarding-step">
       <h2>Overlays</h2>
-      <p className="step-desc">
-        Fuege diese URLs als <strong>Browser Source</strong> in OBS hinzu.
-        Breite/Hoehe je nach Overlay anpassen.
-      </p>
+      <p className="step-desc">Overlays sind die Anzeigen die deine Zuschauer im Stream sehen — Todos, Progress, Alerts und mehr. So fuegest du sie in OBS ein:</p>
+
+      <div className="onboarding-steps-list">
+        <div className="setup-instruction">
+          <span className="instruction-number">1</span>
+          <span>In OBS: Klicke bei <strong>Quellen</strong> auf <strong>"+"</strong> → waehle <strong>"Browser"</strong></span>
+        </div>
+        <div className="setup-instruction">
+          <span className="instruction-number">2</span>
+          <span>Gib einen Namen ein (z.B. "Todos Overlay") und klicke <strong>"OK"</strong></span>
+        </div>
+        <div className="setup-instruction">
+          <span className="instruction-number">3</span>
+          <span>Kopiere eine URL von unten und fuege sie im Feld <strong>"URL"</strong> ein</span>
+        </div>
+        <div className="setup-instruction">
+          <span className="instruction-number">4</span>
+          <span>Passe <strong>Breite</strong> (z.B. 400) und <strong>Hoehe</strong> (z.B. 600) an und klicke <strong>"OK"</strong></span>
+        </div>
+      </div>
+
+      <p className="step-desc" style={{ marginTop: '12px' }}>Verfuegbare Overlays — klicke auf "URL kopieren" und fuege sie in OBS ein:</p>
 
       <div className="overlay-list-onboarding">
         {overlays?.map((o) => (
@@ -35,7 +53,7 @@ export default function OverlaysStep() {
         ))}
       </div>
 
-      <p className="step-hint">Du kannst spaeter unter Settings → Overlays auch eigene Overlays hochladen.</p>
+      <p className="step-hint">Du musst nicht alle Overlays jetzt einrichten — du kannst das jederzeit spaeter unter Settings → Overlays machen.</p>
     </div>
   );
 }
