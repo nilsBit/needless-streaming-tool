@@ -2,14 +2,16 @@ import React, { useState } from 'react';
 import { useApi, apiPost } from '../../hooks/useApi';
 
 export default function StreamDeckStep() {
-  const { data: tokenInfo } = useApi<{ token: string | null }>('/settings/api-token');
+  const { data: fixedToken } = useApi<{ token: string | null }>('/settings/api-token');
+  const { data: sessionToken } = useApi<{ token: string | null }>('/token');
+  const token = fixedToken?.token || sessionToken?.token || null;
   const [copied, setCopied] = useState(false);
   const [installing, setInstalling] = useState(false);
   const [installed, setInstalled] = useState(false);
 
   const copy = () => {
-    if (tokenInfo?.token) {
-      navigator.clipboard.writeText(tokenInfo.token);
+    if (token) {
+      navigator.clipboard.writeText(token);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
@@ -56,11 +58,13 @@ export default function StreamDeckStep() {
           <span className="instruction-number">3</span>
           <div style={{ flex: 1 }}>
             <span>Kopiere den Token und fuege ihn im Button-Settings unter <strong>"API Token"</strong> ein (einmalig):</span>
-            {tokenInfo?.token && (
+            {token ? (
               <div className="token-display-onboarding" style={{ marginTop: '8px' }}>
-                <code>{tokenInfo.token.substring(0, 16)}...{tokenInfo.token.substring(tokenInfo.token.length - 8)}</code>
+                <code>{token.substring(0, 16)}...{token.substring(token.length - 8)}</code>
                 <button onClick={copy}>{copied ? 'Kopiert!' : 'Kopieren'}</button>
               </div>
+            ) : (
+              <p className="step-hint" style={{ marginTop: '8px' }}>Token wird geladen...</p>
             )}
           </div>
         </div>
