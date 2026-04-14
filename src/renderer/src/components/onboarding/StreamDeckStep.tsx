@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { useApi, apiPost } from '../../hooks/useApi';
+import { useApi, apiPost, getApiToken } from '../../hooks/useApi';
 
 export default function StreamDeckStep() {
-  const { data: fixedToken } = useApi<{ token: string | null }>('/settings/api-token');
-  const { data: sessionToken } = useApi<{ token: string | null }>('/token');
-  const token = fixedToken?.token || sessionToken?.token || null;
+  const { data: fixedTokenData } = useApi<{ token: string | null }>('/settings/api-token');
+  const sessionToken = getApiToken();
+  const token = fixedTokenData?.token || sessionToken || null;
+
   const [copied, setCopied] = useState(false);
   const [installing, setInstalling] = useState(false);
   const [installed, setInstalled] = useState(false);
@@ -22,9 +23,7 @@ export default function StreamDeckStep() {
     try {
       await apiPost('/settings/streamdeck/install', {});
       setInstalled(true);
-    } catch {
-      // Plugin file might not be found
-    }
+    } catch {}
     setInstalling(false);
   };
 

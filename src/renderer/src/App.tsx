@@ -47,13 +47,21 @@ export default function App() {
   const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
 
   useEffect(() => {
-    const token = getApiToken();
-    fetch('http://localhost:4000/api/settings/onboarding', {
-      headers: { 'Authorization': `Bearer ${token}` },
-    })
-      .then((r) => r.json())
-      .then((data) => setShowOnboarding(!data.completed))
-      .catch(() => setShowOnboarding(false));
+    function checkOnboarding() {
+      const token = getApiToken();
+      if (!token) {
+        // Token not yet in URL hash, retry
+        setTimeout(checkOnboarding, 500);
+        return;
+      }
+      fetch('http://localhost:4000/api/settings/onboarding', {
+        headers: { 'Authorization': `Bearer ${token}` },
+      })
+        .then((r) => r.json())
+        .then((data) => setShowOnboarding(!data.completed))
+        .catch(() => setShowOnboarding(false));
+    }
+    checkOnboarding();
   }, []);
 
   const toggleCollapse = (key: string) => {
