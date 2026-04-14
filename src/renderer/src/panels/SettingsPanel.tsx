@@ -306,6 +306,15 @@ export default function SettingsPanel() {
           <p className="setup-info">Header: <code>Authorization: Bearer &lt;token&gt;</code></p>
         </div>
       </div>
+
+      <div className="settings-section">
+        <h3>Setup-Wizard</h3>
+        <p className="setup-info">Starte den Einrichtungs-Assistenten erneut.</p>
+        <button className="btn-connect" onClick={async () => {
+          await apiPost('/settings/onboarding', { completed: false });
+          window.location.reload();
+        }}>Setup-Wizard erneut starten</button>
+      </div>
     </div>
   );
 }

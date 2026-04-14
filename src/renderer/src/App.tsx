@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ErrorBoundary from './components/ErrorBoundary';
+import OnboardingWizard from './components/OnboardingWizard';
+import { getApiToken } from './hooks/useApi';
 import ExperimentPanel from './panels/ExperimentPanel';
 import BugsPanel from './panels/BugsPanel';
 import ProgressPanel from './panels/ProgressPanel';
@@ -42,6 +44,17 @@ type TabKey = keyof typeof TABS;
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabKey>('stream');
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const token = getApiToken();
+    fetch('http://localhost:4000/api/settings/onboarding', {
+      headers: { 'Authorization': `Bearer ${token}` },
+    })
+      .then((r) => r.json())
+      .then((data) => setShowOnboarding(!data.completed))
+      .catch(() => setShowOnboarding(false));
+  }, []);
 
   const toggleCollapse = (key: string) => {
     setCollapsed((prev) => {
@@ -53,6 +66,9 @@ export default function App() {
   };
 
   const tab = TABS[activeTab];
+
+  if (showOnboarding === null) return null; // Loading
+  if (showOnboarding) return <OnboardingWizard onComplete={() => setShowOnboarding(false)} />;
 
   return (
     <div className="app">

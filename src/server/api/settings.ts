@@ -89,6 +89,18 @@ router.post('/notion/database', (req, res) => {
   res.json({ success: true });
 });
 
+// Onboarding
+router.get('/onboarding', (_req, res) => {
+  const row = getDb().prepare('SELECT value FROM settings WHERE key = ?').get('onboarding_completed') as { value: string } | undefined;
+  res.json({ completed: row?.value === 'true' });
+});
+
+router.post('/onboarding', (req, res) => {
+  const { completed } = req.body;
+  getDb().prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('onboarding_completed', completed ? 'true' : 'false');
+  res.json({ success: true });
+});
+
 // Fixed API token for Stream Deck
 router.get('/api-token', (_req, res) => {
   const token = getFixedToken();
