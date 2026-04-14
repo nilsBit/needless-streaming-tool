@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApi, apiPost, apiFetch, getApiToken } from '../hooks/useApi';
 import { TwitchConfigResponse, BotStatus } from '../../../shared/types';
+import { useTranslation } from '../i18n/LanguageContext';
 
 interface ClientIdResponse {
   configured: boolean;
@@ -23,6 +24,7 @@ export default function SettingsPanel() {
   const [obsHost, setObsHost] = useState('localhost');
   const [obsPort, setObsPort] = useState('4455');
   const [obsPassword, setObsPassword] = useState('');
+  const { t, lang, setLang } = useTranslation();
 
   const copyToken = () => {
     if (tokenInfo?.token) {
@@ -296,12 +298,21 @@ export default function SettingsPanel() {
       </div>
 
       <div className="settings-section">
-        <h3>Setup-Wizard</h3>
-        <p className="setup-info">Starte den Einrichtungs-Assistenten erneut.</p>
+        <h3>{t('settings.wizard')}</h3>
+        <p className="setup-info">{t('settings.wizard_desc')}</p>
         <button className="btn-connect" onClick={async () => {
           await apiPost('/settings/onboarding', { completed: false });
           window.location.reload();
-        }}>Setup-Wizard erneut starten</button>
+        }}>{t('settings.wizard_restart')}</button>
+      </div>
+
+      <div className="settings-section">
+        <h3>{t('settings.language')}</h3>
+        <p className="setup-info">{t('settings.language_desc')}</p>
+        <div className="language-toggle">
+          <button className={`lang-btn ${lang === 'de' ? 'active' : ''}`} onClick={() => setLang('de')}>Deutsch</button>
+          <button className={`lang-btn ${lang === 'en' ? 'active' : ''}`} onClick={() => setLang('en')}>English</button>
+        </div>
       </div>
     </div>
   );

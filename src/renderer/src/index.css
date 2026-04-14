@@ -1220,6 +1220,24 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .help-cell { flex: 1; color: #999; }
 .help-cell-key { color: #ccc; font-family: 'SF Mono', monospace; flex: 0 0 auto; min-width: 120px; }
 
+/* Language Toggle */
+.language-toggle {
+  display: flex;
+  gap: 4px;
+}
+
+.lang-btn {
+  padding: 8px 20px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 4px;
+  color: #888;
+  cursor: pointer;
+  font-size: 13px;
+}
+.lang-btn.active { border-color: #e67e22; color: #e67e22; background: rgba(230, 126, 34, 0.1); }
+.lang-btn:hover { border-color: #666; }
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
