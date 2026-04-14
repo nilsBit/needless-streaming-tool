@@ -1,7 +1,7 @@
 {
   "name": "stream-toolkit",
   "version": "0.1.0",
-  "description": "The Lab — Stream Toolkit für GameDev Streaming",
+  "description": "The Lab — Dein Stream Toolkit",
   "author": "nilsBit",
   "main": "dist/main/main.js",
   "scripts": {

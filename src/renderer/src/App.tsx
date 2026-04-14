@@ -17,8 +17,8 @@ const TABS = {
   stream: {
     label: '🎮 Stream',
     panels: [
-      { key: 'experiment', label: 'Experiment', component: ExperimentPanel },
-      { key: 'bugs', label: 'Bug-Roulette', component: BugsPanel },
+      { key: 'experiment', label: 'Challenge', component: ExperimentPanel },
+      { key: 'bugs', label: 'Glücksrad', component: BugsPanel },
       { key: 'clips', label: 'Clip Moments', component: ClipsPanel },
       { key: 'designs', label: 'Chat Designs', component: DesignsPanel },
     ],

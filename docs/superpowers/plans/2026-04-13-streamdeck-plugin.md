@@ -82,7 +82,7 @@ Follow the wizard:
 - Name: `The Lab Toolkit`
 - UUID: `com.thelab.toolkit`
 - Author: `nilsBit`
-- Description: `Stream Toolkit for GameDev Streaming`
+- Description: `Stream Toolkit for Streaming`
 - Create one default action (we'll replace it)
 
 - [ ] **Step 3: Verify the scaffold builds**
@@ -512,7 +512,7 @@ git commit -m "feat: add Bug action"
 
 ---
 
-### Task 7: Experiment action
+### Task 7: Challenge action
 
 **Files:**
 - Create: `src/actions/experiment.ts`
@@ -527,7 +527,7 @@ On keyDown: `PATCH /api/stream-state` with `{ experiment_status: settings.action
 - [ ] **Step 3: Build and commit**
 
 ```bash
-git commit -m "feat: add Experiment action"
+git commit -m "feat: add Challenge action"
 ```
 
 ---
@@ -552,19 +552,19 @@ git commit -m "feat: add Todo action"
 
 ---
 
-### Task 9: Compile Pray action
+### Task 9: Hype Moment action
 
 **Files:**
 - Create: `src/actions/compile-pray.ts`
 
 - [ ] **Step 1: Implement the compile pray action**
 
-Simplest action — no settings, no PI. On keyDown: `POST /api/actions/compile-pray`. Show `showOk()` on success. Listen to `compile-pray` event and briefly flash the title to "🙏" for 2 seconds, then reset to "Compile".
+Simplest action — no settings, no PI. On keyDown: `POST /api/actions/compile-pray`. Show `showOk()` on success. Listen to `compile-pray` event and briefly flash the title to "🙏" for 2 seconds, then reset to "Hype".
 
 - [ ] **Step 2: Build and commit**
 
 ```bash
-git commit -m "feat: add Compile Pray action"
+git commit -m "feat: add Hype Moment action"
 ```
 
 ---
@@ -619,9 +619,9 @@ Use a simple script or tool to generate colored squares with a letter:
 - Scene: 🎬 (blue)
 - Clip: ✂️ (green)
 - Bug: 🐛 (red)
-- Experiment: 🧪 (orange)
+- Challenge: 🧪 (orange)
 - Todo: ✅ (teal)
-- Compile: 🙏 (purple)
+- Hype Moment: 🙏 (purple)
 - Roulette: 🎰 (gold)
 - Milestone: 🏆 (yellow)
 

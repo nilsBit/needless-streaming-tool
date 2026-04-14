@@ -6,8 +6,8 @@ export default function WelcomeStep({ onNext }: { onNext: () => void }) {
       <div className="welcome-icon">🔬</div>
       <h1>Willkommen im Lab!</h1>
       <p className="welcome-text">
-        Dein Stream Toolkit für GameDev Streaming. Hier steuerst du alles
-        — Overlays, Experiments, Bugs, Clips, Milestones und mehr.
+        Dein Stream Toolkit für Streaming. Hier steuerst du alles
+        — Overlays, Challenges, Bugs, Clips, Milestones und mehr.
       </p>
       <p className="welcome-sub">
         Lass uns in ein paar Schritten alles einrichten.

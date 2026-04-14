@@ -9,8 +9,8 @@ const translations = {
   'tab.help': { de: 'Hilfe', en: 'Help' },
 
   // Panels
-  'panel.experiment': { de: 'Experiment', en: 'Experiment' },
-  'panel.bugs': { de: 'Bug-Roulette', en: 'Bug Roulette' },
+  'panel.experiment': { de: 'Challenge', en: 'Challenge' },
+  'panel.bugs': { de: 'Glücksrad', en: 'Glücksrad' },
   'panel.clips': { de: 'Clip Moments', en: 'Clip Moments' },
   'panel.designs': { de: 'Chat Designs', en: 'Chat Designs' },
   'panel.progress': { de: 'Progress Tracker', en: 'Progress Tracker' },
@@ -54,7 +54,7 @@ const translations = {
 
   // Onboarding
   'onboarding.welcome_title': { de: 'Willkommen im Lab!', en: 'Welcome to The Lab!' },
-  'onboarding.welcome_text': { de: 'Dein Stream Toolkit für GameDev Streaming. Hier steuerst du alles — Overlays, Experiments, Bugs, Clips, Milestones und mehr.', en: 'Your Stream Toolkit for GameDev Streaming. Control everything here — overlays, experiments, bugs, clips, milestones and more.' },
+  'onboarding.welcome_text': { de: 'Dein Stream Toolkit für Streaming. Hier steuerst du alles — Overlays, Challenges, Bugs, Clips, Milestones und mehr.', en: 'Your Stream Toolkit for Streaming. Control everything here — overlays, challenges, bugs, clips, milestones and more.' },
   'onboarding.welcome_sub': { de: 'Lass uns in ein paar Schritten alles einrichten.', en: 'Let\'s set everything up in a few steps.' },
   'onboarding.start_setup': { de: 'Setup starten', en: 'Start Setup' },
   'onboarding.next': { de: 'Weiter', en: 'Next' },
@@ -118,7 +118,7 @@ const translations = {
 
   // StreamDeck Step
   'streamdeck.title': { de: 'Stream Deck (optional)', en: 'Stream Deck (optional)' },
-  'streamdeck.desc': { de: 'Mit dem Stream Deck Plugin kannst du Buttons für Szenen-Wechsel, Clips, Bugs, Experiments und mehr direkt auf dein Deck legen.', en: 'With the Stream Deck plugin you can put buttons for scene switching, clips, bugs, experiments and more directly on your deck.' },
+  'streamdeck.desc': { de: 'Mit dem Stream Deck Plugin kannst du Buttons für Szenen-Wechsel, Clips, Bugs, Challenges und mehr direkt auf dein Deck legen.', en: 'With the Stream Deck plugin you can put buttons for scene switching, clips, bugs, challenges and more directly on your deck.' },
   'streamdeck.step1': { de: 'Plugin installieren:', en: 'Install plugin:' },
   'streamdeck.install_btn': { de: 'Plugin jetzt installieren', en: 'Install plugin now' },
   'streamdeck.installed': { de: 'Installiert!', en: 'Installed!' },

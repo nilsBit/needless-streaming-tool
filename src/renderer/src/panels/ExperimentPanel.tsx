@@ -87,7 +87,7 @@ export default function ExperimentPanel() {
 
   return (
     <div className="panel experiment-panel">
-      <h2>🔬 Experiment</h2>
+      <h2>🔬 Challenge</h2>
       <p className="panel-desc">Setz dein Ziel für den Stream. Timer startet automatisch.</p>
 
       {!isActive ? (
@@ -126,7 +126,7 @@ export default function ExperimentPanel() {
         </>
       )}
       <ChatCommands commands={[
-        { cmd: '!experiment', desc: 'Zeigt aktuelles Experiment + Status' },
+        { cmd: '!experiment', desc: 'Zeigt aktuelle Challenge + Status' },
         { cmd: '!uptime', desc: 'Wie lange läuft der Stream' },
       ]} />
     </div>

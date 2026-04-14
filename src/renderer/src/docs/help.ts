@@ -4,7 +4,7 @@
 export const HELP_SECTIONS = [
   {
     title: 'Erste Schritte',
-    content: `Das Stream Toolkit ist deine Zentrale für GameDev Streaming. Hier steuerst du alles — Overlays, Experiments, Bugs, Clips, Todos, Milestones und mehr.
+    content: `Das Stream Toolkit ist deine Zentrale für Streaming. Hier steuerst du alles — Overlays, Challenges, Bugs, Clips, Todos, Milestones und mehr.
 
 Beim ersten Start führt dich der **Setup-Wizard** durch die Einrichtung. Du kannst ihn jederzeit unter **Settings → Setup-Wizard erneut starten** wiederholen.
 
@@ -31,7 +31,7 @@ Beim ersten Start führt dich der **Setup-Wizard** durch die Einrichtung. Du kan
 **Chat-Commands:**
 | Command | Beschreibung |
 |---------|-------------|
-| !experiment | Zeigt aktuelles Experiment |
+| !experiment | Zeigt aktuelle Challenge |
 | !bugs | Listet offene Bugs |
 | !todo | Zeigt offene Todos |
 | !progress | Zeigt Projekt-Fortschritt |
@@ -69,7 +69,7 @@ Beim ersten Start führt dich der **Setup-Wizard** durch die Einrichtung. Du kan
 | Reward-Name enthält | Aktion |
 |---------------------|--------|
 | "spawn" | Spawn Enemies Event |
-| "roulette" | Bug Roulette drehen |
+| "roulette" | Glücksrad drehen |
 | "feature" | Feature Request |
 | "musik" oder "song" | Musik ändern |
 | "scene" oder "szene" | Szene wechseln (mit User-Input) |
@@ -93,8 +93,8 @@ Konfiguriere Mappings über die API:
 | Song | /overlay/song/index.html | Aktueller Song |
 | Todos | /overlay/todos/index.html | Todo-Liste |
 | Poll | /overlay/poll/index.html | Abstimmungen |
-| Roulette | /overlay/roulette/index.html | Bug-Roulette Rad |
-| Experiment | /overlay/experiment/index.html | Experiment-Status |
+| Roulette | /overlay/roulette/index.html | Glücksrad |
+| Experiment | /overlay/experiment/index.html | Challenge-Status |
 
 **In OBS einbinden:**
 1. Quellen → + → Browser
@@ -156,10 +156,10 @@ Das Template unter /overlay/_template/index.html enthält:
 | Scene Switch | OBS-Szene wechseln | Aktuelle Szene |
 | Clip Marker | Clip markieren | Session Clip-Anzahl |
 | Bug Report | Bug erstellen | Offene Bug-Anzahl |
-| Experiment | Start/Stop/Done/Fail | Status + Titel |
+| Challenge | Start/Stop/Done/Fail | Status + Titel |
 | Todo Check | Nächstes Todo abhaken | Offene Todos |
-| Compile Prayer | Compile Prayer auslösen | Flash-Animation |
-| Bug Roulette | Roulette drehen | Spin-Animation |
+| Hype Moment | Hype Moment auslösen | Flash-Animation |
+| Glücksrad | Roulette drehen | Spin-Animation |
 | Milestone | Milestone abschließen | Pending-Anzahl |
 
 **API Token:**
@@ -169,8 +169,8 @@ Das Template unter /overlay/_template/index.html enthält:
   {
     title: 'Dashboard Panels',
     content: `**Stream Tab:**
-- **Experiment** — Starte Experiments mit Timer und Status-Tracking
-- **Bug-Roulette** — Tracke Bugs, drehe das Roulette-Rad
+- **Challenge** — Starte Challenges mit Timer und Status-Tracking
+- **Glücksrad** — Tracke Bugs, drehe das Roulette-Rad
 - **Clip Moments** — Markiere Clip-würdige Momente mit Tags
 - **Chat Designs** — Starte Design-Abstimmungen im Chat
 
@@ -271,7 +271,7 @@ Alle Events werden als JSON gesendet: { "event": "name", "data": { ... } }
 - bot-status — Bot verbunden/getrennt
 
 **Actions:**
-- compile-pray — Compile Prayer ausgelöst
+- compile-pray — Hype Moment ausgelöst
 - roulette-spin / roulette-result — Roulette Events
 - raid-incoming — Raid empfangen
 - song-update / song-clear — Song Events`,

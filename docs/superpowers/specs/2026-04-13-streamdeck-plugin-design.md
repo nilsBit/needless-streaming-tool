@@ -35,9 +35,9 @@ All action calls use the Fixed API Token for authentication:
 | `scene` | Scene | `POST /api/obs/scene` `{ scene }` | `obs-scene-changed` | Current scene name |
 | `clip` | Clip | `POST /api/clips` `{ tag, session_date }` | `clip-created` | Session clip count |
 | `bug` | Bug | `POST /api/bugs` `{ title }` | `bug-created`, `bug-updated`, `bug-deleted` | Open bug count |
-| `experiment` | Experiment | `PATCH /api/stream-state` `{ experiment_status }` | `stream-state` | Status emoji + title |
+| `experiment` | Challenge | `PATCH /api/stream-state` `{ experiment_status }` | `stream-state` | Status emoji + title |
 | `todo` | Todo | `PATCH /api/todos/:id` `{ done: 1 }` | `todo-*` | Open todo count |
-| `compile-pray` | Compile | `POST /api/actions/compile-pray` | `compile-pray` | Flash animation on trigger |
+| `compile-pray` | Hype Moment | `POST /api/actions/compile-pray` | `compile-pray` | Flash animation on trigger |
 | `roulette` | Roulette | `POST /api/actions/roulette` | `roulette-spin`, `roulette-result` | Spinning indicator |
 | `milestone` | Milestone | `PATCH /api/milestones/:id` `{ status: "completed" }` | `milestone-trigger` | Pending count |
 
@@ -58,9 +58,9 @@ Each button type has its own configuration UI:
 - **Scene**: `sceneName` — which OBS scene to switch to
 - **Clip**: `tag` — default clip tag (e.g. "highlight", "bug", "funny")
 - **Bug**: `bugTitle` — default bug title template
-- **Experiment**: `action` — toggle between start/stop/reset
+- **Challenge**: `action` — toggle between start/stop/reset
 - **Todo**: `todoId` — which todo to mark done (or "next" for the first open one)
-- **Compile Pray**: no extra settings
+- **Hype Moment**: no extra settings
 - **Roulette**: no extra settings
 - **Milestone**: `milestoneId` — which milestone to complete (or "next" for the first pending one)
 
@@ -97,7 +97,7 @@ streamdeck-the-lab/
       scene.html            -- Scene button settings
       clip.html             -- Clip button settings
       bug.html              -- Bug button settings
-      experiment.html       -- Experiment button settings
+      experiment.html       -- Challenge button settings
       todo.html             -- Todo button settings
       milestone.html        -- Milestone button settings
     images/
@@ -120,7 +120,7 @@ streamdeck-the-lab/
   "SDKVersion": 2,
   "Software": { "MinimumVersion": "6.0" },
   "Name": "The Lab Toolkit",
-  "Description": "Stream Toolkit for GameDev Streaming",
+  "Description": "Stream Toolkit for Streaming",
   "Category": "The Lab",
   "Author": "nilsBit",
   "CodePath": "bin/plugin.js",

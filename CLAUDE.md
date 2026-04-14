@@ -1,6 +1,6 @@
 # Stream Toolkit — "The Lab"
 
-Electron Desktop App for Twitch GameDev streaming. Manages overlays, chat commands, stream data, and tooling for the "The Lab" stream brand.
+Electron Desktop App for Twitch streaming. Manages overlays, chat commands, stream data, and tooling for the "The Lab" stream brand.
 
 ## Tech Stack
 
