@@ -26,7 +26,7 @@ export default function OnboardingWizard({ onComplete }: { onComplete: () => voi
     <div className="onboarding-overlay">
       <div className="onboarding-card">
         {/* Step indicator */}
-        {step > 0 && step < STEPS.length - 1 && (
+        {step > 0 && (
           <div className="step-indicators">
             {STEPS.map((label, i) => (
               <div
@@ -50,15 +50,17 @@ export default function OnboardingWizard({ onComplete }: { onComplete: () => voi
         </div>
 
         {/* Navigation */}
-        {step > 0 && step < STEPS.length - 1 && (
+        {step > 0 && (
           <div className="step-nav">
             <button className="btn-back" onClick={back}>Zurueck</button>
-            <div className="step-nav-right">
-              {SKIPPABLE.has(step) && (
-                <button className="btn-skip" onClick={next}>Ueberspringen</button>
-              )}
-              <button className="btn-primary" onClick={next}>Weiter</button>
-            </div>
+            {step < STEPS.length - 1 && (
+              <div className="step-nav-right">
+                {SKIPPABLE.has(step) && (
+                  <button className="btn-skip" onClick={next}>Ueberspringen</button>
+                )}
+                <button className="btn-primary" onClick={next}>Weiter</button>
+              </div>
+            )}
           </div>
         )}
       </div>
