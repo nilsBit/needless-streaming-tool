@@ -649,6 +649,36 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   color: #e67e22;
 }
 
+.tag-btn .tag-delete {
+  margin-left: 6px;
+  font-size: 11px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.tag-btn:hover .tag-delete { opacity: 0.7; }
+.tag-btn .tag-delete:hover { opacity: 1; color: #e74c3c; }
+
+.tag-btn.tag-add {
+  border-style: dashed;
+  color: #888;
+}
+.tag-btn.tag-add:hover { color: #e67e22; border-color: #e67e22; }
+
+.tag-add-input {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+.tag-add-input input {
+  width: 100px;
+  padding: 5px 8px;
+  font-size: 13px;
+}
+.tag-add-input button {
+  padding: 5px 8px;
+  font-size: 13px;
+}
+
 .clip-custom { display: flex; gap: 6px; flex-wrap: wrap; }
 .clip-custom input { flex: 1; min-width: 100px; }
 
