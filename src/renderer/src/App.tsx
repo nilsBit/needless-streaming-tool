@@ -11,6 +11,7 @@ import MilestonesPanel from './panels/MilestonesPanel';
 import TodosPanel from './panels/TodosPanel';
 import SettingsPanel from './panels/SettingsPanel';
 import OverlaysPanel from './panels/OverlaysPanel';
+import HelpPanel from './panels/HelpPanel';
 
 const TABS = {
   stream: {
@@ -35,6 +36,7 @@ const TABS = {
     panels: [
       { key: 'settings', label: 'Settings', component: SettingsPanel },
       { key: 'overlays', label: 'Overlays', component: OverlaysPanel },
+      { key: 'help', label: 'Hilfe', component: HelpPanel },
     ],
   },
 } as const;
