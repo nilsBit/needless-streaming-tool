@@ -17,9 +17,30 @@ export default function StreamDeckStep() {
     <div className="onboarding-step">
       <h2>Stream Deck (optional)</h2>
       <p className="step-desc">
-        Installiere das <strong>"The Lab Toolkit"</strong> Stream Deck Plugin
-        und trage diesen API Token in den Plugin-Settings ein:
+        Mit dem Stream Deck Plugin kannst du Buttons fuer Szenen-Wechsel,
+        Clips, Bugs, Experiments und mehr direkt auf dein Deck legen.
       </p>
+
+      <div className="onboarding-steps-list">
+        <div className="setup-instruction">
+          <span className="instruction-number">1</span>
+          <span>Installiere das <strong>"The Lab Toolkit"</strong> Plugin im Stream Deck Store oder aus der .streamDeckPlugin Datei</span>
+        </div>
+        <div className="setup-instruction">
+          <span className="instruction-number">2</span>
+          <span>Ziehe einen beliebigen <strong>"The Lab"</strong> Button auf dein Deck</span>
+        </div>
+        <div className="setup-instruction">
+          <span className="instruction-number">3</span>
+          <span>Klicke auf den Button — unten erscheint der <strong>Property Inspector</strong></span>
+        </div>
+        <div className="setup-instruction">
+          <span className="instruction-number">4</span>
+          <span>Kopiere den Token unten und fuege ihn dort im Feld <strong>"API Token"</strong> ein — das musst du nur <strong>einmal</strong> machen, es gilt dann fuer alle Buttons</span>
+        </div>
+      </div>
+
+      <p className="step-desc" style={{ marginTop: '12px' }}>Dein API Token:</p>
 
       {tokenInfo?.token && (
         <div className="token-display-onboarding">
