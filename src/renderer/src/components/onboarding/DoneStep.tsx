@@ -7,16 +7,17 @@ export default function DoneStep({ onFinish }: { onFinish: () => void }) {
   const { data: obsStatus, refetch: refetchObs } = useApi<{ connected: boolean }>('/obs/status');
   const { data: notionInfo } = useApi<{ configured: boolean }>('/settings/notion');
 
+  const twitchDone = !!botStatus?.connected;
+  const obsDone = !!obsStatus?.connected;
+
   useEffect(() => {
+    if (twitchDone && obsDone) return;
     const interval = setInterval(() => {
       refetchBot();
       refetchObs();
     }, 2000);
     return () => clearInterval(interval);
-  }, [refetchBot, refetchObs]);
-
-  const twitchDone = !!botStatus?.connected;
-  const obsDone = !!obsStatus?.connected;
+  }, [refetchBot, refetchObs, twitchDone, obsDone]);
   const notionDone = !!notionInfo?.configured;
   const canFinish = twitchDone && obsDone;
 

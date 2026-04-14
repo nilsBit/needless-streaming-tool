@@ -21,6 +21,16 @@ export function getApiToken(): string {
   return getToken();
 }
 
+export async function apiFetch(endpoint: string, options: RequestInit = {}): Promise<Response> {
+  return fetch(`${API_BASE}${endpoint}`, {
+    ...options,
+    headers: {
+      ...authHeaders(),
+      ...(options.headers || {}),
+    },
+  });
+}
+
 export function useApi<T>(endpoint: string) {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);

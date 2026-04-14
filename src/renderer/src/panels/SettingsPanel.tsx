@@ -1,22 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useApi, apiPost, getApiToken } from '../hooks/useApi';
+import { useApi, apiPost, apiFetch, getApiToken } from '../hooks/useApi';
 import { TwitchConfigResponse, BotStatus } from '../../../shared/types';
 
 interface ClientIdResponse {
   configured: boolean;
   client_id_preview: string | null;
-}
-
-function authFetch(url: string, options: RequestInit = {}) {
-  const token = getApiToken();
-  return fetch(url, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-      ...(options.headers || {}),
-    },
-  });
 }
 
 export default function SettingsPanel() {
@@ -48,7 +36,7 @@ export default function SettingsPanel() {
 
   const saveClientId = async () => {
     if (!clientId.trim()) return;
-    await authFetch('http://localhost:4000/api/auth/twitch/client-id', {
+    await apiFetch('/auth/twitch/client-id', {
       method: 'POST',
       body: JSON.stringify({ client_id: clientId.trim() }),
     });
@@ -58,7 +46,7 @@ export default function SettingsPanel() {
 
   const connectTwitch = async () => {
     try {
-      const res = await authFetch('http://localhost:4000/api/auth/twitch/open', { method: 'POST' });
+      const res = await apiFetch('/auth/twitch/open', { method: 'POST' });
       const data = await res.json();
       if (!data.success) {
         console.error('[Settings] Failed to open Twitch auth:', data.error);
@@ -133,7 +121,7 @@ export default function SettingsPanel() {
           <div className="reset-section">
             <button className="btn-reset-small" onClick={async () => {
               setClientId('');
-              await authFetch('http://localhost:4000/api/auth/twitch/client-id', {
+              await apiFetch('/auth/twitch/client-id', {
                 method: 'POST',
                 body: JSON.stringify({ client_id: '' }),
               });

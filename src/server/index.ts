@@ -22,6 +22,7 @@ import { connectBot } from './bot/index';
 import { connectObs } from './obs/index';
 import { getDb } from './db/index';
 import { rateLimit } from './middleware/rate-limit';
+import { getUserDataPath } from './paths';
 
 const PORT = 4000;
 
@@ -126,35 +127,11 @@ export async function startServer(): Promise<string> {
 
   // Overlay paths
   const builtinOverlayPath = path.join(process.cwd(), 'src', 'overlays');
-  let overlayOverridePath: string;
-  try {
-    const electron = require('electron');
-    const electronApp = electron?.app;
-    if (electronApp?.isPackaged) {
-      overlayOverridePath = path.join(electronApp.getPath('userData'), 'overlay-overrides');
-    } else {
-      overlayOverridePath = path.join(process.cwd(), 'data', 'overlay-overrides');
-    }
-  } catch {
-    overlayOverridePath = path.join(process.cwd(), 'data', 'overlay-overrides');
-  }
+  const overlayOverridePath = getUserDataPath('overlay-overrides');
+  const customOverlayPath = getUserDataPath('custom-overlays');
   const fs = require('fs');
-  if (!fs.existsSync(overlayOverridePath)) fs.mkdirSync(overlayOverridePath, { recursive: true });
-
-  // Custom user overlays (from userData dir)
-  let customOverlayPath: string;
-  try {
-    const electron = require('electron');
-    const electronApp = electron?.app;
-    if (electronApp?.isPackaged) {
-      customOverlayPath = path.join(electronApp.getPath('userData'), 'custom-overlays');
-    } else {
-      customOverlayPath = path.join(process.cwd(), 'data', 'custom-overlays');
-    }
-  } catch {
-    customOverlayPath = path.join(process.cwd(), 'data', 'custom-overlays');
-  }
-  if (!fs.existsSync(customOverlayPath)) fs.mkdirSync(customOverlayPath, { recursive: true });
+  fs.mkdirSync(overlayOverridePath, { recursive: true });
+  fs.mkdirSync(customOverlayPath, { recursive: true });
 
   // Serve overlays: overrides first, then builtin, then custom
   app.use('/overlay/custom', express.static(customOverlayPath));

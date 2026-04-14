@@ -1,18 +1,12 @@
 import { Router } from 'express';
 import fs from 'fs';
 import path from 'path';
+import { getUserDataPath } from '../paths';
 
 const router = Router();
 
 function getOverrideDir(): string {
-  try {
-    const electron = require('electron');
-    const electronApp = electron?.app;
-    if (electronApp?.isPackaged) {
-      return path.join(electronApp.getPath('userData'), 'overlay-overrides');
-    }
-  } catch {}
-  return path.join(process.cwd(), 'data', 'overlay-overrides');
+  return getUserDataPath('overlay-overrides');
 }
 
 function getBuiltinDir(): string {
@@ -20,14 +14,7 @@ function getBuiltinDir(): string {
 }
 
 function getCustomOverlayDir(): string {
-  try {
-    const electron = require('electron');
-    const electronApp = electron?.app;
-    if (electronApp?.isPackaged) {
-      return path.join(electronApp.getPath('userData'), 'custom-overlays');
-    }
-  } catch {}
-  return path.join(process.cwd(), 'data', 'custom-overlays');
+  return getUserDataPath('custom-overlays');
 }
 
 function ensureDir() {

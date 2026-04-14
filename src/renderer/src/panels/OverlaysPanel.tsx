@@ -1,6 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { useApi, apiPost } from '../hooks/useApi';
-import { getApiToken } from '../hooks/useApi';
+import { useApi, apiPost, apiFetch } from '../hooks/useApi';
 
 interface OverlayInfo {
   name: string;
@@ -8,18 +7,6 @@ interface OverlayInfo {
   hasIndex?: boolean;
   builtin?: boolean;
   customized?: boolean;
-}
-
-function authFetch(url: string, options: RequestInit = {}) {
-  const token = getApiToken();
-  return fetch(url, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-      ...(options.headers || {}),
-    },
-  });
 }
 
 export default function OverlaysPanel() {
@@ -45,7 +32,7 @@ export default function OverlaysPanel() {
     if (!newName.trim()) return;
     setUploading(true);
     try {
-      const templateRes = await authFetch('http://localhost:4000/api/overlays/template');
+      const templateRes = await apiFetch('/overlays/template');
       const { html } = await templateRes.json();
       const customHtml = html
         .replace("OVERLAY_NAME = 'MeinOverlay'", `OVERLAY_NAME = '${newName.trim()}'`)
@@ -80,7 +67,7 @@ export default function OverlaysPanel() {
 
   const deleteOverlay = async (name: string) => {
     try {
-      await authFetch(`http://localhost:4000/api/overlays/${name}`, { method: 'DELETE' });
+      await apiFetch(`/overlays/${name}`, { method: 'DELETE' });
       refetchCustom();
     } catch (err) {
       console.error('[Overlays] Delete failed:', err);
@@ -91,7 +78,7 @@ export default function OverlaysPanel() {
   const customizeBuiltin = async (name: string, file: File) => {
     try {
       const html = await file.text();
-      await authFetch(`http://localhost:4000/api/overlays/builtin/${name}`, {
+      await apiFetch(`/overlays/builtin/${name}`, {
         method: 'PUT',
         body: JSON.stringify({ html }),
       });
@@ -105,7 +92,7 @@ export default function OverlaysPanel() {
   // Builtin overlay: reset to default
   const resetBuiltin = async (name: string) => {
     try {
-      await authFetch(`http://localhost:4000/api/overlays/builtin/${name}/override`, { method: 'DELETE' });
+      await apiFetch(`/overlays/builtin/${name}/override`, { method: 'DELETE' });
       refetchBuiltin();
     } catch (err) {
       console.error('[Overlays] Reset failed:', err);

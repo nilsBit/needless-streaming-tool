@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ErrorBoundary from './components/ErrorBoundary';
 import OnboardingWizard from './components/OnboardingWizard';
-import { getApiToken } from './hooks/useApi';
+import { apiFetch, getApiToken } from './hooks/useApi';
 import ExperimentPanel from './panels/ExperimentPanel';
 import BugsPanel from './panels/BugsPanel';
 import ProgressPanel from './panels/ProgressPanel';
@@ -54,16 +54,18 @@ export default function App() {
   const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
 
   useEffect(() => {
+    let retries = 0;
     function checkOnboarding() {
       const token = getApiToken();
       if (!token) {
-        // Token not yet in URL hash, retry
-        setTimeout(checkOnboarding, 500);
+        if (retries++ < 20) {
+          setTimeout(checkOnboarding, 500);
+        } else {
+          setShowOnboarding(false);
+        }
         return;
       }
-      fetch('http://localhost:4000/api/settings/onboarding', {
-        headers: { 'Authorization': `Bearer ${token}` },
-      })
+      apiFetch('/settings/onboarding')
         .then((r) => r.json())
         .then((data) => setShowOnboarding(!data.completed))
         .catch(() => setShowOnboarding(false));

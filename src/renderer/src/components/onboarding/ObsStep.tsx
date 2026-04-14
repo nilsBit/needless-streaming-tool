@@ -9,9 +9,10 @@ export default function ObsStep() {
   const [password, setPassword] = useState('');
 
   useEffect(() => {
+    if (obsStatus?.connected) return;
     const interval = setInterval(refetchStatus, 2000);
     return () => clearInterval(interval);
-  }, [refetchStatus]);
+  }, [refetchStatus, obsStatus?.connected]);
 
   const saveAndConnect = async () => {
     await apiPost('/obs/config', {

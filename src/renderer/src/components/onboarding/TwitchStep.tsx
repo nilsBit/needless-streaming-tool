@@ -1,18 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useApi, apiPost, getApiToken } from '../../hooks/useApi';
+import { useApi, apiFetch } from '../../hooks/useApi';
 import { BotStatus } from '../../../../shared/types';
-
-function authFetch(url: string, options: RequestInit = {}) {
-  const token = getApiToken();
-  return fetch(url, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-      ...(options.headers || {}),
-    },
-  });
-}
 
 interface ClientIdResponse {
   configured: boolean;
@@ -25,13 +13,14 @@ export default function TwitchStep() {
   const [clientId, setClientId] = useState('');
 
   useEffect(() => {
+    if (botStatus?.connected) return;
     const interval = setInterval(refetchBot, 2000);
     return () => clearInterval(interval);
-  }, [refetchBot]);
+  }, [refetchBot, botStatus?.connected]);
 
   const saveClientId = async () => {
     if (!clientId.trim()) return;
-    await authFetch('http://localhost:4000/api/auth/twitch/client-id', {
+    await apiFetch('/auth/twitch/client-id', {
       method: 'POST',
       body: JSON.stringify({ client_id: clientId.trim() }),
     });
@@ -40,7 +29,7 @@ export default function TwitchStep() {
   };
 
   const connectTwitch = async () => {
-    await authFetch('http://localhost:4000/api/auth/twitch/open', { method: 'POST' });
+    await apiFetch('/auth/twitch/open', { method: 'POST' });
   };
 
   return (
