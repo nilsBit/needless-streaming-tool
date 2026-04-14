@@ -1,18 +1,20 @@
 import { Router } from 'express';
 import fs from 'fs';
 import path from 'path';
+import { getUserDataPath } from '../paths';
 
 const router = Router();
 
+function getOverrideDir(): string {
+  return getUserDataPath('overlay-overrides');
+}
+
+function getBuiltinDir(): string {
+  return path.join(process.cwd(), 'src', 'overlays');
+}
+
 function getCustomOverlayDir(): string {
-  try {
-    const electron = require('electron');
-    const electronApp = electron?.app;
-    if (electronApp?.isPackaged) {
-      return path.join(electronApp.getPath('userData'), 'custom-overlays');
-    }
-  } catch {}
-  return path.join(process.cwd(), 'data', 'custom-overlays');
+  return getUserDataPath('custom-overlays');
 }
 
 function ensureDir() {
@@ -45,22 +47,95 @@ router.get('/', (_req, res) => {
   }
 });
 
-// Get builtin overlays list
+// Get builtin overlays list (with override status)
 router.get('/builtin', (_req, res) => {
-  const builtinPath = path.join(process.cwd(), 'src', 'overlays');
+  const builtinPath = getBuiltinDir();
+  const overrideDir = getOverrideDir();
   try {
     const entries = fs.readdirSync(builtinPath, { withFileTypes: true });
     const overlays = entries
       .filter((e) => e.isDirectory() && !e.name.startsWith('_'))
-      .map((e) => ({
-        name: e.name,
-        url: `http://localhost:4000/overlay/${e.name}/index.html`,
-        builtin: true,
-      }));
+      .map((e) => {
+        const overridePath = path.join(overrideDir, e.name, 'index.html');
+        return {
+          name: e.name,
+          url: `http://localhost:4000/overlay/${e.name}/index.html`,
+          builtin: true,
+          customized: fs.existsSync(overridePath),
+        };
+      });
     res.json(overlays);
   } catch {
     res.json([]);
   }
+});
+
+// Get builtin overlay source (current = override if exists, otherwise original)
+router.get('/builtin/:name/source', (req, res) => {
+  const name = req.params.name;
+  const overridePath = path.join(getOverrideDir(), name, 'index.html');
+  const builtinPath = path.join(getBuiltinDir(), name, 'index.html');
+
+  const filePath = fs.existsSync(overridePath) ? overridePath : builtinPath;
+  if (!fs.existsSync(filePath)) {
+    res.status(404).json({ error: 'Overlay not found' });
+    return;
+  }
+
+  const html = fs.readFileSync(filePath, 'utf-8');
+  res.json({ name, html, customized: fs.existsSync(overridePath) });
+});
+
+// Get builtin overlay DEFAULT source (always the original)
+router.get('/builtin/:name/default', (req, res) => {
+  const name = req.params.name;
+  const builtinPath = path.join(getBuiltinDir(), name, 'index.html');
+
+  if (!fs.existsSync(builtinPath)) {
+    res.status(404).json({ error: 'Overlay not found' });
+    return;
+  }
+
+  const html = fs.readFileSync(builtinPath, 'utf-8');
+  res.json({ name, html });
+});
+
+// Override a builtin overlay with custom HTML
+router.put('/builtin/:name', (req, res) => {
+  const { html } = req.body;
+  const name = req.params.name;
+
+  if (!html) {
+    res.status(400).json({ error: 'html required' });
+    return;
+  }
+
+  // Verify it's a real builtin overlay
+  const builtinPath = path.join(getBuiltinDir(), name, 'index.html');
+  if (!fs.existsSync(builtinPath)) {
+    res.status(404).json({ error: 'Builtin overlay not found' });
+    return;
+  }
+
+  const overrideDir = path.join(getOverrideDir(), name);
+  if (!fs.existsSync(overrideDir)) {
+    fs.mkdirSync(overrideDir, { recursive: true });
+  }
+
+  fs.writeFileSync(path.join(overrideDir, 'index.html'), html, 'utf-8');
+  res.json({ success: true, customized: true });
+});
+
+// Reset a builtin overlay to default
+router.delete('/builtin/:name/override', (req, res) => {
+  const name = req.params.name;
+  const overrideDir = path.join(getOverrideDir(), name);
+
+  if (fs.existsSync(overrideDir)) {
+    fs.rmSync(overrideDir, { recursive: true });
+  }
+
+  res.json({ success: true, customized: false });
 });
 
 // Create new custom overlay from uploaded HTML

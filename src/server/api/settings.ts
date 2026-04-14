@@ -4,6 +4,8 @@ import { connectBot, disconnectBot, getBotStatus } from '../bot/index';
 import { BotConfig } from '../../shared/types';
 import { getFixedToken } from '../auth-token';
 import { getDb } from '../db/index';
+import path from 'path';
+import fs from 'fs';
 
 const router = Router();
 
@@ -87,6 +89,42 @@ router.post('/notion/database', (req, res) => {
     getDb().prepare('DELETE FROM settings WHERE key = ?').run('notion_clips_db');
   }
   res.json({ success: true });
+});
+
+// Onboarding
+router.get('/onboarding', (_req, res) => {
+  const row = getDb().prepare('SELECT value FROM settings WHERE key = ?').get('onboarding_completed') as { value: string } | undefined;
+  res.json({ completed: row?.value === 'true' });
+});
+
+router.post('/onboarding', (req, res) => {
+  const { completed } = req.body;
+  getDb().prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('onboarding_completed', completed ? 'true' : 'false');
+  res.json({ success: true });
+});
+
+// Install Stream Deck plugin
+router.post('/streamdeck/install', async (_req, res) => {
+  try {
+    const { shell } = require('electron');
+    // Check both dev and production paths
+    let pluginPath = path.join(process.cwd(), 'assets', 'com.thelab.toolkit.streamDeckPlugin');
+    if (!fs.existsSync(pluginPath)) {
+      // Production: check resources dir
+      try {
+        const { app } = require('electron');
+        pluginPath = path.join(process.resourcesPath || app.getAppPath(), 'assets', 'com.thelab.toolkit.streamDeckPlugin');
+      } catch {}
+    }
+    if (!fs.existsSync(pluginPath)) {
+      res.status(404).json({ error: 'Plugin file not found' });
+      return;
+    }
+    await shell.openPath(pluginPath);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to open plugin', details: String(err) });
+  }
 });
 
 // Fixed API token for Stream Deck

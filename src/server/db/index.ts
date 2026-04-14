@@ -1,20 +1,12 @@
 import Database from 'better-sqlite3';
 import path from 'path';
 import { SCHEMA, SCHEMA_VERSION } from './schema';
+import { getUserDataPath } from '../paths';
 
 let db: Database.Database;
 
 function getDbPath(): string {
-  // In Electron production: use app.getPath('userData')
-  // In development: use cwd/data/
-  try {
-    const electron = require('electron');
-    const electronApp = electron?.app;
-    if (electronApp?.isPackaged) {
-      return path.join(electronApp.getPath('userData'), 'stream.db');
-    }
-  } catch {}
-  return path.join(process.cwd(), 'data', 'stream.db');
+  return path.join(getUserDataPath(''), 'stream.db');
 }
 
 export function initDatabase(dbPath?: string): Database.Database {

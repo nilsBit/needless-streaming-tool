@@ -4,13 +4,13 @@
 
 ---
 
-## Experiment-Banner Overlay
+## Challenge-Banner Overlay
 
 Empfohlene Größe: **800x200px**
 
 | Variable | Beispiel-Wert | Beschreibung |
 |----------|--------------|-------------|
-| `{experiment_title}` | Knockback einbauen | Der Experiment-Titel |
+| `{experiment_title}` | Knockback einbauen | Der Challenge-Titel |
 | `{experiment_status}` | Läuft / Geschafft! / Gescheitert | Aktueller Status |
 | `{timer}` | 05:23 | Timer im MM:SS Format |
 | `{status_color}` | Rot / Grün / Rot | Farbe je nach Status (in_progress=rot, done=grün, failed=rot) |
@@ -23,7 +23,7 @@ Empfohlene Größe: **800x400px**
 
 | Variable | Beispiel-Wert | Beschreibung |
 |----------|--------------|-------------|
-| `{alert_title}` | ⚔️ RAID! / ⚡ COMPILE & PRAY ⚡ | Alert-Titel |
+| `{alert_title}` | ⚔️ RAID! / ⚡ HYPE MOMENT ⚡ | Alert-Titel |
 | `{alert_subtitle}` | TestStreamer mit 25 Viewern — elite Enemy! | Alert-Beschreibung |
 | `{alert_type}` | raid / reward / compile | Bestimmt die Farbe/Style |
 
@@ -33,11 +33,11 @@ Empfohlene Größe: **800x400px**
 |------|------|---------------|-------------------|
 | `raid` | Raid eingehend | ⚔️ RAID! | StreamerName mit 25 Viewern — elite Enemy! |
 | `reward` | Channel Point Reward | 💥 Spawn 50 Enemys! | von UserName |
-| `compile` | Compile & Pray / Roulette | ⚡ COMPILE & PRAY ⚡ | Läuft es? Oder crashed es? |
+| `compile` | Hype Moment / Roulette | ⚡ HYPE MOMENT ⚡ | Läuft es? Oder crashed es? |
 
 ---
 
-## Bug-Roulette Overlay
+## Glücksrad Overlay
 
 Empfohlene Größe: **400x500px**
 

@@ -61,25 +61,25 @@ export function registerHotkeys() {
     console.log('[Hotkey] Ctrl+Shift+T — Timer toggle');
   });
 
-  // Ctrl+Shift+C — Compile & Pray
+  // Ctrl+Shift+C — Hype Moment
   globalShortcut.register('CommandOrControl+Shift+C', () => {
     apiCall('POST', '/api/actions/compile-pray', {});
-    console.log('[Hotkey] Ctrl+Shift+C — Compile & Pray');
+    console.log('[Hotkey] Ctrl+Shift+C — Hype Moment');
   });
 
-  // Ctrl+Shift+D — Experiment Done
+  // Ctrl+Shift+D — Challenge Done
   globalShortcut.register('CommandOrControl+Shift+D', () => {
     apiCall('PATCH', '/api/stream-state', { experiment_status: 'done', timer_running: 0 });
     console.log('[Hotkey] Ctrl+Shift+D — Done');
   });
 
-  // Ctrl+Shift+F — Experiment Failed
+  // Ctrl+Shift+F — Challenge Failed
   globalShortcut.register('CommandOrControl+Shift+F', () => {
     apiCall('PATCH', '/api/stream-state', { experiment_status: 'failed', timer_running: 0 });
     console.log('[Hotkey] Ctrl+Shift+F — Failed');
   });
 
-  // Ctrl+Shift+R — Bug Roulette
+  // Ctrl+Shift+R — Glücksrad
   globalShortcut.register('CommandOrControl+Shift+R', () => {
     apiCall('POST', '/api/actions/roulette', {});
     console.log('[Hotkey] Ctrl+Shift+R — Roulette');

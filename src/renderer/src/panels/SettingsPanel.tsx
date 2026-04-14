@@ -1,22 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useApi, apiPost, getApiToken } from '../hooks/useApi';
+import { useApi, apiPost, apiFetch, getApiToken } from '../hooks/useApi';
 import { TwitchConfigResponse, BotStatus } from '../../../shared/types';
+import { useTranslation } from '../i18n/LanguageContext';
 
 interface ClientIdResponse {
   configured: boolean;
   client_id_preview: string | null;
-}
-
-function authFetch(url: string, options: RequestInit = {}) {
-  const token = getApiToken();
-  return fetch(url, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-      ...(options.headers || {}),
-    },
-  });
 }
 
 export default function SettingsPanel() {
@@ -35,6 +24,7 @@ export default function SettingsPanel() {
   const [obsHost, setObsHost] = useState('localhost');
   const [obsPort, setObsPort] = useState('4455');
   const [obsPassword, setObsPassword] = useState('');
+  const { t, lang, setLang } = useTranslation();
 
   const copyToken = () => {
     if (tokenInfo?.token) {
@@ -48,7 +38,7 @@ export default function SettingsPanel() {
 
   const saveClientId = async () => {
     if (!clientId.trim()) return;
-    await authFetch('http://localhost:4000/api/auth/twitch/client-id', {
+    await apiFetch('/auth/twitch/client-id', {
       method: 'POST',
       body: JSON.stringify({ client_id: clientId.trim() }),
     });
@@ -58,7 +48,7 @@ export default function SettingsPanel() {
 
   const connectTwitch = async () => {
     try {
-      const res = await authFetch('http://localhost:4000/api/auth/twitch/open', { method: 'POST' });
+      const res = await apiFetch('/auth/twitch/open', { method: 'POST' });
       const data = await res.json();
       if (!data.success) {
         console.error('[Settings] Failed to open Twitch auth:', data.error);
@@ -133,7 +123,7 @@ export default function SettingsPanel() {
           <div className="reset-section">
             <button className="btn-reset-small" onClick={async () => {
               setClientId('');
-              await authFetch('http://localhost:4000/api/auth/twitch/client-id', {
+              await apiFetch('/auth/twitch/client-id', {
                 method: 'POST',
                 body: JSON.stringify({ client_id: '' }),
               });
@@ -304,6 +294,24 @@ export default function SettingsPanel() {
         <div className="api-endpoints">
           <p className="setup-info" style={{ marginTop: '8px' }}>Base URL: <code>http://localhost:4000/api</code></p>
           <p className="setup-info">Header: <code>Authorization: Bearer &lt;token&gt;</code></p>
+        </div>
+      </div>
+
+      <div className="settings-section">
+        <h3>{t('settings.wizard')}</h3>
+        <p className="setup-info">{t('settings.wizard_desc')}</p>
+        <button className="btn-connect" onClick={async () => {
+          await apiPost('/settings/onboarding', { completed: false });
+          window.location.reload();
+        }}>{t('settings.wizard_restart')}</button>
+      </div>
+
+      <div className="settings-section">
+        <h3>{t('settings.language')}</h3>
+        <p className="setup-info">{t('settings.language_desc')}</p>
+        <div className="language-toggle">
+          <button className={`lang-btn ${lang === 'de' ? 'active' : ''}`} onClick={() => setLang('de')}>Deutsch</button>
+          <button className={`lang-btn ${lang === 'en' ? 'active' : ''}`} onClick={() => setLang('en')}>English</button>
         </div>
       </div>
     </div>

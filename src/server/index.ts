@@ -22,6 +22,7 @@ import { connectBot } from './bot/index';
 import { connectObs } from './obs/index';
 import { getDb } from './db/index';
 import { rateLimit } from './middleware/rate-limit';
+import { getUserDataPath } from './paths';
 
 const PORT = 4000;
 
@@ -124,29 +125,28 @@ export async function startServer(): Promise<string> {
     res.json({ project_name: state?.project_name || null, items });
   });
 
-  // Static overlay files (no auth needed — public)
-  const overlayPath = path.join(process.cwd(), 'src', 'overlays');
-  app.use('/overlay', express.static(overlayPath));
-
-  // Custom user overlays (from userData dir)
-  let customOverlayPath: string;
-  try {
-    const electron = require('electron');
-    const electronApp = electron?.app;
-    if (electronApp?.isPackaged) {
-      customOverlayPath = path.join(electronApp.getPath('userData'), 'custom-overlays');
-    } else {
-      customOverlayPath = path.join(process.cwd(), 'data', 'custom-overlays');
-    }
-  } catch {
-    customOverlayPath = path.join(process.cwd(), 'data', 'custom-overlays');
-  }
+  // Overlay paths
+  const builtinOverlayPath = path.join(process.cwd(), 'src', 'overlays');
+  const overlayOverridePath = getUserDataPath('overlay-overrides');
+  const customOverlayPath = getUserDataPath('custom-overlays');
   const fs = require('fs');
-  if (!fs.existsSync(customOverlayPath)) fs.mkdirSync(customOverlayPath, { recursive: true });
+  fs.mkdirSync(overlayOverridePath, { recursive: true });
+  fs.mkdirSync(customOverlayPath, { recursive: true });
+
+  // Serve overlays: overrides first, then builtin, then custom
   app.use('/overlay/custom', express.static(customOverlayPath));
+  app.use('/overlay', express.static(overlayOverridePath));
+  app.use('/overlay', express.static(builtinOverlayPath));
 
   const server = http.createServer(app);
   initWebSocket(server);
+
+  server.on('error', (err: NodeJS.ErrnoException) => {
+    if (err.code === 'EADDRINUSE') {
+      console.log(`[Server] Port ${PORT} busy, retrying in 1s...`);
+      setTimeout(() => server.listen(PORT), 1000);
+    }
+  });
 
   return new Promise((resolve) => {
     server.listen(PORT, () => {

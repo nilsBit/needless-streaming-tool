@@ -9,33 +9,33 @@
     STREAM TOOLKIT — OVERLAY TEMPLATE
     ============================================================
 
-    Dieses Template ist die Grundlage fuer eigene Overlays.
+    Dieses Template ist die Grundlage für eigene Overlays.
     Kopiere diesen Ordner, benenne ihn um, und passe CSS + HTML an.
 
     REGELN:
     1. Der Ordner-Name = die URL.
        Ordner "mein-overlay" → http://localhost:4000/overlay/mein-overlay/index.html
-    2. Alles in EINER Datei (HTML + CSS + JS). Keine externen Dateien noetig.
+    2. Alles in EINER Datei (HTML + CSS + JS). Keine externen Dateien nötig.
     3. Background MUSS transparent sein (fuer OBS Browser Source).
     4. WebSocket verbindet sich IMMER mit: ws://localhost:4000?overlay=1
-    5. Daten holen ueber: http://localhost:4000/public/<endpoint>
+    5. Daten holen über: http://localhost:4000/public/<endpoint>
 
-    VERFUEGBARE WEBSOCKET-EVENTS:
+    VERFÜGBARE WEBSOCKET-EVENTS:
     ┌──────────────────────────────┬─────────────────────────────────────┐
     │ Event                        │ Beschreibung                        │
     ├──────────────────────────────┼─────────────────────────────────────┤
-    │ stream-state                 │ Stream-Status geaendert             │
-    │ bug-created / bug-updated    │ Bug hinzugefuegt/geaendert          │
-    │ bug-deleted                  │ Bug geloescht                       │
-    │ reward-redeemed              │ Channel Point Reward eingeloest     │
+    │ stream-state                 │ Stream-Status geändert              │
+    │ bug-created / bug-updated    │ Bug hinzugefügt/geändert            │
+    │ bug-deleted                  │ Bug gelöscht                        │
+    │ reward-redeemed              │ Channel Point Reward eingelöst      │
     │ raid-incoming                │ Raid empfangen                      │
-    │ todo-created / todo-updated  │ Todo hinzugefuegt/geaendert         │
-    │ todo-deleted / todos-cleared │ Todo geloescht/alle geloescht       │
-    │ progress-updated             │ Projekt-Fortschritt geaendert       │
+    │ todo-created / todo-updated  │ Todo hinzugefügt/geändert           │
+    │ todo-deleted / todos-cleared │ Todo gelöscht/alle gelöscht         │
+    │ progress-updated             │ Projekt-Fortschritt geändert        │
     │ progress-item-*              │ Progress Item CRUD                  │
-    │ milestone-trigger            │ Achievement ausgeloest              │
+    │ milestone-trigger            │ Achievement ausgelöst               │
     │ song-update / song-clear     │ Song anzeigen/ausblenden            │
-    │ compile-pray                 │ Compile-Gebet ausgeloest            │
+    │ compile-pray                 │ Hype Moment ausgelöst               │
     │ roulette-spin                │ Roulette dreht sich                 │
     │ roulette-result              │ Roulette Ergebnis                   │
     │ design-vote-started          │ Design-Abstimmung gestartet         │
@@ -46,7 +46,7 @@
     │ clip-created                 │ Clip markiert                       │
     └──────────────────────────────┴─────────────────────────────────────┘
 
-    VERFUEGBARE PUBLIC API ENDPOINTS (kein Token noetig):
+    VERFÜGBARE PUBLIC API ENDPOINTS (kein Token nötig):
     - GET /public/stream-state   → { experiment_title, experiment_status, ... }
     - GET /public/bugs           → [ { id, title, status, ... }, ... ]
     - GET /public/todos          → [ { id, title, done, ... }, ... ]
@@ -64,7 +64,7 @@
 
   <style>
     /* =============================================
-       RESET & TRANSPARENZ (NICHT AENDERN!)
+       RESET & TRANSPARENZ (NICHT ÄNDERN!)
        ============================================= */
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -78,7 +78,7 @@
 
     /* =============================================
        AB HIER: DEIN DESIGN
-       Aendere alles was du willst!
+       Ändere alles was du willst!
        ============================================= */
 
     /* --- VARIANTE A: Pixel Art Style --- */
@@ -153,7 +153,7 @@
       50%      { opacity: 0.4; }
     }
 
-    /* Notification (fuer temporaere Einblendungen) */
+    /* Notification (für temporäre Einblendungen) */
     .notification {
       position: fixed;
       top: 20px;
@@ -194,7 +194,7 @@
     // KONFIGURATION
     // Passe diese Werte an dein Overlay an.
     // =============================================
-    const OVERLAY_NAME = 'MeinOverlay';              // Fuer Logs
+    const OVERLAY_NAME = 'MeinOverlay';              // Für Logs
     const API_ENDPOINT = '/public/todos';             // Welche Daten holen
     const WS_EVENTS = ['todo-created', 'todo-updated', 'todo-deleted']; // Auf welche Events reagieren
     const POLL_INTERVAL = 10000;                      // Backup-Polling in ms (0 = aus)
@@ -251,7 +251,7 @@
 
     // =============================================
     // WEBSOCKET VERBINDUNG
-    // (Normalerweise nicht aendern!)
+    // (Normalerweise nicht ändern!)
     // =============================================
     let ws;
 
@@ -267,7 +267,7 @@
         try {
           var msg = JSON.parse(e.data);
 
-          // Pruefen ob das Event fuer uns relevant ist
+          // Prüfen ob das Event für uns relevant ist
           var isRelevant = WS_EVENTS.some(function(evt) {
             return msg.event === evt || msg.event && msg.event.startsWith(evt);
           });
@@ -297,7 +297,7 @@
     // HILFSFUNKTIONEN
     // =============================================
 
-    // Temporaere Notification anzeigen (fuer Alerts etc.)
+    // Temporäre Notification anzeigen (für Alerts etc.)
     // Erstelle ein Element mit class="notification" im HTML
     function showNotification(element, durationMs) {
       durationMs = durationMs || 5000;

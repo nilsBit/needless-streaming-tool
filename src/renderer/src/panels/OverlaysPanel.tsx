@@ -1,24 +1,12 @@
 import React, { useState, useRef } from 'react';
-import { useApi, apiPost } from '../hooks/useApi';
-import { getApiToken } from '../hooks/useApi';
+import { useApi, apiPost, apiFetch } from '../hooks/useApi';
 
 interface OverlayInfo {
   name: string;
   url: string;
   hasIndex?: boolean;
   builtin?: boolean;
-}
-
-function authFetch(url: string, options: RequestInit = {}) {
-  const token = getApiToken();
-  return fetch(url, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-      ...(options.headers || {}),
-    },
-  });
+  customized?: boolean;
 }
 
 export default function OverlaysPanel() {
@@ -30,7 +18,9 @@ export default function OverlaysPanel() {
   const [newName, setNewName] = useState('');
   const [uploadMode, setUploadMode] = useState<'file' | 'template'>('template');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const builtinFileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [editingBuiltin, setEditingBuiltin] = useState<string | null>(null);
 
   const copyUrl = (url: string) => {
     navigator.clipboard.writeText(url);
@@ -42,14 +32,12 @@ export default function OverlaysPanel() {
     if (!newName.trim()) return;
     setUploading(true);
     try {
-      const templateRes = await authFetch('http://localhost:4000/api/overlays/template');
+      const templateRes = await apiFetch('/overlays/template');
       const { html } = await templateRes.json();
-
       const customHtml = html
         .replace("OVERLAY_NAME = 'MeinOverlay'", `OVERLAY_NAME = '${newName.trim()}'`)
         .replace('<div class="title">MEIN OVERLAY</div>', `<div class="title">${newName.trim().toUpperCase()}</div>`)
         .replace('<title>Custom Overlay Template</title>', `<title>${newName.trim()}</title>`);
-
       await apiPost('/overlays', { name: newName.trim(), html: customHtml });
       setNewName('');
       setShowUpload(false);
@@ -79,30 +67,86 @@ export default function OverlaysPanel() {
 
   const deleteOverlay = async (name: string) => {
     try {
-      await authFetch(`http://localhost:4000/api/overlays/${name}`, { method: 'DELETE' });
+      await apiFetch(`/overlays/${name}`, { method: 'DELETE' });
       refetchCustom();
     } catch (err) {
       console.error('[Overlays] Delete failed:', err);
     }
   };
 
+  // Builtin overlay: upload custom HTML to replace
+  const customizeBuiltin = async (name: string, file: File) => {
+    try {
+      const html = await file.text();
+      await apiFetch(`/overlays/builtin/${name}`, {
+        method: 'PUT',
+        body: JSON.stringify({ html }),
+      });
+      refetchBuiltin();
+      setEditingBuiltin(null);
+    } catch (err) {
+      console.error('[Overlays] Customize failed:', err);
+    }
+  };
+
+  // Builtin overlay: reset to default
+  const resetBuiltin = async (name: string) => {
+    try {
+      await apiFetch(`/overlays/builtin/${name}/override`, { method: 'DELETE' });
+      refetchBuiltin();
+    } catch (err) {
+      console.error('[Overlays] Reset failed:', err);
+    }
+  };
+
   return (
     <div className="panel overlays-panel">
       <h2>🎨 Overlays</h2>
-      <p className="panel-desc">Overlay-URLs fuer OBS Browser Source. Eigene Overlays hochladen oder aus Template erstellen.</p>
+      <p className="panel-desc">Overlay-URLs für OBS Browser Source. Overlays anpassen oder eigene erstellen.</p>
 
       <div className="overlay-section">
         <h3>Eingebaute Overlays</h3>
         <div className="overlay-list">
           {builtinOverlays?.map((o) => (
-            <div key={o.name} className="overlay-item">
-              <span className="overlay-name">{o.name}</span>
-              <button
-                className="btn-copy-small"
-                onClick={() => copyUrl(o.url)}
-              >
-                {copiedUrl === o.url ? '✅' : '📋'}
-              </button>
+            <div key={o.name} className={`overlay-item ${o.customized ? 'overlay-customized' : ''}`}>
+              <div className="overlay-name-row">
+                <span className="overlay-name">{o.name}</span>
+                {o.customized && <span className="overlay-badge">angepasst</span>}
+              </div>
+              <div className="overlay-actions">
+                <button className="btn-copy-small" onClick={() => copyUrl(o.url)}>
+                  {copiedUrl === o.url ? '✅' : '📋'}
+                </button>
+                {editingBuiltin === o.name ? (
+                  <>
+                    <input
+                      ref={builtinFileRef}
+                      type="file"
+                      accept=".html,.htm"
+                      style={{ display: 'none' }}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) customizeBuiltin(o.name, file);
+                      }}
+                    />
+                    <button className="btn-copy-small" onClick={() => builtinFileRef.current?.click()}>
+                      📄 Datei
+                    </button>
+                    <button className="btn-copy-small" onClick={() => setEditingBuiltin(null)}>
+                      ✕
+                    </button>
+                  </>
+                ) : (
+                  <button className="btn-copy-small" onClick={() => setEditingBuiltin(o.name)} title="Design ersetzen">
+                    ✏️
+                  </button>
+                )}
+                {o.customized && (
+                  <button className="btn-delete-small" onClick={() => resetBuiltin(o.name)} title="Auf Standard zurücksetzen">
+                    ↩️
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -116,16 +160,10 @@ export default function OverlaysPanel() {
               <div key={o.name} className="overlay-item">
                 <span className="overlay-name">{o.name}</span>
                 <div className="overlay-actions">
-                  <button
-                    className="btn-copy-small"
-                    onClick={() => copyUrl(o.url)}
-                  >
+                  <button className="btn-copy-small" onClick={() => copyUrl(o.url)}>
                     {copiedUrl === o.url ? '✅' : '📋'}
                   </button>
-                  <button
-                    className="btn-delete-small"
-                    onClick={() => deleteOverlay(o.name)}
-                  >
+                  <button className="btn-delete-small" onClick={() => deleteOverlay(o.name)}>
                     🗑️
                   </button>
                 </div>
@@ -149,45 +187,24 @@ export default function OverlaysPanel() {
               onChange={(e) => setNewName(e.target.value)}
               className="overlay-name-input"
             />
-
             <div className="upload-mode-toggle">
-              <button
-                className={`mode-btn ${uploadMode === 'template' ? 'active' : ''}`}
-                onClick={() => setUploadMode('template')}
-              >
+              <button className={`mode-btn ${uploadMode === 'template' ? 'active' : ''}`} onClick={() => setUploadMode('template')}>
                 Aus Template
               </button>
-              <button
-                className={`mode-btn ${uploadMode === 'file' ? 'active' : ''}`}
-                onClick={() => setUploadMode('file')}
-              >
+              <button className={`mode-btn ${uploadMode === 'file' ? 'active' : ''}`} onClick={() => setUploadMode('file')}>
                 HTML hochladen
               </button>
             </div>
-
             {uploadMode === 'template' ? (
-              <button
-                className="btn-create"
-                onClick={createFromTemplate}
-                disabled={!newName.trim() || uploading}
-              >
-                {uploading ? '⏳ Erstellen...' : '🧪 Aus Template erstellen'}
+              <button className="btn-create" onClick={createFromTemplate} disabled={!newName.trim() || uploading}>
+                {uploading ? 'Erstellen...' : 'Aus Template erstellen'}
               </button>
             ) : (
               <div className="file-upload">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".html,.htm"
-                  onChange={uploadFile}
-                  disabled={!newName.trim() || uploading}
-                />
+                <input ref={fileInputRef} type="file" accept=".html,.htm" onChange={uploadFile} disabled={!newName.trim() || uploading} />
               </div>
             )}
-
-            <button className="btn-cancel" onClick={() => { setShowUpload(false); setNewName(''); }}>
-              Abbrechen
-            </button>
+            <button className="btn-cancel" onClick={() => { setShowUpload(false); setNewName(''); }}>Abbrechen</button>
           </div>
         )}
       </div>
@@ -197,8 +214,9 @@ export default function OverlaysPanel() {
         <ol>
           <li>URL kopieren (📋)</li>
           <li>In OBS: Quellen → + → <strong>Browser</strong></li>
-          <li>URL einfuegen, Breite/Hoehe anpassen</li>
-          <li>Fertig!</li>
+          <li>URL einfügen, Breite/Höhe anpassen</li>
+          <li>Zum Anpassen: ✏️ klicken und eigene HTML-Datei hochladen</li>
+          <li>Zum Zurücksetzen: ↩️ klicken</li>
         </ol>
       </div>
     </div>

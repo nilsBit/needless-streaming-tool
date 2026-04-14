@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ErrorBoundary from './components/ErrorBoundary';
+import OnboardingWizard from './components/OnboardingWizard';
+import { apiFetch, getApiToken } from './hooks/useApi';
 import ExperimentPanel from './panels/ExperimentPanel';
 import BugsPanel from './panels/BugsPanel';
 import ProgressPanel from './panels/ProgressPanel';
@@ -9,13 +11,14 @@ import MilestonesPanel from './panels/MilestonesPanel';
 import TodosPanel from './panels/TodosPanel';
 import SettingsPanel from './panels/SettingsPanel';
 import OverlaysPanel from './panels/OverlaysPanel';
+import HelpPanel from './panels/HelpPanel';
 
 const TABS = {
   stream: {
     label: '🎮 Stream',
     panels: [
-      { key: 'experiment', label: 'Experiment', component: ExperimentPanel },
-      { key: 'bugs', label: 'Bug-Roulette', component: BugsPanel },
+      { key: 'experiment', label: 'Challenge', component: ExperimentPanel },
+      { key: 'bugs', label: 'Glücksrad', component: BugsPanel },
       { key: 'clips', label: 'Clip Moments', component: ClipsPanel },
       { key: 'designs', label: 'Chat Designs', component: DesignsPanel },
     ],
@@ -35,6 +38,12 @@ const TABS = {
       { key: 'overlays', label: 'Overlays', component: OverlaysPanel },
     ],
   },
+  help: {
+    label: '📖 Hilfe',
+    panels: [
+      { key: 'help', label: 'Hilfe & Dokumentation', component: HelpPanel },
+    ],
+  },
 } as const;
 
 type TabKey = keyof typeof TABS;
@@ -42,6 +51,27 @@ type TabKey = keyof typeof TABS;
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabKey>('stream');
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let retries = 0;
+    function checkOnboarding() {
+      const token = getApiToken();
+      if (!token) {
+        if (retries++ < 20) {
+          setTimeout(checkOnboarding, 500);
+        } else {
+          setShowOnboarding(false);
+        }
+        return;
+      }
+      apiFetch('/settings/onboarding')
+        .then((r) => r.json())
+        .then((data) => setShowOnboarding(!data.completed))
+        .catch(() => setShowOnboarding(false));
+    }
+    checkOnboarding();
+  }, []);
 
   const toggleCollapse = (key: string) => {
     setCollapsed((prev) => {
@@ -53,6 +83,9 @@ export default function App() {
   };
 
   const tab = TABS[activeTab];
+
+  if (showOnboarding === null) return null; // Loading
+  if (showOnboarding) return <OnboardingWizard onComplete={() => setShowOnboarding(false)} />;
 
   return (
     <div className="app">

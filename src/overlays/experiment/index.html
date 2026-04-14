@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: transparent; font-family: 'SF Mono', monospace; overflow: hidden; }
+    body { background: transparent !important; background-color: rgba(0,0,0,0) !important; font-family: 'SF Mono', monospace; overflow: hidden; }
 
     .banner {
       display: none;
@@ -49,6 +49,10 @@
       margin-left: auto;
     }
 
+    .timer.paused {
+      opacity: 0.5;
+    }
+
     .status-label {
       font-size: 11px;
       text-transform: uppercase;
@@ -66,43 +70,103 @@
   </div>
 
   <script>
-    const ws = new WebSocket('ws://localhost:4000?overlay=1');
-    const banner = document.getElementById('banner');
-    const dot = document.getElementById('dot');
-    const title = document.getElementById('title');
-    const statusLabel = document.getElementById('status-label');
-    const timer = document.getElementById('timer');
+    var banner = document.getElementById('banner');
+    var dot = document.getElementById('dot');
+    var titleEl = document.getElementById('title');
+    var statusLabel = document.getElementById('status-label');
+    var timerEl = document.getElementById('timer');
+
+    var currentSeconds = 0;
+    var timerRunning = false;
+    var tickInterval = null;
 
     function formatTime(s) {
-      const m = Math.floor(s / 60).toString().padStart(2, '0');
-      const sec = (s % 60).toString().padStart(2, '0');
-      return `${m}:${sec}`;
+      var m = Math.floor(s / 60).toString().padStart(2, '0');
+      var sec = (s % 60).toString().padStart(2, '0');
+      return m + ':' + sec;
     }
+
+    function startTicking() {
+      stopTicking();
+      if (!timerRunning) return;
+      tickInterval = setInterval(function() {
+        currentSeconds++;
+        timerEl.textContent = formatTime(currentSeconds);
+      }, 1000);
+    }
+
+    function stopTicking() {
+      if (tickInterval) {
+        clearInterval(tickInterval);
+        tickInterval = null;
+      }
+    }
+
+    var statusMap = {
+      'in_progress': 'Läuft',
+      'done': 'Geschafft!',
+      'failed': 'Nicht geschafft',
+      'idle': ''
+    };
 
     function update(state) {
       if (!state.experiment_title || state.experiment_status === 'idle') {
         banner.classList.remove('visible');
+        stopTicking();
         return;
       }
 
       banner.classList.add('visible');
-      title.textContent = state.experiment_title;
-      statusLabel.textContent = state.experiment_status;
+      titleEl.textContent = state.experiment_title;
+      statusLabel.textContent = statusMap[state.experiment_status] || state.experiment_status;
       dot.className = 'status-dot ' + state.experiment_status;
-      timer.textContent = state.timer_running || state.timer_seconds > 0
-        ? formatTime(state.timer_seconds)
-        : '';
+
+      currentSeconds = state.timer_seconds || 0;
+      timerRunning = !!state.timer_running;
+
+      if (currentSeconds > 0 || timerRunning) {
+        timerEl.textContent = formatTime(currentSeconds);
+        timerEl.style.display = '';
+      } else {
+        timerEl.style.display = 'none';
+      }
+
+      if (timerRunning) {
+        timerEl.classList.remove('paused');
+        startTicking();
+      } else {
+        timerEl.classList.add('paused');
+        stopTicking();
+      }
     }
 
-    ws.onmessage = (msg) => {
-      const { event, data } = JSON.parse(msg.data);
-      if (event === 'stream-state') update(data);
-    };
+    // WebSocket
+    var ws;
+    function connectWS() {
+      ws = new WebSocket('ws://localhost:4000?overlay=1');
 
-    // Initial fetch
-    fetch('http://localhost:4000/public/stream-state')
-      .then(r => r.json())
-      .then(update);
+      ws.onopen = function() {
+        fetch('http://localhost:4000/public/stream-state')
+          .then(function(r) { return r.json(); })
+          .then(update);
+      };
+
+      ws.onmessage = function(msg) {
+        try {
+          var parsed = JSON.parse(msg.data);
+          if (parsed.event === 'stream-state') update(parsed.data);
+        } catch(e) {}
+      };
+
+      ws.onclose = function() {
+        stopTicking();
+        setTimeout(connectWS, 2000);
+      };
+
+      ws.onerror = function() { ws.close(); };
+    }
+
+    connectWS();
   </script>
 </body>
 </html>
