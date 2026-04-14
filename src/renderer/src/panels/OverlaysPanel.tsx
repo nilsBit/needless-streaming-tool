@@ -102,7 +102,7 @@ export default function OverlaysPanel() {
   return (
     <div className="panel overlays-panel">
       <h2>🎨 Overlays</h2>
-      <p className="panel-desc">Overlay-URLs fuer OBS Browser Source. Overlays anpassen oder eigene erstellen.</p>
+      <p className="panel-desc">Overlay-URLs für OBS Browser Source. Overlays anpassen oder eigene erstellen.</p>
 
       <div className="overlay-section">
         <h3>Eingebaute Overlays</h3>
@@ -142,7 +142,7 @@ export default function OverlaysPanel() {
                   </button>
                 )}
                 {o.customized && (
-                  <button className="btn-delete-small" onClick={() => resetBuiltin(o.name)} title="Auf Standard zuruecksetzen">
+                  <button className="btn-delete-small" onClick={() => resetBuiltin(o.name)} title="Auf Standard zurücksetzen">
                     ↩️
                   </button>
                 )}
@@ -214,9 +214,9 @@ export default function OverlaysPanel() {
         <ol>
           <li>URL kopieren (📋)</li>
           <li>In OBS: Quellen → + → <strong>Browser</strong></li>
-          <li>URL einfuegen, Breite/Hoehe anpassen</li>
+          <li>URL einfügen, Breite/Höhe anpassen</li>
           <li>Zum Anpassen: ✏️ klicken und eigene HTML-Datei hochladen</li>
-          <li>Zum Zuruecksetzen: ↩️ klicken</li>
+          <li>Zum Zurücksetzen: ↩️ klicken</li>
         </ol>
       </div>
     </div>

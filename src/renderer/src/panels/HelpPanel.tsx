@@ -11,7 +11,7 @@ export default function HelpPanel() {
   return (
     <div className="panel help-panel">
       <h2>📖 Hilfe & Dokumentation</h2>
-      <p className="panel-desc">Alles was du ueber das Stream Toolkit wissen musst.</p>
+      <p className="panel-desc">Alles was du über das Stream Toolkit wissen musst.</p>
 
       <div className="help-sections">
         {HELP_SECTIONS.map((section, i) => (

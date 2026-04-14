@@ -24,14 +24,14 @@ export default function NotionStep() {
   return (
     <div className="onboarding-step">
       <h2>Notion (optional)</h2>
-      <p className="step-desc">Wenn du Notion nutzt, kannst du deine Clips automatisch dorthin syncen. Falls nicht, ueberspringe diesen Schritt.</p>
+      <p className="step-desc">Wenn du Notion nutzt, kannst du deine Clips automatisch dorthin syncen. Falls nicht, überspringe diesen Schritt.</p>
 
       {!notionInfo?.configured ? (
         <>
           <div className="onboarding-steps-list">
             <div className="setup-instruction">
               <span className="instruction-number">1</span>
-              <span>Oeffne <strong>notion.so/my-integrations</strong> in deinem Browser</span>
+              <span>Öffne <strong>notion.so/my-integrations</strong> in deinem Browser</span>
             </div>
             <div className="setup-instruction">
               <span className="instruction-number">2</span>
@@ -39,7 +39,7 @@ export default function NotionStep() {
             </div>
             <div className="setup-instruction">
               <span className="instruction-number">3</span>
-              <span>Kopiere den <strong>"Internal Integration Secret"</strong> (faengt mit <strong>ntn_</strong> an) und fuege ihn hier ein:</span>
+              <span>Kopiere den <strong>"Internal Integration Secret"</strong> (fängt mit <strong>ntn_</strong> an) und füge ihn hier ein:</span>
             </div>
           </div>
 
@@ -57,15 +57,15 @@ export default function NotionStep() {
               <div className="onboarding-steps-list" style={{ marginTop: '12px' }}>
                 <div className="setup-instruction">
                   <span className="instruction-number">4</span>
-                  <span>Erstelle in Notion eine <strong>Datenbank</strong> fuer deine Clips (oder nutze eine bestehende)</span>
+                  <span>Erstelle in Notion eine <strong>Datenbank</strong> für deine Clips (oder nutze eine bestehende)</span>
                 </div>
                 <div className="setup-instruction">
                   <span className="instruction-number">5</span>
-                  <span>Klicke in der Datenbank oben rechts auf <strong>"..."</strong> → <strong>"Add connections"</strong> → waehle deine Integration aus</span>
+                  <span>Klicke in der Datenbank oben rechts auf <strong>"..."</strong> → <strong>"Add connections"</strong> → wähle deine Integration aus</span>
                 </div>
                 <div className="setup-instruction">
                   <span className="instruction-number">6</span>
-                  <span>Kopiere die <strong>Datenbank-URL</strong> aus der Browser-Adressleiste und fuege sie hier ein:</span>
+                  <span>Kopiere die <strong>Datenbank-URL</strong> aus der Browser-Adressleiste und füge sie hier ein:</span>
                 </div>
               </div>
 

@@ -4,14 +4,14 @@
 export const HELP_SECTIONS = [
   {
     title: 'Erste Schritte',
-    content: `Das Stream Toolkit ist deine Zentrale fuer GameDev Streaming. Hier steuerst du alles — Overlays, Experiments, Bugs, Clips, Todos, Milestones und mehr.
+    content: `Das Stream Toolkit ist deine Zentrale für GameDev Streaming. Hier steuerst du alles — Overlays, Experiments, Bugs, Clips, Todos, Milestones und mehr.
 
-Beim ersten Start fuehrt dich der **Setup-Wizard** durch die Einrichtung. Du kannst ihn jederzeit unter **Settings → Setup-Wizard erneut starten** wiederholen.
+Beim ersten Start führt dich der **Setup-Wizard** durch die Einrichtung. Du kannst ihn jederzeit unter **Settings → Setup-Wizard erneut starten** wiederholen.
 
 **Voraussetzungen:**
 - OBS Studio (Version 28+) mit aktiviertem WebSocket Server
 - Twitch-Account mit einer App auf dev.twitch.tv
-- Optional: Notion-Account fuer Clip-Sync
+- Optional: Notion-Account für Clip-Sync
 - Optional: Elgato Stream Deck`,
   },
   {
@@ -55,7 +55,7 @@ Beim ersten Start fuehrt dich der **Setup-Wizard** durch die Einrichtung. Du kan
 
 **Scene-Switching via Chat:**
 - Mods/Broadcaster: !scene <Szenenname> im Chat
-- Viewer: ueber Channel-Point-Rewards (siehe "Channel Points")
+- Viewer: über Channel-Point-Rewards (siehe "Channel Points")
 
 **Scene-Switching via API:**
 - POST /api/obs/scene mit { "scene": "Szenenname" }
@@ -63,22 +63,22 @@ Beim ersten Start fuehrt dich der **Setup-Wizard** durch die Einrichtung. Du kan
   },
   {
     title: 'Channel Points & Rewards',
-    content: `Das Toolkit erkennt Channel-Point-Rewards automatisch ueber Twitch EventSub.
+    content: `Das Toolkit erkennt Channel-Point-Rewards automatisch über Twitch EventSub.
 
 **Eingebaute Reward-Typen:**
-| Reward-Name enthaelt | Aktion |
+| Reward-Name enthält | Aktion |
 |---------------------|--------|
 | "spawn" | Spawn Enemies Event |
 | "roulette" | Bug Roulette drehen |
 | "feature" | Feature Request |
-| "musik" oder "song" | Musik aendern |
+| "musik" oder "song" | Musik ändern |
 | "scene" oder "szene" | Szene wechseln (mit User-Input) |
 
 **Feste Scene-Rewards (ohne User-Input):**
-Konfiguriere Mappings ueber die API:
+Konfiguriere Mappings über die API:
 - POST /api/obs/mappings mit Reward-Titel → Szenen-Name
 - Beispiel: Reward "Gameplay" → wechselt automatisch zur Szene "Gameplay"
-- Viewer muss nichts eingeben, nur die Reward einloesen`,
+- Viewer muss nichts eingeben, nur die Reward einlösen`,
   },
   {
     title: 'Overlays',
@@ -99,7 +99,7 @@ Konfiguriere Mappings ueber die API:
 **In OBS einbinden:**
 1. Quellen → + → Browser
 2. URL: http://localhost:4000/overlay/<name>/index.html
-3. Breite/Hoehe anpassen
+3. Breite/Höhe anpassen
 4. Fertig
 
 **Custom Overlays:**
@@ -108,8 +108,8 @@ Konfiguriere Mappings ueber die API:
 - URL: http://localhost:4000/overlay/custom/<name>/index.html
 
 **Eigene Overlays entwickeln:**
-Das Template unter /overlay/_template/index.html enthaelt:
-- Alle verfuegbaren WebSocket-Events
+Das Template unter /overlay/_template/index.html enthält:
+- Alle verfügbaren WebSocket-Events
 - Alle Public API Endpoints
 - Zwei Design-Vorlagen (Pixel Art + Modern)
 - Helper-Funktionen (Auto-Reconnect, escapeHtml)`,
@@ -142,25 +142,25 @@ Das Template unter /overlay/_template/index.html enthaelt:
 
 **Installation:**
 - Im Toolkit: Onboarding → Stream Deck → "Plugin jetzt installieren"
-- Oder: .streamDeckPlugin Datei manuell oeffnen
+- Oder: .streamDeckPlugin Datei manuell öffnen
 
 **Einrichtung:**
 1. Beliebigen "The Lab" Button aufs Deck ziehen
 2. Button anklicken → Property Inspector unten
-3. API Token eintragen (einmalig, gilt fuer alle Buttons)
+3. API Token eintragen (einmalig, gilt für alle Buttons)
 4. Button-spezifische Settings konfigurieren
 
-**Verfuegbare Buttons:**
+**Verfügbare Buttons:**
 | Button | Aktion | Live-Anzeige |
 |--------|--------|-------------|
 | Scene Switch | OBS-Szene wechseln | Aktuelle Szene |
 | Clip Marker | Clip markieren | Session Clip-Anzahl |
 | Bug Report | Bug erstellen | Offene Bug-Anzahl |
 | Experiment | Start/Stop/Done/Fail | Status + Titel |
-| Todo Check | Naechstes Todo abhaken | Offene Todos |
-| Compile Prayer | Compile Prayer ausloesen | Flash-Animation |
+| Todo Check | Nächstes Todo abhaken | Offene Todos |
+| Compile Prayer | Compile Prayer auslösen | Flash-Animation |
 | Bug Roulette | Roulette drehen | Spin-Animation |
-| Milestone | Milestone abschliessen | Pending-Anzahl |
+| Milestone | Milestone abschließen | Pending-Anzahl |
 
 **API Token:**
 - Findest du unter Settings → Stream Deck API Token
@@ -171,13 +171,13 @@ Das Template unter /overlay/_template/index.html enthaelt:
     content: `**Stream Tab:**
 - **Experiment** — Starte Experiments mit Timer und Status-Tracking
 - **Bug-Roulette** — Tracke Bugs, drehe das Roulette-Rad
-- **Clip Moments** — Markiere Clip-wuerdige Momente mit Tags
+- **Clip Moments** — Markiere Clip-würdige Momente mit Tags
 - **Chat Designs** — Starte Design-Abstimmungen im Chat
 
 **Projekt Tab:**
 - **Progress Tracker** — Tracke Features deines Projekts
 - **Milestones** — Achievement-System (Minor, Major, Epic)
-- **Todos** — Aufgabenliste fuer den Stream
+- **Todos** — Aufgabenliste für den Stream
 
 **Settings Tab:**
 - **Settings** — Twitch, OBS, Notion, Stream Deck Konfiguration
@@ -240,7 +240,7 @@ Auth-Header: Authorization: Bearer <token>
 Alle Events werden als JSON gesendet: { "event": "name", "data": { ... } }
 
 **Stream:**
-- stream-state — Stream-Status geaendert
+- stream-state — Stream-Status geändert
 
 **Bugs:**
 - bug-created / bug-updated / bug-deleted
@@ -264,46 +264,46 @@ Alle Events werden als JSON gesendet: { "event": "name", "data": { ... } }
 - design-vote-started / design-vote-ended
 
 **OBS:**
-- obs-status — Verbindungsstatus geaendert
+- obs-status — Verbindungsstatus geändert
 - obs-scene-changed — Szene gewechselt
 
 **Bot:**
 - bot-status — Bot verbunden/getrennt
 
 **Actions:**
-- compile-pray — Compile Prayer ausgeloest
+- compile-pray — Compile Prayer ausgelöst
 - roulette-spin / roulette-result — Roulette Events
 - raid-incoming — Raid empfangen
 - song-update / song-clear — Song Events`,
   },
   {
-    title: 'Tastenkuerzel',
+    title: 'Tastenkürzel',
     content: `Die App hat globale Hotkeys die auch funktionieren wenn die App im Hintergrund ist.
 
-Hotkeys werden ueber die Hotkey-Konfiguration in der App verwaltet. Die Hotkeys loesen die gleichen API-Calls aus wie die Stream Deck Buttons.`,
+Hotkeys werden über die Hotkey-Konfiguration in der App verwaltet. Die Hotkeys lösen die gleichen API-Calls aus wie die Stream Deck Buttons.`,
   },
   {
     title: 'Troubleshooting',
     content: `**"Port 4000 already in use":**
-Eine alte Instanz der App laeuft noch. Beende sie im Task Manager oder starte den Computer neu.
+Eine alte Instanz der App läuft noch. Beende sie im Task Manager oder starte den Computer neu.
 
 **OBS verbindet nicht:**
 - Ist der WebSocket Server in OBS aktiviert? (Tools → WebSocket Server Settings)
 - Stimmt das Passwort?
 - Ist der Port korrekt (Standard: 4455)?
-- Laeuft OBS?
+- Läuft OBS?
 
 **Bot verbindet nicht:**
 - Client-ID korrekt eingetragen?
-- OAuth-Token abgelaufen? Neu verbinden ueber Settings
+- OAuth-Token abgelaufen? Neu verbinden über Settings
 
 **Overlays zeigen nichts:**
-- Laeuft die App? (http://localhost:4000/api/health testen)
+- Läuft die App? (http://localhost:4000/api/health testen)
 - Browser Source URL korrekt? Muss mit http://localhost:4000/overlay/ anfangen
 - Browser Source in OBS refreshen (Rechtsklick → Refresh)
 
 **Stream Deck Buttons zeigen "OFFLINE":**
-- Laeuft die App?
+- Läuft die App?
 - API Token im Plugin eingetragen?
 - Host/Port korrekt? (Standard: localhost:4000)`,
   },

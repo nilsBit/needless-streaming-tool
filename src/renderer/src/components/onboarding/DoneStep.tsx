@@ -43,12 +43,12 @@ export default function DoneStep({ onFinish }: { onFinish: () => void }) {
 
       {!canFinish && (
         <p className="step-warning">
-          Twitch und OBS muessen verbunden sein. Gehe zurueck und richte sie ein.
+          Twitch und OBS müssen verbunden sein. Gehe zurück und richte sie ein.
         </p>
       )}
 
       <p className="step-hint">
-        Du kannst alles jederzeit in den Settings aendern oder den Wizard unter Settings erneut starten.
+        Du kannst alles jederzeit in den Settings ändern oder den Wizard unter Settings erneut starten.
       </p>
 
       <button className="btn-primary btn-large" onClick={onFinish} disabled={!canFinish}>

@@ -47,7 +47,7 @@ export default function TwitchStep() {
           <div className="onboarding-steps-list">
             <div className="setup-instruction">
               <span className="instruction-number">1</span>
-              <span>Oeffne <strong>dev.twitch.tv</strong> in deinem Browser und logge dich mit deinem Twitch-Account ein</span>
+              <span>Öffne <strong>dev.twitch.tv</strong> in deinem Browser und logge dich mit deinem Twitch-Account ein</span>
             </div>
             <div className="setup-instruction">
               <span className="instruction-number">2</span>
@@ -55,7 +55,7 @@ export default function TwitchStep() {
             </div>
             <div className="setup-instruction">
               <span className="instruction-number">3</span>
-              <span>Klicke auf <strong>"Register Your Application"</strong> und fuege folgende Daten ein:</span>
+              <span>Klicke auf <strong>"Register Your Application"</strong> und füge folgende Daten ein:</span>
             </div>
           </div>
 
@@ -72,14 +72,14 @@ export default function TwitchStep() {
             </div>
             <div className="setup-instruction">
               <span className="instruction-number">5</span>
-              <span>Kopiere die <strong>"Client ID"</strong> und fuege sie hier ein:</span>
+              <span>Kopiere die <strong>"Client ID"</strong> und füge sie hier ein:</span>
             </div>
           </div>
 
           <div className="input-row">
             <input
               type="text"
-              placeholder="Client-ID hier einfuegen..."
+              placeholder="Client-ID hier einfügen..."
               value={clientId}
               onChange={(e) => setClientId(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && saveClientId()}
@@ -92,7 +92,7 @@ export default function TwitchStep() {
           <div className="onboarding-check">Client-ID gespeichert: {clientIdInfo.client_id_preview}</div>
           {!botStatus?.connected && (
             <>
-              <p className="step-desc">Klicke jetzt auf den Button — es oeffnet sich ein Twitch-Login in deinem Browser. Erlaube den Zugriff und du wirst automatisch verbunden.</p>
+              <p className="step-desc">Klicke jetzt auf den Button — es öffnet sich ein Twitch-Login in deinem Browser. Erlaube den Zugriff und du wirst automatisch verbunden.</p>
               <button className="btn-primary" onClick={connectTwitch}>
                 Mit Twitch verbinden
               </button>

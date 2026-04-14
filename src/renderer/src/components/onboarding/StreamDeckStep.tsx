@@ -31,7 +31,7 @@ export default function StreamDeckStep() {
     <div className="onboarding-step">
       <h2>Stream Deck (optional)</h2>
       <p className="step-desc">
-        Mit dem Stream Deck Plugin kannst du Buttons fuer Szenen-Wechsel,
+        Mit dem Stream Deck Plugin kannst du Buttons für Szenen-Wechsel,
         Clips, Bugs, Experiments und mehr direkt auf dein Deck legen.
       </p>
 
@@ -56,7 +56,7 @@ export default function StreamDeckStep() {
         <div className="setup-instruction">
           <span className="instruction-number">3</span>
           <div style={{ flex: 1 }}>
-            <span>Kopiere den Token und fuege ihn im Button-Settings unter <strong>"API Token"</strong> ein (einmalig):</span>
+            <span>Kopiere den Token und füge ihn im Button-Settings unter <strong>"API Token"</strong> ein (einmalig):</span>
             {token ? (
               <div className="token-display-onboarding" style={{ marginTop: '8px' }}>
                 <code>{token.substring(0, 16)}...{token.substring(token.length - 8)}</code>

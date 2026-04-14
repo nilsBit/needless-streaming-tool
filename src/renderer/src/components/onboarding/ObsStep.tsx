@@ -28,7 +28,7 @@ export default function ObsStep() {
   return (
     <div className="onboarding-step">
       <h2>OBS verbinden</h2>
-      <p className="step-desc">Das Toolkit steuert OBS ueber eine WebSocket-Verbindung. Du musst diese einmal in OBS aktivieren.</p>
+      <p className="step-desc">Das Toolkit steuert OBS über eine WebSocket-Verbindung. Du musst diese einmal in OBS aktivieren.</p>
 
       <div className="onboarding-status">
         <span className="status-dot" style={{ background: obsStatus?.connected ? '#2ecc71' : '#e74c3c' }} />
@@ -40,11 +40,11 @@ export default function ObsStep() {
           <div className="onboarding-steps-list">
             <div className="setup-instruction">
               <span className="instruction-number">1</span>
-              <span>Oeffne <strong>OBS Studio</strong></span>
+              <span>Öffne <strong>OBS Studio</strong></span>
             </div>
             <div className="setup-instruction">
               <span className="instruction-number">2</span>
-              <span>Gehe oben im Menue auf <strong>Tools</strong> (oder <strong>Werkzeuge</strong>) → <strong>WebSocket Server Settings</strong></span>
+              <span>Gehe oben im Menü auf <strong>Tools</strong> (oder <strong>Werkzeuge</strong>) → <strong>WebSocket Server Settings</strong></span>
             </div>
             <div className="setup-instruction">
               <span className="instruction-number">3</span>

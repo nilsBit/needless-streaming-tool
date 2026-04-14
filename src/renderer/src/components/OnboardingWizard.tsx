@@ -52,11 +52,11 @@ export default function OnboardingWizard({ onComplete }: { onComplete: () => voi
         {/* Navigation */}
         {step > 0 && (
           <div className="step-nav">
-            <button className="btn-back" onClick={back}>Zurueck</button>
+            <button className="btn-back" onClick={back}>Zurück</button>
             {step < STEPS.length - 1 && (
               <div className="step-nav-right">
                 {SKIPPABLE.has(step) && (
-                  <button className="btn-skip" onClick={next}>Ueberspringen</button>
+                  <button className="btn-skip" onClick={next}>Überspringen</button>
                 )}
                 <button className="btn-primary" onClick={next}>Weiter</button>
               </div>
