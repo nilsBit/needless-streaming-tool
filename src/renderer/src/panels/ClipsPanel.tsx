@@ -19,6 +19,12 @@ const TAG_EMOJI: Record<string, string> = {
   bug: '🐛',
 };
 
+interface ClipTag {
+  tag: string;
+  emoji: string;
+  preset: boolean;
+}
+
 interface SessionInfo {
   session_date: string;
   count: number;
@@ -33,9 +39,13 @@ export default function ClipsPanel() {
   const [selectedTag, setSelectedTag] = useState('highlight');
   const [collapsedDays, setCollapsedDays] = useState<Set<string>>(new Set());
   const [syncingDay, setSyncingDay] = useState<string | null>(null);
+  const { data: clipTags, refetch: refetchTags } = useApi<ClipTag[]>('/clip-tags');
+  const [newTagName, setNewTagName] = useState('');
+  const [showNewTagInput, setShowNewTagInput] = useState(false);
 
   useWebSocket((event) => {
     if (event.startsWith('clip-')) { refetchClips(); refetchSessions(); }
+    if (event === 'clip-tags-changed') { refetchTags(); }
   });
 
   const addClip = async (tag: string) => {
@@ -72,6 +82,23 @@ export default function ClipsPanel() {
     setCollapsedDays(next);
   };
 
+  const addCustomTag = async () => {
+    const trimmed = newTagName.trim().toLowerCase();
+    if (!trimmed) return;
+    await apiPost('/clip-tags', { tag: trimmed });
+    setNewTagName('');
+    setShowNewTagInput(false);
+    refetchTags();
+  };
+
+  const deleteCustomTag = async (tag: string) => {
+    await apiDelete(`/clip-tags/${tag}`);
+    refetchTags();
+  };
+
+  const customTags = clipTags?.filter((t) => !t.preset) || [];
+  const allTagNames = [...PRESET_TAGS, ...customTags.map((t) => t.tag)];
+
   // Group clips by session_date
   const clipsByDay = new Map<string, Clip[]>();
   if (allClips) {
@@ -102,11 +129,39 @@ export default function ClipsPanel() {
             {TAG_EMOJI[tag] || '🏷️'} {tag}
           </button>
         ))}
+        {customTags.map((ct) => (
+          <button
+            key={ct.tag}
+            className={`tag-btn ${activeFilter === ct.tag ? 'active' : ''}`}
+            onClick={() => setActiveFilter(activeFilter === ct.tag ? null : ct.tag)}
+          >
+            🏷️ {ct.tag}
+            <span className="tag-delete" onClick={(e) => { e.stopPropagation(); deleteCustomTag(ct.tag); }}>✕</span>
+          </button>
+        ))}
+        {showNewTagInput ? (
+          <span className="tag-add-input">
+            <input
+              type="text"
+              placeholder="Tag name..."
+              value={newTagName}
+              onChange={(e) => setNewTagName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') addCustomTag();
+                if (e.key === 'Escape') { setShowNewTagInput(false); setNewTagName(''); }
+              }}
+              autoFocus
+            />
+            <button onClick={addCustomTag}>✓</button>
+          </span>
+        ) : (
+          <button className="tag-btn tag-add" onClick={() => setShowNewTagInput(true)}>+</button>
+        )}
       </div>
 
       <div className="clip-custom">
         <select value={selectedTag} onChange={(e) => setSelectedTag(e.target.value)}>
-          {PRESET_TAGS.map((t) => <option key={t} value={t}>{t}</option>)}
+          {allTagNames.map((t) => <option key={t} value={t}>{t}</option>)}
         </select>
         <input
           type="text"
