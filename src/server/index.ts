@@ -141,6 +141,13 @@ export async function startServer(): Promise<string> {
   const server = http.createServer(app);
   initWebSocket(server);
 
+  server.on('error', (err: NodeJS.ErrnoException) => {
+    if (err.code === 'EADDRINUSE') {
+      console.log(`[Server] Port ${PORT} busy, retrying in 1s...`);
+      setTimeout(() => server.listen(PORT), 1000);
+    }
+  });
+
   return new Promise((resolve) => {
     server.listen(PORT, () => {
       console.log(`[Server] Running on http://localhost:${PORT}`);
