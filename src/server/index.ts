@@ -15,6 +15,7 @@ import votingRouter from './api/voting';
 import todosRouter from './api/todos';
 import progressRouter from './api/progress';
 import clipsRouter from './api/clips';
+import clipTagsRouter from './api/clip-tags';
 import milestonesRouter from './api/milestones';
 import obsRouter from './api/obs';
 import customOverlaysRouter from './api/custom-overlays';
@@ -96,6 +97,7 @@ export async function startServer(): Promise<string> {
   app.use('/api/todos', todosRouter);
   app.use('/api/progress', progressRouter);
   app.use('/api/clips', clipsRouter);
+  app.use('/api/clip-tags', clipTagsRouter);
   app.use('/api/milestones', milestonesRouter);
   app.use('/api/obs', obsRouter);
   app.use('/api/overlays', customOverlaysRouter);
