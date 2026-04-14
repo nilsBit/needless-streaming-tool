@@ -74,7 +74,7 @@ router.post('/', (req, res) => {
 
 // DELETE custom tag
 router.delete('/:tag', (req, res) => {
-  const tagName = req.params.tag;
+  const tagName = req.params.tag.toLowerCase();
 
   if (PRESET_TAG_NAMES.has(tagName)) {
     res.status(400).json({ error: 'Cannot delete preset tag' });
