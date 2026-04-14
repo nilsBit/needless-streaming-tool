@@ -36,7 +36,12 @@ const TABS = {
     panels: [
       { key: 'settings', label: 'Settings', component: SettingsPanel },
       { key: 'overlays', label: 'Overlays', component: OverlaysPanel },
-      { key: 'help', label: 'Hilfe', component: HelpPanel },
+    ],
+  },
+  help: {
+    label: '📖 Hilfe',
+    panels: [
+      { key: 'help', label: 'Hilfe & Dokumentation', component: HelpPanel },
     ],
   },
 } as const;
