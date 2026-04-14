@@ -124,9 +124,22 @@ export async function startServer(): Promise<string> {
     res.json({ project_name: state?.project_name || null, items });
   });
 
-  // Static overlay files (no auth needed — public)
-  const overlayPath = path.join(process.cwd(), 'src', 'overlays');
-  app.use('/overlay', express.static(overlayPath));
+  // Overlay paths
+  const builtinOverlayPath = path.join(process.cwd(), 'src', 'overlays');
+  let overlayOverridePath: string;
+  try {
+    const electron = require('electron');
+    const electronApp = electron?.app;
+    if (electronApp?.isPackaged) {
+      overlayOverridePath = path.join(electronApp.getPath('userData'), 'overlay-overrides');
+    } else {
+      overlayOverridePath = path.join(process.cwd(), 'data', 'overlay-overrides');
+    }
+  } catch {
+    overlayOverridePath = path.join(process.cwd(), 'data', 'overlay-overrides');
+  }
+  const fs = require('fs');
+  if (!fs.existsSync(overlayOverridePath)) fs.mkdirSync(overlayOverridePath, { recursive: true });
 
   // Custom user overlays (from userData dir)
   let customOverlayPath: string;
@@ -141,9 +154,12 @@ export async function startServer(): Promise<string> {
   } catch {
     customOverlayPath = path.join(process.cwd(), 'data', 'custom-overlays');
   }
-  const fs = require('fs');
   if (!fs.existsSync(customOverlayPath)) fs.mkdirSync(customOverlayPath, { recursive: true });
+
+  // Serve overlays: overrides first, then builtin, then custom
   app.use('/overlay/custom', express.static(customOverlayPath));
+  app.use('/overlay', express.static(overlayOverridePath));
+  app.use('/overlay', express.static(builtinOverlayPath));
 
   const server = http.createServer(app);
   initWebSocket(server);

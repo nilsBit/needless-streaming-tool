@@ -646,7 +646,19 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   border-radius: 4px;
 }
 
+.overlay-name-row { display: flex; align-items: center; gap: 8px; }
 .overlay-name { color: #ccc; font-size: 13px; }
+.overlay-badge {
+  font-size: 9px;
+  padding: 2px 6px;
+  background: rgba(230, 126, 34, 0.2);
+  border: 1px solid #e67e22;
+  border-radius: 3px;
+  color: #e67e22;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.overlay-customized { border-color: #e67e22; }
 
 .overlay-actions { display: flex; gap: 4px; }
 
