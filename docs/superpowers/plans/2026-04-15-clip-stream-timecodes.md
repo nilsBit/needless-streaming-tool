@@ -333,7 +333,7 @@ router.get('/export', (req, res) => {
 
   if (clips.length === 0) { res.status(404).json({ error: 'No clips for this date' }); return; }
 
-  const firstClipTime = new Date(clips[0].created_at).getTime();
+  const firstClipTime = new Date(clips[0].created_at + 'Z').getTime();
 
   const csvRows = ['Name,Start,End,Note'];
   for (const clip of clips) {
@@ -343,7 +343,7 @@ router.get('/export', (req, res) => {
     } else if (clip.recording_timecode) {
       timecode = clip.recording_timecode + ':00';
     } else {
-      const clipTime = new Date(clip.created_at).getTime();
+      const clipTime = new Date(clip.created_at + 'Z').getTime();
       const offsetSeconds = Math.floor((clipTime - firstClipTime) / 1000);
       timecode = formatTimecode(offsetSeconds);
     }
@@ -384,7 +384,7 @@ In `src/renderer/src/panels/ClipsPanel.tsx`, add a helper function inside the co
 
 ```ts
   const formatClipTime = (clip: Clip) => {
-    const wallClock = new Date(clip.created_at).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const wallClock = new Date(clip.created_at + 'Z').toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     const parts: string[] = [];
     if (clip.stream_timecode) parts.push(`🔴 ${clip.stream_timecode}`);
     if (clip.recording_timecode) parts.push(`⏺ ${clip.recording_timecode}`);
@@ -480,4 +480,46 @@ Expected: No errors
 ```bash
 git add src/server/api/stream-state.ts
 git commit -m "feat: support is_recording in stream-state PATCH route"
+```
+
+---
+
+### Task 8: Fix UTC Timezone for All Timestamp Displays
+
+SQLite's `CURRENT_TIMESTAMP` stores UTC. JavaScript's `new Date('2024-01-15 05:49:44')` without a timezone marker treats it ambiguously. Appending `'Z'` marks it as UTC so `toLocaleTimeString()` / `toLocaleDateString()` correctly converts to the user's local timezone.
+
+**Files:**
+- Modify: `src/server/api/clips.ts:45,49` (export fallback — already fixed in Task 5)
+- Modify: `src/server/api/notion-sync.ts:34`
+- Modify: `src/renderer/src/panels/MilestonesPanel.tsx:75`
+- Modify: `src/renderer/src/panels/ClipsPanel.tsx` (already fixed in Task 6)
+
+- [ ] **Step 1: Fix notion-sync.ts**
+
+In `src/server/api/notion-sync.ts`, change line 34:
+
+```ts
+  const time = new Date(clip.created_at + 'Z').toLocaleTimeString('de-DE', {
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+  });
+```
+
+- [ ] **Step 2: Fix MilestonesPanel.tsx**
+
+In `src/renderer/src/panels/MilestonesPanel.tsx`, change line 75:
+
+```tsx
+{ms.completed_at ? new Date(ms.completed_at + 'Z').toLocaleDateString('de-DE') : ''}
+```
+
+- [ ] **Step 3: Verify typecheck passes**
+
+Run: `npx tsc --noEmit`
+Expected: No errors
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add src/server/api/notion-sync.ts src/renderer/src/panels/MilestonesPanel.tsx
+git commit -m "fix: append Z to UTC timestamps for correct local timezone display"
 ```

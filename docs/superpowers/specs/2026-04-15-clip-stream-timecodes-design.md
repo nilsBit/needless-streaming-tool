@@ -120,3 +120,9 @@ CSV-Format bleibt gleich (`Name,Start,End,Note`), nur die Timecodes sind jetzt e
 | `src/server/obs/index.ts` | Event-Listener, `getStreamTimecodes()` |
 | `src/server/api/clips.ts` | POST async, Timecodes einfuegen, Export anpassen |
 | `src/renderer/src/panels/ClipsPanel.tsx` | Timecode-Anzeige |
+| `src/server/api/notion-sync.ts` | UTC-Fix fuer created_at |
+| `src/renderer/src/panels/MilestonesPanel.tsx` | UTC-Fix fuer completed_at |
+
+## UTC Timezone Fix
+
+SQLite's `CURRENT_TIMESTAMP` speichert UTC. Alle Stellen die `new Date(timestamp)` nutzen muessen `+ 'Z'` anhaengen damit JavaScript den Timestamp als UTC erkennt und korrekt in die lokale Zeitzone konvertiert. Betrifft alle `created_at` und `completed_at` Anzeigen im gesamten Projekt.
