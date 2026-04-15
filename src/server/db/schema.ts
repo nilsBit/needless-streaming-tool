@@ -48,6 +48,7 @@ CREATE TABLE IF NOT EXISTS stream_state (
   timer_seconds     INTEGER DEFAULT 0,
   timer_running     INTEGER DEFAULT 0,
   is_live           INTEGER DEFAULT 0,
+  is_recording      INTEGER DEFAULT 0,
   project_name      TEXT
 );
 
@@ -75,11 +76,13 @@ CREATE TABLE IF NOT EXISTS project_items (
 );
 
 CREATE TABLE IF NOT EXISTS clips (
-  id            INTEGER PRIMARY KEY AUTOINCREMENT,
-  tag           TEXT NOT NULL,
-  note          TEXT,
-  session_date  TEXT NOT NULL,
-  created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
+  id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+  tag                 TEXT NOT NULL,
+  note                TEXT,
+  session_date        TEXT NOT NULL,
+  stream_timecode     TEXT,
+  recording_timecode  TEXT,
+  created_at          DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS milestones (

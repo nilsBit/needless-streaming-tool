@@ -58,17 +58,17 @@ export async function connectObs(): Promise<boolean> {
     try {
       const streamStatus = await obs.call('GetStreamStatus');
       isStreaming = streamStatus.outputActive;
-    } catch { isStreaming = false; }
+    } catch (err) { console.error('[OBS] GetStreamStatus failed:', err); isStreaming = false; }
     try {
       const recordStatus = await obs.call('GetRecordStatus');
       isRecording = recordStatus.outputActive;
-    } catch { isRecording = false; }
+    } catch (err) { console.error('[OBS] GetRecordStatus failed:', err); isRecording = false; }
 
     // Update DB with initial state
     try {
       getDb().prepare('UPDATE stream_state SET is_live = ?, is_recording = ? WHERE id = 1').run(isStreaming ? 1 : 0, isRecording ? 1 : 0);
       broadcast('stream-state', getDb().prepare('SELECT * FROM stream_state WHERE id = 1').get());
-    } catch {}
+    } catch (err) { console.error('[OBS] DB state sync failed:', err); }
 
     // Listen for state changes
     obs.on('StreamStateChanged', (event) => {
@@ -76,7 +76,7 @@ export async function connectObs(): Promise<boolean> {
       try {
         getDb().prepare('UPDATE stream_state SET is_live = ? WHERE id = 1').run(isStreaming ? 1 : 0);
         broadcast('stream-state', getDb().prepare('SELECT * FROM stream_state WHERE id = 1').get());
-      } catch {}
+      } catch (err) { console.error('[OBS] DB update failed:', err); }
       console.log(`[OBS] Stream ${isStreaming ? 'started' : 'stopped'}`);
     });
 
@@ -85,7 +85,7 @@ export async function connectObs(): Promise<boolean> {
       try {
         getDb().prepare('UPDATE stream_state SET is_recording = ? WHERE id = 1').run(isRecording ? 1 : 0);
         broadcast('stream-state', getDb().prepare('SELECT * FROM stream_state WHERE id = 1').get());
-      } catch {}
+      } catch (err) { console.error('[OBS] DB update failed:', err); }
       console.log(`[OBS] Recording ${isRecording ? 'started' : 'stopped'}`);
     });
 
