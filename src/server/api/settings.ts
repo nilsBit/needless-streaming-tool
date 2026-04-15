@@ -6,6 +6,7 @@ import { getFixedToken } from '../auth-token';
 import { getDb } from '../db/index';
 import path from 'path';
 import fs from 'fs';
+import { DEFAULT_HOTKEYS } from '../../shared/types';
 
 const router = Router();
 
@@ -134,18 +135,6 @@ router.get('/api-token', (_req, res) => {
 });
 
 // Hotkeys config
-const DEFAULT_HOTKEYS: Record<string, string> = {
-  challenge_toggle: 'CommandOrControl+Shift+E',
-  timer_toggle: 'CommandOrControl+Shift+T',
-  hype_moment: 'CommandOrControl+Shift+C',
-  challenge_done: 'CommandOrControl+Shift+D',
-  challenge_failed: 'CommandOrControl+Shift+F',
-  roulette: 'CommandOrControl+Shift+R',
-  milestone_minor: 'CommandOrControl+Shift+1',
-  milestone_major: 'CommandOrControl+Shift+2',
-  milestone_epic: 'CommandOrControl+Shift+3',
-};
-
 router.get('/hotkeys', (_req, res) => {
   const row = getDb().prepare('SELECT value FROM settings WHERE key = ?').get('hotkeys') as { value: string } | undefined;
   if (row?.value) {

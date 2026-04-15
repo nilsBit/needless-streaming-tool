@@ -91,6 +91,53 @@ export interface Milestone {
   created_at: string;
 }
 
+export interface Raid {
+  id: number;
+  streamer_name: string;
+  viewer_count: number;
+  enemy_tier: string;
+  enemy_name: string | null;
+  status: string;
+  created_at: string;
+}
+
+export interface Stats {
+  total_clips: number;
+  today_clips: number;
+  total_bugs: number;
+  open_bugs: number;
+  total_todos: number;
+  done_todos: number;
+  total_milestones: number;
+  completed_milestones: number;
+  total_raids: number;
+  total_rewards: number;
+}
+
+export interface HotkeyConfig {
+  challenge_toggle: string;
+  timer_toggle: string;
+  hype_moment: string;
+  challenge_done: string;
+  challenge_failed: string;
+  roulette: string;
+  milestone_minor: string;
+  milestone_major: string;
+  milestone_epic: string;
+}
+
+export const DEFAULT_HOTKEYS: HotkeyConfig = {
+  challenge_toggle: 'CommandOrControl+Shift+E',
+  timer_toggle: 'CommandOrControl+Shift+T',
+  hype_moment: 'CommandOrControl+Shift+C',
+  challenge_done: 'CommandOrControl+Shift+D',
+  challenge_failed: 'CommandOrControl+Shift+F',
+  roulette: 'CommandOrControl+Shift+R',
+  milestone_minor: 'CommandOrControl+Shift+1',
+  milestone_major: 'CommandOrControl+Shift+2',
+  milestone_epic: 'CommandOrControl+Shift+3',
+};
+
 // Valid status values for validation
 export const VALID_BUG_STATUS = ['open', 'fixed', 'wontfix'] as const;
 export const VALID_REWARD_STATUS = ['pending', 'done'] as const;

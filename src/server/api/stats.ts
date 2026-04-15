@@ -5,32 +5,23 @@ const router = Router();
 
 router.get('/', (_req, res) => {
   const db = getDb();
-
   const today = new Date().toISOString().slice(0, 10);
 
-  const total_clips = (db.prepare('SELECT COUNT(*) AS c FROM clips').get() as { c: number }).c;
-  const today_clips = (db.prepare('SELECT COUNT(*) AS c FROM clips WHERE session_date = ?').get(today) as { c: number }).c;
-  const total_bugs = (db.prepare('SELECT COUNT(*) AS c FROM bugs').get() as { c: number }).c;
-  const open_bugs = (db.prepare("SELECT COUNT(*) AS c FROM bugs WHERE status = 'open'").get() as { c: number }).c;
-  const total_todos = (db.prepare('SELECT COUNT(*) AS c FROM todos').get() as { c: number }).c;
-  const done_todos = (db.prepare('SELECT COUNT(*) AS c FROM todos WHERE done = 1').get() as { c: number }).c;
-  const total_milestones = (db.prepare('SELECT COUNT(*) AS c FROM milestones').get() as { c: number }).c;
-  const completed_milestones = (db.prepare("SELECT COUNT(*) AS c FROM milestones WHERE status = 'completed'").get() as { c: number }).c;
-  const total_raids = (db.prepare('SELECT COUNT(*) AS c FROM raids').get() as { c: number }).c;
-  const total_rewards = (db.prepare('SELECT COUNT(*) AS c FROM rewards').get() as { c: number }).c;
+  const stats = db.prepare(`
+    SELECT
+      (SELECT COUNT(*) FROM clips) AS total_clips,
+      (SELECT COUNT(*) FROM clips WHERE session_date = ?) AS today_clips,
+      (SELECT COUNT(*) FROM bugs) AS total_bugs,
+      (SELECT COUNT(*) FROM bugs WHERE status = 'open') AS open_bugs,
+      (SELECT COUNT(*) FROM todos) AS total_todos,
+      (SELECT COUNT(*) FROM todos WHERE done = 1) AS done_todos,
+      (SELECT COUNT(*) FROM milestones) AS total_milestones,
+      (SELECT COUNT(*) FROM milestones WHERE status = 'completed') AS completed_milestones,
+      (SELECT COUNT(*) FROM raids) AS total_raids,
+      (SELECT COUNT(*) FROM rewards) AS total_rewards
+  `).get(today);
 
-  res.json({
-    total_clips,
-    today_clips,
-    total_bugs,
-    open_bugs,
-    total_todos,
-    done_todos,
-    total_milestones,
-    completed_milestones,
-    total_raids,
-    total_rewards,
-  });
+  res.json(stats);
 });
 
 export default router;

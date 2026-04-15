@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApi, apiPost } from '../hooks/useApi';
-
-interface HotkeyConfig {
-  [key: string]: string;
-}
+import { HotkeyConfig, DEFAULT_HOTKEYS } from '../../../shared/types';
 
 const HOTKEY_LABELS: Record<string, string> = {
   challenge_toggle: 'Challenge umschalten',
@@ -19,7 +16,7 @@ const HOTKEY_LABELS: Record<string, string> = {
 
 export default function HotkeysPanel() {
   const { data: hotkeys, refetch } = useApi<HotkeyConfig>('/settings/hotkeys');
-  const [editValues, setEditValues] = useState<HotkeyConfig>({});
+  const [editValues, setEditValues] = useState<HotkeyConfig>({ ...DEFAULT_HOTKEYS });
   const [editing, setEditing] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
 
@@ -59,7 +56,7 @@ export default function HotkeysPanel() {
               <span style={{ flex: '0 0 200px', fontSize: '14px' }}>{HOTKEY_LABELS[key]}</span>
               <input
                 type="text"
-                value={editValues[key] || ''}
+                value={editValues[key as keyof HotkeyConfig] || ''}
                 onChange={(e) => handleChange(key, e.target.value)}
                 disabled={editing !== key}
                 style={{ flex: 1, fontSize: '13px' }}

@@ -4,21 +4,19 @@ import { getDb } from '../db/index';
 
 const router = Router();
 
-// Allow larger payloads for backup import
 router.use(express.json({ limit: '50mb' }));
 
 const TABLES = [
-  'bugs',
-  'clips',
-  'designs',
-  'milestones',
-  'project_items',
-  'raids',
-  'rewards',
-  'settings',
-  'stream_state',
-  'todos',
+  'bugs', 'clips', 'designs', 'milestones', 'project_items',
+  'raids', 'rewards', 'settings', 'stream_state', 'todos',
 ];
+
+// Get valid column names for a table from the DB schema
+function getTableColumns(table: string): string[] {
+  const db = getDb();
+  const cols = db.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>;
+  return cols.map((c) => c.name);
+}
 
 router.get('/export', (_req, res) => {
   const db = getDb();
@@ -44,20 +42,23 @@ router.post('/import', (req, res) => {
   const importTransaction = db.transaction(() => {
     for (const table of TABLES) {
       if (!data[table]) continue;
-
       const rows = data[table];
       if (!Array.isArray(rows) || rows.length === 0) continue;
 
-      // Clear existing data
+      // Validate columns against actual DB schema to prevent SQL injection
+      const validColumns = getTableColumns(table);
+      const requestedColumns = Object.keys(rows[0]);
+      const safeColumns = requestedColumns.filter((col) => validColumns.includes(col));
+
+      if (safeColumns.length === 0) continue;
+
       db.prepare(`DELETE FROM ${table}`).run();
 
-      // Insert rows
-      const columns = Object.keys(rows[0]);
-      const placeholders = columns.map(() => '?').join(', ');
-      const insert = db.prepare(`INSERT INTO ${table} (${columns.join(', ')}) VALUES (${placeholders})`);
+      const placeholders = safeColumns.map(() => '?').join(', ');
+      const insert = db.prepare(`INSERT INTO ${table} (${safeColumns.join(', ')}) VALUES (${placeholders})`);
 
       for (const row of rows) {
-        insert.run(...columns.map((col) => row[col] ?? null));
+        insert.run(...safeColumns.map((col) => row[col] ?? null));
       }
     }
   });

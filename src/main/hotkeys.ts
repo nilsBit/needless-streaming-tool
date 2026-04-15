@@ -1,30 +1,7 @@
 import { globalShortcut } from 'electron';
 import http from 'http';
 import { getApiToken } from '../server/auth-token';
-
-interface HotkeyConfig {
-  challenge_toggle: string;
-  timer_toggle: string;
-  hype_moment: string;
-  challenge_done: string;
-  challenge_failed: string;
-  roulette: string;
-  milestone_minor: string;
-  milestone_major: string;
-  milestone_epic: string;
-}
-
-const DEFAULT_HOTKEYS: HotkeyConfig = {
-  challenge_toggle: 'CommandOrControl+Shift+E',
-  timer_toggle: 'CommandOrControl+Shift+T',
-  hype_moment: 'CommandOrControl+Shift+C',
-  challenge_done: 'CommandOrControl+Shift+D',
-  challenge_failed: 'CommandOrControl+Shift+F',
-  roulette: 'CommandOrControl+Shift+R',
-  milestone_minor: 'CommandOrControl+Shift+1',
-  milestone_major: 'CommandOrControl+Shift+2',
-  milestone_epic: 'CommandOrControl+Shift+3',
-};
+import { HotkeyConfig, DEFAULT_HOTKEYS } from '../shared/types';
 
 function apiCall(method: string, path: string, body?: unknown) {
   const data = body ? JSON.stringify(body) : undefined;

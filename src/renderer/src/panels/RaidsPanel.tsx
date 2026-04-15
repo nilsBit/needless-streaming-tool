@@ -1,16 +1,7 @@
 import React from 'react';
 import { useApi } from '../hooks/useApi';
 import { useWebSocket } from '../hooks/useWebSocket';
-
-interface Raid {
-  id: number;
-  streamer_name: string;
-  viewer_count: number;
-  enemy_tier: string;
-  enemy_name: string | null;
-  status: string;
-  created_at: string;
-}
+import { Raid } from '../../../shared/types';
 
 export default function RaidsPanel() {
   const { data: raids, refetch } = useApi<Raid[]>('/raids');

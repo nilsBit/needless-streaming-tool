@@ -1,18 +1,6 @@
 import React from 'react';
 import { useApi } from '../hooks/useApi';
-
-interface Stats {
-  total_clips: number;
-  today_clips: number;
-  total_bugs: number;
-  open_bugs: number;
-  total_todos: number;
-  done_todos: number;
-  total_milestones: number;
-  completed_milestones: number;
-  total_raids: number;
-  total_rewards: number;
-}
+import { Stats } from '../../../shared/types';
 
 interface StatCard {
   icon: string;
