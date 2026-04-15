@@ -39,17 +39,27 @@ router.get('/export', (req, res) => {
 
   const clips = getDb().prepare(
     'SELECT * FROM clips WHERE session_date = ? ORDER BY created_at ASC'
-  ).all(sessionDate) as Array<{ tag: string; note: string | null; created_at: string }>;
+  ).all(sessionDate) as Array<{
+    tag: string; note: string | null; created_at: string;
+    stream_timecode: string | null; recording_timecode: string | null;
+  }>;
 
   if (clips.length === 0) { res.status(404).json({ error: 'No clips for this date' }); return; }
 
-  const firstClipTime = new Date(clips[0].created_at).getTime();
+  const firstClipTime = new Date(clips[0].created_at + 'Z').getTime();
 
   const csvRows = ['Name,Start,End,Note'];
   for (const clip of clips) {
-    const clipTime = new Date(clip.created_at).getTime();
-    const offsetSeconds = Math.floor((clipTime - firstClipTime) / 1000);
-    const timecode = formatTimecode(offsetSeconds);
+    let timecode: string;
+    if (clip.stream_timecode) {
+      timecode = clip.stream_timecode + ':00';
+    } else if (clip.recording_timecode) {
+      timecode = clip.recording_timecode + ':00';
+    } else {
+      const clipTime = new Date(clip.created_at + 'Z').getTime();
+      const offsetSeconds = Math.floor((clipTime - firstClipTime) / 1000);
+      timecode = formatTimecode(offsetSeconds);
+    }
     const name = clip.tag;
     const note = (clip.note || '').replace(/,/g, ';').replace(/"/g, "'");
     csvRows.push(`${name},${timecode},${timecode},${note}`);
