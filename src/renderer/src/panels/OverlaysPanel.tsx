@@ -14,6 +14,7 @@ export default function OverlaysPanel() {
   const { data: customOverlays, refetch: refetchCustom } = useApi<OverlayInfo[]>('/overlays');
 
   const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showUpload, setShowUpload] = useState(false);
   const [newName, setNewName] = useState('');
   const [uploadMode, setUploadMode] = useState<'file' | 'template'>('template');
@@ -117,6 +118,9 @@ export default function OverlaysPanel() {
                 <button className="btn-copy-small" onClick={() => copyUrl(o.url)}>
                   {copiedUrl === o.url ? '✅' : '📋'}
                 </button>
+                <button className="btn-copy-small" onClick={() => setPreviewUrl(o.url)} title="Vorschau">
+                  👁
+                </button>
                 {editingBuiltin === o.name ? (
                   <>
                     <input
@@ -163,6 +167,9 @@ export default function OverlaysPanel() {
                   <button className="btn-copy-small" onClick={() => copyUrl(o.url)}>
                     {copiedUrl === o.url ? '✅' : '📋'}
                   </button>
+                  <button className="btn-copy-small" onClick={() => setPreviewUrl(o.url)} title="Vorschau">
+                    👁
+                  </button>
                   <button className="btn-delete-small" onClick={() => deleteOverlay(o.name)}>
                     🗑️
                   </button>
@@ -208,6 +215,18 @@ export default function OverlaysPanel() {
           </div>
         )}
       </div>
+
+      {previewUrl && (
+        <div className="overlay-section">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3>Vorschau</h3>
+            <button className="btn-delete-small" onClick={() => setPreviewUrl(null)}>✕ Schließen</button>
+          </div>
+          <div className="overlay-preview-frame">
+            <iframe src={previewUrl} title="Overlay Preview" />
+          </div>
+        </div>
+      )}
 
       <div className="overlay-section overlay-help">
         <h3>Anleitung</h3>

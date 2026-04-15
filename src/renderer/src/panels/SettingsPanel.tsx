@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useApi, apiPost, apiFetch, getApiToken } from '../hooks/useApi';
 import { TwitchConfigResponse, BotStatus } from '../../../shared/types';
 import { useTranslation } from '../i18n/LanguageContext';
+import { useTheme } from '../i18n/ThemeContext';
 
 interface ClientIdResponse {
   configured: boolean;
@@ -25,6 +26,8 @@ export default function SettingsPanel() {
   const [obsPort, setObsPort] = useState('4455');
   const [obsPassword, setObsPassword] = useState('');
   const { t, lang, setLang } = useTranslation();
+  const { theme, setTheme } = useTheme();
+  const { data: autostartInfo, refetch: refetchAutostart } = useApi<{ enabled: boolean }>('/settings/autostart');
   const [backupStatus, setBackupStatus] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -342,6 +345,31 @@ export default function SettingsPanel() {
       </div>
 
       <div className="settings-section">
+        <h3>Autostart</h3>
+        <p className="setup-info">App beim Systemstart automatisch öffnen.</p>
+        <div className="language-toggle">
+          <button
+            className={`lang-btn ${autostartInfo?.enabled ? 'active' : ''}`}
+            onClick={async () => {
+              await apiPost('/settings/autostart', { enabled: true });
+              refetchAutostart();
+            }}
+          >
+            Aktiviert
+          </button>
+          <button
+            className={`lang-btn ${!autostartInfo?.enabled ? 'active' : ''}`}
+            onClick={async () => {
+              await apiPost('/settings/autostart', { enabled: false });
+              refetchAutostart();
+            }}
+          >
+            Deaktiviert
+          </button>
+        </div>
+      </div>
+
+      <div className="settings-section">
         <h3>Daten-Backup</h3>
         <p className="setup-info">Alle Daten als JSON exportieren oder ein Backup importieren.</p>
         <div className="bot-controls">
@@ -375,6 +403,15 @@ export default function SettingsPanel() {
         <div className="language-toggle">
           <button className={`lang-btn ${lang === 'de' ? 'active' : ''}`} onClick={() => setLang('de')}>Deutsch</button>
           <button className={`lang-btn ${lang === 'en' ? 'active' : ''}`} onClick={() => setLang('en')}>English</button>
+        </div>
+      </div>
+
+      <div className="settings-section">
+        <h3>Design</h3>
+        <p className="setup-info">App-Theme wechseln.</p>
+        <div className="language-toggle">
+          <button className={`lang-btn ${theme === 'dark' ? 'active' : ''}`} onClick={() => setTheme('dark')}>🌙 Dark</button>
+          <button className={`lang-btn ${theme === 'light' ? 'active' : ''}`} onClick={() => setTheme('light')}>☀️ Light</button>
         </div>
       </div>
     </div>

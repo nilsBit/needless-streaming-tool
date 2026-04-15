@@ -2,6 +2,30 @@ import { globalShortcut } from 'electron';
 import http from 'http';
 import { getApiToken } from '../server/auth-token';
 
+interface HotkeyConfig {
+  challenge_toggle: string;
+  timer_toggle: string;
+  hype_moment: string;
+  challenge_done: string;
+  challenge_failed: string;
+  roulette: string;
+  milestone_minor: string;
+  milestone_major: string;
+  milestone_epic: string;
+}
+
+const DEFAULT_HOTKEYS: HotkeyConfig = {
+  challenge_toggle: 'CommandOrControl+Shift+E',
+  timer_toggle: 'CommandOrControl+Shift+T',
+  hype_moment: 'CommandOrControl+Shift+C',
+  challenge_done: 'CommandOrControl+Shift+D',
+  challenge_failed: 'CommandOrControl+Shift+F',
+  roulette: 'CommandOrControl+Shift+R',
+  milestone_minor: 'CommandOrControl+Shift+1',
+  milestone_major: 'CommandOrControl+Shift+2',
+  milestone_epic: 'CommandOrControl+Shift+3',
+};
+
 function apiCall(method: string, path: string, body?: unknown) {
   const data = body ? JSON.stringify(body) : undefined;
   const options: http.RequestOptions = {
@@ -34,9 +58,25 @@ function apiGet(path: string): Promise<unknown> {
   });
 }
 
-export function registerHotkeys() {
+export async function registerHotkeys(config?: Partial<HotkeyConfig>) {
+  let hotkeys: HotkeyConfig = { ...DEFAULT_HOTKEYS };
+
+  if (config) {
+    hotkeys = { ...hotkeys, ...config };
+  } else {
+    // Try to load from settings API
+    try {
+      const saved = await apiGet('/api/settings/hotkeys') as Partial<HotkeyConfig>;
+      if (saved && typeof saved === 'object') {
+        hotkeys = { ...hotkeys, ...saved };
+      }
+    } catch (err) {
+      console.warn('[Hotkeys] Could not load hotkey config from DB, using defaults:', err);
+    }
+  }
+
   // Ctrl+Shift+E — Experiment toggle
-  globalShortcut.register('CommandOrControl+Shift+E', async () => {
+  globalShortcut.register(hotkeys.challenge_toggle, async () => {
     try {
       const state = await apiGet('/api/stream-state') as { experiment_status: string };
       if (state.experiment_status === 'in_progress') {
@@ -47,60 +87,60 @@ export function registerHotkeys() {
     } catch (err) {
       console.error('[Hotkey] Experiment toggle failed:', err);
     }
-    console.log('[Hotkey] Ctrl+Shift+E — Experiment toggle');
+    console.log(`[Hotkey] ${hotkeys.challenge_toggle} — Experiment toggle`);
   });
 
-  // Ctrl+Shift+T — Timer toggle
-  globalShortcut.register('CommandOrControl+Shift+T', async () => {
+  // Timer toggle
+  globalShortcut.register(hotkeys.timer_toggle, async () => {
     try {
       const state = await apiGet('/api/stream-state') as { timer_running: number };
       apiCall('PATCH', '/api/stream-state', { timer_running: state.timer_running ? 0 : 1 });
     } catch (err) {
       console.error('[Hotkey] Timer toggle failed:', err);
     }
-    console.log('[Hotkey] Ctrl+Shift+T — Timer toggle');
+    console.log(`[Hotkey] ${hotkeys.timer_toggle} — Timer toggle`);
   });
 
-  // Ctrl+Shift+C — Hype Moment
-  globalShortcut.register('CommandOrControl+Shift+C', () => {
+  // Hype Moment
+  globalShortcut.register(hotkeys.hype_moment, () => {
     apiCall('POST', '/api/actions/compile-pray', {});
-    console.log('[Hotkey] Ctrl+Shift+C — Hype Moment');
+    console.log(`[Hotkey] ${hotkeys.hype_moment} — Hype Moment`);
   });
 
-  // Ctrl+Shift+D — Challenge Done
-  globalShortcut.register('CommandOrControl+Shift+D', () => {
+  // Challenge Done
+  globalShortcut.register(hotkeys.challenge_done, () => {
     apiCall('PATCH', '/api/stream-state', { experiment_status: 'done', timer_running: 0 });
-    console.log('[Hotkey] Ctrl+Shift+D — Done');
+    console.log(`[Hotkey] ${hotkeys.challenge_done} — Done`);
   });
 
-  // Ctrl+Shift+F — Challenge Failed
-  globalShortcut.register('CommandOrControl+Shift+F', () => {
+  // Challenge Failed
+  globalShortcut.register(hotkeys.challenge_failed, () => {
     apiCall('PATCH', '/api/stream-state', { experiment_status: 'failed', timer_running: 0 });
-    console.log('[Hotkey] Ctrl+Shift+F — Failed');
+    console.log(`[Hotkey] ${hotkeys.challenge_failed} — Failed`);
   });
 
-  // Ctrl+Shift+R — Glücksrad
-  globalShortcut.register('CommandOrControl+Shift+R', () => {
+  // Glücksrad
+  globalShortcut.register(hotkeys.roulette, () => {
     apiCall('POST', '/api/actions/roulette', {});
-    console.log('[Hotkey] Ctrl+Shift+R — Roulette');
+    console.log(`[Hotkey] ${hotkeys.roulette} — Roulette`);
   });
 
-  // Ctrl+Shift+1 — Milestone Minor
-  globalShortcut.register('CommandOrControl+Shift+1', () => {
+  // Milestone Minor
+  globalShortcut.register(hotkeys.milestone_minor, () => {
     apiCall('POST', '/api/milestones', { level: 'minor' });
-    console.log('[Hotkey] Ctrl+Shift+1 — Milestone Minor');
+    console.log(`[Hotkey] ${hotkeys.milestone_minor} — Milestone Minor`);
   });
 
-  // Ctrl+Shift+2 — Milestone Major
-  globalShortcut.register('CommandOrControl+Shift+2', () => {
+  // Milestone Major
+  globalShortcut.register(hotkeys.milestone_major, () => {
     apiCall('POST', '/api/milestones', { level: 'major' });
-    console.log('[Hotkey] Ctrl+Shift+2 — Milestone Major');
+    console.log(`[Hotkey] ${hotkeys.milestone_major} — Milestone Major`);
   });
 
-  // Ctrl+Shift+3 — Milestone Epic
-  globalShortcut.register('CommandOrControl+Shift+3', () => {
+  // Milestone Epic
+  globalShortcut.register(hotkeys.milestone_epic, () => {
     apiCall('POST', '/api/milestones', { level: 'epic' });
-    console.log('[Hotkey] Ctrl+Shift+3 — Milestone Epic');
+    console.log(`[Hotkey] ${hotkeys.milestone_epic} — Milestone Epic`);
   });
 
   console.log('[Hotkeys] Registered all global shortcuts');

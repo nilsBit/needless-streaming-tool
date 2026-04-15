@@ -133,4 +133,62 @@ router.get('/api-token', (_req, res) => {
   res.json({ token: token || null });
 });
 
+// Hotkeys config
+const DEFAULT_HOTKEYS: Record<string, string> = {
+  challenge_toggle: 'CommandOrControl+Shift+E',
+  timer_toggle: 'CommandOrControl+Shift+T',
+  hype_moment: 'CommandOrControl+Shift+C',
+  challenge_done: 'CommandOrControl+Shift+D',
+  challenge_failed: 'CommandOrControl+Shift+F',
+  roulette: 'CommandOrControl+Shift+R',
+  milestone_minor: 'CommandOrControl+Shift+1',
+  milestone_major: 'CommandOrControl+Shift+2',
+  milestone_epic: 'CommandOrControl+Shift+3',
+};
+
+router.get('/hotkeys', (_req, res) => {
+  const row = getDb().prepare('SELECT value FROM settings WHERE key = ?').get('hotkeys') as { value: string } | undefined;
+  if (row?.value) {
+    try {
+      res.json(JSON.parse(row.value));
+    } catch {
+      res.json(DEFAULT_HOTKEYS);
+    }
+  } else {
+    res.json(DEFAULT_HOTKEYS);
+  }
+});
+
+router.post('/hotkeys', (req, res) => {
+  const config = req.body;
+  if (!config || typeof config !== 'object') {
+    res.status(400).json({ error: 'hotkey config object required' });
+    return;
+  }
+  getDb().prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('hotkeys', JSON.stringify(config));
+  res.json({ success: true });
+});
+
+// Autostart
+router.get('/autostart', (_req, res) => {
+  try {
+    const { app } = require('electron');
+    const settings = app.getLoginItemSettings();
+    res.json({ enabled: settings.openAtLogin });
+  } catch {
+    res.json({ enabled: false });
+  }
+});
+
+router.post('/autostart', (req, res) => {
+  const { enabled } = req.body;
+  try {
+    const { app } = require('electron');
+    app.setLoginItemSettings({ openAtLogin: !!enabled });
+    res.json({ success: true, enabled: !!enabled });
+  } catch (err) {
+    res.status(500).json({ error: 'Autostart nicht verfügbar', details: String(err) });
+  }
+});
+
 export default router;
