@@ -12,6 +12,9 @@ import TodosPanel from './panels/TodosPanel';
 import SettingsPanel from './panels/SettingsPanel';
 import OverlaysPanel from './panels/OverlaysPanel';
 import HelpPanel from './panels/HelpPanel';
+import SongPanel from './panels/SongPanel';
+import RaidsPanel from './panels/RaidsPanel';
+import StatsPanel from './panels/StatsPanel';
 
 const TABS = {
   stream: {
@@ -21,6 +24,8 @@ const TABS = {
       { key: 'bugs', label: 'Glücksrad', component: BugsPanel },
       { key: 'clips', label: 'Clip Moments', component: ClipsPanel },
       { key: 'designs', label: 'Chat Designs', component: DesignsPanel },
+      { key: 'song', label: 'Now Playing', component: SongPanel },
+      { key: 'raids', label: 'Raids', component: RaidsPanel },
     ],
   },
   projekt: {
@@ -29,6 +34,12 @@ const TABS = {
       { key: 'progress', label: 'Progress Tracker', component: ProgressPanel },
       { key: 'milestones', label: 'Milestones', component: MilestonesPanel },
       { key: 'todos', label: 'Todos', component: TodosPanel },
+    ],
+  },
+  stats: {
+    label: '📊 Stats',
+    panels: [
+      { key: 'stats', label: 'Statistiken', component: StatsPanel },
     ],
   },
   settings: {

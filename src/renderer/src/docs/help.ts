@@ -31,7 +31,9 @@ Beim ersten Start führt dich der **Setup-Wizard** durch die Einrichtung. Du kan
 **Chat-Commands:**
 | Command | Beschreibung |
 |---------|-------------|
-| !experiment | Zeigt aktuelle Challenge |
+| !challenge | Zeigt aktuelle Challenge |
+| !song | Zeigt aktuellen Song |
+| !hype | Löst einen Hype Moment aus |
 | !bugs | Listet offene Bugs |
 | !todo | Zeigt offene Todos |
 | !progress | Zeigt Projekt-Fortschritt |
@@ -170,19 +172,26 @@ Das Template unter /overlay/_template/index.html enthält:
     title: 'Dashboard Panels',
     content: `**Stream Tab:**
 - **Challenge** — Starte Challenges mit Timer und Status-Tracking
-- **Glücksrad** — Tracke Bugs, drehe das Roulette-Rad
+- **Glücksrad** — Tracke Items, drehe das Roulette-Rad
 - **Clip Moments** — Markiere Clip-würdige Momente mit Tags
 - **Chat Designs** — Starte Design-Abstimmungen im Chat
+- **Now Playing** — Aktuellen Song setzen und im Overlay anzeigen
+- **Raids** — Raid-Verlauf anzeigen
 
 **Projekt Tab:**
 - **Progress Tracker** — Tracke Features deines Projekts
 - **Milestones** — Achievement-System (Minor, Major, Epic)
 - **Todos** — Aufgabenliste für den Stream
 
+**Stats Tab:**
+- **Statistiken** — Überblick über alle Daten (Clips, Todos, Milestones, Raids etc.)
+
 **Settings Tab:**
-- **Settings** — Twitch, OBS, Notion, Stream Deck Konfiguration
+- **Settings** — Twitch, OBS, Notion, Stream Deck, Backup
 - **Overlays** — Overlay-URLs und Custom Overlays verwalten
-- **Hilfe** — Diese Dokumentation`,
+
+**Hilfe Tab:**
+- **Hilfe & Dokumentation** — Diese Dokumentation`,
   },
   {
     title: 'API Referenz',
@@ -227,6 +236,16 @@ Auth-Header: Authorization: Bearer <token>
 **Actions:**
 - POST /api/actions/compile-pray
 - POST /api/actions/roulette — GET /api/actions/roulette/status
+- GET /api/actions/song — POST /api/actions/song
+
+**Raids:**
+- GET /api/raids — POST /api/raids — DELETE /api/raids/:id
+
+**Stats:**
+- GET /api/stats
+
+**Backup:**
+- GET /api/backup/export — POST /api/backup/import
 
 **Overlays:**
 - GET /api/overlays/builtin — GET /api/overlays

@@ -13,12 +13,15 @@ import actionsRouter from './api/actions';
 import authRouter from './api/auth';
 import votingRouter from './api/voting';
 import todosRouter from './api/todos';
+import raidsRouter from './api/raids';
 import progressRouter from './api/progress';
 import clipsRouter from './api/clips';
 import clipTagsRouter from './api/clip-tags';
 import milestonesRouter from './api/milestones';
 import obsRouter from './api/obs';
 import customOverlaysRouter from './api/custom-overlays';
+import statsRouter from './api/stats';
+import backupRouter from './api/backup';
 import { connectBot } from './bot/index';
 import { connectObs } from './obs/index';
 import { getDb } from './db/index';
@@ -95,12 +98,15 @@ export async function startServer(): Promise<string> {
   app.use('/api/auth', authRouter);
   app.use('/api/voting', votingRouter);
   app.use('/api/todos', todosRouter);
+  app.use('/api/raids', raidsRouter);
   app.use('/api/progress', progressRouter);
   app.use('/api/clips', clipsRouter);
   app.use('/api/clip-tags', clipTagsRouter);
   app.use('/api/milestones', milestonesRouter);
   app.use('/api/obs', obsRouter);
   app.use('/api/overlays', customOverlaysRouter);
+  app.use('/api/stats', statsRouter);
+  app.use('/api/backup', backupRouter);
 
   // Twitch OAuth callback redirect (no auth needed)
   app.get('/auth/twitch/callback', (req, res) => res.redirect('/api/auth/twitch/callback'));

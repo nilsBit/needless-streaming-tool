@@ -52,6 +52,24 @@ router.post('/roulette', (_req, res) => {
   res.json({ winner, bugs_count: bugs.length, cooldown_seconds: 60 });
 });
 
+// Song / Now Playing
+router.get('/song', (_req, res) => {
+  const row = getDb().prepare('SELECT value FROM settings WHERE key = ?').get('current_song') as { value: string } | undefined;
+  res.json({ song: row?.value || null });
+});
+
+router.post('/song', (req, res) => {
+  const { song } = req.body;
+  if (song) {
+    getDb().prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('current_song', song);
+    broadcast('song-update', { song });
+  } else {
+    getDb().prepare('DELETE FROM settings WHERE key = ?').run('current_song');
+    broadcast('song-clear', {});
+  }
+  res.json({ success: true });
+});
+
 // Direct trigger function (used by EventSub, bypasses HTTP + auth)
 export function triggerRoulette(): { winner: { id: number; title: string } } | { error: string } {
   const now = Date.now();

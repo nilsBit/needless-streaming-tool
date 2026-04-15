@@ -3,6 +3,7 @@ import { getDb } from '../db/index';
 import { startVote, castVote, getActiveVote, endVote } from './voting';
 import { StreamState, Bug, Todo } from '../../shared/types';
 import { changeScene, getScenes } from '../obs/index';
+import { broadcast } from '../websocket/index';
 
 const startTime = Date.now();
 
@@ -14,13 +15,14 @@ export function registerCommands(client: Client) {
     const command = message.trim().toLowerCase().split(' ')[0];
 
     switch (command) {
+      case '!challenge':
       case '!experiment': {
         const state = getDb().prepare('SELECT * FROM stream_state WHERE id = 1').get() as StreamState;
         if (!state.experiment_title) {
-          client.say(channel, 'Kein Experiment aktiv.');
+          client.say(channel, 'Keine Challenge aktiv.');
         } else {
           const statusEmoji = state.experiment_status === 'in_progress' ? '🔴' : state.experiment_status === 'done' ? '🟢' : state.experiment_status === 'failed' ? '❌' : '⏸️';
-          client.say(channel, `${statusEmoji} Experiment: ${state.experiment_title} [${state.experiment_status}]`);
+          client.say(channel, `${statusEmoji} Challenge: ${state.experiment_title} [${state.experiment_status}]`);
         }
         break;
       }
@@ -37,7 +39,18 @@ export function registerCommands(client: Client) {
       }
 
       case '!song': {
-        client.say(channel, '🎵 Song Requests kommen bald!');
+        const row = getDb().prepare('SELECT value FROM settings WHERE key = ?').get('current_song') as { value: string } | undefined;
+        if (row?.value) {
+          client.say(channel, `🎵 ${row.value}`);
+        } else {
+          client.say(channel, '🎵 Kein Song aktiv.');
+        }
+        break;
+      }
+
+      case '!hype': {
+        broadcast('compile-pray', { user: tags['display-name'] || tags.username || 'Chat' });
+        client.say(channel, '🙌 HYPE MOMENT!');
         break;
       }
 

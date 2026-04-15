@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApi, apiPost, apiFetch, getApiToken } from '../hooks/useApi';
 import { TwitchConfigResponse, BotStatus } from '../../../shared/types';
 import { useTranslation } from '../i18n/LanguageContext';
@@ -25,6 +25,50 @@ export default function SettingsPanel() {
   const [obsPort, setObsPort] = useState('4455');
   const [obsPassword, setObsPassword] = useState('');
   const { t, lang, setLang } = useTranslation();
+  const [backupStatus, setBackupStatus] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const exportBackup = async () => {
+    try {
+      const res = await apiFetch('/backup/export');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'stream-toolkit-backup.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      setBackupStatus('Backup exportiert!');
+      setTimeout(() => setBackupStatus(''), 3000);
+    } catch (err) {
+      console.error('[Settings] Export failed:', err);
+      setBackupStatus('Export fehlgeschlagen');
+    }
+  };
+
+  const importBackup = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      const res = await apiFetch('/backup/import', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+      if (res.ok) {
+        setBackupStatus('Backup erfolgreich importiert!');
+      } else {
+        setBackupStatus('Import fehlgeschlagen');
+      }
+    } catch (err) {
+      console.error('[Settings] Import failed:', err);
+      setBackupStatus('Import fehlgeschlagen');
+    }
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    setTimeout(() => setBackupStatus(''), 3000);
+  };
 
   const copyToken = () => {
     if (tokenInfo?.token) {
@@ -295,6 +339,25 @@ export default function SettingsPanel() {
           <p className="setup-info" style={{ marginTop: '8px' }}>Base URL: <code>http://localhost:4000/api</code></p>
           <p className="setup-info">Header: <code>Authorization: Bearer &lt;token&gt;</code></p>
         </div>
+      </div>
+
+      <div className="settings-section">
+        <h3>Daten-Backup</h3>
+        <p className="setup-info">Alle Daten als JSON exportieren oder ein Backup importieren.</p>
+        <div className="bot-controls">
+          <button className="btn-connect" onClick={exportBackup}>💾 Backup exportieren</button>
+          <label className="btn-connect" style={{ cursor: 'pointer', textAlign: 'center' }}>
+            📂 Backup importieren
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json"
+              onChange={importBackup}
+              style={{ display: 'none' }}
+            />
+          </label>
+        </div>
+        {backupStatus && <p className="setup-info" style={{ marginTop: '8px' }}>{backupStatus}</p>}
       </div>
 
       <div className="settings-section">
