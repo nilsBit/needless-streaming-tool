@@ -12,7 +12,7 @@ router.get('/', (_req, res) => {
 });
 
 router.patch('/', (req, res) => {
-  const { experiment_title, experiment_status, timer_seconds, timer_running, is_live } = req.body;
+  const { experiment_title, experiment_status, timer_seconds, timer_running, is_live, is_recording } = req.body;
   const db = getDb();
 
   if (!validateEnum(experiment_status, VALID_EXPERIMENT_STATUS, 'experiment_status', res)) return;
@@ -25,6 +25,7 @@ router.patch('/', (req, res) => {
   if (timer_seconds !== undefined) { fields.push('timer_seconds = ?'); values.push(timer_seconds); }
   if (timer_running !== undefined) { fields.push('timer_running = ?'); values.push(timer_running); }
   if (is_live !== undefined) { fields.push('is_live = ?'); values.push(is_live); }
+  if (is_recording !== undefined) { fields.push('is_recording = ?'); values.push(is_recording); }
 
   if (fields.length === 0) {
     res.status(400).json({ error: 'No fields to update' });
