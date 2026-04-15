@@ -115,6 +115,15 @@ export default function ClipsPanel() {
   const filterClips = (clips: Clip[]) =>
     activeFilter ? clips.filter((c) => c.tag === activeFilter) : clips;
 
+  const formatClipTime = (clip: Clip) => {
+    const wallClock = new Date(clip.created_at + 'Z').toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const parts: string[] = [];
+    if (clip.stream_timecode) parts.push(`🔴 ${clip.stream_timecode}`);
+    if (clip.recording_timecode) parts.push(`⏺ ${clip.recording_timecode}`);
+    if (parts.length > 0) return `${parts.join(' ')} | ${wallClock}`;
+    return wallClock;
+  };
+
   return (
     <div className="panel clips-panel">
       <h2>🎬 Clip Moments</h2>
@@ -197,7 +206,7 @@ export default function ClipsPanel() {
                   {dayClips.length === 0 && <p className="empty">Keine Clips{activeFilter ? ` mit Tag "${activeFilter}"` : ''}</p>}
                   {dayClips.map((clip) => (
                     <div key={clip.id} className="clip-item">
-                      <span className="clip-time">{new Date(clip.created_at).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+                      <span className="clip-time">{formatClipTime(clip)}</span>
                       <span className="clip-tag">{TAG_EMOJI[clip.tag] || '🏷️'} {clip.tag}</span>
                       {clip.note && <span className="clip-note">{clip.note}</span>}
                       <button className="btn-delete-small" onClick={() => deleteClip(clip.id)}>✕</button>
