@@ -56,6 +56,13 @@ function runMigrations(from: number, to: number) {
     }
   }
 
+  if (from < 6) {
+    try { db.exec('ALTER TABLE clips ADD COLUMN stream_timecode TEXT'); } catch {}
+    try { db.exec('ALTER TABLE clips ADD COLUMN recording_timecode TEXT'); } catch {}
+    try { db.exec('ALTER TABLE stream_state ADD COLUMN is_recording INTEGER DEFAULT 0'); } catch {}
+    console.log('[DB] Migrated: added timecode columns to clips, is_recording to stream_state');
+  }
+
   db.prepare('INSERT OR REPLACE INTO schema_version (version) VALUES (?)').run(to);
   console.log(`[DB] Migrated from v${from} to v${to}`);
 }
