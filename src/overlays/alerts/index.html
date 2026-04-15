@@ -2,54 +2,139 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;700&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: transparent; font-family: -apple-system, sans-serif; overflow: hidden; }
+    body { background: transparent; font-family: 'Inter', sans-serif; overflow: hidden; }
 
     .alert-container {
       position: fixed;
       top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
+      right: 20px;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      gap: 8px;
+      align-items: flex-end;
+      gap: 10px;
     }
 
     .alert {
-      padding: 16px 32px;
-      background: rgba(13, 13, 13, 0.9);
-      border: 2px solid #e67e22;
-      border-radius: 12px;
+      position: relative;
+      padding: 18px 36px 18px 28px;
+      background: rgba(10, 10, 10, 0.93);
+      border: 3px solid #ff6b35;
       color: #e0e0e0;
       font-size: 18px;
       font-weight: 700;
-      text-align: center;
-      backdrop-filter: blur(8px);
-      animation: alertIn 0.4s ease-out, alertOut 0.4s ease-in forwards;
+      text-align: left;
+      font-family: 'Bebas Neue', sans-serif;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px rgba(255, 107, 53, 0.5);
+      transform: skewX(-3deg);
+      animation: alertSlideIn 0.5s cubic-bezier(0.22, 1, 0.36, 1), alertSlideOut 0.4s ease-in forwards;
       animation-delay: 0s, 4s;
+      overflow: hidden;
+      min-width: 280px;
+    }
+
+    /* Spray paint noise texture */
+    .alert::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 3px,
+        rgba(255, 255, 255, 0.015) 3px,
+        rgba(255, 255, 255, 0.015) 6px
+      );
+      pointer-events: none;
+    }
+
+    /* Diagonal stripe accent on left */
+    .alert::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; bottom: 0; width: 6px;
+      background: repeating-linear-gradient(
+        45deg,
+        #ff6b35,
+        #ff6b35 2px,
+        transparent 2px,
+        transparent 5px
+      );
     }
 
     .alert .sub {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 400;
+      font-family: 'Inter', sans-serif;
       color: #888;
       margin-top: 4px;
+      text-transform: none;
+      letter-spacing: 0.5px;
+      text-shadow: none;
     }
 
-    .alert.raid { border-color: #e74c3c; }
-    .alert.reward { border-color: #2ecc71; }
-    .alert.compile { border-color: #e67e22; }
-
-    @keyframes alertIn {
-      from { opacity: 0; transform: translateY(-20px) scale(0.9); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
+    /* Raid: magenta glow */
+    .alert.raid {
+      border-color: #ff2d7b;
+      box-shadow: 0 0 20px rgba(255, 45, 123, 0.5), inset 0 0 30px rgba(255, 45, 123, 0.08);
+      text-shadow: 0 0 10px rgba(255, 45, 123, 0.6);
+      animation: alertSlideIn 0.5s cubic-bezier(0.22, 1, 0.36, 1), pulseRaid 1.5s ease-in-out infinite, alertSlideOut 0.4s ease-in forwards;
+      animation-delay: 0s, 0s, 4s;
+    }
+    .alert.raid::after {
+      background: repeating-linear-gradient(45deg, #ff2d7b, #ff2d7b 2px, transparent 2px, transparent 5px);
     }
 
-    @keyframes alertOut {
-      from { opacity: 1; }
-      to { opacity: 0; transform: translateY(-10px); }
+    /* Reward: electric blue */
+    .alert.reward {
+      border-color: #00d4ff;
+      box-shadow: 0 0 15px rgba(0, 212, 255, 0.4), inset 0 0 25px rgba(0, 212, 255, 0.06);
+      text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+    }
+    .alert.reward::after {
+      background: repeating-linear-gradient(45deg, #00d4ff, #00d4ff 2px, transparent 2px, transparent 5px);
+    }
+
+    /* Compile / Hype: hot orange with neon explosion */
+    .alert.compile {
+      border-color: #ff6b35;
+      box-shadow: 0 0 25px rgba(255, 107, 53, 0.6), 0 0 60px rgba(255, 107, 53, 0.2), inset 0 0 30px rgba(255, 107, 53, 0.08);
+      text-shadow: 0 0 12px rgba(255, 107, 53, 0.7);
+      animation: alertSlideIn 0.5s cubic-bezier(0.22, 1, 0.36, 1), neonExplosion 0.8s ease-out, pulseCompile 2s ease-in-out infinite, alertSlideOut 0.4s ease-in forwards;
+      animation-delay: 0s, 0s, 0.8s, 4s;
+    }
+    .alert.compile::after {
+      background: repeating-linear-gradient(45deg, #ff6b35, #ff6b35 2px, #39ff14 2px, #39ff14 4px, transparent 4px, transparent 7px);
+    }
+
+    @keyframes alertSlideIn {
+      from { opacity: 0; transform: translateX(80px) skewX(-3deg); }
+      to { opacity: 1; transform: translateX(0) skewX(-3deg); }
+    }
+
+    @keyframes alertSlideOut {
+      from { opacity: 1; transform: translateX(0) skewX(-3deg); }
+      to { opacity: 0; transform: translateX(60px) skewX(-3deg); }
+    }
+
+    @keyframes pulseRaid {
+      0%, 100% { box-shadow: 0 0 20px rgba(255, 45, 123, 0.5), inset 0 0 30px rgba(255, 45, 123, 0.08); }
+      50% { box-shadow: 0 0 35px rgba(255, 45, 123, 0.8), inset 0 0 40px rgba(255, 45, 123, 0.15); }
+    }
+
+    @keyframes pulseCompile {
+      0%, 100% { box-shadow: 0 0 25px rgba(255, 107, 53, 0.6), 0 0 60px rgba(255, 107, 53, 0.2); }
+      50% { box-shadow: 0 0 40px rgba(255, 107, 53, 0.9), 0 0 80px rgba(255, 107, 53, 0.35); }
+    }
+
+    @keyframes neonExplosion {
+      0% { box-shadow: 0 0 80px rgba(255, 107, 53, 1), 0 0 120px rgba(57, 255, 20, 0.6); border-color: #fff; }
+      50% { box-shadow: 0 0 50px rgba(255, 107, 53, 0.7), 0 0 80px rgba(57, 255, 20, 0.3); }
+      100% { box-shadow: 0 0 25px rgba(255, 107, 53, 0.6), 0 0 60px rgba(255, 107, 53, 0.2); border-color: #ff6b35; }
     }
   </style>
 </head>

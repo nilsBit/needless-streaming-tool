@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Achievement - OBS Overlay</title>
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;700&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -15,62 +15,131 @@
     justify-content: center;
     height: 100vh;
     padding-top: 40px;
-    font-family: 'Press Start 2P', monospace;
-    image-rendering: pixelated;
+    font-family: 'Inter', sans-serif;
     overflow: hidden;
   }
 
   .achievement {
     opacity: 0;
-    transform: translateY(-40px) scale(0.9);
+    transform: translateY(-40px) scale(0.7);
     pointer-events: none;
     display: flex;
     align-items: center;
-    gap: 16px;
-    padding: 14px 24px 14px 16px;
-    background: rgba(10,10,10,0.92);
-    border: 2px solid #333;
-    box-shadow: inset -2px -2px 0 #000, inset 2px 2px 0 #1a1a1a, 6px 6px 0 rgba(0,0,0,0.8);
-    min-width: 360px;
-    max-width: 560px;
+    gap: 18px;
+    padding: 18px 28px 18px 20px;
+    background: rgba(10, 10, 10, 0.93);
+    border: 3px solid #444;
+    min-width: 380px;
+    max-width: 580px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Spray paint texture */
+  .achievement::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 3px,
+      rgba(255, 255, 255, 0.012) 3px,
+      rgba(255, 255, 255, 0.012) 6px
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Diagonal stripe accent top */
+  .achievement::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 4px;
+    background: repeating-linear-gradient(
+      45deg,
+      #444,
+      #444 3px,
+      transparent 3px,
+      transparent 7px
+    );
+    z-index: 1;
   }
 
   .achievement.visible {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(0) scale(1) skewX(-2deg);
     transition: opacity 0.4s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
   .achievement.hiding {
     opacity: 0;
-    transform: translateY(-20px) scale(0.95);
+    transform: translateY(-20px) scale(0.95) skewX(-2deg);
     transition: opacity 0.6s ease, transform 0.6s ease;
   }
 
-  /* Level-specific border glow */
-  .achievement.minor { border-color: #444; }
-  .achievement.major { border-color: #554400; box-shadow: inset -2px -2px 0 #000, inset 2px 2px 0 #1a1a1a, 6px 6px 0 rgba(0,0,0,0.8), 0 0 20px rgba(204,153,0,0.15); }
-  .achievement.epic { border-color: #553300; box-shadow: inset -2px -2px 0 #000, inset 2px 2px 0 #1a1a1a, 6px 6px 0 rgba(0,0,0,0.8), 0 0 30px rgba(255,170,0,0.25), 0 0 60px rgba(255,170,0,0.1); }
+  /* Level: minor = electric blue */
+  .achievement.minor {
+    border-color: #00d4ff;
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+  }
+  .achievement.minor::after {
+    background: repeating-linear-gradient(45deg, #00d4ff, #00d4ff 3px, transparent 3px, transparent 7px);
+  }
+
+  /* Level: major = magenta */
+  .achievement.major {
+    border-color: #ff2d7b;
+    box-shadow: 0 0 25px rgba(255, 45, 123, 0.4), 0 0 60px rgba(255, 45, 123, 0.15);
+  }
+  .achievement.major::after {
+    background: repeating-linear-gradient(45deg, #ff2d7b, #ff2d7b 3px, transparent 3px, transparent 7px);
+  }
+
+  /* Level: epic = neon green with intense glow */
+  .achievement.epic {
+    border-color: #39ff14;
+    box-shadow: 0 0 30px rgba(57, 255, 20, 0.5), 0 0 80px rgba(57, 255, 20, 0.2), inset 0 0 40px rgba(57, 255, 20, 0.05);
+    animation: epicPulse 2s ease-in-out infinite;
+  }
+  .achievement.epic::after {
+    background: repeating-linear-gradient(45deg, #39ff14, #39ff14 3px, #ff2d7b 3px, #ff2d7b 5px, transparent 5px, transparent 9px);
+  }
+
+  @keyframes epicPulse {
+    0%, 100% { box-shadow: 0 0 30px rgba(57, 255, 20, 0.5), 0 0 80px rgba(57, 255, 20, 0.2); }
+    50% { box-shadow: 0 0 50px rgba(57, 255, 20, 0.8), 0 0 120px rgba(57, 255, 20, 0.35); }
+  }
+
+  /* Glow burst on entrance for epic */
+  @keyframes glowBurst {
+    0% { box-shadow: 0 0 100px rgba(57, 255, 20, 1), 0 0 200px rgba(57, 255, 20, 0.6); border-color: #fff; }
+    100% { box-shadow: 0 0 30px rgba(57, 255, 20, 0.5), 0 0 80px rgba(57, 255, 20, 0.2); border-color: #39ff14; }
+  }
+
+  .achievement.epic.visible {
+    animation: glowBurst 0.8s ease-out, epicPulse 2s ease-in-out 0.8s infinite;
+  }
 
   /* Icon box */
   .icon-box {
-    width: 52px;
-    height: 52px;
-    min-width: 52px;
-    background: #0a0a0a;
-    border: 2px solid #333;
-    box-shadow: inset 2px 2px 0 #000;
+    width: 56px;
+    height: 56px;
+    min-width: 56px;
+    background: rgba(10, 10, 10, 0.9);
+    border: 2px solid #444;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
+    z-index: 1;
+    transform: skewX(-3deg);
   }
 
-  .achievement.minor .icon-box { border-color: #444; }
-  .achievement.major .icon-box { border-color: #554400; background: #0f0d06; }
-  .achievement.epic .icon-box { border-color: #664400; background: #110e06; }
+  .achievement.minor .icon-box { border-color: #00d4ff; box-shadow: 0 0 10px rgba(0, 212, 255, 0.3); }
+  .achievement.major .icon-box { border-color: #ff2d7b; box-shadow: 0 0 10px rgba(255, 45, 123, 0.3); }
+  .achievement.epic .icon-box { border-color: #39ff14; box-shadow: 0 0 15px rgba(57, 255, 20, 0.4); }
 
-  /* Pixel shield icon */
   .icon-box svg { image-rendering: pixelated; }
 
   /* Text content */
@@ -79,45 +148,60 @@
     flex-direction: column;
     gap: 4px;
     flex: 1;
+    z-index: 1;
   }
 
   .achievement-label {
-    font-size: 6px;
-    letter-spacing: 3px;
-    color: #555;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: #666;
+    text-transform: uppercase;
   }
 
-  .achievement.minor .achievement-label { color: #555; }
-  .achievement.major .achievement-label { color: #665500; }
-  .achievement.epic .achievement-label { color: #886600; }
+  .achievement.minor .achievement-label { color: #00d4ff; text-shadow: 0 0 8px rgba(0, 212, 255, 0.4); }
+  .achievement.major .achievement-label { color: #ff2d7b; text-shadow: 0 0 8px rgba(255, 45, 123, 0.4); }
+  .achievement.epic .achievement-label { color: #39ff14; text-shadow: 0 0 10px rgba(57, 255, 20, 0.5); }
 
   .achievement-title {
-    font-size: 10px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
     color: #e0e0e0;
-    text-shadow: 1px 1px 0 #000;
-    line-height: 1.5;
+    text-shadow: 2px 2px 0 #000, 4px 4px 0 rgba(0,0,0,0.3);
+    line-height: 1.3;
     word-break: break-word;
+    letter-spacing: 1px;
+    text-transform: uppercase;
   }
 
-  .achievement.major .achievement-title { color: #ffcc44; }
-  .achievement.epic .achievement-title { color: #ffaa00; text-shadow: 1px 1px 0 #000, 0 0 8px rgba(255,170,0,0.3); }
+  .achievement.major .achievement-title {
+    color: #ff2d7b;
+    text-shadow: 2px 2px 0 #000, 0 0 15px rgba(255, 45, 123, 0.4);
+  }
+  .achievement.epic .achievement-title {
+    color: #39ff14;
+    text-shadow: 2px 2px 0 #000, 0 0 20px rgba(57, 255, 20, 0.5), 0 0 40px rgba(57, 255, 20, 0.2);
+  }
 
   .achievement-sub {
-    font-size: 6px;
-    color: #333;
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    color: #444;
     letter-spacing: 2px;
+    text-transform: uppercase;
   }
 
-  .achievement.major .achievement-sub { color: #443300; }
-  .achievement.epic .achievement-sub { color: #554400; }
+  .achievement.major .achievement-sub { color: #993366; }
+  .achievement.epic .achievement-sub { color: #228811; }
 
   /* Shine effect for epic */
   .shine {
     display: none;
     position: absolute;
     top: 0; left: -100%; width: 60%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,200,50,0.08), transparent);
+    background: linear-gradient(90deg, transparent, rgba(57, 255, 20, 0.1), transparent);
     animation: shineAnim 3s ease-in-out infinite;
+    z-index: 0;
   }
 
   .achievement.epic .shine { display: block; }
@@ -135,22 +219,24 @@
     top: 0; left: 0; right: 0; bottom: 0;
     pointer-events: none;
     overflow: hidden;
+    z-index: 2;
   }
 
   .achievement.epic .sparkles { display: block; }
 
   .sparkle {
     position: absolute;
-    width: 2px;
-    height: 2px;
-    background: #ffcc44;
+    width: 3px;
+    height: 3px;
+    background: #39ff14;
+    box-shadow: 0 0 6px #39ff14;
     animation: sparkleFloat 2s ease-in-out infinite;
   }
 
   @keyframes sparkleFloat {
     0% { opacity: 0; transform: translateY(0); }
-    30% { opacity: 0.8; }
-    100% { opacity: 0; transform: translateY(-20px); }
+    30% { opacity: 0.9; }
+    100% { opacity: 0; transform: translateY(-25px); }
   }
 </style>
 </head>
@@ -176,51 +262,51 @@ const DURATION = { minor: 3000, major: 5000, epic: 8000 };
 
 const ICONS = {
   minor: `
-    <rect x="6" y="1" width="4" height="1" fill="#888"/>
-    <rect x="5" y="2" width="6" height="1" fill="#888"/>
-    <rect x="4" y="3" width="8" height="1" fill="#777"/>
-    <rect x="4" y="4" width="8" height="3" fill="#666"/>
-    <rect x="5" y="7" width="6" height="1" fill="#555"/>
-    <rect x="6" y="8" width="4" height="1" fill="#555"/>
-    <rect x="7" y="9" width="2" height="1" fill="#444"/>
-    <rect x="6" y="10" width="4" height="2" fill="#555"/>
-    <rect x="5" y="12" width="6" height="1" fill="#666"/>
-    <rect x="7" y="4" width="2" height="2" fill="#aaa"/>
+    <rect x="6" y="1" width="4" height="1" fill="#00d4ff"/>
+    <rect x="5" y="2" width="6" height="1" fill="#00d4ff"/>
+    <rect x="4" y="3" width="8" height="1" fill="#00b8dd"/>
+    <rect x="4" y="4" width="8" height="3" fill="#0099bb"/>
+    <rect x="5" y="7" width="6" height="1" fill="#007799"/>
+    <rect x="6" y="8" width="4" height="1" fill="#007799"/>
+    <rect x="7" y="9" width="2" height="1" fill="#005566"/>
+    <rect x="6" y="10" width="4" height="2" fill="#007799"/>
+    <rect x="5" y="12" width="6" height="1" fill="#0099bb"/>
+    <rect x="7" y="4" width="2" height="2" fill="#66eeff"/>
   `,
   major: `
-    <rect x="6" y="0" width="4" height="1" fill="#cc9900"/>
-    <rect x="5" y="1" width="6" height="1" fill="#cc9900"/>
-    <rect x="4" y="2" width="8" height="1" fill="#aa8800"/>
-    <rect x="3" y="3" width="10" height="1" fill="#aa8800"/>
-    <rect x="3" y="4" width="10" height="3" fill="#997700"/>
-    <rect x="4" y="7" width="8" height="1" fill="#886600"/>
-    <rect x="5" y="8" width="6" height="1" fill="#886600"/>
-    <rect x="6" y="9" width="4" height="1" fill="#775500"/>
-    <rect x="5" y="10" width="6" height="2" fill="#886600"/>
-    <rect x="4" y="12" width="8" height="1" fill="#997700"/>
-    <rect x="6" y="4" width="4" height="2" fill="#eebb33"/>
-    <rect x="7" y="3" width="2" height="1" fill="#ffcc44"/>
+    <rect x="6" y="0" width="4" height="1" fill="#ff2d7b"/>
+    <rect x="5" y="1" width="6" height="1" fill="#ff2d7b"/>
+    <rect x="4" y="2" width="8" height="1" fill="#dd2266"/>
+    <rect x="3" y="3" width="10" height="1" fill="#dd2266"/>
+    <rect x="3" y="4" width="10" height="3" fill="#bb1155"/>
+    <rect x="4" y="7" width="8" height="1" fill="#991144"/>
+    <rect x="5" y="8" width="6" height="1" fill="#991144"/>
+    <rect x="6" y="9" width="4" height="1" fill="#770033"/>
+    <rect x="5" y="10" width="6" height="2" fill="#991144"/>
+    <rect x="4" y="12" width="8" height="1" fill="#bb1155"/>
+    <rect x="6" y="4" width="4" height="2" fill="#ff66aa"/>
+    <rect x="7" y="3" width="2" height="1" fill="#ff88bb"/>
   `,
   epic: `
-    <rect x="7" y="0" width="2" height="1" fill="#ffaa00"/>
-    <rect x="6" y="1" width="4" height="1" fill="#ffcc44"/>
-    <rect x="5" y="2" width="6" height="1" fill="#ffcc44"/>
-    <rect x="4" y="3" width="8" height="1" fill="#eebb33"/>
-    <rect x="3" y="4" width="10" height="1" fill="#ddaa22"/>
-    <rect x="2" y="5" width="12" height="2" fill="#cc9900"/>
-    <rect x="3" y="7" width="10" height="1" fill="#bb8800"/>
-    <rect x="4" y="8" width="8" height="1" fill="#aa7700"/>
-    <rect x="5" y="9" width="6" height="1" fill="#996600"/>
-    <rect x="6" y="10" width="4" height="1" fill="#885500"/>
-    <rect x="5" y="11" width="6" height="2" fill="#996600"/>
-    <rect x="4" y="13" width="8" height="1" fill="#aa7700"/>
-    <rect x="6" y="5" width="4" height="2" fill="#ffdd66"/>
-    <rect x="7" y="4" width="2" height="1" fill="#ffee88"/>
-    <rect x="7" y="3" width="2" height="1" fill="#fff"/>
-    <rect x="1" y="5" width="1" height="2" fill="#ffaa00"/>
-    <rect x="14" y="5" width="1" height="2" fill="#ffaa00"/>
-    <rect x="0" y="6" width="1" height="1" fill="#cc8800"/>
-    <rect x="15" y="6" width="1" height="1" fill="#cc8800"/>
+    <rect x="7" y="0" width="2" height="1" fill="#39ff14"/>
+    <rect x="6" y="1" width="4" height="1" fill="#39ff14"/>
+    <rect x="5" y="2" width="6" height="1" fill="#39ff14"/>
+    <rect x="4" y="3" width="8" height="1" fill="#33dd11"/>
+    <rect x="3" y="4" width="10" height="1" fill="#2abb0e"/>
+    <rect x="2" y="5" width="12" height="2" fill="#22990c"/>
+    <rect x="3" y="7" width="10" height="1" fill="#1a770a"/>
+    <rect x="4" y="8" width="8" height="1" fill="#166608"/>
+    <rect x="5" y="9" width="6" height="1" fill="#115506"/>
+    <rect x="6" y="10" width="4" height="1" fill="#0d4404"/>
+    <rect x="5" y="11" width="6" height="2" fill="#115506"/>
+    <rect x="4" y="13" width="8" height="1" fill="#166608"/>
+    <rect x="6" y="5" width="4" height="2" fill="#66ff44"/>
+    <rect x="7" y="4" width="2" height="1" fill="#88ff66"/>
+    <rect x="7" y="3" width="2" height="1" fill="#ccffcc"/>
+    <rect x="1" y="5" width="1" height="2" fill="#39ff14"/>
+    <rect x="14" y="5" width="1" height="2" fill="#39ff14"/>
+    <rect x="0" y="6" width="1" height="1" fill="#22990c"/>
+    <rect x="15" y="6" width="1" height="1" fill="#22990c"/>
   `,
 };
 

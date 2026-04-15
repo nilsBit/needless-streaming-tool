@@ -2,47 +2,165 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;700&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: transparent; font-family: -apple-system, sans-serif; overflow: hidden; }
+    body { background: transparent; font-family: 'Inter', sans-serif; overflow: hidden; }
 
     .poll {
       display: none;
       flex-direction: column;
-      gap: 8px;
-      padding: 16px;
-      background: rgba(13, 13, 13, 0.85);
-      border: 1px solid #2a2a2a;
-      border-radius: 8px;
-      backdrop-filter: blur(8px);
-      width: 300px;
+      gap: 10px;
+      padding: 20px;
+      background: rgba(10, 10, 10, 0.93);
+      border: 3px solid #ff2d7b;
+      width: 340px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 20px rgba(255, 45, 123, 0.3);
+      animation: pollPulse 3s ease-in-out infinite;
+    }
+
+    /* Spray paint texture */
+    .poll::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 3px,
+        rgba(255, 255, 255, 0.012) 3px,
+        rgba(255, 255, 255, 0.012) 6px
+      );
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Diagonal stripe accent bottom */
+    .poll::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0; height: 4px;
+      background: repeating-linear-gradient(
+        45deg,
+        #ff2d7b,
+        #ff2d7b 3px,
+        #00d4ff 3px,
+        #00d4ff 6px,
+        transparent 6px,
+        transparent 9px
+      );
+      z-index: 1;
+    }
+
+    @keyframes pollPulse {
+      0%, 100% { box-shadow: 0 0 20px rgba(255, 45, 123, 0.3); }
+      50% { box-shadow: 0 0 30px rgba(255, 45, 123, 0.5); }
     }
 
     .poll.visible { display: flex; }
 
     .poll-title {
-      font-size: 14px;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px;
       font-weight: 700;
-      color: #e67e22;
+      color: #ff2d7b;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px rgba(255, 45, 123, 0.5), 2px 2px 0 rgba(0,0,0,0.5);
+      transform: skewX(-3deg);
+      padding: 6px 12px;
+      background: rgba(255, 45, 123, 0.08);
+      border-left: 4px solid #ff2d7b;
+      position: relative;
+      z-index: 1;
+    }
+
+    #options {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+      z-index: 1;
     }
 
     .poll-option {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 6px 10px;
-      background: #1a1a1a;
-      border-radius: 4px;
+      gap: 10px;
+      padding: 10px 14px;
+      background: rgba(20, 20, 20, 0.9);
+      border: 2px solid #333;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.3s, box-shadow 0.3s;
     }
 
-    .poll-label { font-size: 13px; color: #e0e0e0; flex: 1; }
-    .poll-count { font-size: 13px; color: #e67e22; font-weight: 700; }
+    .poll-option:hover {
+      border-color: #00d4ff;
+      box-shadow: 0 0 10px rgba(0, 212, 255, 0.2);
+    }
+
+    .poll-label {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      color: #e0e0e0;
+      flex: 1;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      z-index: 1;
+      position: relative;
+    }
+
+    .poll-count {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      color: #00d4ff;
+      font-weight: 700;
+      text-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+      z-index: 1;
+      position: relative;
+      letter-spacing: 1px;
+    }
+
+    .poll-bar-wrap {
+      width: 100%;
+      height: 4px;
+      background: rgba(30, 30, 30, 0.8);
+      position: relative;
+      overflow: hidden;
+    }
 
     .poll-bar {
-      height: 3px;
-      background: #e67e22;
-      border-radius: 2px;
-      transition: width 0.3s;
+      height: 4px;
+      background: linear-gradient(90deg, #ff2d7b, #00d4ff);
+      transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+      box-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+      position: relative;
+    }
+
+    /* Winner highlight glow */
+    .poll-option.winner {
+      border-color: #39ff14;
+      box-shadow: 0 0 20px rgba(57, 255, 20, 0.4);
+      animation: winnerGlow 1.5s ease-in-out infinite;
+    }
+
+    .poll-option.winner .poll-label {
+      color: #39ff14;
+      text-shadow: 0 0 8px rgba(57, 255, 20, 0.4);
+    }
+
+    .poll-option.winner .poll-count {
+      color: #39ff14;
+      text-shadow: 0 0 10px rgba(57, 255, 20, 0.5);
+    }
+
+    @keyframes winnerGlow {
+      0%, 100% { box-shadow: 0 0 20px rgba(57, 255, 20, 0.4); }
+      50% { box-shadow: 0 0 35px rgba(57, 255, 20, 0.7); }
     }
   </style>
 </head>
@@ -80,14 +198,30 @@
           opt.appendChild(label);
           opt.appendChild(count);
           optionsEl.appendChild(opt);
+          const barWrap = document.createElement('div');
+          barWrap.className = 'poll-bar-wrap';
           const bar = document.createElement('div');
           bar.className = 'poll-bar';
           bar.style.width = ((o.votes / total) * 100) + '%';
-          optionsEl.appendChild(bar);
+          barWrap.appendChild(bar);
+          optionsEl.appendChild(barWrap);
         });
       }
 
       if (event === 'poll-close') {
+        // Highlight the winner
+        const options = optionsEl.querySelectorAll('.poll-option');
+        let maxVotes = -1;
+        let winnerEl = null;
+        options.forEach(opt => {
+          const count = parseInt(opt.querySelector('.poll-count').textContent) || 0;
+          if (count > maxVotes) {
+            maxVotes = count;
+            winnerEl = opt;
+          }
+        });
+        if (winnerEl) winnerEl.classList.add('winner');
+
         setTimeout(() => poll.classList.remove('visible'), 5000);
       }
     };

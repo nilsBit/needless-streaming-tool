@@ -2,62 +2,124 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: transparent !important; background-color: rgba(0,0,0,0) !important; font-family: 'SF Mono', monospace; overflow: hidden; }
+    body { background: transparent !important; background-color: rgba(0,0,0,0) !important; font-family: 'Inter', sans-serif; overflow: hidden; }
 
     .banner {
       display: none;
       align-items: center;
-      gap: 12px;
-      padding: 10px 20px;
-      background: rgba(13, 13, 13, 0.85);
-      border: 1px solid #2a2a2a;
-      border-radius: 8px;
-      backdrop-filter: blur(8px);
+      gap: 14px;
+      padding: 12px 22px;
+      background: rgba(10,10,10,0.95);
+      border: 3px solid #ff2d7b;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 15px rgba(255,45,123,0.5);
+      animation: bannerPulse 2s ease-in-out infinite;
+    }
+
+    .banner::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(255,45,123,0.04) 10px,
+        rgba(255,45,123,0.04) 20px
+      );
+      pointer-events: none;
+    }
+
+    .banner::after {
+      content: 'CHALLENGE';
+      position: absolute;
+      top: 0; right: 0;
+      background: #ff2d7b;
+      color: #000;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 10px;
+      letter-spacing: 3px;
+      padding: 2px 10px;
+      transform: skewX(-3deg);
+      transform-origin: top right;
+      box-shadow: 0 0 8px rgba(255,45,123,0.5);
     }
 
     .banner.visible { display: flex; }
 
+    @keyframes bannerPulse {
+      0%, 100% { box-shadow: 0 0 15px rgba(255,45,123,0.5); }
+      50% { box-shadow: 0 0 25px rgba(255,45,123,0.7); }
+    }
+
     .status-dot {
-      width: 10px;
-      height: 10px;
+      width: 12px;
+      height: 12px;
       border-radius: 50%;
       flex-shrink: 0;
     }
 
-    .status-dot.in_progress { background: #e74c3c; animation: pulse 1.5s infinite; }
-    .status-dot.done { background: #2ecc71; }
-    .status-dot.failed { background: #e74c3c; }
-    .status-dot.idle { background: #888; }
+    .status-dot.in_progress {
+      background: #ff2d7b;
+      box-shadow: 0 0 10px rgba(255,45,123,0.8), 0 0 20px rgba(255,45,123,0.4);
+      animation: dotPulse 1.2s ease-in-out infinite;
+    }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
+    .status-dot.done {
+      background: #39ff14;
+      box-shadow: 0 0 10px rgba(57,255,20,0.6);
+    }
+
+    .status-dot.failed {
+      background: #ff2d7b;
+      box-shadow: 0 0 10px rgba(255,45,123,0.6);
+    }
+
+    .status-dot.idle {
+      background: #555;
+      box-shadow: 0 0 5px rgba(85,85,85,0.3);
+    }
+
+    @keyframes dotPulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 10px rgba(255,45,123,0.8), 0 0 20px rgba(255,45,123,0.4); }
+      50% { opacity: 0.5; box-shadow: 0 0 20px rgba(255,45,123,1), 0 0 40px rgba(255,45,123,0.6); }
     }
 
     .title {
-      font-size: 16px;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px;
       font-weight: 700;
       color: #e0e0e0;
+      letter-spacing: 2px;
+      text-shadow: 0 0 8px rgba(0,212,255,0.4), 3px 3px 0 rgba(0,0,0,0.6);
+      text-transform: uppercase;
     }
 
     .timer {
-      font-size: 20px;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 28px;
       font-weight: 700;
-      color: #e67e22;
+      color: #ff6b35;
       margin-left: auto;
+      letter-spacing: 3px;
+      text-shadow: 0 0 10px rgba(255,107,53,0.6), 0 0 20px rgba(255,107,53,0.3);
     }
 
     .timer.paused {
-      opacity: 0.5;
+      opacity: 0.4;
     }
 
     .status-label {
-      font-size: 11px;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 14px;
       text-transform: uppercase;
-      color: #888;
-      letter-spacing: 1px;
+      color: #00d4ff;
+      letter-spacing: 2px;
+      text-shadow: 0 0 6px rgba(0,212,255,0.4);
     }
   </style>
 </head>
@@ -103,7 +165,7 @@
     }
 
     var statusMap = {
-      'in_progress': 'Läuft',
+      'in_progress': 'L\u00e4uft',
       'done': 'Geschafft!',
       'failed': 'Nicht geschafft',
       'idle': ''

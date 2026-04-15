@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Lucky Spin - OBS Overlay</title>
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;700&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -15,8 +15,7 @@
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    font-family: 'Press Start 2P', monospace;
-    image-rendering: pixelated;
+    font-family: 'Inter', sans-serif;
     overflow: hidden;
   }
 
@@ -24,7 +23,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
+    gap: 14px;
     opacity: 0;
     transform: scale(0.5);
     transition: opacity 0.5s ease, transform 0.5s ease;
@@ -43,66 +42,188 @@
     transition: opacity 0.8s ease, transform 0.8s ease;
   }
 
-  .pixel-box {
-    background: rgba(10,10,10,0.85);
-    border: 2px solid #333;
-    box-shadow: inset -2px -2px 0 #000, inset 2px 2px 0 #1a1a1a, 4px 4px 0 rgba(0,0,0,0.6);
+  .neon-box {
+    background: rgba(10, 10, 10, 0.93);
+    border: 3px solid #ff2d7b;
+    position: relative;
+    overflow: hidden;
   }
 
-  .counter { display: flex; align-items: center; gap: 8px; padding: 6px 14px; }
-  .counter .diamond { color: #ccc; font-size: 10px; animation: orbFloat 2s ease-in-out infinite; }
-  .counter .pts { color: #888; font-size: 10px; }
-  .counter .label { color: #444; font-size: 7px; }
+  /* Spray texture on neon boxes */
+  .neon-box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 3px,
+      rgba(255, 255, 255, 0.012) 3px,
+      rgba(255, 255, 255, 0.012) 6px
+    );
+    pointer-events: none;
+  }
 
-  .wheel-wrapper { position: relative; width: 320px; height: 320px; }
+  .counter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 18px;
+    box-shadow: 0 0 15px rgba(255, 45, 123, 0.3);
+  }
+
+  .counter .diamond {
+    color: #ff2d7b;
+    font-size: 14px;
+    text-shadow: 0 0 8px rgba(255, 45, 123, 0.5);
+    animation: orbFloat 2s ease-in-out infinite;
+  }
+
+  .counter .pts {
+    color: #e0e0e0;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 16px;
+    letter-spacing: 2px;
+    text-shadow: 0 0 6px rgba(0, 212, 255, 0.4);
+  }
+
+  .counter .label {
+    color: #666;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+  }
+
+  .wheel-wrapper {
+    position: relative;
+    width: 320px;
+    height: 320px;
+    filter: drop-shadow(0 0 20px rgba(255, 45, 123, 0.3));
+  }
+
   .wheel-rotate { width: 320px; height: 320px; }
 
   .orb {
-    position: absolute; width: 4px; height: 4px;
-    background: #fff; image-rendering: pixelated;
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #ff2d7b;
+    box-shadow: 0 0 8px #ff2d7b, 0 0 16px rgba(255, 45, 123, 0.4);
   }
 
   .pointer-wrap {
-    position: absolute; top: -14px; left: 50%; transform: translateX(-50%); z-index: 20;
-    image-rendering: pixelated;
+    position: absolute;
+    top: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
     animation: pointerPulse 2.5s ease-in-out infinite;
+    filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.6));
   }
-  .pointer-wrap.active { animation: pointerPulse 0.15s ease-in-out infinite; }
+  .pointer-wrap.active {
+    animation: pointerPulse 0.15s ease-in-out infinite;
+    filter: drop-shadow(0 0 15px rgba(57, 255, 20, 0.8));
+  }
 
   .spin-btn {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 10px; color: #e0e0e0;
-    padding: 8px 24px; cursor: pointer;
-    letter-spacing: 2px; transition: all 0.2s;
-    background: rgba(26,26,26,0.9); border: 2px solid #444;
-    box-shadow: inset -2px -2px 0 #000, inset 2px 2px 0 #1a1a1a, 4px 4px 0 rgba(0,0,0,0.6);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    color: #e0e0e0;
+    padding: 10px 32px;
+    cursor: pointer;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    background: rgba(10, 10, 10, 0.9);
+    border: 3px solid #00d4ff;
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+    transform: skewX(-3deg);
+    text-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
   }
-  .spin-btn:hover { border-color: #666; }
-  .spin-btn:disabled { color: #333; background: rgba(10,10,10,0.9); border-color: #1a1a1a; cursor: not-allowed; }
+  .spin-btn:hover {
+    border-color: #39ff14;
+    box-shadow: 0 0 25px rgba(57, 255, 20, 0.5);
+    text-shadow: 0 0 10px rgba(57, 255, 20, 0.5);
+    color: #39ff14;
+  }
+  .spin-btn:disabled {
+    color: #333;
+    background: rgba(10, 10, 10, 0.9);
+    border-color: #222;
+    box-shadow: none;
+    text-shadow: none;
+    cursor: not-allowed;
+  }
 
-  .result { padding: 10px 24px; text-align: center; animation: fadeIn 0.4s ease-out forwards; }
-  .result-label { color: #555; font-size: 6px; letter-spacing: 3px; margin-bottom: 4px; }
-  .result-value { font-size: 14px; text-shadow: 1px 1px 0 #000; }
-  .result-sub { font-size: 6px; margin-top: 3px; letter-spacing: 2px; }
+  .result {
+    padding: 14px 28px;
+    text-align: center;
+    animation: fadeIn 0.4s ease-out forwards;
+    box-shadow: 0 0 25px rgba(57, 255, 20, 0.4);
+    border-color: #39ff14;
+  }
+
+  .result-label {
+    color: #39ff14;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 12px;
+    letter-spacing: 4px;
+    margin-bottom: 6px;
+    text-shadow: 0 0 8px rgba(57, 255, 20, 0.4);
+    text-transform: uppercase;
+  }
+
+  .result-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    text-shadow: 2px 2px 0 #000, 0 0 15px rgba(255, 45, 123, 0.5);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .result-sub {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    margin-top: 4px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  /* Explosion effect on result show */
+  @keyframes resultExplosion {
+    0% { box-shadow: 0 0 80px rgba(57, 255, 20, 1), 0 0 120px rgba(255, 45, 123, 0.6); border-color: #fff; }
+    50% { box-shadow: 0 0 40px rgba(57, 255, 20, 0.6), 0 0 60px rgba(255, 45, 123, 0.3); }
+    100% { box-shadow: 0 0 25px rgba(57, 255, 20, 0.4); border-color: #39ff14; }
+  }
+
+  .result.explosion {
+    animation: fadeIn 0.4s ease-out forwards, resultExplosion 1s ease-out;
+  }
 
   .hidden { display: none; }
 
-  @keyframes fadeIn { 0%{opacity:0;transform:translateY(8px)} 100%{opacity:1;transform:translateY(0)} }
-  @keyframes pointerPulse {
-    0%,100% { filter: drop-shadow(0 0 2px rgba(255,255,255,0.1)); }
-    50% { filter: drop-shadow(0 0 6px rgba(255,255,255,0.5)); }
+  @keyframes fadeIn {
+    0% { opacity: 0; transform: translateY(8px) skewX(-3deg); }
+    100% { opacity: 1; transform: translateY(0) skewX(-3deg); }
   }
+
+  @keyframes pointerPulse {
+    0%, 100% { filter: drop-shadow(0 0 6px rgba(0, 212, 255, 0.3)); }
+    50% { filter: drop-shadow(0 0 14px rgba(0, 212, 255, 0.8)); }
+  }
+
   @keyframes orbFloat {
-    0% { transform:translateY(0);opacity:.3 }
-    50% { transform:translateY(-4px);opacity:.6 }
-    100% { transform:translateY(0);opacity:.3 }
+    0% { transform: translateY(0); opacity: .4; }
+    50% { transform: translateY(-4px); opacity: .8; }
+    100% { transform: translateY(0); opacity: .4; }
   }
 </style>
 </head>
 <body>
 
 <div class="container">
-  <div class="counter pixel-box">
+  <div class="counter neon-box">
     <span class="diamond">◆</span>
     <span class="pts" id="totalPts">0</span>
     <span class="label">PTS</span>
@@ -112,24 +233,16 @@
     <div id="orbs"></div>
 
     <div class="pointer-wrap" id="pointer">
-      <svg width="24" height="36" viewBox="0 0 12 18" style="image-rendering:pixelated">
-        <rect x="5" y="0" width="2" height="2" fill="#ccc"/>
-        <rect x="4" y="2" width="4" height="2" fill="#aaa"/>
-        <rect x="3" y="4" width="6" height="2" fill="#888"/>
-        <rect x="2" y="6" width="8" height="2" fill="#666"/>
-        <rect x="1" y="8" width="10" height="2" fill="#555"/>
-        <rect x="0" y="10" width="12" height="2" fill="#444"/>
-        <rect x="5" y="0" width="1" height="2" fill="#fff"/>
-        <rect x="4" y="2" width="1" height="2" fill="#ddd"/>
-        <rect x="3" y="4" width="1" height="2" fill="#bbb"/>
-        <rect x="5" y="0" width="2" height="1" fill="#eee"/>
+      <svg width="28" height="40" viewBox="0 0 14 20">
+        <polygon points="7,0 14,18 0,18" fill="#00d4ff" stroke="#0a0a0a" stroke-width="1"/>
+        <polygon points="7,3 11,16 3,16" fill="rgba(0,212,255,0.4)"/>
       </svg>
     </div>
 
     <div class="wheel-rotate" id="wheel"></div>
   </div>
 
-  <div class="result pixel-box hidden" id="resultBox">
+  <div class="result neon-box hidden" id="resultBox">
     <div class="result-label">ERGEBNIS</div>
     <div class="result-value" id="resultValue"></div>
     <div class="result-sub" id="resultSub"></div>
@@ -137,16 +250,16 @@
 </div>
 
 <script>
-// Dynamic segments from bugs API — alternating dark styles
+// Dynamic segments from bugs API — NFS Unbound neon palette
 const PALETTE = [
-  { bg: "#2a2a2a", txt: "#e8e8e8" },
-  { bg: "#1a1a1a", txt: "#999999" },
-  { bg: "#242424", txt: "#cccccc" },
-  { bg: "#161616", txt: "#777777" },
-  { bg: "#303030", txt: "#e0e0e0" },
-  { bg: "#1e1e1e", txt: "#aaaaaa" },
-  { bg: "#0f0f0f", txt: "#bbbbbb" },
-  { bg: "#0c0c0c", txt: "#888888" },
+  { bg: "#1a0a1e", txt: "#ff2d7b" },
+  { bg: "#0a1520", txt: "#00d4ff" },
+  { bg: "#0a1a0a", txt: "#39ff14" },
+  { bg: "#1a1005", txt: "#ff6b35" },
+  { bg: "#150a1e", txt: "#ff2d7b" },
+  { bg: "#051520", txt: "#00d4ff" },
+  { bg: "#0f1a05", txt: "#39ff14" },
+  { bg: "#1a0f05", txt: "#ff6b35" },
 ];
 
 let SEGMENTS = [];
@@ -238,33 +351,55 @@ function buildWheel(){
   });
   defs+=`<pattern id="pg" width="4" height="4" patternUnits="userSpaceOnUse"><rect width="4" height="4" fill="transparent"/><rect x="0" y="0" width="4" height="1" fill="rgba(0,0,0,0.06)"/><rect x="0" y="0" width="1" height="4" fill="rgba(0,0,0,0.06)"/></pattern><clipPath id="wc"><circle cx="${CX}" cy="${CY}" r="${R}"/></clipPath>`;
 
+  // Neon outer ring
   let outer='';
-  for(let i=0;i<72;i++){const a=i*5*Math.PI/180,x=Math.round((CX+(R+6)*Math.cos(a))/2)*2-2,y=Math.round((CY+(R+6)*Math.sin(a))/2)*2-2;outer+=`<rect x="${x}" y="${y}" width="4" height="4" fill="${i%3===0?'#333':'#1a1a1a'}"/>`;}
+  for(let i=0;i<72;i++){
+    const a=i*5*Math.PI/180,x=Math.round((CX+(R+6)*Math.cos(a))/2)*2-2,y=Math.round((CY+(R+6)*Math.sin(a))/2)*2-2;
+    const neonColors = ['#ff2d7b','#00d4ff','#39ff14','#ff6b35'];
+    const c = i%3===0 ? neonColors[i%4] : '#1a1a1a';
+    outer+=`<rect x="${x}" y="${y}" width="4" height="4" fill="${c}" opacity="${i%3===0?'0.8':'0.3'}"/>`;
+  }
 
   // Adjust font size based on segment count
-  const fontSize = N <= 6 ? 7 : N <= 10 ? 6 : 5;
+  const fontSize = N <= 6 ? 9 : N <= 10 ? 8 : 7;
   const labelRadius = N <= 6 ? R*0.58 : R*0.62;
 
   let segs='';
   SEGMENTS.forEach((s,i)=>{
     const sd=i*ANG,ed=(i+1)*ANG,md=sd+ANG/2,lp=p2c(CX,CY,labelRadius,md),sp=p2c(CX,CY,24,sd),ep=p2c(CX,CY,R,sd);
-    segs+=`<path d="${ap(CX,CY,R,sd,ed)}" fill="url(#d${i})"/><path d="${ap(CX,CY,R,sd,ed)}" fill="none" stroke="#000" stroke-width="2"/><line x1="${sp.x}" y1="${sp.y}" x2="${ep.x}" y2="${ep.y}" stroke="#000" stroke-width="2"/>`;
-    [0.2,0.4,0.6,0.8].forEach(t=>{const dp=p2c(CX,CY,R-10,sd+ANG*t);segs+=`<rect x="${Math.round(dp.x/2)*2-1}" y="${Math.round(dp.y/2)*2-1}" width="2" height="2" fill="${s.txt}" opacity="0.2"/>`;});
-    const dp2=p2c(CX,CY,R-4,md);segs+=`<rect x="${Math.round(dp2.x/2)*2-1}" y="${Math.round(dp2.y/2)*2-1}" width="3" height="3" fill="${s.txt}" opacity="0.3"/>`;
-    segs+=`<g transform="translate(${lp.x},${lp.y}) rotate(${md})"><text text-anchor="middle" dominant-baseline="central" fill="#000" font-size="${fontSize}" font-family="'Press Start 2P',monospace" dy="1" dx="1">${s.label}</text><text text-anchor="middle" dominant-baseline="central" fill="${s.txt}" font-size="${fontSize}" font-family="'Press Start 2P',monospace">${s.label}</text></g>`;
+    // Segment fill
+    segs+=`<path d="${ap(CX,CY,R,sd,ed)}" fill="url(#d${i})"/>`;
+    // Neon border between segments
+    segs+=`<path d="${ap(CX,CY,R,sd,ed)}" fill="none" stroke="${s.txt}" stroke-width="1" opacity="0.3"/>`;
+    segs+=`<line x1="${sp.x}" y1="${sp.y}" x2="${ep.x}" y2="${ep.y}" stroke="${s.txt}" stroke-width="1" opacity="0.4"/>`;
+    // Decorative dots
+    [0.2,0.4,0.6,0.8].forEach(t=>{const dp=p2c(CX,CY,R-10,sd+ANG*t);segs+=`<rect x="${Math.round(dp.x/2)*2-1}" y="${Math.round(dp.y/2)*2-1}" width="2" height="2" fill="${s.txt}" opacity="0.3"/>`;});
+    const dp2=p2c(CX,CY,R-4,md);segs+=`<rect x="${Math.round(dp2.x/2)*2-1}" y="${Math.round(dp2.y/2)*2-1}" width="3" height="3" fill="${s.txt}" opacity="0.4"/>`;
+    // Labels with neon glow
+    segs+=`<g transform="translate(${lp.x},${lp.y}) rotate(${md})"><text text-anchor="middle" dominant-baseline="central" fill="${s.txt}" font-size="${fontSize}" font-family="'Bebas Neue',sans-serif" letter-spacing="1" opacity="0.3" dx="1" dy="1">${s.label}</text><text text-anchor="middle" dominant-baseline="central" fill="${s.txt}" font-size="${fontSize}" font-family="'Bebas Neue',sans-serif" letter-spacing="1">${s.label}</text></g>`;
   });
 
+  // Inner ring with neon
   let inner='';
-  for(let i=0;i<48;i++){const a=i*7.5*Math.PI/180,x=Math.round((CX+26*Math.cos(a))/2)*2-1,y=Math.round((CY+26*Math.sin(a))/2)*2-1;inner+=`<rect x="${x}" y="${y}" width="2" height="2" fill="${i%2===0?'#444':'#222'}"/>`;}
+  for(let i=0;i<48;i++){
+    const a=i*7.5*Math.PI/180,x=Math.round((CX+26*Math.cos(a))/2)*2-1,y=Math.round((CY+26*Math.sin(a))/2)*2-1;
+    const neonColors = ['#ff2d7b','#00d4ff','#39ff14','#ff6b35'];
+    inner+=`<rect x="${x}" y="${y}" width="2" height="2" fill="${i%2===0?neonColors[i%4]:'#222'}" opacity="${i%2===0?'0.6':'0.3'}"/>`;
+  }
 
-  document.getElementById('wheel').innerHTML=`<svg width="320" height="320" viewBox="0 0 320 320" style="image-rendering:pixelated"><defs>${defs}</defs>${outer}${segs}<circle cx="${CX}" cy="${CY}" r="${R}" fill="url(#pg)" clip-path="url(#wc)"/><circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="#333" stroke-width="3"/>${inner}<circle cx="${CX}" cy="${CY}" r="20" fill="#111" stroke="#444" stroke-width="2"/><circle cx="${CX}" cy="${CY}" r="14" fill="#0a0a0a" stroke="#333" stroke-width="1"/><rect x="${CX-1}" y="${CY-8}" width="2" height="16" fill="#444"/><rect x="${CX-8}" y="${CY-1}" width="16" height="2" fill="#444"/><rect x="${CX-2}" y="${CY-2}" width="4" height="4" fill="#ddd"/><rect x="${CX-1}" y="${CY-1}" width="2" height="2" fill="#fff"/></svg>`;
+  document.getElementById('wheel').innerHTML=`<svg width="320" height="320" viewBox="0 0 320 320"><defs>${defs}</defs>${outer}${segs}<circle cx="${CX}" cy="${CY}" r="${R}" fill="url(#pg)" clip-path="url(#wc)"/><circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="#ff2d7b" stroke-width="2" opacity="0.5"/>${inner}<circle cx="${CX}" cy="${CY}" r="20" fill="#0a0a0a" stroke="#ff2d7b" stroke-width="2" opacity="0.8"/><circle cx="${CX}" cy="${CY}" r="14" fill="#050505" stroke="#00d4ff" stroke-width="1" opacity="0.6"/><rect x="${CX-1}" y="${CY-8}" width="2" height="16" fill="#00d4ff" opacity="0.5"/><rect x="${CX-8}" y="${CY-1}" width="16" height="2" fill="#00d4ff" opacity="0.5"/><rect x="${CX-3}" y="${CY-3}" width="6" height="6" fill="#ff2d7b" rx="1"/><rect x="${CX-1}" y="${CY-1}" width="2" height="2" fill="#fff"/></svg>`;
 
   document.getElementById('totalPts').textContent = N + ' BUGS';
 }
 
 function buildOrbs(){
   let h='';
-  for(let i=0;i<8;i++){const a=(i*45+22.5)*Math.PI/180,r=178;h+=`<div class="orb" style="left:calc(50% + ${Math.cos(a)*r}px - 2px);top:calc(50% + ${Math.sin(a)*r}px - 2px);animation:orbFloat ${2+i*0.3}s ease-in-out infinite;animation-delay:${i*0.25}s"></div>`;}
+  const neonColors = ['#ff2d7b','#00d4ff','#39ff14','#ff6b35'];
+  for(let i=0;i<8;i++){
+    const a=(i*45+22.5)*Math.PI/180,r=178;
+    const c = neonColors[i%4];
+    h+=`<div class="orb" style="left:calc(50% + ${Math.cos(a)*r}px - 3px);top:calc(50% + ${Math.sin(a)*r}px - 3px);background:${c};box-shadow:0 0 8px ${c}, 0 0 16px ${c}40;animation:orbFloat ${2+i*0.3}s ease-in-out infinite;animation-delay:${i*0.25}s"></div>`;
+  }
   document.getElementById('orbs').innerHTML=h;
 }
 
@@ -304,9 +439,10 @@ function spin(){
       const norm=((360-(endRot%360))+360)%360,idx=Math.floor(norm/ANG)%N,won=SEGMENTS[idx];
 
       const box=document.getElementById('resultBox'),val=document.getElementById('resultValue'),sub=document.getElementById('resultSub');
-      box.classList.remove('hidden');box.style.animation='none';box.offsetHeight;box.style.animation='fadeIn 0.4s ease-out forwards';
+      box.classList.remove('hidden');box.className='result neon-box explosion';
       val.style.color=won.txt;
-      sub.style.color='#555';
+      val.style.textShadow=`2px 2px 0 #000, 0 0 15px ${won.txt}`;
+      sub.style.color='#666';
       val.textContent = '► ' + (won.title || won.label);
       sub.textContent = 'MUSS GEFIXT WERDEN';
 

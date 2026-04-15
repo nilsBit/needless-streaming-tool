@@ -2,47 +2,138 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: transparent; font-family: -apple-system, sans-serif; overflow: hidden; }
+    body { background: transparent !important; background-color: rgba(0,0,0,0) !important; font-family: 'Inter', sans-serif; overflow: hidden; }
 
     .song {
       display: none;
       align-items: center;
-      gap: 10px;
-      padding: 8px 16px;
-      background: rgba(13, 13, 13, 0.8);
-      border: 1px solid #2a2a2a;
-      border-radius: 6px;
-      backdrop-filter: blur(8px);
+      gap: 14px;
+      padding: 12px 20px;
+      background: rgba(10,10,10,0.95);
+      border: 3px solid #39ff14;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 15px rgba(57,255,20,0.4);
+      animation: songSlideIn 0.5s ease-out;
     }
 
-    .song.visible { display: flex; }
+    .song::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(57,255,20,0.03) 10px,
+        rgba(57,255,20,0.03) 20px
+      );
+      pointer-events: none;
+    }
 
-    .song-icon { font-size: 16px; }
+    .song.visible { display: flex; animation: songSlideIn 0.5s ease-out; }
+
+    @keyframes songSlideIn {
+      0% { opacity: 0; transform: translateX(-40px); }
+      100% { opacity: 1; transform: translateX(0); }
+    }
+
+    /* NOW PLAYING label */
+    .now-playing {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 11px;
+      letter-spacing: 4px;
+      color: #39ff14;
+      text-transform: uppercase;
+      text-shadow: 0 0 8px rgba(57,255,20,0.6);
+      transform: skewX(-3deg);
+      display: inline-block;
+      padding: 2px 8px;
+      background: rgba(57,255,20,0.1);
+      border-left: 2px solid #39ff14;
+      margin-bottom: 2px;
+    }
+
+    /* Equalizer bars */
+    .equalizer {
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+
+    .eq-bar {
+      width: 4px;
+      background: #39ff14;
+      box-shadow: 0 0 4px rgba(57,255,20,0.6);
+      animation: eqBounce 0.8s ease-in-out infinite alternate;
+    }
+
+    .eq-bar:nth-child(1) { height: 60%; animation-delay: 0s; }
+    .eq-bar:nth-child(2) { height: 100%; animation-delay: 0.15s; }
+    .eq-bar:nth-child(3) { height: 40%; animation-delay: 0.3s; }
+    .eq-bar:nth-child(4) { height: 80%; animation-delay: 0.45s; }
+    .eq-bar:nth-child(5) { height: 50%; animation-delay: 0.1s; }
+
+    @keyframes eqBounce {
+      0% { transform: scaleY(0.3); }
+      100% { transform: scaleY(1); }
+    }
 
     .song-info {
       display: flex;
       flex-direction: column;
       gap: 2px;
+      flex: 1;
+      min-width: 0;
     }
 
     .song-title {
-      font-size: 13px;
-      font-weight: 600;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
       color: #e0e0e0;
+      letter-spacing: 2px;
+      text-shadow: 0 0 8px rgba(0,212,255,0.4), 2px 2px 0 rgba(0,0,0,0.6);
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .song-requester {
       font-size: 11px;
-      color: #888;
+      font-weight: 600;
+      color: #ff6b35;
+      text-shadow: 0 0 4px rgba(255,107,53,0.3);
+    }
+
+    /* Accent corner */
+    .song::after {
+      content: '';
+      position: absolute;
+      bottom: 0; right: 0;
+      width: 30px; height: 3px;
+      background: #ff2d7b;
+      box-shadow: 0 0 8px rgba(255,45,123,0.5);
     }
   </style>
 </head>
 <body>
   <div class="song" id="song">
-    <span class="song-icon">🎵</span>
+    <div class="equalizer">
+      <div class="eq-bar"></div>
+      <div class="eq-bar"></div>
+      <div class="eq-bar"></div>
+      <div class="eq-bar"></div>
+      <div class="eq-bar"></div>
+    </div>
     <div class="song-info">
+      <div class="now-playing">NOW PLAYING</div>
       <span class="song-title" id="song-title"></span>
       <span class="song-requester" id="song-requester"></span>
     </div>

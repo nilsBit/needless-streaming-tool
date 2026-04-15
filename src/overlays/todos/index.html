@@ -2,8 +2,8 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<title>Pixel Todo - OBS Overlay</title>
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<title>NFS Tasks - OBS Overlay</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -16,8 +16,7 @@
     justify-content: flex-start;
     min-height: 100vh;
     padding-top: 20px;
-    font-family: 'Press Start 2P', monospace;
-    image-rendering: pixelated;
+    font-family: 'Inter', sans-serif;
     overflow: hidden;
     zoom: 1.5;
   }
@@ -31,78 +30,155 @@
     gap: 10px;
   }
 
-  .pixel-box {
-    background: rgba(10,10,10,0.85);
-    border: 2px solid #333;
-    box-shadow: inset -2px -2px 0 #000, inset 2px 2px 0 #1a1a1a, 4px 4px 0 rgba(0,0,0,0.8);
-  }
-
+  /* Header with diagonal stripes */
   .header {
     text-align: center;
-    margin-bottom: 2px;
+    margin-bottom: 4px;
+    position: relative;
   }
 
-  .header-row {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
+  .header-bar {
+    background: rgba(10,10,10,0.95);
+    border: 3px solid #ff2d7b;
+    padding: 10px 24px;
+    position: relative;
+    overflow: hidden;
+    transform: skewX(-3deg);
+    box-shadow: 0 0 15px rgba(255,45,123,0.5), inset 0 0 30px rgba(255,45,123,0.05);
+    animation: borderPulse 2s ease-in-out infinite;
+  }
+
+  .header-bar::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 8px,
+      rgba(255,45,123,0.06) 8px,
+      rgba(255,45,123,0.06) 16px
+    );
+    pointer-events: none;
   }
 
   .header h1 {
-    font-size: 24px;
-    color: #e0e0e0;
-    letter-spacing: 4px;
-    text-shadow: 2px 2px 0 #000, -1px -1px 0 #333;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    color: #ff2d7b;
+    letter-spacing: 8px;
+    text-shadow: 0 0 10px rgba(255,45,123,0.8), 0 0 30px rgba(255,45,123,0.3), 3px 3px 0 rgba(0,0,0,0.8);
     margin: 0;
+    text-transform: uppercase;
+    transform: skewX(3deg);
   }
 
   .header-sub {
-    font-size: 8px;
-    color: #2a2a2a;
-    letter-spacing: 3px;
-    margin-top: 4px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 12px;
+    color: #00d4ff;
+    letter-spacing: 6px;
+    margin-top: 6px;
+    text-shadow: 0 0 8px rgba(0,212,255,0.5);
+    transform: skewX(3deg);
   }
 
-  .progress-box { padding: 8px 12px; }
-  .progress-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-  .progress-label { font-size: 8px; color: #555; letter-spacing: 2px; }
-  .progress-count { font-size: 10px; color: #888; }
+  /* Progress box */
+  .nfs-box {
+    background: rgba(10,10,10,0.9);
+    border: 3px solid #00d4ff;
+    box-shadow: 0 0 10px rgba(0,212,255,0.3);
+    position: relative;
+  }
+
+  .nfs-box::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 40px; height: 3px;
+    background: #ff2d7b;
+    box-shadow: 0 0 8px rgba(255,45,123,0.5);
+  }
+
+  .progress-box { padding: 10px 14px; }
+
+  .progress-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .progress-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 14px;
+    color: #00d4ff;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    text-shadow: 0 0 6px rgba(0,212,255,0.4);
+  }
+
+  .progress-count {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    color: #ff2d7b;
+    text-shadow: 0 0 6px rgba(255,45,123,0.5);
+  }
 
   .bar-outer {
-    height: 12px;
-    background: #0a0a0a;
-    border: 1px solid #222;
+    height: 14px;
+    background: rgba(20,20,20,0.9);
+    border: 1px solid #333;
     position: relative;
     overflow: hidden;
   }
 
   .bar-fill {
     height: 100%;
-    background: repeating-linear-gradient(90deg, #555 0px, #555 4px, #444 4px, #444 8px);
-    transition: width 0.3s ease;
+    background: linear-gradient(90deg, #ff2d7b, #ff6b35, #ff2d7b);
+    background-size: 200% 100%;
+    animation: barGlow 2s ease-in-out infinite;
+    transition: width 0.5s ease;
+    box-shadow: 0 0 10px rgba(255,45,123,0.6);
+  }
+
+  @keyframes barGlow {
+    0%, 100% { background-position: 0% 0%; }
+    50% { background-position: 100% 0%; }
   }
 
   .bar-tick {
     position: absolute;
-    top: 0;
-    bottom: 0;
+    top: 0; bottom: 0;
     width: 1px;
-    background: #1a1a1a;
+    background: rgba(255,255,255,0.05);
   }
 
-  .bar-pct { text-align: right; font-size: 8px; color: #444; margin-top: 3px; }
+  .bar-pct {
+    text-align: right;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 14px;
+    color: #ff6b35;
+    margin-top: 4px;
+    text-shadow: 0 0 6px rgba(255,107,53,0.4);
+  }
 
-  .todo-list { padding: 8px; max-height: 400px; overflow-y: auto; }
+  /* Todo list */
+  .todo-list {
+    padding: 8px;
+    max-height: 400px;
+    overflow-y: auto;
+  }
 
   .todo-item {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 8px;
-    border-bottom: 1px solid #1a1a1a;
-    animation: fadeIn 0.2s ease-out forwards;
+    gap: 12px;
+    padding: 10px;
+    border-bottom: 1px solid rgba(255,45,123,0.1);
+    animation: slideIn 0.3s ease-out forwards;
     opacity: 0;
+    transform: translateX(-20px);
   }
 
   .todo-item:last-child { border-bottom: none; }
@@ -111,33 +187,37 @@
     width: 22px;
     height: 22px;
     min-width: 22px;
-    background: #0a0a0a;
-    border: 2px solid #444;
-    box-shadow: inset -1px -1px 0 #000, inset 1px 1px 0 #1a1a1a;
+    background: rgba(10,10,10,0.9);
+    border: 2px solid #555;
     display: flex;
     align-items: center;
     justify-content: center;
-    image-rendering: pixelated;
+    transition: all 0.2s ease;
+    transform: skewX(-3deg);
   }
 
   .checkbox.checked {
-    background: #333;
-    box-shadow: inset 2px 2px 0 #222;
+    background: rgba(57,255,20,0.15);
+    border-color: #39ff14;
+    box-shadow: 0 0 8px rgba(57,255,20,0.4);
   }
 
   .todo-text {
     flex: 1;
-    font-size: 11px;
-    color: #aaa;
-    line-height: 1.6;
+    font-size: 13px;
+    font-weight: 600;
+    color: #ccc;
+    line-height: 1.5;
     word-break: break-word;
   }
 
   .todo-text.done {
-    color: #333;
+    color: #444;
     text-decoration: line-through;
+    text-decoration-color: #39ff14;
   }
 
+  /* Footer */
   .footer {
     display: flex;
     justify-content: space-between;
@@ -145,27 +225,42 @@
   }
 
   .footer-text {
-    font-size: 8px;
-    color: #2a2a2a;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 12px;
+    color: #555;
+    letter-spacing: 3px;
+  }
+
+  .footer-accent {
+    color: #333;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 12px;
     letter-spacing: 2px;
   }
 
   .empty-msg {
     text-align: center;
-    padding: 20px 0;
-    color: #222;
-    font-size: 9px;
-    letter-spacing: 2px;
+    padding: 24px 0;
+    color: #444;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 16px;
+    letter-spacing: 4px;
+    text-shadow: 0 0 6px rgba(0,212,255,0.3);
   }
 
-  @keyframes fadeIn {
-    0% { opacity: 0; transform: translateY(6px); }
-    100% { opacity: 1; transform: translateY(0); }
+  @keyframes slideIn {
+    0% { opacity: 0; transform: translateX(-20px); }
+    100% { opacity: 1; transform: translateX(0); }
+  }
+
+  @keyframes borderPulse {
+    0%, 100% { box-shadow: 0 0 15px rgba(255,45,123,0.5), inset 0 0 30px rgba(255,45,123,0.05); }
+    50% { box-shadow: 0 0 25px rgba(255,45,123,0.7), inset 0 0 30px rgba(255,45,123,0.1); }
   }
 
   ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: #0a0a0a; }
-  ::-webkit-scrollbar-thumb { background: #333; border: 1px solid #222; }
+  ::-webkit-scrollbar-track { background: rgba(10,10,10,0.5); }
+  ::-webkit-scrollbar-thumb { background: #ff2d7b; border: 1px solid #333; }
 </style>
 </head>
 <body>
@@ -173,32 +268,14 @@
 <div class="container">
   <!-- Header -->
   <div class="header">
-    <div class="header-row">
-      <svg width="24" height="24" viewBox="0 0 8 8" style="image-rendering:pixelated;opacity:0.3">
-        <rect x="1" y="0" width="6" height="1" fill="#1a1a1a"/>
-        <rect x="0" y="1" width="8" height="1" fill="#1a1a1a"/>
-        <rect x="0" y="2" width="2" height="1" fill="#1a1a1a"/><rect x="3" y="2" width="2" height="1" fill="#1a1a1a"/><rect x="6" y="2" width="2" height="1" fill="#1a1a1a"/>
-        <rect x="0" y="3" width="8" height="1" fill="#1a1a1a"/>
-        <rect x="1" y="4" width="6" height="1" fill="#1a1a1a"/>
-        <rect x="2" y="5" width="1" height="1" fill="#1a1a1a"/><rect x="4" y="5" width="1" height="1" fill="#1a1a1a"/>
-        <rect x="2" y="2" width="1" height="1" fill="#333"/><rect x="5" y="2" width="1" height="1" fill="#333"/>
-      </svg>
-      <h1>TODO</h1>
-      <svg width="24" height="24" viewBox="0 0 8 8" style="image-rendering:pixelated;opacity:0.3">
-        <rect x="1" y="0" width="6" height="1" fill="#1a1a1a"/>
-        <rect x="0" y="1" width="8" height="1" fill="#1a1a1a"/>
-        <rect x="0" y="2" width="2" height="1" fill="#1a1a1a"/><rect x="3" y="2" width="2" height="1" fill="#1a1a1a"/><rect x="6" y="2" width="2" height="1" fill="#1a1a1a"/>
-        <rect x="0" y="3" width="8" height="1" fill="#1a1a1a"/>
-        <rect x="1" y="4" width="6" height="1" fill="#1a1a1a"/>
-        <rect x="2" y="5" width="1" height="1" fill="#1a1a1a"/><rect x="4" y="5" width="1" height="1" fill="#1a1a1a"/>
-        <rect x="2" y="2" width="1" height="1" fill="#333"/><rect x="5" y="2" width="1" height="1" fill="#333"/>
-      </svg>
+    <div class="header-bar">
+      <h1>TASKS</h1>
+      <div class="header-sub">MISSION BOARD</div>
     </div>
-    <div class="header-sub">QUEST LOG</div>
   </div>
 
   <!-- Progress -->
-  <div class="pixel-box progress-box">
+  <div class="nfs-box progress-box">
     <div class="progress-top">
       <span class="progress-label">FORTSCHRITT</span>
       <span class="progress-count" id="progressCount">0/0</span>
@@ -219,14 +296,14 @@
   </div>
 
   <!-- Todo List -->
-  <div class="pixel-box todo-list" id="todoList">
-    <div class="empty-msg">LADE QUESTS...</div>
+  <div class="nfs-box todo-list" id="todoList">
+    <div class="empty-msg">LADE TASKS...</div>
   </div>
 
   <!-- Footer -->
   <div class="footer">
     <span class="footer-text" id="openCount">0 OFFEN</span>
-    <span class="footer-text" style="color:#1a1a1a">▪ PIXEL TODO v1 ▪</span>
+    <span class="footer-accent">// NFS TASKS v1 //</span>
   </div>
 </div>
 
@@ -257,7 +334,7 @@ function render() {
   const list = document.getElementById('todoList');
 
   if (total === 0) {
-    list.innerHTML = '<div class="empty-msg">KEINE QUESTS VORHANDEN</div>';
+    list.innerHTML = '<div class="empty-msg">KEINE TASKS VORHANDEN</div>';
     return;
   }
 
@@ -272,10 +349,10 @@ function render() {
     const checkClass = todo.done ? 'checkbox checked' : 'checkbox';
     const textClass = todo.done ? 'todo-text done' : 'todo-text';
     const checkmark = todo.done
-      ? '<svg width="10" height="10" viewBox="0 0 10 10" style="image-rendering:pixelated"><rect x="1" y="5" width="2" height="2" fill="#ccc"/><rect x="3" y="7" width="2" height="2" fill="#ccc"/><rect x="5" y="5" width="2" height="2" fill="#ccc"/><rect x="7" y="3" width="2" height="2" fill="#ccc"/><rect x="9" y="1" width="1" height="2" fill="#ccc"/></svg>'
+      ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#39ff14" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
       : '';
 
-    html += '<div class="todo-item" style="animation-delay:' + (i * 0.05) + 's">'
+    html += '<div class="todo-item" style="animation-delay:' + (i * 0.06) + 's">'
       + '<div class="' + checkClass + '">' + checkmark + '</div>'
       + '<span class="' + textClass + '">' + escapeHtml(todo.title) + '</span>'
       + '</div>';
