@@ -4,6 +4,8 @@ import { broadcast } from '../websocket/index';
 
 let obs: OBSWebSocket | null = null;
 let connected = false;
+let isStreaming = false;
+let isRecording = false;
 
 export interface ObsConfig {
   host: string;
@@ -51,6 +53,42 @@ export async function connectObs(): Promise<boolean> {
     const url = `ws://${config.host}:${config.port}`;
     await obs.connect(url, config.password || undefined);
     connected = true;
+
+    // Sync initial state
+    try {
+      const streamStatus = await obs.call('GetStreamStatus');
+      isStreaming = streamStatus.outputActive;
+    } catch { isStreaming = false; }
+    try {
+      const recordStatus = await obs.call('GetRecordStatus');
+      isRecording = recordStatus.outputActive;
+    } catch { isRecording = false; }
+
+    // Update DB with initial state
+    try {
+      getDb().prepare('UPDATE stream_state SET is_live = ?, is_recording = ? WHERE id = 1').run(isStreaming ? 1 : 0, isRecording ? 1 : 0);
+      broadcast('stream-state', getDb().prepare('SELECT * FROM stream_state WHERE id = 1').get());
+    } catch {}
+
+    // Listen for state changes
+    obs.on('StreamStateChanged', (event) => {
+      isStreaming = event.outputActive;
+      try {
+        getDb().prepare('UPDATE stream_state SET is_live = ? WHERE id = 1').run(isStreaming ? 1 : 0);
+        broadcast('stream-state', getDb().prepare('SELECT * FROM stream_state WHERE id = 1').get());
+      } catch {}
+      console.log(`[OBS] Stream ${isStreaming ? 'started' : 'stopped'}`);
+    });
+
+    obs.on('RecordStateChanged', (event) => {
+      isRecording = event.outputActive;
+      try {
+        getDb().prepare('UPDATE stream_state SET is_recording = ? WHERE id = 1').run(isRecording ? 1 : 0);
+        broadcast('stream-state', getDb().prepare('SELECT * FROM stream_state WHERE id = 1').get());
+      } catch {}
+      console.log(`[OBS] Recording ${isRecording ? 'started' : 'stopped'}`);
+    });
+
     console.log(`[OBS] Connected to ${url}`);
     broadcast('obs-status', { connected: true });
     return true;
@@ -68,6 +106,8 @@ export async function disconnectObs(): Promise<void> {
     await obs.disconnect();
     connected = false;
     obs = null;
+    isStreaming = false;
+    isRecording = false;
     broadcast('obs-status', { connected: false });
     console.log('[OBS] Disconnected');
   }
@@ -132,6 +172,50 @@ export function findSceneForReward(rewardTitle: string): string | null {
   const titleLower = rewardTitle.toLowerCase();
   const match = mappings.find((m) => titleLower.includes(m.reward_title.toLowerCase()));
   return match?.scene_name || null;
+}
+
+function parseObsTimecode(timecode: string): string {
+  // OBS returns "HH:MM:SS.mmm" — strip milliseconds
+  return timecode.split('.')[0];
+}
+
+export async function getStreamTimecodes(): Promise<{
+  stream_timecode: string | null;
+  recording_timecode: string | null;
+}> {
+  if (!obs || !connected) {
+    return { stream_timecode: null, recording_timecode: null };
+  }
+
+  const results: { stream_timecode: string | null; recording_timecode: string | null } = {
+    stream_timecode: null,
+    recording_timecode: null,
+  };
+
+  const promises: Promise<void>[] = [];
+
+  if (isStreaming) {
+    promises.push(
+      obs.call('GetStreamStatus').then((status) => {
+        if (status.outputActive && status.outputTimecode) {
+          results.stream_timecode = parseObsTimecode(status.outputTimecode);
+        }
+      }).catch(() => {})
+    );
+  }
+
+  if (isRecording) {
+    promises.push(
+      obs.call('GetRecordStatus').then((status) => {
+        if (status.outputActive && status.outputTimecode) {
+          results.recording_timecode = parseObsTimecode(status.outputTimecode);
+        }
+      }).catch(() => {})
+    );
+  }
+
+  await Promise.all(promises);
+  return results;
 }
 
 export async function getCurrentScene(): Promise<string | null> {
