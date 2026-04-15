@@ -31,7 +31,7 @@ export async function syncClipToNotion(clip: ClipRow): Promise<boolean> {
     return false;
   }
 
-  const time = new Date(clip.created_at).toLocaleTimeString('de-DE', {
+  const time = new Date(clip.created_at + 'Z').toLocaleTimeString('de-DE', {
     hour: '2-digit', minute: '2-digit', second: '2-digit',
   });
 

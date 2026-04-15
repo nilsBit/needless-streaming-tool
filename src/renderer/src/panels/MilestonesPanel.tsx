@@ -72,7 +72,7 @@ export default function MilestonesPanel() {
               <span className="ms-level">{LEVEL_CONFIG[ms.level]?.emoji}</span>
               <span className="ms-title">{ms.title}</span>
               <span className="ms-time">
-                {ms.completed_at ? new Date(ms.completed_at).toLocaleDateString('de-DE') : ''}
+                {ms.completed_at ? new Date(ms.completed_at + 'Z').toLocaleDateString('de-DE') : ''}
               </span>
               <button className="btn-delete-small" onClick={() => deleteMilestone(ms.id)}>✕</button>
             </div>
