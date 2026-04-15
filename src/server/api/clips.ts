@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
 import { syncClipToNotion } from './notion-sync';
+import { getStreamTimecodes } from '../obs/index';
 
 const router = Router();
 
@@ -83,16 +84,21 @@ router.post('/sync', async (req, res) => {
 });
 
 // POST new clip
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   const { tag, note } = req.body;
   if (!tag) { res.status(400).json({ error: 'tag required' }); return; }
 
   const sessionDate = new Date().toISOString().split('T')[0];
-  const result = getDb().prepare(
-    'INSERT INTO clips (tag, note, session_date) VALUES (?, ?, ?)'
-  ).run(tag, note || null, sessionDate);
+  const { stream_timecode, recording_timecode } = await getStreamTimecodes();
 
-  const clip = getDb().prepare('SELECT * FROM clips WHERE id = ?').get(result.lastInsertRowid) as { id: number; tag: string; note: string | null; session_date: string; created_at: string };
+  const result = getDb().prepare(
+    'INSERT INTO clips (tag, note, session_date, stream_timecode, recording_timecode) VALUES (?, ?, ?, ?, ?)'
+  ).run(tag, note || null, sessionDate, stream_timecode, recording_timecode);
+
+  const clip = getDb().prepare('SELECT * FROM clips WHERE id = ?').get(result.lastInsertRowid) as {
+    id: number; tag: string; note: string | null; session_date: string;
+    stream_timecode: string | null; recording_timecode: string | null; created_at: string;
+  };
   broadcast('clip-created', clip);
 
   // Auto-sync to Notion (fire and forget)
