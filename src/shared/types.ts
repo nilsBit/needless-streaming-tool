@@ -7,6 +7,7 @@ export interface StreamState {
   timer_seconds: number;
   timer_running: number;
   is_live: number;
+  is_recording: number;
   project_name: string | null;
 }
 
@@ -75,6 +76,8 @@ export interface Clip {
   tag: string;
   note: string | null;
   session_date: string;
+  stream_timecode: string | null;
+  recording_timecode: string | null;
   created_at: string;
 }
 
