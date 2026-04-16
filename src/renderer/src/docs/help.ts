@@ -4,7 +4,7 @@
 export const HELP_SECTIONS = [
   {
     title: 'Erste Schritte',
-    content: `Das Stream Toolkit ist deine Zentrale für Streaming. Hier steuerst du alles — Overlays, Challenges, Bugs, Clips, Todos, Milestones und mehr.
+    content: `Das Stream Toolkit ist deine Zentrale für Streaming. Hier steuerst du alles — Overlays, Challenges, Issues, Clips, Todos, Milestones und mehr.
 
 Beim ersten Start führt dich der **Setup-Wizard** durch die Einrichtung. Du kannst ihn jederzeit unter **Settings → Setup-Wizard erneut starten** wiederholen.
 
@@ -34,7 +34,7 @@ Beim ersten Start führt dich der **Setup-Wizard** durch die Einrichtung. Du kan
 | !challenge | Zeigt aktuelle Challenge |
 | !song | Zeigt aktuellen Song |
 | !hype | Löst einen Hype Moment aus |
-| !bugs | Listet offene Bugs |
+| !issues | Listet offene Issues |
 | !todo | Zeigt offene Todos |
 | !progress | Zeigt Projekt-Fortschritt |
 | !vote <option> | Stimme bei Abstimmung ab |
@@ -96,7 +96,7 @@ Konfiguriere Mappings über die API:
 | Todos | /overlay/todos/index.html | Todo-Liste |
 | Poll | /overlay/poll/index.html | Abstimmungen |
 | Roulette | /overlay/roulette/index.html | Glücksrad |
-| Experiment | /overlay/experiment/index.html | Challenge-Status |
+| Challenge | /overlay/experiment/index.html | Challenge-Status |
 
 **In OBS einbinden:**
 1. Quellen → + → Browser
@@ -157,7 +157,7 @@ Das Template unter /overlay/_template/index.html enthält:
 |--------|--------|-------------|
 | Scene Switch | OBS-Szene wechseln | Aktuelle Szene |
 | Clip Marker | Clip markieren | Session Clip-Anzahl |
-| Bug Report | Bug erstellen | Offene Bug-Anzahl |
+| Issue Report | Issue erstellen | Offene Issue-Anzahl |
 | Challenge | Start/Stop/Done/Fail | Status + Titel |
 | Todo Check | Nächstes Todo abhaken | Offene Todos |
 | Hype Moment | Hype Moment auslösen | Flash-Animation |
@@ -200,7 +200,7 @@ Auth-Header: Authorization: Bearer <token>
 
 **Public Endpoints (ohne Auth):**
 - GET /public/stream-state
-- GET /public/bugs
+- GET /public/issues
 - GET /public/todos
 - GET /public/progress
 
@@ -208,8 +208,8 @@ Auth-Header: Authorization: Bearer <token>
 - GET /api/stream-state
 - PATCH /api/stream-state
 
-**Bugs:**
-- GET /api/bugs — POST /api/bugs — PATCH /api/bugs/:id — DELETE /api/bugs/:id
+**Issues:**
+- GET /api/issues — POST /api/issues — PATCH /api/issues/:id — DELETE /api/issues/:id
 
 **Todos:**
 - GET /api/todos — POST /api/todos — PATCH /api/todos/:id — DELETE /api/todos/:id
@@ -261,8 +261,8 @@ Alle Events werden als JSON gesendet: { "event": "name", "data": { ... } }
 **Stream:**
 - stream-state — Stream-Status geändert
 
-**Bugs:**
-- bug-created / bug-updated / bug-deleted
+**Issues:**
+- issue-created / issue-updated / issue-deleted
 
 **Todos:**
 - todo-created / todo-updated / todo-deleted / todos-cleared

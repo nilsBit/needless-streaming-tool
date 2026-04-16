@@ -271,11 +271,11 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   margin-right: 6px;
 }
 
-/* Experiment Panel */
-.experiment-input { display: flex; gap: 8px; flex-wrap: wrap; }
-.experiment-input input { flex: 1; min-width: 120px; }
+/* Challenge Panel */
+.challenge-input { display: flex; gap: 8px; flex-wrap: wrap; }
+.challenge-input input { flex: 1; min-width: 120px; }
 
-.experiment-status {
+.challenge-status {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -284,17 +284,17 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   border-radius: 4px;
 }
 
-.experiment-title { font-weight: 600; font-size: 14px; }
-.experiment-state { color: #888; font-size: 13px; margin-left: auto; text-transform: uppercase; }
+.challenge-title { font-weight: 600; font-size: 14px; }
+.challenge-state { color: #888; font-size: 13px; margin-left: auto; text-transform: uppercase; }
 
 .timer { display: flex; align-items: center; gap: 8px; }
 .timer-display { font-size: 32px; font-weight: 700; font-family: 'SF Mono', monospace; color: #e67e22; }
 
-.experiment-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.challenge-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
-/* Bugs Panel */
-.bug-input { display: flex; gap: 8px; }
-.bug-input input { flex: 1; }
+/* Issues Panel */
+.issue-input { display: flex; gap: 8px; }
+.issue-input input { flex: 1; }
 
 .btn-roulette {
   width: 100%;
@@ -313,9 +313,9 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   text-align: center;
 }
 
-.bug-list { display: flex; flex-direction: column; gap: 6px; }
+.issue-list { display: flex; flex-direction: column; gap: 6px; }
 
-.bug-item {
+.issue-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -325,9 +325,9 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   font-size: 14px;
 }
 
-.bug-item.fixed { opacity: 0.5; text-decoration: line-through; }
-.bug-actions { display: flex; gap: 4px; }
-.bug-actions button { padding: 4px 8px; font-size: 12px; }
+.issue-item.fixed { opacity: 0.5; text-decoration: line-through; }
+.issue-actions { display: flex; gap: 4px; }
+.issue-actions button { padding: 4px 8px; font-size: 12px; }
 
 /* Raids Panel */
 .raid-list { display: flex; flex-direction: column; gap: 6px; }
