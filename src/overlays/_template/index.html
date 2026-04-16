@@ -25,8 +25,8 @@
     │ Event                        │ Beschreibung                        │
     ├──────────────────────────────┼─────────────────────────────────────┤
     │ stream-state                 │ Stream-Status geändert              │
-    │ bug-created / bug-updated    │ Bug hinzugefügt/geändert            │
-    │ bug-deleted                  │ Bug gelöscht                        │
+    │ issue-created / issue-updated │ Issue hinzugefügt/geändert          │
+    │ issue-deleted                │ Issue gelöscht                      │
     │ reward-redeemed              │ Channel Point Reward eingelöst      │
     │ raid-incoming                │ Raid empfangen                      │
     │ todo-created / todo-updated  │ Todo hinzugefügt/geändert           │
@@ -47,8 +47,8 @@
     └──────────────────────────────┴─────────────────────────────────────┘
 
     VERFÜGBARE PUBLIC API ENDPOINTS (kein Token nötig):
-    - GET /public/stream-state   → { experiment_title, experiment_status, ... }
-    - GET /public/bugs           → [ { id, title, status, ... }, ... ]
+    - GET /public/stream-state   → { challenge_title, challenge_status, ... }
+    - GET /public/issues         → [ { id, title, status, ... }, ... ]
     - GET /public/todos          → [ { id, title, done, ... }, ... ]
     - GET /public/progress       → { project_name, items: [...] }
 

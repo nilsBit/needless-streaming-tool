@@ -172,16 +172,16 @@
     };
 
     function update(state) {
-      if (!state.experiment_title || state.experiment_status === 'idle') {
+      if (!state.challenge_title || state.challenge_status === 'idle') {
         banner.classList.remove('visible');
         stopTicking();
         return;
       }
 
       banner.classList.add('visible');
-      titleEl.textContent = state.experiment_title;
-      statusLabel.textContent = statusMap[state.experiment_status] || state.experiment_status;
-      dot.className = 'status-dot ' + state.experiment_status;
+      titleEl.textContent = state.challenge_title;
+      statusLabel.textContent = statusMap[state.challenge_status] || state.challenge_status;
+      dot.className = 'status-dot ' + state.challenge_status;
 
       currentSeconds = state.timer_seconds || 0;
       timerRunning = !!state.timer_running;

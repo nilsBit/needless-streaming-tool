@@ -250,7 +250,7 @@
 </div>
 
 <script>
-// Dynamic segments from bugs API — NFS Unbound neon palette
+// Dynamic segments from issues API — NFS Unbound neon palette
 const PALETTE = [
   { bg: "#1a0a1e", txt: "#ff2d7b" },
   { bg: "#0a1520", txt: "#00d4ff" },
@@ -288,21 +288,21 @@ function hideOverlay() {
   }, 800);
 }
 
-// Fetch bugs from API and build segments
-async function loadBugs() {
+// Fetch issues from API and build segments
+async function loadIssues() {
   try {
-    const res = await fetch('http://localhost:4000/public/bugs');
-    const bugs = await res.json();
-    const openBugs = bugs.filter(b => b.status === 'open');
+    const res = await fetch('http://localhost:4000/public/issues');
+    const issues = await res.json();
+    const openIssues = issues.filter(b => b.status === 'open');
 
-    if (openBugs.length === 0) {
-      SEGMENTS = [{ id: 0, label: "KEINE BUGS", bg: "#1a1a1a", txt: "#444", title: "Keine offenen Bugs" }];
+    if (openIssues.length === 0) {
+      SEGMENTS = [{ id: 0, label: "KEINE ISSUES", bg: "#1a1a1a", txt: "#444", title: "Keine offenen Issues" }];
     } else {
-      SEGMENTS = openBugs.map((bug, i) => {
+      SEGMENTS = openIssues.map((issue, i) => {
         const style = PALETTE[i % PALETTE.length];
         // Truncate long titles for the wheel
-        const label = bug.title.length > 12 ? bug.title.substring(0, 11) + '…' : bug.title;
-        return { id: bug.id, label, bg: style.bg, txt: style.txt, title: bug.title };
+        const label = issue.title.length > 12 ? issue.title.substring(0, 11) + '…' : issue.title;
+        return { id: issue.id, label, bg: style.bg, txt: style.txt, title: issue.title };
       });
     }
 
@@ -311,7 +311,7 @@ async function loadBugs() {
     buildWheel();
     buildOrbs();
   } catch (err) {
-    console.error('[Roulette] Failed to load bugs:', err);
+    console.error('[Roulette] Failed to load issues:', err);
   }
 }
 
@@ -322,9 +322,9 @@ ws.onmessage = (e) => {
   try {
     const msg = JSON.parse(e.data);
 
-    // Bugs changed — rebuild wheel
-    if (msg.event === 'bug-created' || msg.event === 'bug-updated' || msg.event === 'bug-deleted') {
-      if (!spinning) loadBugs();
+    // Issues changed — rebuild wheel
+    if (msg.event === 'issue-created' || msg.event === 'issue-updated' || msg.event === 'issue-deleted') {
+      if (!spinning) loadIssues();
     }
 
     // Roulette triggered from dashboard/API — auto-spin to winner
@@ -389,7 +389,7 @@ function buildWheel(){
 
   document.getElementById('wheel').innerHTML=`<svg width="320" height="320" viewBox="0 0 320 320"><defs>${defs}</defs>${outer}${segs}<circle cx="${CX}" cy="${CY}" r="${R}" fill="url(#pg)" clip-path="url(#wc)"/><circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="#ff2d7b" stroke-width="2" opacity="0.5"/>${inner}<circle cx="${CX}" cy="${CY}" r="20" fill="#0a0a0a" stroke="#ff2d7b" stroke-width="2" opacity="0.8"/><circle cx="${CX}" cy="${CY}" r="14" fill="#050505" stroke="#00d4ff" stroke-width="1" opacity="0.6"/><rect x="${CX-1}" y="${CY-8}" width="2" height="16" fill="#00d4ff" opacity="0.5"/><rect x="${CX-8}" y="${CY-1}" width="16" height="2" fill="#00d4ff" opacity="0.5"/><rect x="${CX-3}" y="${CY-3}" width="6" height="6" fill="#ff2d7b" rx="1"/><rect x="${CX-1}" y="${CY-1}" width="2" height="2" fill="#fff"/></svg>`;
 
-  document.getElementById('totalPts').textContent = N + ' BUGS';
+  document.getElementById('totalPts').textContent = N + ' ISSUES';
 }
 
 function buildOrbs(){
@@ -444,7 +444,7 @@ function spin(){
       val.style.textShadow=`2px 2px 0 #000, 0 0 15px ${won.txt}`;
       sub.style.color='#666';
       val.textContent = '► ' + (won.title || won.label);
-      sub.textContent = 'MUSS GEFIXT WERDEN';
+      sub.textContent = 'ALS NÄCHSTES DRAN';
 
       spinning=false;
       document.getElementById('pointer').classList.remove('active');
@@ -456,7 +456,7 @@ function spin(){
   requestAnimationFrame(anim);
 }
 
-loadBugs();
+loadIssues();
 </script>
 </body>
 </html>
