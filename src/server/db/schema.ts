@@ -1,4 +1,4 @@
-export const SCHEMA_VERSION = 6;
+export const SCHEMA_VERSION = 7;
 
 export const SCHEMA = `
 CREATE TABLE IF NOT EXISTS schema_version (
@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS raids (
   created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS bugs (
+CREATE TABLE IF NOT EXISTS issues (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
   title       TEXT NOT NULL,
   description TEXT,
@@ -43,8 +43,8 @@ CREATE TABLE IF NOT EXISTS designs (
 
 CREATE TABLE IF NOT EXISTS stream_state (
   id                INTEGER PRIMARY KEY DEFAULT 1,
-  experiment_title  TEXT,
-  experiment_status TEXT DEFAULT 'idle',
+  challenge_title  TEXT,
+  challenge_status TEXT DEFAULT 'idle',
   timer_seconds     INTEGER DEFAULT 0,
   timer_running     INTEGER DEFAULT 0,
   is_live           INTEGER DEFAULT 0,

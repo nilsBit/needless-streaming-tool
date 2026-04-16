@@ -63,6 +63,22 @@ function runMigrations(from: number, to: number) {
     console.log('[DB] Migrated: added timecode columns to clips, is_recording to stream_state');
   }
 
+  if (from < 7) {
+    // Rename bugs → issues
+    try {
+      db.prepare('SELECT 1 FROM bugs LIMIT 1').get();
+      db.exec('ALTER TABLE bugs RENAME TO issues');
+      console.log('[DB] Migrated: renamed bugs → issues');
+    } catch {}
+    // Rename experiment_* → challenge_* in stream_state
+    try {
+      db.prepare('SELECT experiment_title FROM stream_state LIMIT 1').get();
+      db.exec('ALTER TABLE stream_state RENAME COLUMN experiment_title TO challenge_title');
+      db.exec('ALTER TABLE stream_state RENAME COLUMN experiment_status TO challenge_status');
+      console.log('[DB] Migrated: renamed experiment_* → challenge_* in stream_state');
+    } catch {}
+  }
+
   db.prepare('INSERT OR REPLACE INTO schema_version (version) VALUES (?)').run(to);
   console.log(`[DB] Migrated from v${from} to v${to}`);
 }
