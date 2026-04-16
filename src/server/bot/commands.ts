@@ -1,7 +1,7 @@
 import { Client } from 'tmi.js';
 import { getDb } from '../db/index';
 import { startVote, castVote, getActiveVote, endVote } from './voting';
-import { StreamState, Bug, Todo } from '../../shared/types';
+import { StreamState, Issue, Todo } from '../../shared/types';
 import { changeScene, getScenes } from '../obs/index';
 import { broadcast } from '../websocket/index';
 
@@ -18,22 +18,23 @@ export function registerCommands(client: Client) {
       case '!challenge':
       case '!experiment': {
         const state = getDb().prepare('SELECT * FROM stream_state WHERE id = 1').get() as StreamState;
-        if (!state.experiment_title) {
+        if (!state.challenge_title) {
           client.say(channel, 'Keine Challenge aktiv.');
         } else {
-          const statusEmoji = state.experiment_status === 'in_progress' ? '🔴' : state.experiment_status === 'done' ? '🟢' : state.experiment_status === 'failed' ? '❌' : '⏸️';
-          client.say(channel, `${statusEmoji} Challenge: ${state.experiment_title} [${state.experiment_status}]`);
+          const statusEmoji = state.challenge_status === 'in_progress' ? '🔴' : state.challenge_status === 'done' ? '🟢' : state.challenge_status === 'failed' ? '❌' : '⏸️';
+          client.say(channel, `${statusEmoji} Challenge: ${state.challenge_title} [${state.challenge_status}]`);
         }
         break;
       }
 
+      case '!issues':
       case '!bugs': {
-        const bugs = getDb().prepare('SELECT * FROM bugs WHERE status = ? ORDER BY created_at DESC LIMIT 5').all('open') as Bug[];
+        const bugs = getDb().prepare('SELECT * FROM issues WHERE status = ? ORDER BY created_at DESC LIMIT 5').all('open') as Issue[];
         if (bugs.length === 0) {
-          client.say(channel, 'Keine offenen Bugs! 🎉');
+          client.say(channel, 'Keine offenen Issues! 🎉');
         } else {
           const list = bugs.map((b, i) => `${i + 1}. ${b.title}`).join(' | ');
-          client.say(channel, `🐛 Offene Bugs (${bugs.length}): ${list}`);
+          client.say(channel, `⚠️ Offene Issues (${bugs.length}): ${list}`);
         }
         break;
       }

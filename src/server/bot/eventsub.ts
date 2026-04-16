@@ -73,7 +73,7 @@ async function handleRedemption(event: Record<string, unknown>) {
   let rewardType = rewardId;
   const titleLower = rewardTitle.toLowerCase();
   if (titleLower.includes('spawn')) rewardType = 'spawn_enemys';
-  else if (titleLower.includes('roulette')) rewardType = 'bug_roulette';
+  else if (titleLower.includes('roulette')) rewardType = 'roulette';
   else if (titleLower.includes('feature')) rewardType = 'feature_request';
   else if (titleLower.includes('musik') || titleLower.includes('song')) rewardType = 'change_music';
   else if (titleLower.includes('scene') || titleLower.includes('szene')) rewardType = 'scene_change';
@@ -85,8 +85,8 @@ async function handleRedemption(event: Record<string, unknown>) {
   const reward = getDb().prepare('SELECT * FROM rewards WHERE id = ?').get(result.lastInsertRowid);
   broadcast('reward-redeemed', reward);
 
-  // Auto-trigger roulette when someone redeems bug_roulette
-  if (rewardType === 'bug_roulette') {
+  // Auto-trigger roulette when someone redeems roulette
+  if (rewardType === 'roulette') {
     triggerRoulette();
   }
 

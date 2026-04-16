@@ -52,19 +52,19 @@ export async function registerHotkeys(config?: Partial<HotkeyConfig>) {
     }
   }
 
-  // Ctrl+Shift+E — Experiment toggle
+  // Ctrl+Shift+E — Challenge toggle
   globalShortcut.register(hotkeys.challenge_toggle, async () => {
     try {
-      const state = await apiGet('/api/stream-state') as { experiment_status: string };
-      if (state.experiment_status === 'in_progress') {
-        apiCall('PATCH', '/api/stream-state', { experiment_status: 'idle', timer_running: 0 });
+      const state = await apiGet('/api/stream-state') as { challenge_status: string };
+      if (state.challenge_status === 'in_progress') {
+        apiCall('PATCH', '/api/stream-state', { challenge_status: 'idle', timer_running: 0 });
       } else {
-        apiCall('PATCH', '/api/stream-state', { experiment_status: 'in_progress' });
+        apiCall('PATCH', '/api/stream-state', { challenge_status: 'in_progress' });
       }
     } catch (err) {
-      console.error('[Hotkey] Experiment toggle failed:', err);
+      console.error('[Hotkey] Challenge toggle failed:', err);
     }
-    console.log(`[Hotkey] ${hotkeys.challenge_toggle} — Experiment toggle`);
+    console.log(`[Hotkey] ${hotkeys.challenge_toggle} — Challenge toggle`);
   });
 
   // Timer toggle
@@ -86,13 +86,13 @@ export async function registerHotkeys(config?: Partial<HotkeyConfig>) {
 
   // Challenge Done
   globalShortcut.register(hotkeys.challenge_done, () => {
-    apiCall('PATCH', '/api/stream-state', { experiment_status: 'done', timer_running: 0 });
+    apiCall('PATCH', '/api/stream-state', { challenge_status: 'done', timer_running: 0 });
     console.log(`[Hotkey] ${hotkeys.challenge_done} — Done`);
   });
 
   // Challenge Failed
   globalShortcut.register(hotkeys.challenge_failed, () => {
-    apiCall('PATCH', '/api/stream-state', { experiment_status: 'failed', timer_running: 0 });
+    apiCall('PATCH', '/api/stream-state', { challenge_status: 'failed', timer_running: 0 });
     console.log(`[Hotkey] ${hotkeys.challenge_failed} — Failed`);
   });
 
