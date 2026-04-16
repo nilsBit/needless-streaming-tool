@@ -1,34 +1,34 @@
 import { Router } from 'express';
 import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
-import { VALID_BUG_STATUS } from '../../shared/types';
+import { VALID_ISSUE_STATUS } from '../../shared/types';
 import { validateEnum, requireRow } from './validate';
 
 const router = Router();
 
 router.get('/', (_req, res) => {
-  const bugs = getDb().prepare('SELECT * FROM bugs ORDER BY created_at DESC').all();
-  res.json(bugs);
+  const issues = getDb().prepare('SELECT * FROM issues ORDER BY created_at DESC').all();
+  res.json(issues);
 });
 
 router.post('/', (req, res) => {
   const { title, description } = req.body;
   if (!title) { res.status(400).json({ error: 'title required' }); return; }
 
-  const result = getDb().prepare('INSERT INTO bugs (title, description) VALUES (?, ?)').run(title, description || null);
-  const bug = getDb().prepare('SELECT * FROM bugs WHERE id = ?').get(result.lastInsertRowid);
+  const result = getDb().prepare('INSERT INTO issues (title, description) VALUES (?, ?)').run(title, description || null);
+  const issue = getDb().prepare('SELECT * FROM issues WHERE id = ?').get(result.lastInsertRowid);
 
-  broadcast('bug-created', bug);
-  res.status(201).json(bug);
+  broadcast('issue-created', issue);
+  res.status(201).json(issue);
 });
 
 router.patch('/:id', (req, res) => {
   const { title, description, status } = req.body;
   const db = getDb();
 
-  if (!validateEnum(status, VALID_BUG_STATUS, 'status', res)) return;
+  if (!validateEnum(status, VALID_ISSUE_STATUS, 'status', res)) return;
 
-  const existing = db.prepare('SELECT * FROM bugs WHERE id = ?').get(req.params.id);
+  const existing = db.prepare('SELECT * FROM issues WHERE id = ?').get(req.params.id);
   if (!requireRow(existing, res)) return;
 
   const fields: string[] = [];
@@ -41,19 +41,19 @@ router.patch('/:id', (req, res) => {
   if (fields.length === 0) { res.status(400).json({ error: 'No fields to update' }); return; }
 
   values.push(req.params.id);
-  db.prepare(`UPDATE bugs SET ${fields.join(', ')} WHERE id = ?`).run(...values);
-  const bug = db.prepare('SELECT * FROM bugs WHERE id = ?').get(req.params.id);
+  db.prepare(`UPDATE issues SET ${fields.join(', ')} WHERE id = ?`).run(...values);
+  const issue = db.prepare('SELECT * FROM issues WHERE id = ?').get(req.params.id);
 
-  broadcast('bug-updated', bug);
-  res.json(bug);
+  broadcast('issue-updated', issue);
+  res.json(issue);
 });
 
 router.delete('/:id', (req, res) => {
-  const existing = getDb().prepare('SELECT * FROM bugs WHERE id = ?').get(req.params.id);
+  const existing = getDb().prepare('SELECT * FROM issues WHERE id = ?').get(req.params.id);
   if (!requireRow(existing, res)) return;
 
-  getDb().prepare('DELETE FROM bugs WHERE id = ?').run(req.params.id);
-  broadcast('bug-deleted', { id: Number(req.params.id) });
+  getDb().prepare('DELETE FROM issues WHERE id = ?').run(req.params.id);
+  broadcast('issue-deleted', { id: Number(req.params.id) });
   res.status(204).send();
 });
 

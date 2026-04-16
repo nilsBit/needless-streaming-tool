@@ -5,7 +5,7 @@ import { initWebSocket } from './websocket/index';
 import { initDatabase } from './db/index';
 import { generateApiToken, validateApiToken, getApiToken } from './auth-token';
 import streamStateRouter from './api/stream-state';
-import bugsRouter from './api/bugs';
+import issuesRouter from './api/issues';
 import rewardsRouter from './api/rewards';
 import designsRouter from './api/designs';
 import settingsRouter from './api/settings';
@@ -90,7 +90,7 @@ export async function startServer(): Promise<string> {
 
   // API routes
   app.use('/api/stream-state', streamStateRouter);
-  app.use('/api/bugs', bugsRouter);
+  app.use('/api/issues', issuesRouter);
   app.use('/api/rewards', rewardsRouter);
   app.use('/api/designs', designsRouter);
   app.use('/api/settings', settingsRouter);
@@ -117,9 +117,9 @@ export async function startServer(): Promise<string> {
     res.json(state);
   });
 
-  app.get('/public/bugs', (_req, res) => {
-    const bugs = getDb().prepare('SELECT * FROM bugs ORDER BY created_at DESC').all();
-    res.json(bugs);
+  app.get('/public/issues', (_req, res) => {
+    const issues = getDb().prepare('SELECT * FROM issues ORDER BY created_at DESC').all();
+    res.json(issues);
   });
 
   app.get('/public/todos', (_req, res) => {
