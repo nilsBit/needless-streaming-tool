@@ -7,7 +7,7 @@ const router = Router();
 router.use(express.json({ limit: '50mb' }));
 
 const TABLES = [
-  'bugs', 'clips', 'designs', 'milestones', 'project_items',
+  'issues', 'clips', 'designs', 'milestones', 'project_items',
   'raids', 'rewards', 'settings', 'stream_state', 'todos',
 ];
 
@@ -37,6 +37,12 @@ router.post('/import', (req, res) => {
   if (!data || typeof data !== 'object') {
     res.status(400).json({ error: 'Invalid backup data' });
     return;
+  }
+
+  // Backward compatibility: old backups have 'bugs' key
+  if (data['bugs'] && !data['issues']) {
+    data['issues'] = data['bugs'];
+    delete data['bugs'];
   }
 
   const importTransaction = db.transaction(() => {

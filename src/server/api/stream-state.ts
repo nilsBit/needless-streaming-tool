@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
-import { VALID_EXPERIMENT_STATUS } from '../../shared/types';
+import { VALID_CHALLENGE_STATUS } from '../../shared/types';
 import { validateEnum } from './validate';
 
 const router = Router();
@@ -12,16 +12,16 @@ router.get('/', (_req, res) => {
 });
 
 router.patch('/', (req, res) => {
-  const { experiment_title, experiment_status, timer_seconds, timer_running, is_live, is_recording } = req.body;
+  const { challenge_title, challenge_status, timer_seconds, timer_running, is_live, is_recording } = req.body;
   const db = getDb();
 
-  if (!validateEnum(experiment_status, VALID_EXPERIMENT_STATUS, 'experiment_status', res)) return;
+  if (!validateEnum(challenge_status, VALID_CHALLENGE_STATUS, 'challenge_status', res)) return;
 
   const fields: string[] = [];
   const values: unknown[] = [];
 
-  if (experiment_title !== undefined) { fields.push('experiment_title = ?'); values.push(experiment_title); }
-  if (experiment_status !== undefined) { fields.push('experiment_status = ?'); values.push(experiment_status); }
+  if (challenge_title !== undefined) { fields.push('challenge_title = ?'); values.push(challenge_title); }
+  if (challenge_status !== undefined) { fields.push('challenge_status = ?'); values.push(challenge_status); }
   if (timer_seconds !== undefined) { fields.push('timer_seconds = ?'); values.push(timer_seconds); }
   if (timer_running !== undefined) { fields.push('timer_running = ?'); values.push(timer_running); }
   if (is_live !== undefined) { fields.push('is_live = ?'); values.push(is_live); }

@@ -9,7 +9,7 @@ const PRESET_TAGS: { tag: string; emoji: string; preset: true }[] = [
   { tag: 'fail', emoji: '💀', preset: true },
   { tag: 'funny', emoji: '😂', preset: true },
   { tag: 'tutorial', emoji: '📚', preset: true },
-  { tag: 'bug', emoji: '🐛', preset: true },
+  { tag: 'issue', emoji: '⚠️', preset: true },
 ];
 
 const PRESET_TAG_NAMES = new Set(PRESET_TAGS.map((t) => t.tag));

@@ -22,7 +22,7 @@ router.get('/roulette/status', (_req, res) => {
   res.json({ on_cooldown: onCooldown, remaining_seconds: Math.ceil(remainingMs / 1000) });
 });
 
-// POST bug roulette spin
+// POST roulette spin
 router.post('/roulette', (_req, res) => {
   const now = Date.now();
 
@@ -33,23 +33,23 @@ router.post('/roulette', (_req, res) => {
     return;
   }
 
-  const bugs = getDb().prepare('SELECT * FROM bugs WHERE status = ?').all('open') as Array<{ id: number; title: string }>;
+  const issues = getDb().prepare('SELECT * FROM issues WHERE status = ?').all('open') as Array<{ id: number; title: string }>;
 
-  if (bugs.length === 0) {
-    res.status(400).json({ error: 'No open bugs' });
+  if (issues.length === 0) {
+    res.status(400).json({ error: 'No open issues' });
     return;
   }
 
-  const winner = bugs[Math.floor(Math.random() * bugs.length)];
+  const winner = issues[Math.floor(Math.random() * issues.length)];
 
   // Set cooldown
   rouletteCooldownUntil = now + ROULETTE_COOLDOWN_MS;
 
-  broadcast('roulette-spin', { bugs, winner_id: winner.id });
+  broadcast('roulette-spin', { issues, winner_id: winner.id });
   broadcast('roulette-result', { title: winner.title, id: winner.id });
   broadcast('roulette-cooldown', { remaining_seconds: 60 });
 
-  res.json({ winner, bugs_count: bugs.length, cooldown_seconds: 60 });
+  res.json({ winner, issues_count: issues.length, cooldown_seconds: 60 });
 });
 
 // Song / Now Playing
@@ -79,13 +79,13 @@ export function triggerRoulette(): { winner: { id: number; title: string } } | {
     return { error: `Cooldown — noch ${remaining}s` };
   }
 
-  const bugs = getDb().prepare('SELECT * FROM bugs WHERE status = ?').all('open') as Array<{ id: number; title: string }>;
-  if (bugs.length === 0) return { error: 'No open bugs' };
+  const issues = getDb().prepare('SELECT * FROM issues WHERE status = ?').all('open') as Array<{ id: number; title: string }>;
+  if (issues.length === 0) return { error: 'No open issues' };
 
-  const winner = bugs[Math.floor(Math.random() * bugs.length)];
+  const winner = issues[Math.floor(Math.random() * issues.length)];
   rouletteCooldownUntil = now + ROULETTE_COOLDOWN_MS;
 
-  broadcast('roulette-spin', { bugs, winner_id: winner.id });
+  broadcast('roulette-spin', { issues, winner_id: winner.id });
   broadcast('roulette-result', { title: winner.title, id: winner.id });
   broadcast('roulette-cooldown', { remaining_seconds: 60 });
 

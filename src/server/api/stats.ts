@@ -11,8 +11,8 @@ router.get('/', (_req, res) => {
     SELECT
       (SELECT COUNT(*) FROM clips) AS total_clips,
       (SELECT COUNT(*) FROM clips WHERE session_date = ?) AS today_clips,
-      (SELECT COUNT(*) FROM bugs) AS total_bugs,
-      (SELECT COUNT(*) FROM bugs WHERE status = 'open') AS open_bugs,
+      (SELECT COUNT(*) FROM issues) AS total_issues,
+      (SELECT COUNT(*) FROM issues WHERE status = 'open') AS open_issues,
       (SELECT COUNT(*) FROM todos) AS total_todos,
       (SELECT COUNT(*) FROM todos WHERE done = 1) AS done_todos,
       (SELECT COUNT(*) FROM milestones) AS total_milestones,
