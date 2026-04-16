@@ -9,14 +9,14 @@ interface SyncResult {
 import { Clip } from '../../../shared/types';
 import { useWebSocket } from '../hooks/useWebSocket';
 
-const PRESET_TAGS = ['highlight', 'fail', 'funny', 'tutorial', 'bug'];
+const PRESET_TAGS = ['highlight', 'fail', 'funny', 'tutorial', 'issue'];
 
 const TAG_EMOJI: Record<string, string> = {
   highlight: '⭐',
   fail: '💀',
   funny: '😂',
   tutorial: '📚',
-  bug: '🐛',
+  issue: '⚠️',
 };
 
 interface ClipTag {

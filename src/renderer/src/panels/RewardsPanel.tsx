@@ -7,7 +7,7 @@ import ChatCommands from '../components/ChatCommands';
 const REWARD_LABELS: Record<string, string> = {
   spawn_enemys: '💥 Spawn 50 Enemys',
   name_enemy: '📛 Enemy benennen',
-  bug_roulette: '🎰 Glücksrad',
+  roulette: '🎰 Glücksrad',
   feature_request: '💡 Feature Request',
   change_music: '🎵 Musik wechseln',
 };

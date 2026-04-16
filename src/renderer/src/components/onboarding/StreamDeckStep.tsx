@@ -32,7 +32,7 @@ export default function StreamDeckStep() {
       <h2>Stream Deck (optional)</h2>
       <p className="step-desc">
         Mit dem Stream Deck Plugin kannst du Buttons für Szenen-Wechsel,
-        Clips, Bugs, Challenges und mehr direkt auf dein Deck legen.
+        Clips, Issues, Challenges und mehr direkt auf dein Deck legen.
       </p>
 
       <div className="onboarding-steps-list">

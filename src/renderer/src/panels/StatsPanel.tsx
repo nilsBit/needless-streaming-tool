@@ -23,8 +23,8 @@ export default function StatsPanel() {
   const cards: StatCard[] = [
     { icon: '🎬', value: stats.total_clips, label: 'Clips gesamt' },
     { icon: '📅', value: stats.today_clips, label: 'Clips heute' },
-    { icon: '🐛', value: stats.total_bugs, label: 'Bugs gesamt' },
-    { icon: '🔴', value: stats.open_bugs, label: 'Offene Bugs' },
+    { icon: '⚠️', value: stats.total_issues, label: 'Issues gesamt' },
+    { icon: '🔴', value: stats.open_issues, label: 'Offene Issues' },
     { icon: '✅', value: stats.done_todos, label: 'Erledigte Todos' },
     { icon: '📝', value: stats.total_todos, label: 'Todos gesamt' },
     { icon: '🏆', value: stats.completed_milestones, label: 'Erreichte Meilensteine' },

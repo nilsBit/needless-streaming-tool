@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import ErrorBoundary from './components/ErrorBoundary';
 import OnboardingWizard from './components/OnboardingWizard';
 import { apiFetch, getApiToken } from './hooks/useApi';
-import ExperimentPanel from './panels/ExperimentPanel';
-import BugsPanel from './panels/BugsPanel';
+import ChallengePanel from './panels/ChallengePanel';
+import IssuesPanel from './panels/IssuesPanel';
 import ProgressPanel from './panels/ProgressPanel';
 import DesignsPanel from './panels/DesignsPanel';
 import ClipsPanel from './panels/ClipsPanel';
@@ -22,8 +22,8 @@ const TABS = {
   stream: {
     label: '🎮 Stream',
     panels: [
-      { key: 'experiment', label: 'Challenge', component: ExperimentPanel },
-      { key: 'bugs', label: 'Glücksrad', component: BugsPanel },
+      { key: 'challenge', label: 'Challenge', component: ChallengePanel },
+      { key: 'issues', label: 'Glücksrad', component: IssuesPanel },
       { key: 'clips', label: 'Clip Moments', component: ClipsPanel },
       { key: 'designs', label: 'Chat Designs', component: DesignsPanel },
       { key: 'song', label: 'Now Playing', component: SongPanel },

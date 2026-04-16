@@ -3,7 +3,7 @@ import { useApi, apiPatch } from '../hooks/useApi';
 import { StreamState } from '../../../shared/types';
 import ChatCommands from '../components/ChatCommands';
 
-export default function ExperimentPanel() {
+export default function ChallengePanel() {
   const { data: state, refetch } = useApi<StreamState>('/stream-state');
   const [title, setTitle] = useState('');
   const [isEditing, setIsEditing] = useState(false);
@@ -14,7 +14,7 @@ export default function ExperimentPanel() {
   useEffect(() => {
     if (state) {
       if (!isEditing) {
-        setTitle(state.experiment_title || '');
+        setTitle(state.challenge_title || '');
       }
       setSeconds(state.timer_seconds);
     }
@@ -48,20 +48,20 @@ export default function ExperimentPanel() {
     setTimerDisplay(`${mins}:${secs}`);
   }, [seconds]);
 
-  const startExperiment = async () => {
+  const startChallenge = async () => {
     if (!title.trim()) return;
     setIsEditing(false);
-    await apiPatch('/stream-state', { experiment_title: title.trim(), experiment_status: 'in_progress', timer_seconds: 0, timer_running: 1 });
+    await apiPatch('/stream-state', { challenge_title: title.trim(), challenge_status: 'in_progress', timer_seconds: 0, timer_running: 1 });
     setSeconds(0);
     refetch();
   };
 
-  const finishExperiment = async (status: string) => {
-    await apiPatch('/stream-state', { experiment_status: status, timer_running: 0 });
+  const finishChallenge = async (status: string) => {
+    await apiPatch('/stream-state', { challenge_status: status, timer_running: 0 });
     refetch();
     if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
     resetTimerRef.current = setTimeout(async () => {
-      await apiPatch('/stream-state', { experiment_title: null, experiment_status: 'idle', timer_seconds: 0, timer_running: 0 });
+      await apiPatch('/stream-state', { challenge_title: null, challenge_status: 'idle', timer_seconds: 0, timer_running: 0 });
       setTitle('');
       setSeconds(0);
       refetch();
@@ -74,24 +74,24 @@ export default function ExperimentPanel() {
     refetch();
   };
 
-  const cancelExperiment = async () => {
-    await apiPatch('/stream-state', { experiment_title: null, experiment_status: 'idle', timer_seconds: 0, timer_running: 0 });
+  const cancelChallenge = async () => {
+    await apiPatch('/stream-state', { challenge_title: null, challenge_status: 'idle', timer_seconds: 0, timer_running: 0 });
     setTitle('');
     setSeconds(0);
     refetch();
   };
 
-  const isActive = state?.experiment_title && state.experiment_status !== 'idle';
-  const statusColor = state?.experiment_status === 'in_progress' ? '#e74c3c' : state?.experiment_status === 'done' ? '#2ecc71' : state?.experiment_status === 'failed' ? '#e74c3c' : '#888';
-  const statusLabel = state?.experiment_status === 'in_progress' ? 'Läuft' : state?.experiment_status === 'done' ? 'Geschafft!' : state?.experiment_status === 'failed' ? 'Gescheitert' : '';
+  const isActive = state?.challenge_title && state.challenge_status !== 'idle';
+  const statusColor = state?.challenge_status === 'in_progress' ? '#e74c3c' : state?.challenge_status === 'done' ? '#2ecc71' : state?.challenge_status === 'failed' ? '#e74c3c' : '#888';
+  const statusLabel = state?.challenge_status === 'in_progress' ? 'Läuft' : state?.challenge_status === 'done' ? 'Geschafft!' : state?.challenge_status === 'failed' ? 'Gescheitert' : '';
 
   return (
-    <div className="panel experiment-panel">
+    <div className="panel challenge-panel">
       <h2>🔬 Challenge</h2>
       <p className="panel-desc">Setz dein Ziel für den Stream. Timer startet automatisch.</p>
 
       {!isActive ? (
-        <div className="experiment-input">
+        <div className="challenge-input">
           <input
             type="text"
             placeholder="Was willst du heute schaffen?"
@@ -99,16 +99,16 @@ export default function ExperimentPanel() {
             onChange={(e) => setTitle(e.target.value)}
             onFocus={() => setIsEditing(true)}
             onBlur={() => setTimeout(() => setIsEditing(false), 200)}
-            onKeyDown={(e) => e.key === 'Enter' && startExperiment()}
+            onKeyDown={(e) => e.key === 'Enter' && startChallenge()}
           />
-          <button onClick={startExperiment}>Los!</button>
+          <button onClick={startChallenge}>Los!</button>
         </div>
       ) : (
         <>
-          <div className="experiment-status">
+          <div className="challenge-status">
             <span className="status-dot" style={{ background: statusColor }} />
-            <span className="experiment-title">{state?.experiment_title}</span>
-            <span className="experiment-state">{statusLabel}</span>
+            <span className="challenge-title">{state?.challenge_title}</span>
+            <span className="challenge-state">{statusLabel}</span>
           </div>
 
           <div className="timer">
@@ -118,15 +118,15 @@ export default function ExperimentPanel() {
             </button>
           </div>
 
-          <div className="experiment-actions">
-            <button className="btn-done" onClick={() => finishExperiment('done')}>✅ Geschafft</button>
-            <button className="btn-failed" onClick={() => finishExperiment('failed')}>❌ Nicht geschafft</button>
-            <button className="btn-reset" onClick={cancelExperiment}>Abbrechen</button>
+          <div className="challenge-actions">
+            <button className="btn-done" onClick={() => finishChallenge('done')}>✅ Geschafft</button>
+            <button className="btn-failed" onClick={() => finishChallenge('failed')}>❌ Nicht geschafft</button>
+            <button className="btn-reset" onClick={cancelChallenge}>Abbrechen</button>
           </div>
         </>
       )}
       <ChatCommands commands={[
-        { cmd: '!experiment', desc: 'Zeigt aktuelle Challenge + Status' },
+        { cmd: '!challenge', desc: 'Zeigt aktuelle Challenge + Status' },
         { cmd: '!uptime', desc: 'Wie lange läuft der Stream' },
       ]} />
     </div>
