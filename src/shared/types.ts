@@ -2,8 +2,8 @@
 
 export interface StreamState {
   id: number;
-  experiment_title: string | null;
-  experiment_status: 'idle' | 'in_progress' | 'done' | 'failed';
+  challenge_title: string | null;
+  challenge_status: 'idle' | 'in_progress' | 'done' | 'failed';
   timer_seconds: number;
   timer_running: number;
   is_live: number;
@@ -11,7 +11,7 @@ export interface StreamState {
   project_name: string | null;
 }
 
-export interface Bug {
+export interface Issue {
   id: number;
   title: string;
   description: string | null;
@@ -104,8 +104,8 @@ export interface Raid {
 export interface Stats {
   total_clips: number;
   today_clips: number;
-  total_bugs: number;
-  open_bugs: number;
+  total_issues: number;
+  open_issues: number;
   total_todos: number;
   done_todos: number;
   total_milestones: number;
@@ -139,10 +139,10 @@ export const DEFAULT_HOTKEYS: HotkeyConfig = {
 };
 
 // Valid status values for validation
-export const VALID_BUG_STATUS = ['open', 'fixed', 'wontfix'] as const;
+export const VALID_ISSUE_STATUS = ['open', 'fixed', 'wontfix'] as const;
 export const VALID_REWARD_STATUS = ['pending', 'done'] as const;
 export const VALID_DESIGN_STATUS = ['active', 'completed'] as const;
-export const VALID_EXPERIMENT_STATUS = ['idle', 'in_progress', 'done', 'failed'] as const;
+export const VALID_CHALLENGE_STATUS = ['idle', 'in_progress', 'done', 'failed'] as const;
 export const VALID_PROJECT_ITEM_STATUS = ['pending', 'in_progress', 'done'] as const;
 export const VALID_MILESTONE_LEVEL = ['minor', 'major', 'epic'] as const;
 export const VALID_MILESTONE_STATUS = ['pending', 'completed'] as const;
