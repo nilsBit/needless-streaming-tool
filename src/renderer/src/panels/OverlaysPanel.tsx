@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useApi, apiPost, apiFetch } from '../hooks/useApi';
+import { useTranslation } from '../i18n/LanguageContext';
 
 interface OverlayInfo {
   name: string;
@@ -10,6 +11,7 @@ interface OverlayInfo {
 }
 
 export default function OverlaysPanel() {
+  const { t } = useTranslation();
   const { data: builtinOverlays, refetch: refetchBuiltin } = useApi<OverlayInfo[]>('/overlays/builtin');
   const { data: customOverlays, refetch: refetchCustom } = useApi<OverlayInfo[]>('/overlays');
 
@@ -103,22 +105,22 @@ export default function OverlaysPanel() {
   return (
     <div className="panel overlays-panel">
       <h2>🎨 Overlays</h2>
-      <p className="panel-desc">Overlay-URLs für OBS Browser Source. Overlays anpassen oder eigene erstellen.</p>
+      <p className="panel-desc">{t('overlays_panel.desc')}</p>
 
       <div className="overlay-section">
-        <h3>Eingebaute Overlays</h3>
+        <h3>{t('overlays_panel.builtin')}</h3>
         <div className="overlay-list">
           {builtinOverlays?.map((o) => (
             <div key={o.name} className={`overlay-item ${o.customized ? 'overlay-customized' : ''}`}>
               <div className="overlay-name-row">
                 <span className="overlay-name">{o.name}</span>
-                {o.customized && <span className="overlay-badge">angepasst</span>}
+                {o.customized && <span className="overlay-badge">{t('overlays_panel.customized')}</span>}
               </div>
               <div className="overlay-actions">
                 <button className="btn-copy-small" onClick={() => copyUrl(o.url)}>
                   {copiedUrl === o.url ? '✅' : '📋'}
                 </button>
-                <button className="btn-copy-small" onClick={() => setPreviewUrl(o.url)} title="Vorschau">
+                <button className="btn-copy-small" onClick={() => setPreviewUrl(o.url)} title={t('overlays_panel.preview')}>
                   👁
                 </button>
                 {editingBuiltin === o.name ? (
@@ -134,19 +136,19 @@ export default function OverlaysPanel() {
                       }}
                     />
                     <button className="btn-copy-small" onClick={() => builtinFileRef.current?.click()}>
-                      📄 Datei
+                      📄 {t('overlays_panel.file')}
                     </button>
                     <button className="btn-copy-small" onClick={() => setEditingBuiltin(null)}>
                       ✕
                     </button>
                   </>
                 ) : (
-                  <button className="btn-copy-small" onClick={() => setEditingBuiltin(o.name)} title="Design ersetzen">
+                  <button className="btn-copy-small" onClick={() => setEditingBuiltin(o.name)} title={t('overlays_panel.replace')}>
                     ✏️
                   </button>
                 )}
                 {o.customized && (
-                  <button className="btn-delete-small" onClick={() => resetBuiltin(o.name)} title="Auf Standard zurücksetzen">
+                  <button className="btn-delete-small" onClick={() => resetBuiltin(o.name)} title={t('overlays_panel.reset')}>
                     ↩️
                   </button>
                 )}
@@ -157,7 +159,7 @@ export default function OverlaysPanel() {
       </div>
 
       <div className="overlay-section">
-        <h3>Custom Overlays</h3>
+        <h3>{t('overlays_panel.custom')}</h3>
         {customOverlays && customOverlays.length > 0 ? (
           <div className="overlay-list">
             {customOverlays.map((o) => (
@@ -167,7 +169,7 @@ export default function OverlaysPanel() {
                   <button className="btn-copy-small" onClick={() => copyUrl(o.url)}>
                     {copiedUrl === o.url ? '✅' : '📋'}
                   </button>
-                  <button className="btn-copy-small" onClick={() => setPreviewUrl(o.url)} title="Vorschau">
+                  <button className="btn-copy-small" onClick={() => setPreviewUrl(o.url)} title={t('overlays_panel.preview')}>
                     👁
                   </button>
                   <button className="btn-delete-small" onClick={() => deleteOverlay(o.name)}>
@@ -178,40 +180,40 @@ export default function OverlaysPanel() {
             ))}
           </div>
         ) : (
-          <p className="empty">Keine Custom Overlays. Erstelle eins!</p>
+          <p className="empty">{t('overlays_panel.no_custom')}</p>
         )}
 
         {!showUpload ? (
           <button className="btn-add" onClick={() => setShowUpload(true)}>
-            + Neues Overlay
+            {t('overlays_panel.new')}
           </button>
         ) : (
           <div className="upload-form">
             <input
               type="text"
-              placeholder="Overlay Name (z.B. mein-alerts)..."
+              placeholder={t('overlays_panel.name_placeholder')}
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               className="overlay-name-input"
             />
             <div className="upload-mode-toggle">
               <button className={`mode-btn ${uploadMode === 'template' ? 'active' : ''}`} onClick={() => setUploadMode('template')}>
-                Aus Template
+                {t('overlays_panel.from_template')}
               </button>
               <button className={`mode-btn ${uploadMode === 'file' ? 'active' : ''}`} onClick={() => setUploadMode('file')}>
-                HTML hochladen
+                {t('overlays_panel.upload_html')}
               </button>
             </div>
             {uploadMode === 'template' ? (
               <button className="btn-create" onClick={createFromTemplate} disabled={!newName.trim() || uploading}>
-                {uploading ? 'Erstellen...' : 'Aus Template erstellen'}
+                {uploading ? t('overlays_panel.creating') : t('overlays_panel.create')}
               </button>
             ) : (
               <div className="file-upload">
                 <input ref={fileInputRef} type="file" accept=".html,.htm" onChange={uploadFile} disabled={!newName.trim() || uploading} />
               </div>
             )}
-            <button className="btn-cancel" onClick={() => { setShowUpload(false); setNewName(''); }}>Abbrechen</button>
+            <button className="btn-cancel" onClick={() => { setShowUpload(false); setNewName(''); }}>{t('overlays_panel.cancel')}</button>
           </div>
         )}
       </div>
@@ -219,8 +221,8 @@ export default function OverlaysPanel() {
       {previewUrl && (
         <div className="overlay-section">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3>Vorschau</h3>
-            <button className="btn-delete-small" onClick={() => setPreviewUrl(null)}>✕ Schließen</button>
+            <h3>{t('overlays_panel.preview')}</h3>
+            <button className="btn-delete-small" onClick={() => setPreviewUrl(null)}>✕ {t('overlays_panel.close')}</button>
           </div>
           <div className="overlay-preview-frame">
             <iframe src={previewUrl} title="Overlay Preview" />
@@ -229,13 +231,13 @@ export default function OverlaysPanel() {
       )}
 
       <div className="overlay-section overlay-help">
-        <h3>Anleitung</h3>
+        <h3>{t('overlays_panel.guide_title')}</h3>
         <ol>
-          <li>URL kopieren (📋)</li>
-          <li>In OBS: Quellen → + → <strong>Browser</strong></li>
-          <li>URL einfügen, Breite/Höhe anpassen</li>
-          <li>Zum Anpassen: ✏️ klicken und eigene HTML-Datei hochladen</li>
-          <li>Zum Zurücksetzen: ↩️ klicken</li>
+          <li>{t('overlays_panel.guide_step1')}</li>
+          <li>{t('overlays_panel.guide_step2')}</li>
+          <li>{t('overlays_panel.guide_step3')}</li>
+          <li>{t('overlays_panel.guide_step4')}</li>
+          <li>{t('overlays_panel.guide_step5')}</li>
         </ol>
       </div>
     </div>

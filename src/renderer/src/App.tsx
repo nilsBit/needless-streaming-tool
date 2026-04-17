@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ErrorBoundary from './components/ErrorBoundary';
 import OnboardingWizard from './components/OnboardingWizard';
 import { apiFetch, getApiToken } from './hooks/useApi';
+import { useTranslation } from './i18n/LanguageContext';
 import ChallengePanel from './panels/ChallengePanel';
 import IssuesPanel from './panels/IssuesPanel';
 import ProgressPanel from './panels/ProgressPanel';
@@ -64,6 +65,7 @@ const TABS = {
 type TabKey = keyof typeof TABS;
 
 export default function App() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<TabKey>('stream');
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
@@ -129,7 +131,12 @@ export default function App() {
                 <span className="collapse-label">{p.label}</span>
               </button>
               {!isCollapsed && (
-                <ErrorBoundary fallback={p.label}>
+                <ErrorBoundary
+                  fallback={p.label}
+                  errorTitle={t('error.title')}
+                  errorMessage={t('error.message')}
+                  retryLabel={t('error.retry')}
+                >
                   <Component />
                 </ErrorBoundary>
               )}

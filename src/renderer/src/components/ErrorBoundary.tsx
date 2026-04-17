@@ -3,6 +3,9 @@ import React, { Component, ReactNode } from 'react';
 interface Props {
   children: ReactNode;
   fallback?: string;
+  errorTitle?: string;
+  errorMessage?: string;
+  retryLabel?: string;
 }
 
 interface State {
@@ -28,11 +31,11 @@ export default class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         <div className="panel error-panel">
-          <h2>⚠️ {this.props.fallback || 'Fehler'}</h2>
-          <p className="panel-desc">Etwas ist schiefgelaufen.</p>
+          <h2>⚠️ {this.props.fallback || this.props.errorTitle || 'Fehler'}</h2>
+          <p className="panel-desc">{this.props.errorMessage || 'Etwas ist schiefgelaufen.'}</p>
           <p className="error-message">{this.state.error}</p>
           <button onClick={() => this.setState({ hasError: false, error: '' })}>
-            Nochmal versuchen
+            {this.props.retryLabel || 'Nochmal versuchen'}
           </button>
         </div>
       );
