@@ -1,8 +1,25 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApi, apiPost, apiFetch } from '../hooks/useApi';
 import { useTranslation } from '../i18n/LanguageContext';
 import { useToast } from '../i18n/ToastContext';
 import CopyButton from '../components/CopyButton';
+
+const FONT_OPTIONS = [
+  { value: "'Bebas Neue', sans-serif", label: 'Bebas Neue' },
+  { value: "'Inter', sans-serif", label: 'Inter' },
+  { value: "'Roboto', sans-serif", label: 'Roboto' },
+  { value: "'Open Sans', sans-serif", label: 'Open Sans' },
+  { value: "'Lato', sans-serif", label: 'Lato' },
+  { value: "'Montserrat', sans-serif", label: 'Montserrat' },
+  { value: "'Poppins', sans-serif", label: 'Poppins' },
+  { value: "'Oswald', sans-serif", label: 'Oswald' },
+  { value: "'Raleway', sans-serif", label: 'Raleway' },
+  { value: "'Playfair Display', serif", label: 'Playfair Display' },
+  { value: "'Roboto Mono', monospace", label: 'Roboto Mono' },
+  { value: "'Fira Code', monospace", label: 'Fira Code' },
+];
+
+const OVERLAY_NAMES = ['experiment', 'todos', 'progress', 'milestone', 'song', 'alerts', 'poll', 'roulette'];
 
 interface OverlayInfo {
   name: string;
@@ -26,6 +43,41 @@ export default function OverlaysPanel() {
   const builtinFileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [editingBuiltin, setEditingBuiltin] = useState<string | null>(null);
+
+  const [overlayConfig, setOverlayConfig] = useState<{
+    global: Record<string, string>;
+    overrides: Record<string, Record<string, string>>;
+  }>({ global: {}, overrides: {} });
+  const [selectedOverride, setSelectedOverride] = useState<string>('');
+
+  useEffect(() => {
+    apiFetch('/overlay-config').then(r => r.json()).then(setOverlayConfig).catch(() => {});
+  }, []);
+
+  const updateGlobal = (key: string, value: string) => {
+    setOverlayConfig(prev => ({ ...prev, global: { ...prev.global, [key]: value } }));
+  };
+
+  const updateOverride = (overlay: string, key: string, value: string) => {
+    setOverlayConfig(prev => ({
+      ...prev,
+      overrides: { ...prev.overrides, [overlay]: { ...(prev.overrides[overlay] || {}), [key]: value } },
+    }));
+  };
+
+  const saveConfig = async () => {
+    const result = await apiPost('/overlay-config', overlayConfig);
+    if (!result) { toast.error(t('error.action_failed')); return; }
+    toast.success(t('overlay_config.saved'));
+  };
+
+  const resetConfig = async () => {
+    try {
+      await apiFetch('/overlay-config', { method: 'DELETE' });
+      setOverlayConfig({ global: {}, overrides: {} });
+      toast.success(t('overlay_config.saved'));
+    } catch { toast.error(t('error.action_failed')); }
+  };
 
   if (loadingBuiltin || loadingCustom) return <div className="panel"><p>{t('common.loading')}</p></div>;
 
@@ -215,6 +267,98 @@ export default function OverlaysPanel() {
             <button className="btn-cancel" onClick={() => { setShowUpload(false); setNewName(''); }}>{t('overlays_panel.cancel')}</button>
           </div>
         )}
+      </div>
+
+      <div className="overlay-section">
+        <h3>{t('overlay_config.title')}</h3>
+        <p className="setup-info">{t('overlay_config.desc')}</p>
+
+        <h4>{t('overlay_config.global')}</h4>
+        <div className="config-grid">
+          <div className="config-row">
+            <label>{t('overlay_config.color_primary')}</label>
+            <input type="color" value={overlayConfig.global['--color-primary'] || '#ff2d7b'} onChange={e => updateGlobal('--color-primary', e.target.value)} />
+          </div>
+          <div className="config-row">
+            <label>{t('overlay_config.color_secondary')}</label>
+            <input type="color" value={overlayConfig.global['--color-secondary'] || '#00d4ff'} onChange={e => updateGlobal('--color-secondary', e.target.value)} />
+          </div>
+          <div className="config-row">
+            <label>{t('overlay_config.color_accent')}</label>
+            <input type="color" value={overlayConfig.global['--color-accent'] || '#39ff14'} onChange={e => updateGlobal('--color-accent', e.target.value)} />
+          </div>
+          <div className="config-row">
+            <label>{t('overlay_config.color_text')}</label>
+            <input type="color" value={overlayConfig.global['--color-text'] || '#ffffff'} onChange={e => updateGlobal('--color-text', e.target.value)} />
+          </div>
+          <div className="config-row">
+            <label>{t('overlay_config.color_bg')}</label>
+            <input type="color" value={overlayConfig.global['--color-bg'] || '#0a0a0a'} onChange={e => updateGlobal('--color-bg', e.target.value)} />
+          </div>
+          <div className="config-row">
+            <label>{t('overlay_config.color_bg_secondary')}</label>
+            <input type="color" value={overlayConfig.global['--color-bg-secondary'] || '#0d0d0d'} onChange={e => updateGlobal('--color-bg-secondary', e.target.value)} />
+          </div>
+          <div className="config-row">
+            <label>{t('overlay_config.bg_opacity')}</label>
+            <input type="range" min="0" max="1" step="0.05" value={overlayConfig.global['--color-bg-opacity'] || '0.92'} onChange={e => updateGlobal('--color-bg-opacity', e.target.value)} />
+            <span>{overlayConfig.global['--color-bg-opacity'] || '0.92'}</span>
+          </div>
+          <div className="config-row">
+            <label>{t('overlay_config.font_display')}</label>
+            <select value={overlayConfig.global['--font-display'] || "'Bebas Neue', sans-serif"} onChange={e => updateGlobal('--font-display', e.target.value)}>
+              {FONT_OPTIONS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
+            </select>
+          </div>
+          <div className="config-row">
+            <label>{t('overlay_config.font_body')}</label>
+            <select value={overlayConfig.global['--font-body'] || "'Inter', sans-serif"} onChange={e => updateGlobal('--font-body', e.target.value)}>
+              {FONT_OPTIONS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
+            </select>
+          </div>
+          <div className="config-row">
+            <label>{t('overlay_config.font_size')}</label>
+            <input type="range" min="10" max="24" step="1" value={parseInt(overlayConfig.global['--font-size-base'] || '14')} onChange={e => updateGlobal('--font-size-base', e.target.value + 'px')} />
+            <span>{overlayConfig.global['--font-size-base'] || '14px'}</span>
+          </div>
+        </div>
+
+        <h4 style={{ marginTop: '16px' }}>{t('overlay_config.override')}</h4>
+        <select value={selectedOverride} onChange={e => setSelectedOverride(e.target.value)} style={{ marginBottom: '8px' }}>
+          <option value="">{t('overlay_config.select_overlay')}</option>
+          {OVERLAY_NAMES.map(name => (
+            <option key={name} value={name}>{name}{overlayConfig.overrides[name] ? ' (*)' : ''}</option>
+          ))}
+        </select>
+
+        {selectedOverride && (
+          <div className="config-grid">
+            <div className="config-row">
+              <label>{t('overlay_config.color_primary')}</label>
+              <input type="color" value={overlayConfig.overrides[selectedOverride]?.['--color-primary'] || overlayConfig.global['--color-primary'] || '#ff2d7b'} onChange={e => updateOverride(selectedOverride, '--color-primary', e.target.value)} />
+            </div>
+            <div className="config-row">
+              <label>{t('overlay_config.color_secondary')}</label>
+              <input type="color" value={overlayConfig.overrides[selectedOverride]?.['--color-secondary'] || overlayConfig.global['--color-secondary'] || '#00d4ff'} onChange={e => updateOverride(selectedOverride, '--color-secondary', e.target.value)} />
+            </div>
+            <div className="config-row">
+              <label>{t('overlay_config.color_accent')}</label>
+              <input type="color" value={overlayConfig.overrides[selectedOverride]?.['--color-accent'] || overlayConfig.global['--color-accent'] || '#39ff14'} onChange={e => updateOverride(selectedOverride, '--color-accent', e.target.value)} />
+            </div>
+            <button className="btn-reset-small" onClick={() => {
+              setOverlayConfig(prev => {
+                const next = { ...prev, overrides: { ...prev.overrides } };
+                delete next.overrides[selectedOverride];
+                return next;
+              });
+            }}>{t('overlay_config.clear_overrides')}</button>
+          </div>
+        )}
+
+        <div style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
+          <button className="btn-connect" onClick={saveConfig}>{t('settings.save')}</button>
+          <button className="btn-reset-small" onClick={resetConfig}>{t('overlay_config.reset_all')}</button>
+        </div>
       </div>
 
       {previewUrl && (

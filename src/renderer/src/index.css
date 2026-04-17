@@ -1460,3 +1460,48 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   from { opacity: 0; transform: translateX(100%); }
   to { opacity: 1; transform: translateX(0); }
 }
+
+/* Overlay Config */
+.config-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.config-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.config-row label {
+  flex: 0 0 180px;
+  font-size: 13px;
+}
+
+.config-row input[type="color"] {
+  width: 40px;
+  height: 30px;
+  border: 1px solid #333;
+  border-radius: 4px;
+  cursor: pointer;
+  background: transparent;
+  padding: 2px;
+}
+
+.config-row input[type="range"] {
+  flex: 1;
+  max-width: 200px;
+}
+
+.config-row select {
+  flex: 1;
+  max-width: 200px;
+}
+
+.config-row span {
+  font-size: 12px;
+  color: #888;
+  min-width: 40px;
+}
