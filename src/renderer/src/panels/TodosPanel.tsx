@@ -60,21 +60,21 @@ export default function TodosPanel() {
 
       <div className="todo-list">
         {pending.length === 0 && done.length === 0 && <p className="empty">{t('todos.empty')}</p>}
-        {pending.map((t) => (
-          <div key={t.id} className="todo-item">
-            <button className="todo-check" onClick={() => toggleTodo(t.id, t.done)}>☐</button>
-            <span className="todo-title">{t.title}</span>
-            <button className="todo-delete" onClick={() => deleteTodo(t.id)} title={t('tooltip.delete')}>🗑️</button>
+        {pending.map((todo) => (
+          <div key={todo.id} className="todo-item">
+            <button className="todo-check" onClick={() => toggleTodo(todo.id, todo.done)}>☐</button>
+            <span className="todo-title">{todo.title}</span>
+            <button className="todo-delete" onClick={() => deleteTodo(todo.id)} title={t('tooltip.delete')}>🗑️</button>
           </div>
         ))}
         {done.length > 0 && (
           <>
             <h3>{`${t('todos.done_section')} (${done.length})`}</h3>
-            {done.map((t) => (
-              <div key={t.id} className="todo-item done">
-                <button className="todo-check" onClick={() => toggleTodo(t.id, t.done)}>☑</button>
-                <span className="todo-title">{t.title}</span>
-                <button className="todo-delete" onClick={() => deleteTodo(t.id)} title={t('tooltip.delete')}>🗑️</button>
+            {done.map((todo) => (
+              <div key={todo.id} className="todo-item done">
+                <button className="todo-check" onClick={() => toggleTodo(todo.id, todo.done)}>☑</button>
+                <span className="todo-title">{todo.title}</span>
+                <button className="todo-delete" onClick={() => deleteTodo(todo.id)} title={t('tooltip.delete')}>🗑️</button>
               </div>
             ))}
           </>
