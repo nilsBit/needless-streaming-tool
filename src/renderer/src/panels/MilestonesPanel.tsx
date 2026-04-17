@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useApi, apiPost, apiPatch, apiDelete } from '../hooks/useApi';
 import { Milestone } from '../../../shared/types';
 import { useWebSocket } from '../hooks/useWebSocket';
+import { useTranslation } from '../i18n/LanguageContext';
 
 const LEVEL_CONFIG = {
   minor: { emoji: '✨', label: 'Minor', color: '#3498db' },
@@ -15,6 +16,7 @@ export default function MilestonesPanel() {
   const { data: milestones, refetch } = useApi<Milestone[]>('/milestones');
   const [title, setTitle] = useState('');
   const [level, setLevel] = useState<Level>('major');
+  const { t } = useTranslation();
 
   useWebSocket((event) => {
     if (event.startsWith('milestone-')) refetch();
@@ -44,7 +46,7 @@ export default function MilestonesPanel() {
       <h2>🎉 Milestones</h2>
 
       <div className="milestone-list">
-        {pending.length === 0 && <p className="empty">Keine offenen Milestones</p>}
+        {pending.length === 0 && <p className="empty">{t('milestones.empty')}</p>}
         {pending.map((ms) => (
           <div key={ms.id} className="milestone-item pending">
             <button
@@ -65,7 +67,7 @@ export default function MilestonesPanel() {
 
       {completed.length > 0 && (
         <div className="milestone-history">
-          <h3>Erledigt ({completed.length})</h3>
+          <h3>{`${t('milestones.completed')} (${completed.length})`}</h3>
           {completed.map((ms) => (
             <div key={ms.id} className="milestone-item completed">
               <span className="status-toggle done">✅</span>

@@ -41,11 +41,11 @@ export default function SettingsPanel() {
       a.download = 'stream-toolkit-backup.json';
       a.click();
       URL.revokeObjectURL(url);
-      setBackupStatus('Backup exportiert!');
+      setBackupStatus(t('settings.backup_exported'));
       setTimeout(() => setBackupStatus(''), 3000);
     } catch (err) {
       console.error('[Settings] Export failed:', err);
-      setBackupStatus('Export fehlgeschlagen');
+      setBackupStatus(t('settings.export_failed'));
     }
   };
 
@@ -61,13 +61,13 @@ export default function SettingsPanel() {
         body: JSON.stringify(data),
       });
       if (res.ok) {
-        setBackupStatus('Backup erfolgreich importiert!');
+        setBackupStatus(t('settings.backup_imported'));
       } else {
-        setBackupStatus('Import fehlgeschlagen');
+        setBackupStatus(t('settings.import_failed'));
       }
     } catch (err) {
       console.error('[Settings] Import failed:', err);
-      setBackupStatus('Import fehlgeschlagen');
+      setBackupStatus(t('settings.import_failed'));
     }
     if (fileInputRef.current) fileInputRef.current.value = '';
     setTimeout(() => setBackupStatus(''), 3000);
@@ -122,23 +122,23 @@ export default function SettingsPanel() {
   return (
     <div className="panel settings-panel">
       <h2>⚙️ Settings</h2>
-      <p className="panel-desc">Twitch-Verbindung konfigurieren und Bot steuern.</p>
+      <p className="panel-desc">{t('settings.desc')}</p>
 
       <div className="settings-section">
-        <h3>Twitch Verbindung</h3>
+        <h3>{t('settings.twitch')}</h3>
 
         <div className="bot-status">
           <span className="status-dot" style={{ background: botStatus?.connected ? '#2ecc71' : '#e74c3c' }} />
-          <span>{botStatus?.connected ? `Verbunden mit #${botStatus.channel}` : 'Nicht verbunden'}</span>
+          <span>{botStatus?.connected ? `${t('settings.connected_to')} #${botStatus.channel}` : t('settings.not_connected')}</span>
         </div>
 
         {!clientIdInfo?.configured ? (
           <div className="setup-step">
-            <p className="setup-info">Schritt 1: Erstelle eine App auf dev.twitch.tv und trage die Client-ID ein.</p>
+            <p className="setup-info">{t('settings.twitch_step1')}</p>
             <div className="client-id-input">
               <input
                 type="text"
-                placeholder="Twitch Client-ID..."
+                placeholder={t('settings.twitch_placeholder')}
                 value={clientId}
                 onChange={(e) => setClientId(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && saveClientId()}
@@ -154,14 +154,14 @@ export default function SettingsPanel() {
 
         <div className="bot-controls">
           {botStatus?.connected ? (
-            <button className="btn-disconnect" onClick={disconnectBot}>🔌 Trennen</button>
+            <button className="btn-disconnect" onClick={disconnectBot}>{t('settings.disconnect')}</button>
           ) : (
             <button
               className="btn-connect"
               onClick={connectTwitch}
               disabled={!clientIdInfo?.configured}
             >
-              🔗 Mit Twitch verbinden
+              {t('settings.connect_twitch')}
             </button>
           )}
         </div>
@@ -175,20 +175,20 @@ export default function SettingsPanel() {
                 body: JSON.stringify({ client_id: '' }),
               });
               refetchClientId();
-            }}>Client-ID ändern</button>
+            }}>{t('settings.change_client_id')}</button>
           </div>
         )}
       </div>
 
       <div className="settings-section">
-        <h3>Notion Integration</h3>
-        <p className="setup-info">Clips werden automatisch in Notion gesynct. Erstelle eine Integration auf notion.so/my-integrations und teile die Clips-DB mit der Integration.</p>
+        <h3>{t('settings.notion')}</h3>
+        <p className="setup-info">{t('settings.notion_desc')}</p>
 
         {!notionInfo?.configured ? (
           <div className="client-id-input">
             <input
               type="text"
-              placeholder="Notion Internal Integration Token (ntn_...)"
+              placeholder={t('settings.notion_placeholder')}
               value={notionToken}
               onChange={(e) => setNotionToken(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && (async () => {
@@ -209,16 +209,16 @@ export default function SettingsPanel() {
             <button className="btn-reset-small" onClick={async () => {
               await apiPost('/settings/notion', { token: '' });
               refetchNotion();
-            }}>Token ändern</button>
+            }}>{t('settings.change_token')}</button>
           </div>
         )}
 
-        <p className="setup-info" style={{ marginTop: '12px' }}>Clips-Datenbank ID — die Notion-Datenbank in die Clips gesynct werden.</p>
+        <p className="setup-info" style={{ marginTop: '12px' }}>{t('settings.clips_db')}</p>
         {!notionDbInfo?.configured ? (
           <div className="client-id-input">
             <input
               type="text"
-              placeholder="Notion Database ID oder URL..."
+              placeholder={t('settings.notion_db_placeholder')}
               value={notionDbId}
               onChange={(e) => setNotionDbId(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && (async () => {
@@ -239,18 +239,18 @@ export default function SettingsPanel() {
             <button className="btn-reset-small" onClick={async () => {
               await apiPost('/settings/notion/database', { database_id: '' });
               refetchNotionDb();
-            }}>Database ändern</button>
+            }}>{t('settings.change_db')}</button>
           </div>
         )}
       </div>
 
       <div className="settings-section">
-        <h3>OBS Verbindung</h3>
-        <p className="setup-info">OBS Studio WebSocket-Verbindung. Aktiviere in OBS unter Tools → WebSocket Server Settings.</p>
+        <h3>{t('settings.obs')}</h3>
+        <p className="setup-info">{t('settings.obs_desc')}</p>
 
         <div className="bot-status">
           <span className="status-dot" style={{ background: obsStatus?.connected ? '#2ecc71' : '#e74c3c' }} />
-          <span>{obsStatus?.connected ? 'Verbunden mit OBS' : 'Nicht verbunden'}</span>
+          <span>{obsStatus?.connected ? t('settings.obs_connected') : t('settings.obs_not_connected')}</span>
         </div>
 
         {!obsConfig?.configured ? (
@@ -258,14 +258,14 @@ export default function SettingsPanel() {
             <div className="client-id-input">
               <input
                 type="text"
-                placeholder="Host (localhost)"
+                placeholder={t('settings.obs_host')}
                 value={obsHost}
                 onChange={(e) => setObsHost(e.target.value)}
                 style={{ flex: 2 }}
               />
               <input
                 type="text"
-                placeholder="Port (4455)"
+                placeholder={t('settings.obs_port')}
                 value={obsPort}
                 onChange={(e) => setObsPort(e.target.value)}
                 style={{ flex: 1 }}
@@ -274,7 +274,7 @@ export default function SettingsPanel() {
             <div className="client-id-input" style={{ marginTop: '4px' }}>
               <input
                 type="password"
-                placeholder="Passwort (optional)"
+                placeholder={t('settings.obs_password')}
                 value={obsPassword}
                 onChange={(e) => setObsPassword(e.target.value)}
               />
@@ -291,7 +291,7 @@ export default function SettingsPanel() {
           </div>
         ) : (
           <div className="setup-step">
-            <p className="setup-info">Config: {obsConfig.host}:{obsConfig.port} {obsConfig.has_password ? '(mit Passwort)' : '(ohne Passwort)'}</p>
+            <p className="setup-info">Config: {obsConfig.host}:{obsConfig.port} {obsConfig.has_password ? t('settings.obs_with_password') : t('settings.obs_without_password')}</p>
           </div>
         )}
 
@@ -300,7 +300,7 @@ export default function SettingsPanel() {
             <button className="btn-disconnect" onClick={async () => {
               await apiPost('/obs/disconnect', {});
               refetchObsStatus();
-            }}>🔌 OBS trennen</button>
+            }}>{t('settings.obs_disconnect')}</button>
           ) : (
             <button
               className="btn-connect"
@@ -310,7 +310,7 @@ export default function SettingsPanel() {
               }}
               disabled={!obsConfig?.configured}
             >
-              🔗 Mit OBS verbinden
+              {t('settings.obs_connect')}
             </button>
           )}
         </div>
@@ -322,21 +322,21 @@ export default function SettingsPanel() {
               setObsHost('localhost');
               setObsPort('4455');
               refetchObs();
-            }}>Config ändern</button>
+            }}>{t('settings.obs_change')}</button>
           </div>
         )}
       </div>
 
       <div className="settings-section">
-        <h3>Stream Deck API Token</h3>
-        <p className="setup-info">Diesen Token im Stream Deck HTTP-Plugin als Bearer Token verwenden. Bleibt gleich nach Neustart.</p>
+        <h3>{t('settings.streamdeck')}</h3>
+        <p className="setup-info">{t('settings.streamdeck_desc')}</p>
         {tokenInfo?.token ? (
           <div className="api-token-display">
             <code className="token-value">{tokenInfo.token.substring(0, 12)}...{tokenInfo.token.substring(tokenInfo.token.length - 8)}</code>
-            <button onClick={copyToken}>{tokenCopied ? '✅ Kopiert' : '📋 Kopieren'}</button>
+            <button onClick={copyToken}>{tokenCopied ? t('settings.copied') : t('settings.copy')}</button>
           </div>
         ) : (
-          <p className="empty">Token wird geladen...</p>
+          <p className="empty">{t('settings.token_loading')}</p>
         )}
         <div className="api-endpoints">
           <p className="setup-info" style={{ marginTop: '8px' }}>Base URL: <code>http://localhost:4000/api</code></p>
@@ -345,8 +345,8 @@ export default function SettingsPanel() {
       </div>
 
       <div className="settings-section">
-        <h3>Autostart</h3>
-        <p className="setup-info">App beim Systemstart automatisch öffnen.</p>
+        <h3>{t('settings.autostart')}</h3>
+        <p className="setup-info">{t('settings.autostart_desc')}</p>
         <div className="language-toggle">
           <button
             className={`lang-btn ${autostartInfo?.enabled ? 'active' : ''}`}
@@ -355,7 +355,7 @@ export default function SettingsPanel() {
               refetchAutostart();
             }}
           >
-            Aktiviert
+            {t('settings.enabled')}
           </button>
           <button
             className={`lang-btn ${!autostartInfo?.enabled ? 'active' : ''}`}
@@ -364,18 +364,18 @@ export default function SettingsPanel() {
               refetchAutostart();
             }}
           >
-            Deaktiviert
+            {t('settings.disabled')}
           </button>
         </div>
       </div>
 
       <div className="settings-section">
-        <h3>Daten-Backup</h3>
-        <p className="setup-info">Alle Daten als JSON exportieren oder ein Backup importieren.</p>
+        <h3>{t('settings.backup')}</h3>
+        <p className="setup-info">{t('settings.backup_desc')}</p>
         <div className="bot-controls">
-          <button className="btn-connect" onClick={exportBackup}>💾 Backup exportieren</button>
+          <button className="btn-connect" onClick={exportBackup}>{t('settings.backup_export')}</button>
           <label className="btn-connect" style={{ cursor: 'pointer', textAlign: 'center' }}>
-            📂 Backup importieren
+            {t('settings.backup_import')}
             <input
               ref={fileInputRef}
               type="file"
@@ -407,8 +407,8 @@ export default function SettingsPanel() {
       </div>
 
       <div className="settings-section">
-        <h3>Design</h3>
-        <p className="setup-info">App-Theme wechseln.</p>
+        <h3>{t('settings.design')}</h3>
+        <p className="setup-info">{t('settings.design_desc')}</p>
         <div className="language-toggle">
           <button className={`lang-btn ${theme === 'dark' ? 'active' : ''}`} onClick={() => setTheme('dark')}>🌙 Dark</button>
           <button className={`lang-btn ${theme === 'light' ? 'active' : ''}`} onClick={() => setTheme('light')}>☀️ Light</button>

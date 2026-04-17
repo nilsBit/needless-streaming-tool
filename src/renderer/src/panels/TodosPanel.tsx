@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { useApi, apiPost, apiPatch, apiDelete } from '../hooks/useApi';
 import { Todo } from '../../../shared/types';
 import { useWebSocket } from '../hooks/useWebSocket';
+import { useTranslation } from '../i18n/LanguageContext';
 
 export default function TodosPanel() {
   const { data: todos, refetch } = useApi<Todo[]>('/todos');
   const [newTodo, setNewTodo] = useState('');
+  const { t } = useTranslation();
 
   useWebSocket((event) => {
     if (event === 'todo-updated') refetch();
@@ -34,12 +36,12 @@ export default function TodosPanel() {
   return (
     <div className="panel todos-panel">
       <h2>📋 Todos</h2>
-      <p className="panel-desc">Deine Stream-Todos. Sichtbar als Overlay in OBS.</p>
+      <p className="panel-desc">{t('todos.desc')}</p>
 
       <div className="todo-input">
         <input
           type="text"
-          placeholder="Neues Todo..."
+          placeholder={t('todos.placeholder')}
           value={newTodo}
           onChange={(e) => setNewTodo(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && addTodo()}
@@ -48,7 +50,7 @@ export default function TodosPanel() {
       </div>
 
       <div className="todo-list">
-        {pending.length === 0 && done.length === 0 && <p className="empty">Keine Todos</p>}
+        {pending.length === 0 && done.length === 0 && <p className="empty">{t('todos.empty')}</p>}
         {pending.map((t) => (
           <div key={t.id} className="todo-item">
             <button className="todo-check" onClick={() => toggleTodo(t.id, t.done)}>☐</button>
@@ -58,7 +60,7 @@ export default function TodosPanel() {
         ))}
         {done.length > 0 && (
           <>
-            <h3>Erledigt ({done.length})</h3>
+            <h3>{`${t('todos.done_section')} (${done.length})`}</h3>
             {done.map((t) => (
               <div key={t.id} className="todo-item done">
                 <button className="todo-check" onClick={() => toggleTodo(t.id, t.done)}>☑</button>

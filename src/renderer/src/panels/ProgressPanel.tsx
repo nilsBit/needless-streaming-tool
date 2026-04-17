@@ -3,6 +3,7 @@ import { useApi, apiPost, apiPatch, apiDelete } from '../hooks/useApi';
 import { ProjectItem } from '../../../shared/types';
 import { useWebSocket } from '../hooks/useWebSocket';
 import ChatCommands from '../components/ChatCommands';
+import { useTranslation } from '../i18n/LanguageContext';
 
 interface ProgressData {
   project_name: string | null;
@@ -14,6 +15,7 @@ export default function ProgressPanel() {
   const [newItem, setNewItem] = useState('');
   const [editingName, setEditingName] = useState(false);
   const [projectName, setProjectName] = useState('');
+  const { t } = useTranslation();
 
   useWebSocket((event) => {
     if (event.startsWith('progress-')) refetch();
@@ -60,13 +62,13 @@ export default function ProgressPanel() {
               value={projectName}
               onChange={(e) => setProjectName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && saveProjectName()}
-              placeholder="Projektname..."
+              placeholder={t('progress.project_placeholder')}
             />
             <button onClick={saveProjectName}>💾</button>
           </div>
         ) : (
           <div className="project-name" onClick={() => { setEditingName(true); setProjectName(data?.project_name || ''); }}>
-            <strong>{data?.project_name || 'Kein Projekt'}</strong> ✏️
+            <strong>{data?.project_name || t('progress.no_project')}</strong> ✏️
           </div>
         )}
         <span className="progress-count">{done}/{items.length} done</span>
@@ -89,7 +91,7 @@ export default function ProgressPanel() {
       <div className="add-item">
         <input
           type="text"
-          placeholder="Neues Item..."
+          placeholder={t('progress.item_placeholder')}
           value={newItem}
           onChange={(e) => setNewItem(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && addItem()}
@@ -98,7 +100,7 @@ export default function ProgressPanel() {
       </div>
 
       <ChatCommands commands={[
-        { cmd: '!progress', desc: 'Zeigt Projektfortschritt' },
+        { cmd: '!progress', desc: t('progress.cmd_progress') },
       ]} />
     </div>
   );
