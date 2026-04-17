@@ -10,7 +10,7 @@ const translations = {
 
   // Panels
   'panel.challenge': { de: 'Challenge', en: 'Challenge' },
-  'panel.issues': { de: 'Glücksrad', en: 'Glücksrad' },
+  'panel.issues': { de: 'Glücksrad', en: 'Lucky Wheel' },
   'panel.clips': { de: 'Clip Moments', en: 'Clip Moments' },
   'panel.designs': { de: 'Chat Designs', en: 'Chat Designs' },
   'panel.progress': { de: 'Progress Tracker', en: 'Progress Tracker' },
@@ -151,6 +151,175 @@ const translations = {
   // Help Panel
   'help.title': { de: 'Hilfe & Dokumentation', en: 'Help & Documentation' },
   'help.desc': { de: 'Alles was du über das Stream Toolkit wissen musst.', en: 'Everything you need to know about the Stream Toolkit.' },
+
+  // ---- Challenge Panel ----
+  'challenge.desc': { de: 'Setz dein Ziel für den Stream. Timer startet automatisch.', en: 'Set your goal for the stream. Timer starts automatically.' },
+  'challenge.placeholder': { de: 'Was willst du heute schaffen?', en: 'What do you want to accomplish today?' },
+  'challenge.start': { de: 'Los!', en: 'Go!' },
+  'challenge.running': { de: 'Läuft', en: 'Running' },
+  'challenge.done': { de: 'Geschafft!', en: 'Done!' },
+  'challenge.failed': { de: 'Gescheitert', en: 'Failed' },
+  'challenge.btn_done': { de: '✅ Geschafft', en: '✅ Done' },
+  'challenge.btn_failed': { de: '❌ Nicht geschafft', en: '❌ Failed' },
+  'challenge.btn_cancel': { de: 'Abbrechen', en: 'Cancel' },
+  'challenge.pause': { de: 'Pausieren', en: 'Pause' },
+  'challenge.resume': { de: 'Weiter', en: 'Resume' },
+  'challenge.cmd_challenge': { de: 'Zeigt aktuelle Challenge + Status', en: 'Shows current challenge + status' },
+  'challenge.cmd_uptime': { de: 'Wie lange läuft der Stream', en: 'How long the stream has been running' },
+
+  // ---- Issues Panel ----
+  'issues.desc': { de: 'Issues sammeln, Rad drehen, Chat entscheidet was dran kommt.', en: 'Collect issues, spin the wheel, chat decides what\'s next.' },
+  'issues.placeholder': { de: 'Neues Issue...', en: 'New issue...' },
+  'issues.spinning': { de: '🎰 Spinning...', en: '🎰 Spinning...' },
+  'issues.cooldown': { de: 'Cooldown', en: 'Cooldown' },
+  'issues.spin': { de: '🎰 Drehen!', en: '🎰 Spin!' },
+  'issues.open': { de: 'Offen', en: 'Open' },
+  'issues.fixed': { de: 'Gefixt', en: 'Fixed' },
+  'issues.cmd_issues': { de: 'Zeigt offene Issues', en: 'Shows open issues' },
+
+  // ---- Todos Panel ----
+  'todos.desc': { de: 'Deine Stream-Todos. Sichtbar als Overlay in OBS.', en: 'Your stream todos. Visible as overlay in OBS.' },
+  'todos.placeholder': { de: 'Neues Todo...', en: 'New todo...' },
+  'todos.empty': { de: 'Keine Todos', en: 'No todos' },
+  'todos.done_section': { de: 'Erledigt', en: 'Done' },
+
+  // ---- Rewards Panel ----
+  'rewards.desc': { de: 'Channel Point Rewards die eingelöst wurden. Abhaken wenn erledigt.', en: 'Channel point rewards redeemed. Check off when done.' },
+  'rewards.empty': { de: 'Keine offenen Rewards', en: 'No pending rewards' },
+  'rewards.done_section': { de: 'Erledigt', en: 'Done' },
+  'rewards.clear_done': { de: '🗑️ Erledigte löschen', en: '🗑️ Clear done' },
+
+  // ---- Stats Panel ----
+  'stats.loading': { de: 'Wird geladen...', en: 'Loading...' },
+  'stats.desc': { de: 'Überblick über alle Stream-Daten.', en: 'Overview of all stream data.' },
+  'stats.total_clips': { de: 'Clips gesamt', en: 'Total clips' },
+  'stats.today_clips': { de: 'Clips heute', en: 'Clips today' },
+  'stats.total_issues': { de: 'Issues gesamt', en: 'Total issues' },
+  'stats.open_issues': { de: 'Offene Issues', en: 'Open issues' },
+  'stats.done_todos': { de: 'Erledigte Todos', en: 'Completed todos' },
+  'stats.total_todos': { de: 'Todos gesamt', en: 'Total todos' },
+  'stats.completed_milestones': { de: 'Erreichte Meilensteine', en: 'Completed milestones' },
+  'stats.total_milestones': { de: 'Meilensteine gesamt', en: 'Total milestones' },
+  'stats.total_raids': { de: 'Raids gesamt', en: 'Total raids' },
+  'stats.total_rewards': { de: 'Belohnungen gesamt', en: 'Total rewards' },
+
+  // ---- Clips Panel ----
+  'clips.note_placeholder': { de: 'Notiz (optional)...', en: 'Note (optional)...' },
+  'clips.add': { de: '+ Clip', en: '+ Clip' },
+  'clips.empty': { de: 'Keine Clips', en: 'No clips' },
+  'clips.today': { de: 'Heute', en: 'Today' },
+  'clips.with_tag': { de: 'mit Tag', en: 'with tag' },
+
+  // ---- Designs Panel ----
+  'designs.desc': { de: '1x im Monat designed der Chat ein Feature. Erstell ein Design und lass abstimmen.', en: 'Once a month the chat designs a feature. Create a design and let them vote.' },
+  'designs.placeholder': { de: 'Design-Titel...', en: 'Design title...' },
+  'designs.vote_running': { de: '🗳️ Abstimmung läuft', en: '🗳️ Vote running' },
+  'designs.vote_end': { de: '🏆 Beenden', en: '🏆 End' },
+  'designs.vote_cancel': { de: '✖ Abbrechen', en: '✖ Cancel' },
+  'designs.option_placeholder': { de: 'Option hinzufügen...', en: 'Add option...' },
+  'designs.vote_start': { de: '🗳️ Abstimmung starten', en: '🗳️ Start vote' },
+  'designs.no_active': { de: 'Kein aktives Design', en: 'No active design' },
+  'designs.completed': { de: 'Abgeschlossen', en: 'Completed' },
+  'designs.cmd_start': { de: 'Abstimmung starten', en: 'Start vote' },
+  'designs.cmd_end': { de: 'Abstimmung beenden', en: 'End vote' },
+  'designs.cmd_status': { de: 'Aktueller Stand', en: 'Current status' },
+  'designs.cmd_vote': { de: 'Für eine Option stimmen', en: 'Vote for an option' },
+
+  // ---- Song Panel ----
+  'song.desc': { de: 'Aktuellen Song für den Stream setzen.', en: 'Set the current song for the stream.' },
+  'song.placeholder': { de: 'Song eingeben...', en: 'Enter song...' },
+  'song.set': { de: 'Übernehmen', en: 'Set' },
+  'song.clear': { de: 'Löschen', en: 'Clear' },
+
+  // ---- Raids Panel ----
+  'raids.desc': { de: 'Übersicht aller eingegangenen Raids.', en: 'Overview of all incoming raids.' },
+  'raids.empty': { de: 'Noch keine Raids', en: 'No raids yet' },
+  'raids.viewers': { de: 'Zuschauer', en: 'viewers' },
+
+  // ---- Milestones Panel ----
+  'milestones.empty': { de: 'Keine offenen Milestones', en: 'No pending milestones' },
+  'milestones.completed': { de: 'Erledigt', en: 'Completed' },
+
+  // ---- Progress Panel ----
+  'progress.project_placeholder': { de: 'Projektname...', en: 'Project name...' },
+  'progress.no_project': { de: 'Kein Projekt', en: 'No project' },
+  'progress.item_placeholder': { de: 'Neues Item...', en: 'New item...' },
+  'progress.cmd_progress': { de: 'Zeigt Projektfortschritt', en: 'Shows project progress' },
+
+  // ---- Chat Panel ----
+  'chat.connect_first': { de: 'Verbinde zuerst Twitch in den Settings.', en: 'Connect Twitch in Settings first.' },
+
+  // ---- Hotkeys Panel ----
+  'hotkeys.desc': { de: 'Globale Tastenkürzel konfigurieren.', en: 'Configure global keyboard shortcuts.' },
+  'hotkeys.section_title': { de: 'Tastenkürzel', en: 'Keyboard Shortcuts' },
+  'hotkeys.format_hint': { de: 'Format: <code>CommandOrControl+Shift+Taste</code> — Verwende <code>CommandOrControl</code> für plattformübergreifende Kompatibilität.', en: 'Format: <code>CommandOrControl+Shift+Key</code> — Use <code>CommandOrControl</code> for cross-platform compatibility.' },
+  'hotkeys.edit': { de: 'Ändern', en: 'Edit' },
+  'hotkeys.save': { de: '💾 Speichern', en: '💾 Save' },
+  'hotkeys.saved': { de: 'Gespeichert!', en: 'Saved!' },
+  'hotkeys.restart_hint': { de: 'Hinweis: Änderungen werden erst nach einem Neustart der App wirksam.', en: 'Note: Changes take effect after restarting the app.' },
+  'hotkeys.loading': { de: 'Laden...', en: 'Loading...' },
+  'hotkeys.challenge_toggle': { de: 'Challenge umschalten', en: 'Toggle challenge' },
+  'hotkeys.timer_toggle': { de: 'Timer umschalten', en: 'Toggle timer' },
+  'hotkeys.hype_moment': { de: 'Hype Moment', en: 'Hype Moment' },
+  'hotkeys.challenge_done': { de: 'Challenge geschafft', en: 'Challenge done' },
+  'hotkeys.challenge_failed': { de: 'Challenge fehlgeschlagen', en: 'Challenge failed' },
+  'hotkeys.roulette': { de: 'Glücksrad', en: 'Lucky Wheel' },
+  'hotkeys.milestone_minor': { de: 'Milestone (Minor)', en: 'Milestone (Minor)' },
+  'hotkeys.milestone_major': { de: 'Milestone (Major)', en: 'Milestone (Major)' },
+  'hotkeys.milestone_epic': { de: 'Milestone (Epic)', en: 'Milestone (Epic)' },
+
+  // ---- Settings Panel (additional) ----
+  'settings.twitch_step1': { de: 'Schritt 1: Erstelle eine App auf dev.twitch.tv und trage die Client-ID ein.', en: 'Step 1: Create an app on dev.twitch.tv and enter the Client ID.' },
+  'settings.twitch_placeholder': { de: 'Twitch Client-ID...', en: 'Twitch Client ID...' },
+  'settings.client_id_label': { de: 'Client-ID', en: 'Client ID' },
+  'settings.obs_host': { de: 'Host (localhost)', en: 'Host (localhost)' },
+  'settings.obs_port': { de: 'Port (4455)', en: 'Port (4455)' },
+  'settings.obs_password': { de: 'Passwort (optional)', en: 'Password (optional)' },
+  'settings.obs_with_password': { de: '(mit Passwort)', en: '(with password)' },
+  'settings.obs_without_password': { de: '(ohne Passwort)', en: '(without password)' },
+  'settings.autostart': { de: 'Autostart', en: 'Autostart' },
+  'settings.autostart_desc': { de: 'App beim Systemstart automatisch öffnen.', en: 'Open app automatically on system startup.' },
+  'settings.enabled': { de: 'Aktiviert', en: 'Enabled' },
+  'settings.disabled': { de: 'Deaktiviert', en: 'Disabled' },
+  'settings.backup': { de: 'Daten-Backup', en: 'Data Backup' },
+  'settings.backup_desc': { de: 'Alle Daten als JSON exportieren oder ein Backup importieren.', en: 'Export all data as JSON or import a backup.' },
+  'settings.backup_export': { de: '💾 Backup exportieren', en: '💾 Export backup' },
+  'settings.backup_import': { de: '📂 Backup importieren', en: '📂 Import backup' },
+  'settings.backup_exported': { de: 'Backup exportiert!', en: 'Backup exported!' },
+  'settings.backup_imported': { de: 'Backup erfolgreich importiert!', en: 'Backup imported successfully!' },
+  'settings.export_failed': { de: 'Export fehlgeschlagen', en: 'Export failed' },
+  'settings.import_failed': { de: 'Import fehlgeschlagen', en: 'Import failed' },
+  'settings.token_loading': { de: 'Token wird geladen...', en: 'Loading token...' },
+  'settings.design': { de: 'Design', en: 'Design' },
+  'settings.design_desc': { de: 'App-Theme wechseln.', en: 'Change app theme.' },
+  'settings.notion_placeholder': { de: 'Notion Internal Integration Token (ntn_...)', en: 'Notion Internal Integration Token (ntn_...)' },
+  'settings.notion_db_placeholder': { de: 'Notion Database ID oder URL...', en: 'Notion Database ID or URL...' },
+
+  // ---- Overlays Panel (additional) ----
+  'overlays_panel.preview': { de: 'Vorschau', en: 'Preview' },
+  'overlays_panel.close': { de: '✕ Schließen', en: '✕ Close' },
+  'overlays_panel.file': { de: '📄 Datei', en: '📄 File' },
+  'overlays_panel.replace': { de: 'Design ersetzen', en: 'Replace design' },
+  'overlays_panel.reset': { de: 'Auf Standard zurücksetzen', en: 'Reset to default' },
+  'overlays_panel.name_placeholder': { de: 'Overlay Name (z.B. mein-alerts)...', en: 'Overlay name (e.g. my-alerts)...' },
+  'overlays_panel.creating': { de: 'Erstellen...', en: 'Creating...' },
+  'overlays_panel.guide_step1': { de: 'URL kopieren (📋)', en: 'Copy URL (📋)' },
+  'overlays_panel.guide_step2': { de: 'In OBS: Quellen → + → Browser', en: 'In OBS: Sources → + → Browser' },
+  'overlays_panel.guide_step3': { de: 'URL einfügen, Breite/Höhe anpassen', en: 'Paste URL, adjust width/height' },
+  'overlays_panel.guide_step4': { de: 'Zum Anpassen: ✏️ klicken und eigene HTML-Datei hochladen', en: 'To customize: click ✏️ and upload your own HTML file' },
+  'overlays_panel.guide_step5': { de: 'Zum Zurücksetzen: ↩️ klicken', en: 'To reset: click ↩️' },
+
+  // ---- Error Boundary ----
+  'error.title': { de: 'Fehler', en: 'Error' },
+  'error.message': { de: 'Etwas ist schiefgelaufen.', en: 'Something went wrong.' },
+  'error.retry': { de: 'Nochmal versuchen', en: 'Try again' },
+
+  // ---- Chat Commands Component ----
+  'chatcmds.label': { de: '💬 Chat Commands', en: '💬 Chat Commands' },
+
+  // ---- Language Step ----
+  'language.title': { de: 'Sprache / Language', en: 'Language / Sprache' },
+  'language.subtitle': { de: 'Wähle deine Sprache.', en: 'Choose your language.' },
 } as const;
 
 export type TranslationKey = keyof typeof translations;
