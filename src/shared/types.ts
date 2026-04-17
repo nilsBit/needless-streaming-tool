@@ -68,6 +68,7 @@ export interface ProjectItem {
   title: string;
   status: 'pending' | 'in_progress' | 'done';
   sort_order: number;
+  time_spent: number;
   created_at: string;
 }
 

@@ -362,6 +362,13 @@ const translations = {
   'overlay_config.clear_overrides': { de: 'Overrides entfernen', en: 'Clear overrides' },
   'overlay_config.saved': { de: 'Design gespeichert', en: 'Design saved' },
   'overlay_config.refresh': { de: 'Vorschau aktualisieren', en: 'Refresh preview' },
+  // ---- Time Tracking ----
+  'progress.time_spent': { de: 'Zeitaufwand', en: 'Time spent' },
+  'progress.export_csv': { de: '📥 CSV Export', en: '📥 CSV Export' },
+  'progress.linked_challenge': { de: 'Verknüpft mit Progress Tracker', en: 'Linked to Progress Tracker' },
+  'progress.less_than_minute': { de: '< 1m', en: '< 1m' },
+  'progress.active': { de: 'Aktiv', en: 'Active' },
+  'progress.total_time': { de: 'Gesamtzeit', en: 'Total time' },
 } as const;
 
 export type TranslationKey = keyof typeof translations;

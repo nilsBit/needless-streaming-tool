@@ -1,4 +1,4 @@
-export const SCHEMA_VERSION = 7;
+export const SCHEMA_VERSION = 8;
 
 export const SCHEMA = `
 CREATE TABLE IF NOT EXISTS schema_version (
@@ -72,6 +72,7 @@ CREATE TABLE IF NOT EXISTS project_items (
   title       TEXT NOT NULL,
   status      TEXT DEFAULT 'pending',
   sort_order  INTEGER DEFAULT 0,
+  time_spent  INTEGER DEFAULT 0,
   created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
