@@ -33,6 +33,20 @@ router.patch('/', (req, res) => {
   }
 
   db.prepare(`UPDATE stream_state SET ${fields.join(', ')} WHERE id = 1`).run(...values);
+
+  // If challenge is being completed/failed, check for linked project item and save its time
+  if (challenge_status === 'done' || challenge_status === 'failed') {
+    const currentState = db.prepare('SELECT challenge_title, timer_seconds FROM stream_state WHERE id = 1').get() as { challenge_title: string | null; timer_seconds: number };
+    if (currentState.challenge_title) {
+      const linkedItem = db.prepare('SELECT * FROM project_items WHERE title = ? AND status = ?').get(currentState.challenge_title, 'in_progress') as { id: number; time_spent: number } | undefined;
+      if (linkedItem) {
+        const timerValue = timer_seconds !== undefined ? timer_seconds : currentState.timer_seconds;
+        db.prepare('UPDATE project_items SET status = ?, time_spent = time_spent + ? WHERE id = ?').run('done', timerValue, linkedItem.id);
+        broadcast('progress-update', { action: 'item-updated', item: db.prepare('SELECT * FROM project_items WHERE id = ?').get(linkedItem.id) });
+      }
+    }
+  }
+
   const state = db.prepare('SELECT * FROM stream_state WHERE id = 1').get();
 
   broadcast('stream-state', state);
