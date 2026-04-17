@@ -4,10 +4,12 @@ import { Issue } from '../../../shared/types';
 import { useWebSocket } from '../hooks/useWebSocket';
 import ChatCommands from '../components/ChatCommands';
 import { useTranslation } from '../i18n/LanguageContext';
+import { useToast } from '../i18n/ToastContext';
 
 export default function IssuesPanel() {
   const { t } = useTranslation();
-  const { data: bugs, refetch } = useApi<Issue[]>('/issues');
+  const { toast } = useToast();
+  const { data: bugs, loading, refetch } = useApi<Issue[]>('/issues');
   const [newIssue, setNewIssue] = useState('');
   const [cooldown, setCooldown] = useState(0);
 
@@ -34,20 +36,27 @@ export default function IssuesPanel() {
     return () => clearInterval(interval);
   }, [cooldown > 0]);
 
+  if (loading && !bugs) {
+    return <div className="panel"><p className="empty">{t('common.loading')}</p></div>;
+  }
+
   const addIssue = async () => {
     if (!newIssue.trim()) return;
-    await apiPost('/issues', { title: newIssue });
+    const result = await apiPost('/issues', { title: newIssue });
+    if (!result) { toast.error(t('error.action_failed')); return; }
     setNewIssue('');
     refetch();
   };
 
   const fixIssue = async (id: number) => {
-    await apiPatch(`/issues/${id}`, { status: 'fixed' });
+    const result = await apiPatch(`/issues/${id}`, { status: 'fixed' });
+    if (!result) { toast.error(t('error.action_failed')); return; }
     refetch();
   };
 
   const deleteIssue = async (id: number) => {
-    await apiDelete(`/issues/${id}`);
+    const ok = await apiDelete(`/issues/${id}`);
+    if (!ok) { toast.error(t('error.action_failed')); return; }
     refetch();
   };
 
@@ -60,6 +69,7 @@ export default function IssuesPanel() {
 
     const result = await apiPost<{ winner: { id: number; title: string } }>('/actions/roulette', {});
     if (!result) {
+      toast.error(t('error.action_failed'));
       setSpinning(false);
     }
     // Result comes back via WebSocket 'roulette-result' event
@@ -99,13 +109,16 @@ export default function IssuesPanel() {
       )}
 
       <div className="issue-list">
+        {openIssues.length === 0 && fixedIssues.length === 0 && !spinning && !selectedIssue && (
+          <p className="empty">{t('issues.empty_list')}</p>
+        )}
         <h3>{t('issues.open')} ({openIssues.length})</h3>
         {openIssues.map((bug) => (
           <div key={bug.id} className="issue-item">
             <span>{bug.title}</span>
             <div className="issue-actions">
               <button onClick={() => fixIssue(bug.id)}>✅</button>
-              <button onClick={() => deleteIssue(bug.id)}>🗑️</button>
+              <button title={t('tooltip.delete')} onClick={() => deleteIssue(bug.id)}>🗑️</button>
             </div>
           </div>
         ))}

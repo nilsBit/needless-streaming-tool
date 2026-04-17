@@ -3,10 +3,12 @@ import { useApi, apiPatch } from '../hooks/useApi';
 import { StreamState } from '../../../shared/types';
 import ChatCommands from '../components/ChatCommands';
 import { useTranslation } from '../i18n/LanguageContext';
+import { useToast } from '../i18n/ToastContext';
 
 export default function ChallengePanel() {
   const { t } = useTranslation();
-  const { data: state, refetch } = useApi<StreamState>('/stream-state');
+  const { toast } = useToast();
+  const { data: state, loading, refetch } = useApi<StreamState>('/stream-state');
   const [title, setTitle] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [timerDisplay, setTimerDisplay] = useState('00:00');
@@ -53,17 +55,20 @@ export default function ChallengePanel() {
   const startChallenge = async () => {
     if (!title.trim()) return;
     setIsEditing(false);
-    await apiPatch('/stream-state', { challenge_title: title.trim(), challenge_status: 'in_progress', timer_seconds: 0, timer_running: 1 });
+    const result = await apiPatch('/stream-state', { challenge_title: title.trim(), challenge_status: 'in_progress', timer_seconds: 0, timer_running: 1 });
+    if (!result) { toast.error(t('error.action_failed')); return; }
     setSeconds(0);
     refetch();
   };
 
   const finishChallenge = async (status: string) => {
-    await apiPatch('/stream-state', { challenge_status: status, timer_running: 0 });
+    const result = await apiPatch('/stream-state', { challenge_status: status, timer_running: 0 });
+    if (!result) { toast.error(t('error.action_failed')); return; }
     refetch();
     if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
     resetTimerRef.current = setTimeout(async () => {
-      await apiPatch('/stream-state', { challenge_title: null, challenge_status: 'idle', timer_seconds: 0, timer_running: 0 });
+      const reset = await apiPatch('/stream-state', { challenge_title: null, challenge_status: 'idle', timer_seconds: 0, timer_running: 0 });
+      if (!reset) { toast.error(t('error.action_failed')); resetTimerRef.current = null; return; }
       setTitle('');
       setSeconds(0);
       refetch();
@@ -72,16 +77,22 @@ export default function ChallengePanel() {
   };
 
   const toggleTimer = async () => {
-    await apiPatch('/stream-state', { timer_running: state?.timer_running ? 0 : 1 });
+    const result = await apiPatch('/stream-state', { timer_running: state?.timer_running ? 0 : 1 });
+    if (!result) { toast.error(t('error.action_failed')); return; }
     refetch();
   };
 
   const cancelChallenge = async () => {
-    await apiPatch('/stream-state', { challenge_title: null, challenge_status: 'idle', timer_seconds: 0, timer_running: 0 });
+    const result = await apiPatch('/stream-state', { challenge_title: null, challenge_status: 'idle', timer_seconds: 0, timer_running: 0 });
+    if (!result) { toast.error(t('error.action_failed')); return; }
     setTitle('');
     setSeconds(0);
     refetch();
   };
+
+  if (loading && !state) {
+    return <div className="panel"><p className="empty">{t('common.loading')}</p></div>;
+  }
 
   const isActive = state?.challenge_title && state.challenge_status !== 'idle';
   const statusColor = state?.challenge_status === 'in_progress' ? '#e74c3c' : state?.challenge_status === 'done' ? '#2ecc71' : state?.challenge_status === 'failed' ? '#e74c3c' : '#888';

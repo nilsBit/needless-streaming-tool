@@ -4,6 +4,7 @@ import { Design } from '../../../shared/types';
 import { useWebSocket } from '../hooks/useWebSocket';
 import ChatCommands from '../components/ChatCommands';
 import { useTranslation } from '../i18n/LanguageContext';
+import { useToast } from '../i18n/ToastContext';
 
 interface ActiveVote {
   active?: boolean;
@@ -17,6 +18,7 @@ interface ActiveVote {
 
 export default function DesignsPanel() {
   const { t } = useTranslation();
+  const { toast } = useToast();
   const { data: designs, refetch } = useApi<Design[]>('/designs');
   const { data: vote, refetch: refetchVote } = useApi<ActiveVote>('/voting');
   const [title, setTitle] = useState('');
@@ -37,18 +39,21 @@ export default function DesignsPanel() {
 
   const createDesign = async () => {
     if (!title.trim()) return;
-    await apiPost('/designs', { title, type: 'general' });
+    const result = await apiPost('/designs', { title, type: 'general' });
+    if (!result) { toast.error(t('error.action_failed')); return; }
     setTitle('');
     refetch();
   };
 
   const completeDesign = async (id: number) => {
-    await apiPatch(`/designs/${id}`, { status: 'completed' });
+    const result = await apiPatch(`/designs/${id}`, { status: 'completed' });
+    if (!result) { toast.error(t('error.action_failed')); return; }
     refetch();
   };
 
   const deleteDesign = async (id: number) => {
-    await apiDelete(`/designs/${id}`);
+    const ok = await apiDelete(`/designs/${id}`);
+    if (!ok) { toast.error(t('error.action_failed')); return; }
     refetch();
   };
 
@@ -65,18 +70,21 @@ export default function DesignsPanel() {
 
   const startVote = async () => {
     if (voteOptionsList.length < 2) return;
-    await apiPost('/voting/start', { title: '🎨 Chat Design', options: voteOptionsList, duration: voteDuration });
+    const result = await apiPost('/voting/start', { title: '🎨 Chat Design', options: voteOptionsList, duration: voteDuration });
+    if (!result) { toast.error(t('error.action_failed')); return; }
     setVoteOptionsList([]);
     refetchVote();
   };
 
   const endVote = async () => {
-    await apiPost('/voting/end', {});
+    const result = await apiPost('/voting/end', {});
+    if (!result) { toast.error(t('error.action_failed')); return; }
     refetchVote();
   };
 
   const cancelVote = async () => {
-    await apiPost('/voting/cancel', {});
+    const result = await apiPost('/voting/cancel', {});
+    if (!result) { toast.error(t('error.action_failed')); return; }
     refetchVote();
   };
 
@@ -168,7 +176,7 @@ export default function DesignsPanel() {
             <span>🎨 {d.title}</span>
             <div className="design-actions">
               <button onClick={() => completeDesign(d.id)}>✅</button>
-              <button onClick={() => deleteDesign(d.id)}>🗑️</button>
+              <button title={t('tooltip.delete')} onClick={() => deleteDesign(d.id)}>🗑️</button>
             </div>
           </div>
         ))}
@@ -179,7 +187,7 @@ export default function DesignsPanel() {
             {completed.slice(0, 5).map((d) => (
               <div key={d.id} className="design-item done">
                 <span>🎨 {d.title}</span>
-                <button onClick={() => deleteDesign(d.id)}>🗑️</button>
+                <button title={t('tooltip.delete')} onClick={() => deleteDesign(d.id)}>🗑️</button>
               </div>
             ))}
           </>

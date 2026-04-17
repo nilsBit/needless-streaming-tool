@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApi, apiPost, apiDelete, getApiToken } from '../hooks/useApi';
 import { useTranslation } from '../i18n/LanguageContext';
+import { useToast } from '../i18n/ToastContext';
 
 interface SyncResult {
   synced: number;
@@ -33,6 +34,7 @@ interface SessionInfo {
 
 export default function ClipsPanel() {
   const { t } = useTranslation();
+  const { toast } = useToast();
   const today = new Date().toISOString().split('T')[0];
   const { data: sessions, refetch: refetchSessions } = useApi<SessionInfo[]>('/clips/sessions');
   const { data: allClips, refetch: refetchClips } = useApi<Clip[]>('/clips');
@@ -51,14 +53,16 @@ export default function ClipsPanel() {
   });
 
   const addClip = async (tag: string) => {
-    await apiPost('/clips', { tag, note: note || undefined });
+    const result = await apiPost('/clips', { tag, note: note || undefined });
+    if (!result) { toast.error(t('error.action_failed')); return; }
     setNote('');
     refetchClips();
     refetchSessions();
   };
 
   const deleteClip = async (id: number) => {
-    await apiDelete(`/clips/${id}`);
+    const ok = await apiDelete(`/clips/${id}`);
+    if (!ok) { toast.error(t('error.action_failed')); return; }
     refetchClips();
     refetchSessions();
   };
@@ -66,7 +70,9 @@ export default function ClipsPanel() {
   const syncToNotion = async (sessionDate: string) => {
     setSyncingDay(sessionDate);
     const result = await apiPost<SyncResult>('/clips/sync', { session_date: sessionDate });
-    if (result) {
+    if (!result) {
+      toast.error(t('error.action_failed'));
+    } else {
       console.log(`[Clips] Synced ${result.synced}/${result.total} clips to Notion`);
     }
     setSyncingDay(null);
@@ -87,14 +93,16 @@ export default function ClipsPanel() {
   const addCustomTag = async () => {
     const trimmed = newTagName.trim().toLowerCase();
     if (!trimmed) return;
-    await apiPost('/clip-tags', { tag: trimmed });
+    const result = await apiPost('/clip-tags', { tag: trimmed });
+    if (!result) { toast.error(t('error.action_failed')); return; }
     setNewTagName('');
     setShowNewTagInput(false);
     refetchTags();
   };
 
   const deleteCustomTag = async (tag: string) => {
-    await apiDelete(`/clip-tags/${tag}`);
+    const ok = await apiDelete(`/clip-tags/${tag}`);
+    if (!ok) { toast.error(t('error.action_failed')); return; }
     refetchTags();
   };
 
@@ -211,7 +219,7 @@ export default function ClipsPanel() {
                       <span className="clip-time">{formatClipTime(clip)}</span>
                       <span className="clip-tag">{TAG_EMOJI[clip.tag] || '🏷️'} {clip.tag}</span>
                       {clip.note && <span className="clip-note">{clip.note}</span>}
-                      <button className="btn-delete-small" onClick={() => deleteClip(clip.id)}>✕</button>
+                      <button className="btn-delete-small" title={t('tooltip.delete')} onClick={() => deleteClip(clip.id)}>✕</button>
                     </div>
                   ))}
                 </div>

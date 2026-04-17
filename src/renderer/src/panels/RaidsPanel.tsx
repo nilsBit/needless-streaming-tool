@@ -6,11 +6,15 @@ import { useTranslation } from '../i18n/LanguageContext';
 
 export default function RaidsPanel() {
   const { t } = useTranslation();
-  const { data: raids, refetch } = useApi<Raid[]>('/raids');
+  const { data: raids, loading, refetch } = useApi<Raid[]>('/raids');
 
   useWebSocket((event) => {
     if (event === 'raid-created' || event === 'raid-deleted') refetch();
   });
+
+  if (loading && !raids) {
+    return <div className="panel"><p className="empty">{t('common.loading')}</p></div>;
+  }
 
   const formatTime = (dateStr: string) => {
     const d = new Date(dateStr);

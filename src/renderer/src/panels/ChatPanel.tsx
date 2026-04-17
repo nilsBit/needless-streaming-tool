@@ -5,7 +5,11 @@ import { useTranslation } from '../i18n/LanguageContext';
 
 export default function ChatPanel() {
   const { t } = useTranslation();
-  const { data: config } = useApi<TwitchConfigResponse>('/settings/twitch');
+  const { data: config, loading } = useApi<TwitchConfigResponse>('/settings/twitch');
+
+  if (loading && !config) {
+    return <div className="panel"><p className="empty">{t('common.loading')}</p></div>;
+  }
 
   if (!config?.configured || !config.channel) {
     return (
