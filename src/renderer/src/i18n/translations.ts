@@ -341,6 +341,27 @@ const translations = {
   'tooltip.reset': { de: 'Zurücksetzen', en: 'Reset' },
   'tooltip.close': { de: 'Schließen', en: 'Close' },
   'milestones.check_tooltip': { de: 'Abhaken → Achievement', en: 'Check off → Achievement' },
+
+  // ---- Overlay Config ----
+  'overlay_config.title': { de: 'Overlay Design', en: 'Overlay Design' },
+  'overlay_config.desc': { de: 'Farben und Schriften für alle Overlays anpassen.', en: 'Customize colors and fonts for all overlays.' },
+  'overlay_config.global': { de: 'Globale Einstellungen', en: 'Global Settings' },
+  'overlay_config.override': { de: 'Overlay-spezifisch', en: 'Overlay-specific' },
+  'overlay_config.select_overlay': { de: 'Overlay auswählen...', en: 'Select overlay...' },
+  'overlay_config.color_primary': { de: 'Primärfarbe', en: 'Primary color' },
+  'overlay_config.color_secondary': { de: 'Sekundärfarbe', en: 'Secondary color' },
+  'overlay_config.color_accent': { de: 'Akzentfarbe', en: 'Accent color' },
+  'overlay_config.color_text': { de: 'Textfarbe', en: 'Text color' },
+  'overlay_config.color_bg': { de: 'Hintergrund', en: 'Background' },
+  'overlay_config.color_bg_secondary': { de: 'Hintergrund (sekundär)', en: 'Background (secondary)' },
+  'overlay_config.bg_opacity': { de: 'Hintergrund-Transparenz', en: 'Background opacity' },
+  'overlay_config.font_display': { de: 'Überschrift-Font', en: 'Display font' },
+  'overlay_config.font_body': { de: 'Text-Font', en: 'Body font' },
+  'overlay_config.font_size': { de: 'Schriftgröße', en: 'Font size' },
+  'overlay_config.reset_all': { de: 'Alles zurücksetzen', en: 'Reset all' },
+  'overlay_config.clear_overrides': { de: 'Overrides entfernen', en: 'Clear overrides' },
+  'overlay_config.saved': { de: 'Design gespeichert', en: 'Design saved' },
+  'overlay_config.refresh': { de: 'Vorschau aktualisieren', en: 'Refresh preview' },
 } as const;
 
 export type TranslationKey = keyof typeof translations;

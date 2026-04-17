@@ -22,6 +22,7 @@ import obsRouter from './api/obs';
 import customOverlaysRouter from './api/custom-overlays';
 import statsRouter from './api/stats';
 import backupRouter from './api/backup';
+import overlayConfigRouter, { getOverlayConfig } from './api/overlay-config';
 import { connectBot } from './bot/index';
 import { connectObs } from './obs/index';
 import { getDb } from './db/index';
@@ -53,7 +54,7 @@ export async function startServer(): Promise<string> {
 
   // CSP für Overlays
   app.use('/overlay', (_req, res, next) => {
-    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src ws://localhost:4000 http://localhost:4000");
+    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src ws://localhost:4000 http://localhost:4000");
     next();
   });
 
@@ -107,6 +108,7 @@ export async function startServer(): Promise<string> {
   app.use('/api/overlays', customOverlaysRouter);
   app.use('/api/stats', statsRouter);
   app.use('/api/backup', backupRouter);
+  app.use('/api/overlay-config', overlayConfigRouter);
 
   // Twitch OAuth callback redirect (no auth needed)
   app.get('/auth/twitch/callback', (req, res) => res.redirect('/api/auth/twitch/callback'));
@@ -125,6 +127,10 @@ export async function startServer(): Promise<string> {
   app.get('/public/todos', (_req, res) => {
     const todos = getDb().prepare('SELECT * FROM todos ORDER BY done ASC, sort_order ASC, created_at DESC').all();
     res.json(todos);
+  });
+
+  app.get('/public/overlay-config', (_req, res) => {
+    res.json(getOverlayConfig());
   });
 
   app.get('/public/progress', (_req, res) => {
