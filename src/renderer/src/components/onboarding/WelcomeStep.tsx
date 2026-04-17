@@ -1,18 +1,19 @@
 import React from 'react';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 export default function WelcomeStep({ onNext }: { onNext: () => void }) {
+  const { t } = useTranslation();
   return (
     <div className="onboarding-step welcome-step">
       <div className="welcome-icon">🔬</div>
-      <h1>Willkommen im Lab!</h1>
+      <h1>{t('onboarding.welcome_title')}</h1>
       <p className="welcome-text">
-        Dein Stream Toolkit für Streaming. Hier steuerst du alles
-        — Overlays, Challenges, Issues, Clips, Milestones und mehr.
+        {t('onboarding.welcome_text')}
       </p>
       <p className="welcome-sub">
-        Lass uns in ein paar Schritten alles einrichten.
+        {t('onboarding.welcome_sub')}
       </p>
-      <button className="btn-primary" onClick={onNext}>Setup starten</button>
+      <button className="btn-primary" onClick={onNext}>{t('onboarding.start_setup')}</button>
     </div>
   );
 }

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useApi, apiPost } from '../../hooks/useApi';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 export default function ObsStep() {
+  const { t } = useTranslation();
   const { data: obsStatus, refetch: refetchStatus } = useApi<{ connected: boolean }>('/obs/status');
   const { data: obsConfig, refetch: refetchConfig } = useApi<{ configured: boolean }>('/obs/config');
   const [host, setHost] = useState('localhost');
@@ -27,12 +29,12 @@ export default function ObsStep() {
 
   return (
     <div className="onboarding-step">
-      <h2>OBS verbinden</h2>
-      <p className="step-desc">Das Toolkit steuert OBS über eine WebSocket-Verbindung. Du musst diese einmal in OBS aktivieren.</p>
+      <h2>{t('obs.title')}</h2>
+      <p className="step-desc">{t('obs.desc')}</p>
 
       <div className="onboarding-status">
         <span className="status-dot" style={{ background: obsStatus?.connected ? '#2ecc71' : '#e74c3c' }} />
-        <span>{obsStatus?.connected ? 'Verbunden mit OBS' : 'Nicht verbunden'}</span>
+        <span>{obsStatus?.connected ? t('settings.obs_connected') : t('settings.obs_not_connected')}</span>
       </div>
 
       {!obsStatus?.connected && (
@@ -40,23 +42,23 @@ export default function ObsStep() {
           <div className="onboarding-steps-list">
             <div className="setup-instruction">
               <span className="instruction-number">1</span>
-              <span>Öffne <strong>OBS Studio</strong></span>
+              <span>{t('obs.step1')}</span>
             </div>
             <div className="setup-instruction">
               <span className="instruction-number">2</span>
-              <span>Gehe oben im Menü auf <strong>Tools</strong> (oder <strong>Werkzeuge</strong>) → <strong>WebSocket Server Settings</strong></span>
+              <span>{t('obs.step2')}</span>
             </div>
             <div className="setup-instruction">
               <span className="instruction-number">3</span>
-              <span>Setze den Haken bei <strong>"Enable WebSocket Server"</strong></span>
+              <span>{t('obs.step3')}</span>
             </div>
             <div className="setup-instruction">
               <span className="instruction-number">4</span>
-              <span>Optional: Klicke auf <strong>"Show Connect Info"</strong> um Port und Passwort zu sehen. Trage sie unten ein.</span>
+              <span>{t('obs.step4')}</span>
             </div>
           </div>
 
-          <p className="step-desc" style={{ marginTop: '8px' }}>Verbindungsdaten (Standard-Werte sind meistens richtig):</p>
+          <p className="step-desc" style={{ marginTop: '8px' }}>{t('obs.connection_data')}</p>
 
           <div className="onboarding-fields">
             <div className="input-row">
@@ -64,17 +66,17 @@ export default function ObsStep() {
               <input type="text" placeholder="Port (4455)" value={port} onChange={(e) => setPort(e.target.value)} style={{ flex: 1 }} />
             </div>
             <div className="input-row">
-              <input type="password" placeholder="Passwort (leer lassen wenn keins gesetzt)" value={password} onChange={(e) => setPassword(e.target.value)} />
+              <input type="password" placeholder={t('obs.password_hint')} value={password} onChange={(e) => setPassword(e.target.value)} />
             </div>
-            <button className="btn-primary" onClick={saveAndConnect}>Verbinden</button>
+            <button className="btn-primary" onClick={saveAndConnect}>{t('obs.connect_btn')}</button>
           </div>
 
-          <p className="step-hint">Tipp: Wenn du kein Passwort in OBS gesetzt hast, lass das Feld einfach leer.</p>
+          <p className="step-hint">{t('obs.tip')}</p>
         </>
       )}
 
       {obsStatus?.connected && (
-        <div className="onboarding-check">OBS ist verbunden! Szenen-Wechsel und mehr funktionieren jetzt.</div>
+        <div className="onboarding-check">{t('obs.connected')}</div>
       )}
     </div>
   );

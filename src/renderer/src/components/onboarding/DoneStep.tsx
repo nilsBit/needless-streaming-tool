@@ -1,8 +1,10 @@
 import React, { useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { BotStatus } from '../../../../shared/types';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 export default function DoneStep({ onFinish }: { onFinish: () => void }) {
+  const { t } = useTranslation();
   const { data: botStatus, refetch: refetchBot } = useApi<BotStatus>('/settings/bot-status');
   const { data: obsStatus, refetch: refetchObs } = useApi<{ connected: boolean }>('/obs/status');
   const { data: notionInfo } = useApi<{ configured: boolean }>('/settings/notion');
@@ -24,13 +26,13 @@ export default function DoneStep({ onFinish }: { onFinish: () => void }) {
   const items = [
     { label: 'Twitch', done: twitchDone, required: true },
     { label: 'OBS', done: obsDone, required: true },
-    { label: 'Notion (optional)', done: notionDone, required: false },
+    { label: `Notion (${t('done.optional')})`, done: notionDone, required: false },
   ];
 
   return (
     <div className="onboarding-step done-step">
       <div className="welcome-icon">{canFinish ? '🎉' : '⚠️'}</div>
-      <h2>{canFinish ? 'Alles bereit!' : 'Fast fertig...'}</h2>
+      <h2>{canFinish ? t('done.title_ready') : t('done.title_almost')}</h2>
 
       <div className="done-checklist">
         {items.map((item) => (
@@ -43,16 +45,16 @@ export default function DoneStep({ onFinish }: { onFinish: () => void }) {
 
       {!canFinish && (
         <p className="step-warning">
-          Twitch und OBS müssen verbunden sein. Gehe zurück und richte sie ein.
+          {t('done.warning')}
         </p>
       )}
 
       <p className="step-hint">
-        Du kannst alles jederzeit in den Settings ändern oder den Wizard unter Settings erneut starten.
+        {t('done.hint')}
       </p>
 
       <button className="btn-primary btn-large" onClick={onFinish} disabled={!canFinish}>
-        Los geht's!
+        {t('onboarding.finish')}
       </button>
     </div>
   );

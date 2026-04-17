@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApi, apiFetch } from '../../hooks/useApi';
 import { BotStatus } from '../../../../shared/types';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 interface ClientIdResponse {
   configured: boolean;
@@ -8,6 +9,7 @@ interface ClientIdResponse {
 }
 
 export default function TwitchStep() {
+  const { t } = useTranslation();
   const { data: botStatus, refetch: refetchBot } = useApi<BotStatus>('/settings/bot-status');
   const { data: clientIdInfo, refetch: refetchClientId } = useApi<ClientIdResponse>('/auth/twitch/client-id');
   const [clientId, setClientId] = useState('');
@@ -34,12 +36,12 @@ export default function TwitchStep() {
 
   return (
     <div className="onboarding-step">
-      <h2>Twitch verbinden</h2>
-      <p className="step-desc">Damit der Bot in deinem Chat funktioniert, brauchst du eine Twitch-App. Das klingt kompliziert, dauert aber nur 2 Minuten.</p>
+      <h2>{t('twitch.title')}</h2>
+      <p className="step-desc">{t('twitch.desc')}</p>
 
       <div className="onboarding-status">
         <span className="status-dot" style={{ background: botStatus?.connected ? '#2ecc71' : '#e74c3c' }} />
-        <span>{botStatus?.connected ? `Verbunden mit #${botStatus.channel}` : 'Nicht verbunden'}</span>
+        <span>{botStatus?.connected ? `${t('settings.connected_to')} #${botStatus.channel}` : t('settings.not_connected')}</span>
       </div>
 
       {!clientIdInfo?.configured ? (
@@ -47,59 +49,59 @@ export default function TwitchStep() {
           <div className="onboarding-steps-list">
             <div className="setup-instruction">
               <span className="instruction-number">1</span>
-              <span>Öffne <strong>dev.twitch.tv</strong> in deinem Browser und logge dich mit deinem Twitch-Account ein</span>
+              <span>{t('twitch.step1')}</span>
             </div>
             <div className="setup-instruction">
               <span className="instruction-number">2</span>
-              <span>Klicke oben rechts auf <strong>"Your Console"</strong>, dann links auf <strong>"Applications"</strong></span>
+              <span>{t('twitch.step2')}</span>
             </div>
             <div className="setup-instruction">
               <span className="instruction-number">3</span>
-              <span>Klicke auf <strong>"Register Your Application"</strong> und füge folgende Daten ein:</span>
+              <span>{t('twitch.step3')}</span>
             </div>
           </div>
 
           <div className="onboarding-info-box">
-            <div className="info-row"><span className="info-label">Name:</span><span>Stream Toolkit (oder beliebig)</span></div>
+            <div className="info-row"><span className="info-label">Name:</span><span>{t('twitch.name_hint')}</span></div>
             <div className="info-row"><span className="info-label">OAuth Redirect URL:</span><span className="info-mono">http://localhost:4000/auth/twitch/callback</span></div>
-            <div className="info-row"><span className="info-label">Category:</span><span>Chat Bot</span></div>
+            <div className="info-row"><span className="info-label">Category:</span><span>{t('twitch.category')}</span></div>
           </div>
 
           <div className="onboarding-steps-list">
             <div className="setup-instruction">
               <span className="instruction-number">4</span>
-              <span>Klicke auf <strong>"Create"</strong>, dann auf <strong>"Manage"</strong> bei deiner neuen App</span>
+              <span>{t('twitch.step4')}</span>
             </div>
             <div className="setup-instruction">
               <span className="instruction-number">5</span>
-              <span>Kopiere die <strong>"Client ID"</strong> und füge sie hier ein:</span>
+              <span>{t('twitch.step5')}</span>
             </div>
           </div>
 
           <div className="input-row">
             <input
               type="text"
-              placeholder="Client-ID hier einfügen..."
+              placeholder={t('twitch.client_id_placeholder')}
               value={clientId}
               onChange={(e) => setClientId(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && saveClientId()}
             />
-            <button onClick={saveClientId}>Speichern</button>
+            <button onClick={saveClientId}>{t('settings.save')}</button>
           </div>
         </>
       ) : (
         <>
-          <div className="onboarding-check">Client-ID gespeichert: {clientIdInfo.client_id_preview}</div>
+          <div className="onboarding-check">{t('twitch.client_id_saved')}: {clientIdInfo.client_id_preview}</div>
           {!botStatus?.connected && (
             <>
-              <p className="step-desc">Klicke jetzt auf den Button — es öffnet sich ein Twitch-Login in deinem Browser. Erlaube den Zugriff und du wirst automatisch verbunden.</p>
+              <p className="step-desc">{t('twitch.connect_desc')}</p>
               <button className="btn-primary" onClick={connectTwitch}>
-                Mit Twitch verbinden
+                {t('twitch.connect_btn')}
               </button>
             </>
           )}
           {botStatus?.connected && (
-            <div className="onboarding-check">Twitch ist verbunden! Der Bot ist live in deinem Chat.</div>
+            <div className="onboarding-check">{t('twitch.connected')}</div>
           )}
         </>
       )}

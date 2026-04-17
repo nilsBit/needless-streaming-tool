@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useApi, apiPost, getApiToken } from '../../hooks/useApi';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 export default function StreamDeckStep() {
+  const { t } = useTranslation();
   const { data: fixedTokenData } = useApi<{ token: string | null }>('/settings/api-token');
   const sessionToken = getApiToken();
   const token = fixedTokenData?.token || sessionToken || null;
@@ -29,48 +31,47 @@ export default function StreamDeckStep() {
 
   return (
     <div className="onboarding-step">
-      <h2>Stream Deck (optional)</h2>
+      <h2>{t('streamdeck.title')}</h2>
       <p className="step-desc">
-        Mit dem Stream Deck Plugin kannst du Buttons für Szenen-Wechsel,
-        Clips, Issues, Challenges und mehr direkt auf dein Deck legen.
+        {t('streamdeck.desc')}
       </p>
 
       <div className="onboarding-steps-list">
         <div className="setup-instruction">
           <span className="instruction-number">1</span>
           <div style={{ flex: 1 }}>
-            <span>Plugin installieren:</span>
+            <span>{t('streamdeck.step1')}</span>
             <button
               className="btn-install-inline"
               onClick={installPlugin}
               disabled={installing || installed}
             >
-              {installed ? 'Installiert!' : installing ? 'Wird installiert...' : 'Plugin jetzt installieren'}
+              {installed ? t('streamdeck.installed') : installing ? t('streamdeck.installing') : t('streamdeck.install_btn')}
             </button>
           </div>
         </div>
         <div className="setup-instruction">
           <span className="instruction-number">2</span>
-          <span>Ziehe einen <strong>"The Lab"</strong> Button auf dein Deck</span>
+          <span>{t('streamdeck.step2')}</span>
         </div>
         <div className="setup-instruction">
           <span className="instruction-number">3</span>
           <div style={{ flex: 1 }}>
-            <span>Kopiere den Token und füge ihn im Button-Settings unter <strong>"API Token"</strong> ein (einmalig):</span>
+            <span>{t('streamdeck.step3')}</span>
             {token ? (
               <div className="token-display-onboarding" style={{ marginTop: '8px' }}>
                 <code>{token.substring(0, 16)}...{token.substring(token.length - 8)}</code>
-                <button onClick={copy}>{copied ? 'Kopiert!' : 'Kopieren'}</button>
+                <button onClick={copy}>{copied ? t('settings.copied') : t('settings.copy')}</button>
               </div>
             ) : (
-              <p className="step-hint" style={{ marginTop: '8px' }}>Token wird geladen...</p>
+              <p className="step-hint" style={{ marginTop: '8px' }}>{t('settings.token_loading')}</p>
             )}
           </div>
         </div>
       </div>
 
       <p className="step-hint">
-        Kein Stream Deck? Kein Problem — du kannst alles auch direkt in der App steuern.
+        {t('streamdeck.no_deck')}
       </p>
     </div>
   );
