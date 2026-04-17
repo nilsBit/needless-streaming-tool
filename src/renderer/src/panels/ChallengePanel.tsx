@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApi, apiPatch } from '../hooks/useApi';
-import { StreamState } from '../../../shared/types';
+import { StreamState, ProjectItem } from '../../../shared/types';
 import ChatCommands from '../components/ChatCommands';
 import { useTranslation } from '../i18n/LanguageContext';
 import { useToast } from '../i18n/ToastContext';
@@ -9,6 +9,7 @@ export default function ChallengePanel() {
   const { t } = useTranslation();
   const { toast } = useToast();
   const { data: state, loading, refetch } = useApi<StreamState>('/stream-state');
+  const { data: progressData } = useApi<{ items: ProjectItem[] }>('/progress');
   const [title, setTitle] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [timerDisplay, setTimerDisplay] = useState('00:00');
@@ -97,6 +98,9 @@ export default function ChallengePanel() {
   const isActive = state?.challenge_title && state.challenge_status !== 'idle';
   const statusColor = state?.challenge_status === 'in_progress' ? '#e74c3c' : state?.challenge_status === 'done' ? '#2ecc71' : state?.challenge_status === 'failed' ? '#e74c3c' : '#888';
   const statusLabel = state?.challenge_status === 'in_progress' ? t('challenge.running') : state?.challenge_status === 'done' ? t('challenge.done') : state?.challenge_status === 'failed' ? t('challenge.failed') : '';
+  const isLinkedToProgress = isActive && progressData?.items?.some(
+    item => item.status === 'in_progress' && item.title === state?.challenge_title
+  );
 
   return (
     <div className="panel challenge-panel">
@@ -123,6 +127,10 @@ export default function ChallengePanel() {
             <span className="challenge-title">{state?.challenge_title}</span>
             <span className="challenge-state">{statusLabel}</span>
           </div>
+
+          {isLinkedToProgress && (
+            <p className="linked-indicator">{t('progress.linked_challenge')}</p>
+          )}
 
           <div className="timer">
             <span className="timer-display">{timerDisplay}</span>
