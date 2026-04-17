@@ -4,20 +4,37 @@
   <meta charset="UTF-8">
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;700&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --color-primary: #ff2d7b;
+      --color-secondary: #00d4ff;
+      --color-accent: #39ff14;
+      --color-text: #ffffff;
+      --color-bg: #0a0a0a;
+      --color-bg-opacity: 0.92;
+      --color-bg-secondary: #0d0d0d;
+      --color-primary-rgb: 255 45 123;
+      --color-secondary-rgb: 0 212 255;
+      --color-accent-rgb: 57 255 20;
+      --color-bg-rgb: 10 10 10;
+      --font-display: 'Bebas Neue', sans-serif;
+      --font-body: 'Inter', sans-serif;
+      --font-size-base: 14px;
+    }
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: transparent; font-family: 'Inter', sans-serif; overflow: hidden; }
+    body { background: transparent; font-family: var(--font-body); overflow: hidden; }
 
     .poll {
       display: none;
       flex-direction: column;
       gap: 10px;
       padding: 20px;
-      background: rgba(10, 10, 10, 0.93);
-      border: 3px solid #ff2d7b;
+      background: rgb(var(--color-bg-rgb) / 0.93);
+      border: 3px solid var(--color-primary);
       width: 340px;
       position: relative;
       overflow: hidden;
-      box-shadow: 0 0 20px rgba(255, 45, 123, 0.3);
+      box-shadow: 0 0 20px rgb(var(--color-primary-rgb) / 0.3);
       animation: pollPulse 3s ease-in-out infinite;
     }
 
@@ -44,10 +61,10 @@
       bottom: 0; left: 0; right: 0; height: 4px;
       background: repeating-linear-gradient(
         45deg,
-        #ff2d7b,
-        #ff2d7b 3px,
-        #00d4ff 3px,
-        #00d4ff 6px,
+        var(--color-primary),
+        var(--color-primary) 3px,
+        var(--color-secondary) 3px,
+        var(--color-secondary) 6px,
         transparent 6px,
         transparent 9px
       );
@@ -55,24 +72,24 @@
     }
 
     @keyframes pollPulse {
-      0%, 100% { box-shadow: 0 0 20px rgba(255, 45, 123, 0.3); }
-      50% { box-shadow: 0 0 30px rgba(255, 45, 123, 0.5); }
+      0%, 100% { box-shadow: 0 0 20px rgb(var(--color-primary-rgb) / 0.3); }
+      50% { box-shadow: 0 0 30px rgb(var(--color-primary-rgb) / 0.5); }
     }
 
     .poll.visible { display: flex; }
 
     .poll-title {
-      font-family: 'Bebas Neue', sans-serif;
+      font-family: var(--font-display);
       font-size: 22px;
       font-weight: 700;
-      color: #ff2d7b;
+      color: var(--color-primary);
       letter-spacing: 2px;
       text-transform: uppercase;
-      text-shadow: 0 0 10px rgba(255, 45, 123, 0.5), 2px 2px 0 rgba(0,0,0,0.5);
+      text-shadow: 0 0 10px rgb(var(--color-primary-rgb) / 0.5), 2px 2px 0 rgba(0,0,0,0.5);
       transform: skewX(-3deg);
       padding: 6px 12px;
-      background: rgba(255, 45, 123, 0.08);
-      border-left: 4px solid #ff2d7b;
+      background: rgb(var(--color-primary-rgb) / 0.08);
+      border-left: 4px solid var(--color-primary);
       position: relative;
       z-index: 1;
     }
@@ -98,14 +115,14 @@
     }
 
     .poll-option:hover {
-      border-color: #00d4ff;
-      box-shadow: 0 0 10px rgba(0, 212, 255, 0.2);
+      border-color: var(--color-secondary);
+      box-shadow: 0 0 10px rgb(var(--color-secondary-rgb) / 0.2);
     }
 
     .poll-label {
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-size: 14px;
-      color: #e0e0e0;
+      color: var(--color-text);
       flex: 1;
       font-weight: 700;
       text-transform: uppercase;
@@ -115,11 +132,11 @@
     }
 
     .poll-count {
-      font-family: 'Bebas Neue', sans-serif;
+      font-family: var(--font-display);
       font-size: 20px;
-      color: #00d4ff;
+      color: var(--color-secondary);
       font-weight: 700;
-      text-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+      text-shadow: 0 0 8px rgb(var(--color-secondary-rgb) / 0.4);
       z-index: 1;
       position: relative;
       letter-spacing: 1px;
@@ -135,32 +152,32 @@
 
     .poll-bar {
       height: 4px;
-      background: linear-gradient(90deg, #ff2d7b, #00d4ff);
+      background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
       transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-      box-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+      box-shadow: 0 0 8px rgb(var(--color-secondary-rgb) / 0.4);
       position: relative;
     }
 
     /* Winner highlight glow */
     .poll-option.winner {
-      border-color: #39ff14;
-      box-shadow: 0 0 20px rgba(57, 255, 20, 0.4);
+      border-color: var(--color-accent);
+      box-shadow: 0 0 20px rgb(var(--color-accent-rgb) / 0.4);
       animation: winnerGlow 1.5s ease-in-out infinite;
     }
 
     .poll-option.winner .poll-label {
-      color: #39ff14;
-      text-shadow: 0 0 8px rgba(57, 255, 20, 0.4);
+      color: var(--color-accent);
+      text-shadow: 0 0 8px rgb(var(--color-accent-rgb) / 0.4);
     }
 
     .poll-option.winner .poll-count {
-      color: #39ff14;
-      text-shadow: 0 0 10px rgba(57, 255, 20, 0.5);
+      color: var(--color-accent);
+      text-shadow: 0 0 10px rgb(var(--color-accent-rgb) / 0.5);
     }
 
     @keyframes winnerGlow {
-      0%, 100% { box-shadow: 0 0 20px rgba(57, 255, 20, 0.4); }
-      50% { box-shadow: 0 0 35px rgba(57, 255, 20, 0.7); }
+      0%, 100% { box-shadow: 0 0 20px rgb(var(--color-accent-rgb) / 0.4); }
+      50% { box-shadow: 0 0 35px rgb(var(--color-accent-rgb) / 0.7); }
     }
   </style>
 </head>
@@ -170,6 +187,38 @@
     <div id="options"></div>
   </div>
 
+  <script>
+(function() {
+  var name = 'poll';
+  document.documentElement.style.visibility = 'hidden';
+  function hexToRgb(hex) {
+    var r = parseInt(hex.slice(1,3), 16);
+    var g = parseInt(hex.slice(3,5), 16);
+    var b = parseInt(hex.slice(5,7), 16);
+    return r + ' ' + g + ' ' + b;
+  }
+  fetch('http://localhost:4000/public/overlay-config')
+    .then(function(r) { return r.json(); })
+    .then(function(config) {
+      var vars = Object.assign({}, config.global || {}, (config.overrides || {})[name] || {});
+      var root = document.documentElement;
+      Object.keys(vars).forEach(function(k) { root.style.setProperty(k, vars[k]); });
+      ['--color-primary', '--color-secondary', '--color-accent', '--color-bg'].forEach(function(k) {
+        if (vars[k]) root.style.setProperty(k + '-rgb', hexToRgb(vars[k]));
+      });
+      var fonts = [vars['--font-display'], vars['--font-body']].filter(Boolean);
+      if (fonts.length > 0) {
+        var families = fonts.map(function(f) { return f.split(',')[0].replace(/'/g, '').trim(); });
+        var link = document.createElement('link');
+        link.href = 'https://fonts.googleapis.com/css2?family=' + families.map(function(f) { return encodeURIComponent(f) + ':wght@400;600;700'; }).join('&') + '&display=swap';
+        link.rel = 'stylesheet';
+        document.head.appendChild(link);
+      }
+    })
+    .catch(function() {})
+    .finally(function() { document.documentElement.style.visibility = 'visible'; });
+})();
+</script>
   <script>
     const ws = new WebSocket('ws://localhost:4000?overlay=1');
     const poll = document.getElementById('poll');

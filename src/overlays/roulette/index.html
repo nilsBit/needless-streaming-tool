@@ -5,6 +5,23 @@
 <title>Lucky Spin - OBS Overlay</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;700&display=swap" rel="stylesheet">
 <style>
+  :root {
+    --color-primary: #ff2d7b;
+    --color-secondary: #00d4ff;
+    --color-accent: #39ff14;
+    --color-text: #ffffff;
+    --color-bg: #0a0a0a;
+    --color-bg-opacity: 0.92;
+    --color-bg-secondary: #0d0d0d;
+    --color-primary-rgb: 255 45 123;
+    --color-secondary-rgb: 0 212 255;
+    --color-accent-rgb: 57 255 20;
+    --color-bg-rgb: 10 10 10;
+    --font-display: 'Bebas Neue', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-size-base: 14px;
+  }
+
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   html, body {
@@ -15,7 +32,7 @@
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-body);
     overflow: hidden;
   }
 
@@ -43,8 +60,8 @@
   }
 
   .neon-box {
-    background: rgba(10, 10, 10, 0.93);
-    border: 3px solid #ff2d7b;
+    background: rgb(var(--color-bg-rgb) / 0.93);
+    border: 3px solid var(--color-primary);
     position: relative;
     overflow: hidden;
   }
@@ -69,27 +86,27 @@
     align-items: center;
     gap: 10px;
     padding: 8px 18px;
-    box-shadow: 0 0 15px rgba(255, 45, 123, 0.3);
+    box-shadow: 0 0 15px rgb(var(--color-primary-rgb) / 0.3);
   }
 
   .counter .diamond {
-    color: #ff2d7b;
+    color: var(--color-primary);
     font-size: 14px;
-    text-shadow: 0 0 8px rgba(255, 45, 123, 0.5);
+    text-shadow: 0 0 8px rgb(var(--color-primary-rgb) / 0.5);
     animation: orbFloat 2s ease-in-out infinite;
   }
 
   .counter .pts {
-    color: #e0e0e0;
-    font-family: 'Bebas Neue', sans-serif;
+    color: var(--color-text);
+    font-family: var(--font-display);
     font-size: 16px;
     letter-spacing: 2px;
-    text-shadow: 0 0 6px rgba(0, 212, 255, 0.4);
+    text-shadow: 0 0 6px rgb(var(--color-secondary-rgb) / 0.4);
   }
 
   .counter .label {
     color: #666;
-    font-family: 'Bebas Neue', sans-serif;
+    font-family: var(--font-display);
     font-size: 11px;
     letter-spacing: 2px;
   }
@@ -98,7 +115,7 @@
     position: relative;
     width: 320px;
     height: 320px;
-    filter: drop-shadow(0 0 20px rgba(255, 45, 123, 0.3));
+    filter: drop-shadow(0 0 20px rgb(var(--color-primary-rgb) / 0.3));
   }
 
   .wheel-rotate { width: 320px; height: 320px; }
@@ -108,8 +125,8 @@
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: #ff2d7b;
-    box-shadow: 0 0 8px #ff2d7b, 0 0 16px rgba(255, 45, 123, 0.4);
+    background: var(--color-primary);
+    box-shadow: 0 0 8px var(--color-primary), 0 0 16px rgb(var(--color-primary-rgb) / 0.4);
   }
 
   .pointer-wrap {
@@ -119,37 +136,37 @@
     transform: translateX(-50%);
     z-index: 20;
     animation: pointerPulse 2.5s ease-in-out infinite;
-    filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.6));
+    filter: drop-shadow(0 0 10px rgb(var(--color-secondary-rgb) / 0.6));
   }
   .pointer-wrap.active {
     animation: pointerPulse 0.15s ease-in-out infinite;
-    filter: drop-shadow(0 0 15px rgba(57, 255, 20, 0.8));
+    filter: drop-shadow(0 0 15px rgb(var(--color-accent-rgb) / 0.8));
   }
 
   .spin-btn {
-    font-family: 'Bebas Neue', sans-serif;
+    font-family: var(--font-display);
     font-size: 18px;
-    color: #e0e0e0;
+    color: var(--color-text);
     padding: 10px 32px;
     cursor: pointer;
     letter-spacing: 3px;
     text-transform: uppercase;
     transition: all 0.2s;
-    background: rgba(10, 10, 10, 0.9);
-    border: 3px solid #00d4ff;
-    box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+    background: rgb(var(--color-bg-rgb) / 0.9);
+    border: 3px solid var(--color-secondary);
+    box-shadow: 0 0 15px rgb(var(--color-secondary-rgb) / 0.3);
     transform: skewX(-3deg);
-    text-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+    text-shadow: 0 0 8px rgb(var(--color-secondary-rgb) / 0.4);
   }
   .spin-btn:hover {
-    border-color: #39ff14;
-    box-shadow: 0 0 25px rgba(57, 255, 20, 0.5);
-    text-shadow: 0 0 10px rgba(57, 255, 20, 0.5);
-    color: #39ff14;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 25px rgb(var(--color-accent-rgb) / 0.5);
+    text-shadow: 0 0 10px rgb(var(--color-accent-rgb) / 0.5);
+    color: var(--color-accent);
   }
   .spin-btn:disabled {
     color: #333;
-    background: rgba(10, 10, 10, 0.9);
+    background: rgb(var(--color-bg-rgb) / 0.9);
     border-color: #222;
     box-shadow: none;
     text-shadow: none;
@@ -160,30 +177,30 @@
     padding: 14px 28px;
     text-align: center;
     animation: fadeIn 0.4s ease-out forwards;
-    box-shadow: 0 0 25px rgba(57, 255, 20, 0.4);
-    border-color: #39ff14;
+    box-shadow: 0 0 25px rgb(var(--color-accent-rgb) / 0.4);
+    border-color: var(--color-accent);
   }
 
   .result-label {
-    color: #39ff14;
-    font-family: 'Bebas Neue', sans-serif;
+    color: var(--color-accent);
+    font-family: var(--font-display);
     font-size: 12px;
     letter-spacing: 4px;
     margin-bottom: 6px;
-    text-shadow: 0 0 8px rgba(57, 255, 20, 0.4);
+    text-shadow: 0 0 8px rgb(var(--color-accent-rgb) / 0.4);
     text-transform: uppercase;
   }
 
   .result-value {
-    font-family: 'Bebas Neue', sans-serif;
+    font-family: var(--font-display);
     font-size: 22px;
-    text-shadow: 2px 2px 0 #000, 0 0 15px rgba(255, 45, 123, 0.5);
+    text-shadow: 2px 2px 0 #000, 0 0 15px rgb(var(--color-primary-rgb) / 0.5);
     letter-spacing: 1px;
     text-transform: uppercase;
   }
 
   .result-sub {
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-body);
     font-size: 10px;
     margin-top: 4px;
     letter-spacing: 2px;
@@ -192,9 +209,9 @@
 
   /* Explosion effect on result show */
   @keyframes resultExplosion {
-    0% { box-shadow: 0 0 80px rgba(57, 255, 20, 1), 0 0 120px rgba(255, 45, 123, 0.6); border-color: #fff; }
-    50% { box-shadow: 0 0 40px rgba(57, 255, 20, 0.6), 0 0 60px rgba(255, 45, 123, 0.3); }
-    100% { box-shadow: 0 0 25px rgba(57, 255, 20, 0.4); border-color: #39ff14; }
+    0% { box-shadow: 0 0 80px rgb(var(--color-accent-rgb) / 1), 0 0 120px rgb(var(--color-primary-rgb) / 0.6); border-color: #fff; }
+    50% { box-shadow: 0 0 40px rgb(var(--color-accent-rgb) / 0.6), 0 0 60px rgb(var(--color-primary-rgb) / 0.3); }
+    100% { box-shadow: 0 0 25px rgb(var(--color-accent-rgb) / 0.4); border-color: var(--color-accent); }
   }
 
   .result.explosion {
@@ -209,8 +226,8 @@
   }
 
   @keyframes pointerPulse {
-    0%, 100% { filter: drop-shadow(0 0 6px rgba(0, 212, 255, 0.3)); }
-    50% { filter: drop-shadow(0 0 14px rgba(0, 212, 255, 0.8)); }
+    0%, 100% { filter: drop-shadow(0 0 6px rgb(var(--color-secondary-rgb) / 0.3)); }
+    50% { filter: drop-shadow(0 0 14px rgb(var(--color-secondary-rgb) / 0.8)); }
   }
 
   @keyframes orbFloat {
@@ -224,7 +241,7 @@
 
 <div class="container">
   <div class="counter neon-box">
-    <span class="diamond">◆</span>
+    <span class="diamond">&#9670;</span>
     <span class="pts" id="totalPts">0</span>
     <span class="label">PTS</span>
   </div>
@@ -249,6 +266,38 @@
   </div>
 </div>
 
+<script>
+(function() {
+  var name = 'roulette';
+  document.documentElement.style.visibility = 'hidden';
+  function hexToRgb(hex) {
+    var r = parseInt(hex.slice(1,3), 16);
+    var g = parseInt(hex.slice(3,5), 16);
+    var b = parseInt(hex.slice(5,7), 16);
+    return r + ' ' + g + ' ' + b;
+  }
+  fetch('http://localhost:4000/public/overlay-config')
+    .then(function(r) { return r.json(); })
+    .then(function(config) {
+      var vars = Object.assign({}, config.global || {}, (config.overrides || {})[name] || {});
+      var root = document.documentElement;
+      Object.keys(vars).forEach(function(k) { root.style.setProperty(k, vars[k]); });
+      ['--color-primary', '--color-secondary', '--color-accent', '--color-bg'].forEach(function(k) {
+        if (vars[k]) root.style.setProperty(k + '-rgb', hexToRgb(vars[k]));
+      });
+      var fonts = [vars['--font-display'], vars['--font-body']].filter(Boolean);
+      if (fonts.length > 0) {
+        var families = fonts.map(function(f) { return f.split(',')[0].replace(/'/g, '').trim(); });
+        var link = document.createElement('link');
+        link.href = 'https://fonts.googleapis.com/css2?family=' + families.map(function(f) { return encodeURIComponent(f) + ':wght@400;600;700'; }).join('&') + '&display=swap';
+        link.rel = 'stylesheet';
+        document.head.appendChild(link);
+      }
+    })
+    .catch(function() {})
+    .finally(function() { document.documentElement.style.visibility = 'visible'; });
+})();
+</script>
 <script>
 // Dynamic segments from issues API — NFS Unbound neon palette
 const PALETTE = [
@@ -301,7 +350,7 @@ async function loadIssues() {
       SEGMENTS = openIssues.map((issue, i) => {
         const style = PALETTE[i % PALETTE.length];
         // Truncate long titles for the wheel
-        const label = issue.title.length > 12 ? issue.title.substring(0, 11) + '…' : issue.title;
+        const label = issue.title.length > 12 ? issue.title.substring(0, 11) + '\u2026' : issue.title;
         return { id: issue.id, label, bg: style.bg, txt: style.txt, title: issue.title };
       });
     }
@@ -443,8 +492,8 @@ function spin(){
       val.style.color=won.txt;
       val.style.textShadow=`2px 2px 0 #000, 0 0 15px ${won.txt}`;
       sub.style.color='#666';
-      val.textContent = '► ' + (won.title || won.label);
-      sub.textContent = 'ALS NÄCHSTES DRAN';
+      val.textContent = '\u25BA ' + (won.title || won.label);
+      sub.textContent = 'ALS N\u00C4CHSTES DRAN';
 
       spinning=false;
       document.getElementById('pointer').classList.remove('active');
