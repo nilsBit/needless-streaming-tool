@@ -4,6 +4,7 @@ import { Reward } from '../../../shared/types';
 import { useWebSocket } from '../hooks/useWebSocket';
 import ChatCommands from '../components/ChatCommands';
 import { useTranslation } from '../i18n/LanguageContext';
+import { useToast } from '../i18n/ToastContext';
 
 const REWARD_LABELS: Record<string, string> = {
   spawn_enemys: '💥 Spawn 50 Enemys',
@@ -15,7 +16,8 @@ const REWARD_LABELS: Record<string, string> = {
 
 export default function RewardsPanel() {
   const { t } = useTranslation();
-  const { data: rewards, refetch } = useApi<Reward[]>('/rewards');
+  const { toast } = useToast();
+  const { data: rewards, loading, refetch } = useApi<Reward[]>('/rewards');
 
   // Live-Update wenn neuer Reward reinkommt
   useWebSocket((event) => {
@@ -25,14 +27,20 @@ export default function RewardsPanel() {
   });
 
   const markDone = async (id: number) => {
-    await apiPatch(`/rewards/${id}`, { status: 'done' });
+    const result = await apiPatch(`/rewards/${id}`, { status: 'done' });
+    if (!result) { toast.error(t('error.action_failed')); return; }
     refetch();
   };
 
   const clearDone = async () => {
-    await apiDelete('/rewards/clear-done');
+    const ok = await apiDelete('/rewards/clear-done');
+    if (!ok) { toast.error(t('error.action_failed')); return; }
     refetch();
   };
+
+  if (loading && !rewards) {
+    return <div className="panel"><p className="empty">{t('common.loading')}</p></div>;
+  }
 
   const pending = rewards?.filter((r) => r.status === 'pending') || [];
   const done = rewards?.filter((r) => r.status === 'done') || [];

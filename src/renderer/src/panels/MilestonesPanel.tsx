@@ -3,6 +3,7 @@ import { useApi, apiPost, apiPatch, apiDelete } from '../hooks/useApi';
 import { Milestone } from '../../../shared/types';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { useTranslation } from '../i18n/LanguageContext';
+import { useToast } from '../i18n/ToastContext';
 
 const LEVEL_CONFIG = {
   minor: { emoji: '✨', label: 'Minor', color: '#3498db' },
@@ -13,10 +14,11 @@ const LEVEL_CONFIG = {
 type Level = keyof typeof LEVEL_CONFIG;
 
 export default function MilestonesPanel() {
-  const { data: milestones, refetch } = useApi<Milestone[]>('/milestones');
+  const { data: milestones, loading, refetch } = useApi<Milestone[]>('/milestones');
   const [title, setTitle] = useState('');
   const [level, setLevel] = useState<Level>('major');
   const { t } = useTranslation();
+  const { toast } = useToast();
 
   useWebSocket((event) => {
     if (event.startsWith('milestone-')) refetch();
@@ -24,19 +26,26 @@ export default function MilestonesPanel() {
 
   const addMilestone = async () => {
     if (!title.trim()) return;
-    await apiPost('/milestones', { title: title.trim(), level });
+    const result = await apiPost('/milestones', { title: title.trim(), level });
+    if (!result) { toast.error(t('error.action_failed')); return; }
     setTitle('');
   };
 
   const completeMilestone = async (id: number) => {
-    await apiPatch(`/milestones/${id}`, { status: 'completed' });
+    const result = await apiPatch(`/milestones/${id}`, { status: 'completed' });
+    if (!result) { toast.error(t('error.action_failed')); return; }
     refetch();
   };
 
   const deleteMilestone = async (id: number) => {
-    await apiDelete(`/milestones/${id}`);
+    const ok = await apiDelete(`/milestones/${id}`);
+    if (!ok) { toast.error(t('error.action_failed')); return; }
     refetch();
   };
+
+  if (loading && !milestones) {
+    return <div className="panel"><p className="empty">{t('common.loading')}</p></div>;
+  }
 
   const pending = milestones?.filter((ms) => ms.status === 'pending') || [];
   const completed = milestones?.filter((ms) => ms.status === 'completed') || [];
@@ -52,7 +61,7 @@ export default function MilestonesPanel() {
             <button
               className="status-toggle"
               onClick={() => completeMilestone(ms.id)}
-              title="Abhaken → Achievement"
+              title={t('milestones.check_tooltip')}
             >
               ⬜
             </button>
@@ -60,7 +69,7 @@ export default function MilestonesPanel() {
               {LEVEL_CONFIG[ms.level]?.emoji}
             </span>
             <span className="ms-title">{ms.title}</span>
-            <button className="btn-delete-small" onClick={() => deleteMilestone(ms.id)}>✕</button>
+            <button className="btn-delete-small" onClick={() => deleteMilestone(ms.id)} title={t('tooltip.delete')}>✕</button>
           </div>
         ))}
       </div>
@@ -76,7 +85,7 @@ export default function MilestonesPanel() {
               <span className="ms-time">
                 {ms.completed_at ? new Date(ms.completed_at + 'Z').toLocaleDateString('de-DE') : ''}
               </span>
-              <button className="btn-delete-small" onClick={() => deleteMilestone(ms.id)}>✕</button>
+              <button className="btn-delete-small" onClick={() => deleteMilestone(ms.id)} title={t('tooltip.delete')}>✕</button>
             </div>
           ))}
         </div>

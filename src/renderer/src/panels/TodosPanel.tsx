@@ -3,11 +3,13 @@ import { useApi, apiPost, apiPatch, apiDelete } from '../hooks/useApi';
 import { Todo } from '../../../shared/types';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { useTranslation } from '../i18n/LanguageContext';
+import { useToast } from '../i18n/ToastContext';
 
 export default function TodosPanel() {
-  const { data: todos, refetch } = useApi<Todo[]>('/todos');
+  const { data: todos, loading, refetch } = useApi<Todo[]>('/todos');
   const [newTodo, setNewTodo] = useState('');
   const { t } = useTranslation();
+  const { toast } = useToast();
 
   useWebSocket((event) => {
     if (event === 'todo-updated') refetch();
@@ -15,20 +17,27 @@ export default function TodosPanel() {
 
   const addTodo = async () => {
     if (!newTodo.trim()) return;
-    await apiPost('/todos', { title: newTodo.trim() });
+    const result = await apiPost('/todos', { title: newTodo.trim() });
+    if (!result) { toast.error(t('error.action_failed')); return; }
     setNewTodo('');
     refetch();
   };
 
   const toggleTodo = async (id: number, currentDone: number) => {
-    await apiPatch(`/todos/${id}`, { done: !currentDone });
+    const result = await apiPatch(`/todos/${id}`, { done: !currentDone });
+    if (!result) { toast.error(t('error.action_failed')); return; }
     refetch();
   };
 
   const deleteTodo = async (id: number) => {
-    await apiDelete(`/todos/${id}`);
+    const ok = await apiDelete(`/todos/${id}`);
+    if (!ok) { toast.error(t('error.action_failed')); return; }
     refetch();
   };
+
+  if (loading && !todos) {
+    return <div className="panel"><p className="empty">{t('common.loading')}</p></div>;
+  }
 
   const pending = todos?.filter((t) => !t.done) || [];
   const done = todos?.filter((t) => t.done) || [];
@@ -55,7 +64,7 @@ export default function TodosPanel() {
           <div key={t.id} className="todo-item">
             <button className="todo-check" onClick={() => toggleTodo(t.id, t.done)}>☐</button>
             <span className="todo-title">{t.title}</span>
-            <button className="todo-delete" onClick={() => deleteTodo(t.id)}>🗑️</button>
+            <button className="todo-delete" onClick={() => deleteTodo(t.id)} title={t('tooltip.delete')}>🗑️</button>
           </div>
         ))}
         {done.length > 0 && (
@@ -65,7 +74,7 @@ export default function TodosPanel() {
               <div key={t.id} className="todo-item done">
                 <button className="todo-check" onClick={() => toggleTodo(t.id, t.done)}>☑</button>
                 <span className="todo-title">{t.title}</span>
-                <button className="todo-delete" onClick={() => deleteTodo(t.id)}>🗑️</button>
+                <button className="todo-delete" onClick={() => deleteTodo(t.id)} title={t('tooltip.delete')}>🗑️</button>
               </div>
             ))}
           </>

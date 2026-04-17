@@ -4,6 +4,7 @@ import { ProjectItem } from '../../../shared/types';
 import { useWebSocket } from '../hooks/useWebSocket';
 import ChatCommands from '../components/ChatCommands';
 import { useTranslation } from '../i18n/LanguageContext';
+import { useToast } from '../i18n/ToastContext';
 
 interface ProgressData {
   project_name: string | null;
@@ -11,11 +12,12 @@ interface ProgressData {
 }
 
 export default function ProgressPanel() {
-  const { data, refetch } = useApi<ProgressData>('/progress');
+  const { data, loading, refetch } = useApi<ProgressData>('/progress');
   const [newItem, setNewItem] = useState('');
   const [editingName, setEditingName] = useState(false);
   const [projectName, setProjectName] = useState('');
   const { t } = useTranslation();
+  const { toast } = useToast();
 
   useWebSocket((event) => {
     if (event.startsWith('progress-')) refetch();
@@ -23,27 +25,35 @@ export default function ProgressPanel() {
 
   const addItem = async () => {
     if (!newItem.trim()) return;
-    await apiPost('/progress/items', { title: newItem.trim() });
+    const result = await apiPost('/progress/items', { title: newItem.trim() });
+    if (!result) { toast.error(t('error.action_failed')); return; }
     setNewItem('');
     refetch();
   };
 
   const cycleStatus = async (item: ProjectItem) => {
     const next = item.status === 'pending' ? 'in_progress' : item.status === 'in_progress' ? 'done' : 'pending';
-    await apiPatch(`/progress/items/${item.id}`, { status: next });
+    const result = await apiPatch(`/progress/items/${item.id}`, { status: next });
+    if (!result) { toast.error(t('error.action_failed')); return; }
     refetch();
   };
 
   const deleteItem = async (id: number) => {
-    await apiDelete(`/progress/items/${id}`);
+    const ok = await apiDelete(`/progress/items/${id}`);
+    if (!ok) { toast.error(t('error.action_failed')); return; }
     refetch();
   };
 
   const saveProjectName = async () => {
-    await apiPatch('/progress/project', { project_name: projectName });
+    const result = await apiPatch('/progress/project', { project_name: projectName });
+    if (!result) { toast.error(t('error.action_failed')); return; }
     setEditingName(false);
     refetch();
   };
+
+  if (loading && !data) {
+    return <div className="panel"><p className="empty">{t('common.loading')}</p></div>;
+  }
 
   const items = data?.items || [];
   const done = items.filter((i) => i.status === 'done').length;
@@ -83,7 +93,7 @@ export default function ProgressPanel() {
           <div key={item.id} className={`progress-item status-${item.status}`}>
             <button className="status-toggle" onClick={() => cycleStatus(item)}>{statusEmoji(item.status)}</button>
             <span className="item-title">{item.title}</span>
-            <button className="btn-delete-small" onClick={() => deleteItem(item.id)}>✕</button>
+            <button className="btn-delete-small" onClick={() => deleteItem(item.id)} title={t('tooltip.delete')}>✕</button>
           </div>
         ))}
       </div>
