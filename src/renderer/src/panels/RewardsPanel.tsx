@@ -3,6 +3,7 @@ import { useApi, apiPatch, apiDelete } from '../hooks/useApi';
 import { Reward } from '../../../shared/types';
 import { useWebSocket } from '../hooks/useWebSocket';
 import ChatCommands from '../components/ChatCommands';
+import { useTranslation } from '../i18n/LanguageContext';
 
 const REWARD_LABELS: Record<string, string> = {
   spawn_enemys: '💥 Spawn 50 Enemys',
@@ -13,6 +14,7 @@ const REWARD_LABELS: Record<string, string> = {
 };
 
 export default function RewardsPanel() {
+  const { t } = useTranslation();
   const { data: rewards, refetch } = useApi<Reward[]>('/rewards');
 
   // Live-Update wenn neuer Reward reinkommt
@@ -38,10 +40,10 @@ export default function RewardsPanel() {
   return (
     <div className="panel rewards-panel">
       <h2>🎁 Rewards</h2>
-      <p className="panel-desc">Channel Point Rewards die eingelöst wurden. Abhaken wenn erledigt.</p>
+      <p className="panel-desc">{t('rewards.desc')}</p>
 
       <div className="reward-list">
-        {pending.length === 0 && <p className="empty">Keine offenen Rewards</p>}
+        {pending.length === 0 && <p className="empty">{t('rewards.empty')}</p>}
         {pending.map((r) => {
           const parsed = r.data ? JSON.parse(r.data) : {};
           const userInput = parsed.user_input || '';
@@ -59,8 +61,8 @@ export default function RewardsPanel() {
 
         {done.length > 0 && (
           <>
-            <h3>Erledigt ({done.length})</h3>
-            <button onClick={clearDone}>🗑️ Erledigte löschen</button>
+            <h3>{t('rewards.done_section')} ({done.length})</h3>
+            <button onClick={clearDone}>{t('rewards.clear_done')}</button>
             {done.slice(0, 10).map((r) => (
               <div key={r.id} className="reward-item done">
                 <span>{r.user_name}</span>
