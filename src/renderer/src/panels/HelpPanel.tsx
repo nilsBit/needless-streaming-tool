@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
+import { useTranslation } from '../i18n/LanguageContext';
 import { HELP_SECTIONS } from '../docs/help';
 
 export default function HelpPanel() {
+  const { lang, t } = useTranslation();
   const [openSection, setOpenSection] = useState<number | null>(0);
+
+  const sections = HELP_SECTIONS[lang];
 
   const toggle = (i: number) => {
     setOpenSection(openSection === i ? null : i);
@@ -10,11 +14,11 @@ export default function HelpPanel() {
 
   return (
     <div className="panel help-panel">
-      <h2>📖 Hilfe & Dokumentation</h2>
-      <p className="panel-desc">Alles was du über das Stream Toolkit wissen musst.</p>
+      <h2>📖 {t('help.title')}</h2>
+      <p className="panel-desc">{t('help.desc')}</p>
 
       <div className="help-sections">
-        {HELP_SECTIONS.map((section, i) => (
+        {sections.map((section, i) => (
           <div key={i} className={`help-section ${openSection === i ? 'open' : ''}`}>
             <button className="help-section-header" onClick={() => toggle(i)}>
               <span className="help-toggle">{openSection === i ? '▼' : '▶'}</span>
