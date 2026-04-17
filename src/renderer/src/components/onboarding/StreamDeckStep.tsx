@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApi, apiPost, getApiToken } from '../../hooks/useApi';
 import { useTranslation } from '../../i18n/LanguageContext';
+import CopyButton from '../CopyButton';
 
 export default function StreamDeckStep() {
   const { t } = useTranslation();
@@ -8,17 +9,8 @@ export default function StreamDeckStep() {
   const sessionToken = getApiToken();
   const token = fixedTokenData?.token || sessionToken || null;
 
-  const [copied, setCopied] = useState(false);
   const [installing, setInstalling] = useState(false);
   const [installed, setInstalled] = useState(false);
-
-  const copy = () => {
-    if (token) {
-      navigator.clipboard.writeText(token);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
 
   const installPlugin = async () => {
     setInstalling(true);
@@ -61,7 +53,7 @@ export default function StreamDeckStep() {
             {token ? (
               <div className="token-display-onboarding" style={{ marginTop: '8px' }}>
                 <code>{token.substring(0, 16)}...{token.substring(token.length - 8)}</code>
-                <button onClick={copy}>{copied ? t('settings.copied') : t('settings.copy')}</button>
+                <CopyButton text={token} />
               </div>
             ) : (
               <p className="step-hint" style={{ marginTop: '8px' }}>{t('settings.token_loading')}</p>

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useApi } from '../../hooks/useApi';
 import { useTranslation } from '../../i18n/LanguageContext';
+import CopyButton from '../CopyButton';
 
 interface OverlayInfo {
   name: string;
@@ -10,13 +11,6 @@ interface OverlayInfo {
 export default function OverlaysStep() {
   const { t } = useTranslation();
   const { data: overlays } = useApi<OverlayInfo[]>('/overlays/builtin');
-  const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
-
-  const copy = (url: string) => {
-    navigator.clipboard.writeText(url);
-    setCopiedUrl(url);
-    setTimeout(() => setCopiedUrl(null), 2000);
-  };
 
   return (
     <div className="onboarding-step">
@@ -48,9 +42,7 @@ export default function OverlaysStep() {
         {overlays?.map((o) => (
           <div key={o.name} className="overlay-item-onboarding">
             <span>{o.name}</span>
-            <button onClick={() => copy(o.url)}>
-              {copiedUrl === o.url ? t('overlays.copied') : t('overlays.copy_url')}
-            </button>
+            <CopyButton text={o.url} />
           </div>
         ))}
       </div>
