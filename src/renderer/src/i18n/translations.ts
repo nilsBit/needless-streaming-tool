@@ -320,6 +320,27 @@ const translations = {
   // ---- Language Step ----
   'language.title': { de: 'Sprache / Language', en: 'Language / Sprache' },
   'language.subtitle': { de: 'Wähle deine Sprache.', en: 'Choose your language.' },
+
+  // ---- Toast / Error / Common ----
+  'error.action_failed': { de: 'Aktion fehlgeschlagen', en: 'Action failed' },
+  'error.load_failed': { de: 'Laden fehlgeschlagen', en: 'Loading failed' },
+  'common.loading': { de: 'Laden...', en: 'Loading...' },
+
+  // ---- Missing Empty States ----
+  'issues.empty_list': { de: 'Keine Issues', en: 'No issues' },
+  'song.no_song': { de: 'Kein Song aktiv', en: 'No song active' },
+
+  // ---- Tooltips ----
+  'tooltip.delete': { de: 'Löschen', en: 'Delete' },
+  'tooltip.copy': { de: 'Kopieren', en: 'Copy' },
+  'tooltip.copied': { de: 'Kopiert!', en: 'Copied!' },
+  'tooltip.edit': { de: 'Bearbeiten', en: 'Edit' },
+  'tooltip.connected': { de: 'Verbunden', en: 'Connected' },
+  'tooltip.not_connected': { de: 'Nicht verbunden', en: 'Not connected' },
+  'tooltip.preview': { de: 'Vorschau', en: 'Preview' },
+  'tooltip.reset': { de: 'Zurücksetzen', en: 'Reset' },
+  'tooltip.close': { de: 'Schließen', en: 'Close' },
+  'milestones.check_tooltip': { de: 'Abhaken → Achievement', en: 'Check off → Achievement' },
 } as const;
 
 export type TranslationKey = keyof typeof translations;
