@@ -3,8 +3,10 @@ import { useApi, apiPost, apiPatch, apiDelete } from '../hooks/useApi';
 import { Issue } from '../../../shared/types';
 import { useWebSocket } from '../hooks/useWebSocket';
 import ChatCommands from '../components/ChatCommands';
+import { useTranslation } from '../i18n/LanguageContext';
 
 export default function IssuesPanel() {
+  const { t } = useTranslation();
   const { data: bugs, refetch } = useApi<Issue[]>('/issues');
   const [newIssue, setNewIssue] = useState('');
   const [cooldown, setCooldown] = useState(0);
@@ -69,12 +71,12 @@ export default function IssuesPanel() {
   return (
     <div className="panel issues-panel">
       <h2>🎯 Glücksrad</h2>
-      <p className="panel-desc">Issues sammeln, Rad drehen, Chat entscheidet was dran kommt.</p>
+      <p className="panel-desc">{t('issues.desc')}</p>
 
       <div className="issue-input">
         <input
           type="text"
-          placeholder="Neues Issue..."
+          placeholder={t('issues.placeholder')}
           value={newIssue}
           onChange={(e) => setNewIssue(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && addIssue()}
@@ -87,7 +89,7 @@ export default function IssuesPanel() {
         onClick={spinRoulette}
         disabled={spinning || openIssues.length === 0 || cooldown > 0}
       >
-        {spinning ? '🎰 Spinning...' : cooldown > 0 ? `⏳ Cooldown ${cooldown}s` : '🎰 Drehen!'}
+        {spinning ? `🎰 ${t('issues.spinning')}` : cooldown > 0 ? `⏳ ${t('issues.cooldown')} ${cooldown}s` : `🎰 ${t('issues.spin')}`}
       </button>
 
       {selectedIssue && !spinning && (
@@ -97,7 +99,7 @@ export default function IssuesPanel() {
       )}
 
       <div className="issue-list">
-        <h3>Offen ({openIssues.length})</h3>
+        <h3>{t('issues.open')} ({openIssues.length})</h3>
         {openIssues.map((bug) => (
           <div key={bug.id} className="issue-item">
             <span>{bug.title}</span>
@@ -109,7 +111,7 @@ export default function IssuesPanel() {
         ))}
         {fixedIssues.length > 0 && (
           <>
-            <h3>Gefixt ({fixedIssues.length})</h3>
+            <h3>{t('issues.fixed')} ({fixedIssues.length})</h3>
             {fixedIssues.map((bug) => (
               <div key={bug.id} className="issue-item fixed">
                 <span>{bug.title}</span>
@@ -119,7 +121,7 @@ export default function IssuesPanel() {
         )}
       </div>
       <ChatCommands commands={[
-        { cmd: '!issues', desc: 'Zeigt offene Issues' },
+        { cmd: '!issues', desc: t('issues.cmd_issues') },
       ]} />
     </div>
   );

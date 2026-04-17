@@ -3,6 +3,7 @@ import { useApi, apiPost, apiPatch, apiDelete } from '../hooks/useApi';
 import { Design } from '../../../shared/types';
 import { useWebSocket } from '../hooks/useWebSocket';
 import ChatCommands from '../components/ChatCommands';
+import { useTranslation } from '../i18n/LanguageContext';
 
 interface ActiveVote {
   active?: boolean;
@@ -15,6 +16,7 @@ interface ActiveVote {
 
 
 export default function DesignsPanel() {
+  const { t } = useTranslation();
   const { data: designs, refetch } = useApi<Design[]>('/designs');
   const { data: vote, refetch: refetchVote } = useApi<ActiveVote>('/voting');
   const [title, setTitle] = useState('');
@@ -85,12 +87,12 @@ export default function DesignsPanel() {
   return (
     <div className="panel designs-panel">
       <h2>🎨 Chat Designs</h2>
-      <p className="panel-desc">1x im Monat designed der Chat ein Feature. Erstell ein Design und lass abstimmen.</p>
+      <p className="panel-desc">{t('designs.desc')}</p>
 
       <div className="design-create">
         <input
           type="text"
-          placeholder="Design-Titel..."
+          placeholder={t('designs.placeholder')}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && createDesign()}
@@ -102,7 +104,7 @@ export default function DesignsPanel() {
       <div className="vote-section">
         {hasActiveVote ? (
           <div className="vote-active">
-            <h3>🗳️ Abstimmung läuft — {vote.remaining}s</h3>
+            <h3>🗳️ {t('designs.vote_running')} — {vote.remaining}s</h3>
             <div className="vote-results">
               {vote.options!.map((opt) => {
                 const count = vote.counts?.[opt] || 0;
@@ -120,8 +122,8 @@ export default function DesignsPanel() {
               })}
             </div>
             <div className="vote-controls">
-              <button onClick={endVote}>🏆 Beenden</button>
-              <button onClick={cancelVote}>✖ Abbrechen</button>
+              <button onClick={endVote}>🏆 {t('designs.vote_end')}</button>
+              <button onClick={cancelVote}>✖ {t('designs.vote_cancel')}</button>
             </div>
           </div>
         ) : (
@@ -129,7 +131,7 @@ export default function DesignsPanel() {
             <div className="vote-option-input">
               <input
                 type="text"
-                placeholder="Option hinzufügen..."
+                placeholder={t('designs.option_placeholder')}
                 value={voteOptionInput}
                 onChange={(e) => setVoteOptionInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && addVoteOption()}
@@ -153,14 +155,14 @@ export default function DesignsPanel() {
                 <option value={120}>2 Min</option>
                 <option value={300}>5 Min</option>
               </select>
-              <button onClick={startVote} disabled={voteOptionsList.length < 2}>🗳️ Abstimmung starten</button>
+              <button onClick={startVote} disabled={voteOptionsList.length < 2}>🗳️ {t('designs.vote_start')}</button>
             </div>
           </div>
         )}
       </div>
 
       <div className="design-list">
-        {active.length === 0 && <p className="empty">Kein aktives Design</p>}
+        {active.length === 0 && <p className="empty">{t('designs.no_active')}</p>}
         {active.map((d) => (
           <div key={d.id} className="design-item active">
             <span>🎨 {d.title}</span>
@@ -173,7 +175,7 @@ export default function DesignsPanel() {
 
         {completed.length > 0 && (
           <>
-            <h3>Abgeschlossen ({completed.length})</h3>
+            <h3>{t('designs.completed')} ({completed.length})</h3>
             {completed.slice(0, 5).map((d) => (
               <div key={d.id} className="design-item done">
                 <span>🎨 {d.title}</span>
@@ -184,10 +186,10 @@ export default function DesignsPanel() {
         )}
       </div>
       <ChatCommands commands={[
-        { cmd: '!design start 60 opt1 opt2', desc: 'Abstimmung starten' },
-        { cmd: '!design end', desc: 'Abstimmung beenden' },
-        { cmd: '!design status', desc: 'Aktueller Stand' },
-        { cmd: '!vote <option>', desc: 'Für eine Option stimmen' },
+        { cmd: '!design start 60 opt1 opt2', desc: t('designs.cmd_start') },
+        { cmd: '!design end', desc: t('designs.cmd_end') },
+        { cmd: '!design status', desc: t('designs.cmd_status') },
+        { cmd: '!vote <option>', desc: t('designs.cmd_vote') },
       ]} />
     </div>
   );

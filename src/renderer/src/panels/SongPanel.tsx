@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { useApi, apiPost } from '../hooks/useApi';
 import { useWebSocket } from '../hooks/useWebSocket';
+import { useTranslation } from '../i18n/LanguageContext';
 
 export default function SongPanel() {
+  const { t } = useTranslation();
   const { data, refetch } = useApi<{ song: string | null }>('/actions/song');
   const [newSong, setNewSong] = useState('');
 
@@ -25,24 +27,24 @@ export default function SongPanel() {
   return (
     <div className="panel song-panel">
       <h2>🎵 Now Playing</h2>
-      <p className="panel-desc">Aktuellen Song für den Stream setzen.</p>
+      <p className="panel-desc">{t('song.desc')}</p>
 
       {data?.song && (
         <div className="song-current">
           <span className="song-title">{data.song}</span>
-          <button className="btn-reset" onClick={clearSong}>Löschen</button>
+          <button className="btn-reset" onClick={clearSong}>{t('song.clear')}</button>
         </div>
       )}
 
       <div className="song-input">
         <input
           type="text"
-          placeholder="Song eingeben..."
+          placeholder={t('song.placeholder')}
           value={newSong}
           onChange={(e) => setNewSong(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && setSong()}
         />
-        <button onClick={setSong}>Übernehmen</button>
+        <button onClick={setSong}>{t('song.set')}</button>
       </div>
     </div>
   );

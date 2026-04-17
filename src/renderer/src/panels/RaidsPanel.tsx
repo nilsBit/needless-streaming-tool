@@ -2,8 +2,10 @@ import React from 'react';
 import { useApi } from '../hooks/useApi';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { Raid } from '../../../shared/types';
+import { useTranslation } from '../i18n/LanguageContext';
 
 export default function RaidsPanel() {
+  const { t } = useTranslation();
   const { data: raids, refetch } = useApi<Raid[]>('/raids');
 
   useWebSocket((event) => {
@@ -18,14 +20,14 @@ export default function RaidsPanel() {
   return (
     <div className="panel raids-panel">
       <h2>⚔️ Raids</h2>
-      <p className="panel-desc">Übersicht aller eingegangenen Raids.</p>
+      <p className="panel-desc">{t('raids.desc')}</p>
 
       <div className="raids-list">
-        {(!raids || raids.length === 0) && <p className="empty">Noch keine Raids</p>}
+        {(!raids || raids.length === 0) && <p className="empty">{t('raids.empty')}</p>}
         {raids?.map((r) => (
           <div key={r.id} className="raid-item">
             <span className="raid-streamer">{r.streamer_name}</span>
-            <span className="raid-viewers">{r.viewer_count} Zuschauer</span>
+            <span className="raid-viewers">{r.viewer_count} {t('raids.viewers')}</span>
             <span className="raid-time">{formatTime(r.created_at)}</span>
           </div>
         ))}

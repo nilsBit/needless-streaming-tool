@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApi, apiPost, apiDelete, getApiToken } from '../hooks/useApi';
+import { useTranslation } from '../i18n/LanguageContext';
 
 interface SyncResult {
   synced: number;
@@ -31,6 +32,7 @@ interface SessionInfo {
 }
 
 export default function ClipsPanel() {
+  const { t } = useTranslation();
   const today = new Date().toISOString().split('T')[0];
   const { data: sessions, refetch: refetchSessions } = useApi<SessionInfo[]>('/clips/sessions');
   const { data: allClips, refetch: refetchClips } = useApi<Clip[]>('/clips');
@@ -174,16 +176,16 @@ export default function ClipsPanel() {
         </select>
         <input
           type="text"
-          placeholder="Notiz (optional)..."
+          placeholder={t('clips.note_placeholder')}
           value={note}
           onChange={(e) => setNote(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && addClip(selectedTag)}
         />
-        <button onClick={() => addClip(selectedTag)}>+ Clip</button>
+        <button onClick={() => addClip(selectedTag)}>{t('clips.add')}</button>
       </div>
 
       <div className="clip-sessions">
-        {sortedDays.length === 0 && <p className="empty">Keine Clips</p>}
+        {sortedDays.length === 0 && <p className="empty">{t('clips.empty')}</p>}
         {sortedDays.map((date) => {
           const dayClips = filterClips(clipsByDay.get(date) || []);
           const isToday = date === today;
@@ -193,7 +195,7 @@ export default function ClipsPanel() {
             <div key={date} className={`clip-day ${isToday ? 'today' : ''}`}>
               <div className="clip-day-header" onClick={() => toggleDay(date)}>
                 <span className="day-toggle">{isCollapsed ? '▶' : '▼'}</span>
-                <span className="day-date">{isToday ? `Heute (${date})` : date}</span>
+                <span className="day-date">{isToday ? `${t('clips.today')} (${date})` : date}</span>
                 <span className="day-count">{dayClips.length} Clips</span>
                 <button className="btn-export" onClick={(e) => { e.stopPropagation(); syncToNotion(date); }} disabled={syncingDay === date}>
                   {syncingDay === date ? '⏳' : '📤'} Notion
@@ -203,7 +205,7 @@ export default function ClipsPanel() {
 
               {!isCollapsed && (
                 <div className="clip-list">
-                  {dayClips.length === 0 && <p className="empty">Keine Clips{activeFilter ? ` mit Tag "${activeFilter}"` : ''}</p>}
+                  {dayClips.length === 0 && <p className="empty">{activeFilter ? `${t('clips.empty')} ${t('clips.with_tag')} "${activeFilter}"` : t('clips.empty')}</p>}
                   {dayClips.map((clip) => (
                     <div key={clip.id} className="clip-item">
                       <span className="clip-time">{formatClipTime(clip)}</span>

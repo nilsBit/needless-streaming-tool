@@ -2,8 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useApi, apiPatch } from '../hooks/useApi';
 import { StreamState } from '../../../shared/types';
 import ChatCommands from '../components/ChatCommands';
+import { useTranslation } from '../i18n/LanguageContext';
 
 export default function ChallengePanel() {
+  const { t } = useTranslation();
   const { data: state, refetch } = useApi<StreamState>('/stream-state');
   const [title, setTitle] = useState('');
   const [isEditing, setIsEditing] = useState(false);
@@ -83,25 +85,25 @@ export default function ChallengePanel() {
 
   const isActive = state?.challenge_title && state.challenge_status !== 'idle';
   const statusColor = state?.challenge_status === 'in_progress' ? '#e74c3c' : state?.challenge_status === 'done' ? '#2ecc71' : state?.challenge_status === 'failed' ? '#e74c3c' : '#888';
-  const statusLabel = state?.challenge_status === 'in_progress' ? 'Läuft' : state?.challenge_status === 'done' ? 'Geschafft!' : state?.challenge_status === 'failed' ? 'Gescheitert' : '';
+  const statusLabel = state?.challenge_status === 'in_progress' ? t('challenge.running') : state?.challenge_status === 'done' ? t('challenge.done') : state?.challenge_status === 'failed' ? t('challenge.failed') : '';
 
   return (
     <div className="panel challenge-panel">
       <h2>🔬 Challenge</h2>
-      <p className="panel-desc">Setz dein Ziel für den Stream. Timer startet automatisch.</p>
+      <p className="panel-desc">{t('challenge.desc')}</p>
 
       {!isActive ? (
         <div className="challenge-input">
           <input
             type="text"
-            placeholder="Was willst du heute schaffen?"
+            placeholder={t('challenge.placeholder')}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             onFocus={() => setIsEditing(true)}
             onBlur={() => setTimeout(() => setIsEditing(false), 200)}
             onKeyDown={(e) => e.key === 'Enter' && startChallenge()}
           />
-          <button onClick={startChallenge}>Los!</button>
+          <button onClick={startChallenge}>{t('challenge.start')}</button>
         </div>
       ) : (
         <>
@@ -113,21 +115,21 @@ export default function ChallengePanel() {
 
           <div className="timer">
             <span className="timer-display">{timerDisplay}</span>
-            <button onClick={toggleTimer} title={state?.timer_running ? 'Pausieren' : 'Weiter'}>
+            <button onClick={toggleTimer} title={state?.timer_running ? t('challenge.pause') : t('challenge.resume')}>
               {state?.timer_running ? '⏸️' : '▶️'}
             </button>
           </div>
 
           <div className="challenge-actions">
-            <button className="btn-done" onClick={() => finishChallenge('done')}>✅ Geschafft</button>
-            <button className="btn-failed" onClick={() => finishChallenge('failed')}>❌ Nicht geschafft</button>
-            <button className="btn-reset" onClick={cancelChallenge}>Abbrechen</button>
+            <button className="btn-done" onClick={() => finishChallenge('done')}>{t('challenge.btn_done')}</button>
+            <button className="btn-failed" onClick={() => finishChallenge('failed')}>{t('challenge.btn_failed')}</button>
+            <button className="btn-reset" onClick={cancelChallenge}>{t('challenge.btn_cancel')}</button>
           </div>
         </>
       )}
       <ChatCommands commands={[
-        { cmd: '!challenge', desc: 'Zeigt aktuelle Challenge + Status' },
-        { cmd: '!uptime', desc: 'Wie lange läuft der Stream' },
+        { cmd: '!challenge', desc: t('challenge.cmd_challenge') },
+        { cmd: '!uptime', desc: t('challenge.cmd_uptime') },
       ]} />
     </div>
   );
