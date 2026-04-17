@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { useApi, apiPost, apiFetch } from '../hooks/useApi';
 import { useTranslation } from '../i18n/LanguageContext';
+import { useToast } from '../i18n/ToastContext';
+import CopyButton from '../components/CopyButton';
 
 interface OverlayInfo {
   name: string;
@@ -12,10 +14,10 @@ interface OverlayInfo {
 
 export default function OverlaysPanel() {
   const { t } = useTranslation();
-  const { data: builtinOverlays, refetch: refetchBuiltin } = useApi<OverlayInfo[]>('/overlays/builtin');
-  const { data: customOverlays, refetch: refetchCustom } = useApi<OverlayInfo[]>('/overlays');
+  const { toast } = useToast();
+  const { data: builtinOverlays, loading: loadingBuiltin, refetch: refetchBuiltin } = useApi<OverlayInfo[]>('/overlays/builtin');
+  const { data: customOverlays, loading: loadingCustom, refetch: refetchCustom } = useApi<OverlayInfo[]>('/overlays');
 
-  const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showUpload, setShowUpload] = useState(false);
   const [newName, setNewName] = useState('');
@@ -25,11 +27,7 @@ export default function OverlaysPanel() {
   const [uploading, setUploading] = useState(false);
   const [editingBuiltin, setEditingBuiltin] = useState<string | null>(null);
 
-  const copyUrl = (url: string) => {
-    navigator.clipboard.writeText(url);
-    setCopiedUrl(url);
-    setTimeout(() => setCopiedUrl(null), 2000);
-  };
+  if (loadingBuiltin || loadingCustom) return <div className="panel"><p>{t('common.loading')}</p></div>;
 
   const createFromTemplate = async () => {
     if (!newName.trim()) return;
@@ -47,6 +45,7 @@ export default function OverlaysPanel() {
       refetchCustom();
     } catch (err) {
       console.error('[Overlays] Create failed:', err);
+      toast.error(t('error.action_failed'));
     }
     setUploading(false);
   };
@@ -63,6 +62,7 @@ export default function OverlaysPanel() {
       refetchCustom();
     } catch (err) {
       console.error('[Overlays] Upload failed:', err);
+      toast.error(t('error.action_failed'));
     }
     setUploading(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
@@ -74,6 +74,7 @@ export default function OverlaysPanel() {
       refetchCustom();
     } catch (err) {
       console.error('[Overlays] Delete failed:', err);
+      toast.error(t('error.action_failed'));
     }
   };
 
@@ -89,6 +90,7 @@ export default function OverlaysPanel() {
       setEditingBuiltin(null);
     } catch (err) {
       console.error('[Overlays] Customize failed:', err);
+      toast.error(t('error.action_failed'));
     }
   };
 
@@ -99,6 +101,7 @@ export default function OverlaysPanel() {
       refetchBuiltin();
     } catch (err) {
       console.error('[Overlays] Reset failed:', err);
+      toast.error(t('error.action_failed'));
     }
   };
 
@@ -117,10 +120,8 @@ export default function OverlaysPanel() {
                 {o.customized && <span className="overlay-badge">{t('overlays_panel.customized')}</span>}
               </div>
               <div className="overlay-actions">
-                <button className="btn-copy-small" onClick={() => copyUrl(o.url)}>
-                  {copiedUrl === o.url ? '✅' : '📋'}
-                </button>
-                <button className="btn-copy-small" onClick={() => setPreviewUrl(o.url)} title={t('overlays_panel.preview')}>
+                <CopyButton text={o.url} />
+                <button className="btn-copy-small" onClick={() => setPreviewUrl(o.url)} title={t('tooltip.preview')}>
                   👁
                 </button>
                 {editingBuiltin === o.name ? (
@@ -143,12 +144,12 @@ export default function OverlaysPanel() {
                     </button>
                   </>
                 ) : (
-                  <button className="btn-copy-small" onClick={() => setEditingBuiltin(o.name)} title={t('overlays_panel.replace')}>
+                  <button className="btn-copy-small" onClick={() => setEditingBuiltin(o.name)} title={t('tooltip.edit')}>
                     ✏️
                   </button>
                 )}
                 {o.customized && (
-                  <button className="btn-delete-small" onClick={() => resetBuiltin(o.name)} title={t('overlays_panel.reset')}>
+                  <button className="btn-delete-small" onClick={() => resetBuiltin(o.name)} title={t('tooltip.reset')}>
                     ↩️
                   </button>
                 )}
@@ -166,13 +167,11 @@ export default function OverlaysPanel() {
               <div key={o.name} className="overlay-item">
                 <span className="overlay-name">{o.name}</span>
                 <div className="overlay-actions">
-                  <button className="btn-copy-small" onClick={() => copyUrl(o.url)}>
-                    {copiedUrl === o.url ? '✅' : '📋'}
-                  </button>
-                  <button className="btn-copy-small" onClick={() => setPreviewUrl(o.url)} title={t('overlays_panel.preview')}>
+                  <CopyButton text={o.url} />
+                  <button className="btn-copy-small" onClick={() => setPreviewUrl(o.url)} title={t('tooltip.preview')}>
                     👁
                   </button>
-                  <button className="btn-delete-small" onClick={() => deleteOverlay(o.name)}>
+                  <button className="btn-delete-small" onClick={() => deleteOverlay(o.name)} title={t('tooltip.delete')}>
                     🗑️
                   </button>
                 </div>

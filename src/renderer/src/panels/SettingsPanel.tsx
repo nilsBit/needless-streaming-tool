@@ -3,6 +3,8 @@ import { useApi, apiPost, apiFetch, getApiToken } from '../hooks/useApi';
 import { TwitchConfigResponse, BotStatus } from '../../../shared/types';
 import { useTranslation } from '../i18n/LanguageContext';
 import { useTheme } from '../i18n/ThemeContext';
+import { useToast } from '../i18n/ToastContext';
+import CopyButton from '../components/CopyButton';
 
 interface ClientIdResponse {
   configured: boolean;
@@ -10,7 +12,7 @@ interface ClientIdResponse {
 }
 
 export default function SettingsPanel() {
-  const { data: config, refetch: refetchConfig } = useApi<TwitchConfigResponse>('/settings/twitch');
+  const { data: config, loading, refetch: refetchConfig } = useApi<TwitchConfigResponse>('/settings/twitch');
   const { data: botStatus, refetch: refetchBot } = useApi<BotStatus>('/settings/bot-status');
   const { data: clientIdInfo, refetch: refetchClientId } = useApi<ClientIdResponse>('/auth/twitch/client-id');
   const { data: tokenInfo } = useApi<{ token: string | null }>('/settings/api-token');
@@ -19,7 +21,7 @@ export default function SettingsPanel() {
   const { data: obsConfig, refetch: refetchObs } = useApi<{ configured: boolean; host?: string; port?: number; has_password?: boolean }>('/obs/config');
   const { data: obsStatus, refetch: refetchObsStatus } = useApi<{ connected: boolean }>('/obs/status');
 
-  const [tokenCopied, setTokenCopied] = useState(false);
+  const { toast } = useToast();
   const [notionToken, setNotionToken] = useState('');
   const [notionDbId, setNotionDbId] = useState('');
   const [obsHost, setObsHost] = useState('localhost');
@@ -28,8 +30,20 @@ export default function SettingsPanel() {
   const { t, lang, setLang } = useTranslation();
   const { theme, setTheme } = useTheme();
   const { data: autostartInfo, refetch: refetchAutostart } = useApi<{ enabled: boolean }>('/settings/autostart');
-  const [backupStatus, setBackupStatus] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [clientId, setClientId] = useState('');
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refetchBot();
+      refetchConfig();
+      refetchObsStatus();
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [refetchBot, refetchConfig, refetchObsStatus]);
+
+  if (loading) return <div className="panel"><p>{t('common.loading')}</p></div>;
 
   const exportBackup = async () => {
     try {
@@ -41,11 +55,10 @@ export default function SettingsPanel() {
       a.download = 'stream-toolkit-backup.json';
       a.click();
       URL.revokeObjectURL(url);
-      setBackupStatus(t('settings.backup_exported'));
-      setTimeout(() => setBackupStatus(''), 3000);
+      toast.success(t('settings.backup_exported'));
     } catch (err) {
       console.error('[Settings] Export failed:', err);
-      setBackupStatus(t('settings.export_failed'));
+      toast.error(t('settings.export_failed'));
     }
   };
 
@@ -61,36 +74,30 @@ export default function SettingsPanel() {
         body: JSON.stringify(data),
       });
       if (res.ok) {
-        setBackupStatus(t('settings.backup_imported'));
+        toast.success(t('settings.backup_imported'));
       } else {
-        setBackupStatus(t('settings.import_failed'));
+        toast.error(t('settings.import_failed'));
       }
     } catch (err) {
       console.error('[Settings] Import failed:', err);
-      setBackupStatus(t('settings.import_failed'));
+      toast.error(t('settings.import_failed'));
     }
     if (fileInputRef.current) fileInputRef.current.value = '';
-    setTimeout(() => setBackupStatus(''), 3000);
   };
-
-  const copyToken = () => {
-    if (tokenInfo?.token) {
-      navigator.clipboard.writeText(tokenInfo.token);
-      setTokenCopied(true);
-      setTimeout(() => setTokenCopied(false), 2000);
-    }
-  };
-
-  const [clientId, setClientId] = useState('');
 
   const saveClientId = async () => {
     if (!clientId.trim()) return;
-    await apiFetch('/auth/twitch/client-id', {
-      method: 'POST',
-      body: JSON.stringify({ client_id: clientId.trim() }),
-    });
-    setClientId('');
-    refetchClientId();
+    try {
+      await apiFetch('/auth/twitch/client-id', {
+        method: 'POST',
+        body: JSON.stringify({ client_id: clientId.trim() }),
+      });
+      setClientId('');
+      refetchClientId();
+    } catch (err) {
+      console.error('[Settings] Save client ID failed:', err);
+      toast.error(t('error.action_failed'));
+    }
   };
 
   const connectTwitch = async () => {
@@ -99,9 +106,11 @@ export default function SettingsPanel() {
       const data = await res.json();
       if (!data.success) {
         console.error('[Settings] Failed to open Twitch auth:', data.error);
+        toast.error(t('error.action_failed'));
       }
     } catch (err) {
       console.error('[Settings] Failed to connect:', err);
+      toast.error(t('error.action_failed'));
     }
   };
 
@@ -109,15 +118,6 @@ export default function SettingsPanel() {
     await apiPost('/settings/bot/disconnect', {});
     refetchBot();
   };
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      refetchBot();
-      refetchConfig();
-      refetchObsStatus();
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [refetchBot, refetchConfig, refetchObsStatus]);
 
   return (
     <div className="panel settings-panel">
@@ -128,7 +128,7 @@ export default function SettingsPanel() {
         <h3>{t('settings.twitch')}</h3>
 
         <div className="bot-status">
-          <span className="status-dot" style={{ background: botStatus?.connected ? '#2ecc71' : '#e74c3c' }} />
+          <span className="status-dot" style={{ background: botStatus?.connected ? '#2ecc71' : '#e74c3c' }} title={botStatus?.connected ? t('tooltip.connected') : t('tooltip.not_connected')} />
           <span>{botStatus?.connected ? `${t('settings.connected_to')} #${botStatus.channel}` : t('settings.not_connected')}</span>
         </div>
 
@@ -192,13 +192,15 @@ export default function SettingsPanel() {
               value={notionToken}
               onChange={(e) => setNotionToken(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && (async () => {
-                await apiPost('/settings/notion', { token: notionToken.trim() });
+                const result = await apiPost('/settings/notion', { token: notionToken.trim() });
+                if (!result) { toast.error(t('error.action_failed')); return; }
                 setNotionToken('');
                 refetchNotion();
               })()}
             />
             <button onClick={async () => {
-              await apiPost('/settings/notion', { token: notionToken.trim() });
+              const result = await apiPost('/settings/notion', { token: notionToken.trim() });
+              if (!result) { toast.error(t('error.action_failed')); return; }
               setNotionToken('');
               refetchNotion();
             }}>💾</button>
@@ -207,7 +209,8 @@ export default function SettingsPanel() {
           <div className="setup-step">
             <p className="setup-info">Token: {notionInfo.preview}</p>
             <button className="btn-reset-small" onClick={async () => {
-              await apiPost('/settings/notion', { token: '' });
+              const result = await apiPost('/settings/notion', { token: '' });
+              if (!result) { toast.error(t('error.action_failed')); return; }
               refetchNotion();
             }}>{t('settings.change_token')}</button>
           </div>
@@ -222,13 +225,15 @@ export default function SettingsPanel() {
               value={notionDbId}
               onChange={(e) => setNotionDbId(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && (async () => {
-                await apiPost('/settings/notion/database', { database_id: notionDbId.trim() });
+                const result = await apiPost('/settings/notion/database', { database_id: notionDbId.trim() });
+                if (!result) { toast.error(t('error.action_failed')); return; }
                 setNotionDbId('');
                 refetchNotionDb();
               })()}
             />
             <button onClick={async () => {
-              await apiPost('/settings/notion/database', { database_id: notionDbId.trim() });
+              const result = await apiPost('/settings/notion/database', { database_id: notionDbId.trim() });
+              if (!result) { toast.error(t('error.action_failed')); return; }
               setNotionDbId('');
               refetchNotionDb();
             }}>💾</button>
@@ -237,7 +242,8 @@ export default function SettingsPanel() {
           <div className="setup-step">
             <p className="setup-info">Database: {notionDbInfo.database_id?.substring(0, 8)}...{notionDbInfo.database_id?.substring(24)}</p>
             <button className="btn-reset-small" onClick={async () => {
-              await apiPost('/settings/notion/database', { database_id: '' });
+              const result = await apiPost('/settings/notion/database', { database_id: '' });
+              if (!result) { toast.error(t('error.action_failed')); return; }
               refetchNotionDb();
             }}>{t('settings.change_db')}</button>
           </div>
@@ -249,7 +255,7 @@ export default function SettingsPanel() {
         <p className="setup-info">{t('settings.obs_desc')}</p>
 
         <div className="bot-status">
-          <span className="status-dot" style={{ background: obsStatus?.connected ? '#2ecc71' : '#e74c3c' }} />
+          <span className="status-dot" style={{ background: obsStatus?.connected ? '#2ecc71' : '#e74c3c' }} title={obsStatus?.connected ? t('tooltip.connected') : t('tooltip.not_connected')} />
           <span>{obsStatus?.connected ? t('settings.obs_connected') : t('settings.obs_not_connected')}</span>
         </div>
 
@@ -279,11 +285,12 @@ export default function SettingsPanel() {
                 onChange={(e) => setObsPassword(e.target.value)}
               />
               <button onClick={async () => {
-                await apiPost('/obs/config', {
+                const result = await apiPost('/obs/config', {
                   host: obsHost.trim() || 'localhost',
                   port: parseInt(obsPort) || 4455,
                   password: obsPassword,
                 });
+                if (!result) { toast.error(t('error.action_failed')); return; }
                 setObsPassword('');
                 refetchObs();
               }}>💾</button>
@@ -298,14 +305,16 @@ export default function SettingsPanel() {
         <div className="bot-controls">
           {obsStatus?.connected ? (
             <button className="btn-disconnect" onClick={async () => {
-              await apiPost('/obs/disconnect', {});
+              const result = await apiPost('/obs/disconnect', {});
+              if (!result) { toast.error(t('error.action_failed')); return; }
               refetchObsStatus();
             }}>{t('settings.obs_disconnect')}</button>
           ) : (
             <button
               className="btn-connect"
               onClick={async () => {
-                await apiPost('/obs/connect', {});
+                const result = await apiPost('/obs/connect', {});
+                if (!result) { toast.error(t('error.action_failed')); return; }
                 refetchObsStatus();
               }}
               disabled={!obsConfig?.configured}
@@ -318,7 +327,8 @@ export default function SettingsPanel() {
         {obsConfig?.configured && (
           <div className="reset-section">
             <button className="btn-reset-small" onClick={async () => {
-              await apiPost('/obs/config', { host: '', port: 0, password: '' });
+              const result = await apiPost('/obs/config', { host: '', port: 0, password: '' });
+              if (!result) { toast.error(t('error.action_failed')); return; }
               setObsHost('localhost');
               setObsPort('4455');
               refetchObs();
@@ -333,7 +343,7 @@ export default function SettingsPanel() {
         {tokenInfo?.token ? (
           <div className="api-token-display">
             <code className="token-value">{tokenInfo.token.substring(0, 12)}...{tokenInfo.token.substring(tokenInfo.token.length - 8)}</code>
-            <button onClick={copyToken}>{tokenCopied ? t('settings.copied') : t('settings.copy')}</button>
+            <CopyButton text={tokenInfo.token} />
           </div>
         ) : (
           <p className="empty">{t('settings.token_loading')}</p>
@@ -351,7 +361,8 @@ export default function SettingsPanel() {
           <button
             className={`lang-btn ${autostartInfo?.enabled ? 'active' : ''}`}
             onClick={async () => {
-              await apiPost('/settings/autostart', { enabled: true });
+              const result = await apiPost('/settings/autostart', { enabled: true });
+              if (!result) { toast.error(t('error.action_failed')); return; }
               refetchAutostart();
             }}
           >
@@ -360,7 +371,8 @@ export default function SettingsPanel() {
           <button
             className={`lang-btn ${!autostartInfo?.enabled ? 'active' : ''}`}
             onClick={async () => {
-              await apiPost('/settings/autostart', { enabled: false });
+              const result = await apiPost('/settings/autostart', { enabled: false });
+              if (!result) { toast.error(t('error.action_failed')); return; }
               refetchAutostart();
             }}
           >
@@ -385,7 +397,6 @@ export default function SettingsPanel() {
             />
           </label>
         </div>
-        {backupStatus && <p className="setup-info" style={{ marginTop: '8px' }}>{backupStatus}</p>}
       </div>
 
       <div className="settings-section">

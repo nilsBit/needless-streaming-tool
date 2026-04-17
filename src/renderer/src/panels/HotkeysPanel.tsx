@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useApi, apiPost } from '../hooks/useApi';
 import { HotkeyConfig, DEFAULT_HOTKEYS } from '../../../shared/types';
 import { useTranslation } from '../i18n/LanguageContext';
+import { useToast } from '../i18n/ToastContext';
 
 export default function HotkeysPanel() {
   const { t } = useTranslation();
+  const { toast } = useToast();
   const { data: hotkeys, refetch } = useApi<HotkeyConfig>('/settings/hotkeys');
   const [editValues, setEditValues] = useState<HotkeyConfig>({ ...DEFAULT_HOTKEYS });
   const [editing, setEditing] = useState<string | null>(null);
@@ -33,7 +35,8 @@ export default function HotkeysPanel() {
   };
 
   const saveHotkeys = async () => {
-    await apiPost('/settings/hotkeys', editValues);
+    const result = await apiPost('/settings/hotkeys', editValues);
+    if (!result) { toast.error(t('error.action_failed')); return; }
     setSaved(true);
     refetch();
     setTimeout(() => setSaved(false), 3000);
