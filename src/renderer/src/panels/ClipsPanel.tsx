@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useApi, apiPost, apiDelete, getApiToken } from '../hooks/useApi';
+import { useApi, apiPost, apiDelete, apiPatch, getApiToken } from '../hooks/useApi';
 import { useTranslation } from '../i18n/LanguageContext';
 import { useToast } from '../i18n/ToastContext';
 
@@ -122,8 +122,20 @@ export default function ClipsPanel() {
   // Sort days descending (newest first)
   const sortedDays = Array.from(clipsByDay.keys()).sort((a, b) => b.localeCompare(a));
 
-  const filterClips = (clips: Clip[]) =>
-    activeFilter ? clips.filter((c) => c.tag === activeFilter) : clips;
+  const filterClips = (clips: Clip[]) => {
+    if (!activeFilter) return clips;
+    if (activeFilter === 'auto') return clips.filter((c) => c.tag.startsWith('auto-'));
+    return clips.filter((c) => c.tag === activeFilter);
+  };
+
+  const isAutoClip = (clip: Clip) => clip.tag.startsWith('auto-');
+
+  const confirmClip = async (clip: Clip) => {
+    const newTag = clip.tag.replace('auto-', '');
+    const result = await apiPatch(`/clips/${clip.id}`, { tag: newTag || 'highlight' });
+    if (!result) { toast.error(t('error.action_failed')); return; }
+    refetchClips();
+  };
 
   const formatClipTime = (clip: Clip) => {
     const wallClock = new Date(clip.created_at + 'Z').toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -158,6 +170,13 @@ export default function ClipsPanel() {
             <span className="tag-delete" onClick={(e) => { e.stopPropagation(); deleteCustomTag(ct.tag); }}>✕</span>
           </button>
         ))}
+        <button
+          key="auto"
+          className={`tag-btn ${activeFilter === 'auto' ? 'active' : ''}`}
+          onClick={() => setActiveFilter(activeFilter === 'auto' ? null : 'auto')}
+        >
+          🤖 Auto
+        </button>
         {showNewTagInput ? (
           <span className="tag-add-input">
             <input
@@ -215,11 +234,26 @@ export default function ClipsPanel() {
                 <div className="clip-list">
                   {dayClips.length === 0 && <p className="empty">{activeFilter ? `${t('clips.empty')} ${t('clips.with_tag')} "${activeFilter}"` : t('clips.empty')}</p>}
                   {dayClips.map((clip) => (
-                    <div key={clip.id} className="clip-item">
+                    <div key={clip.id} className={`clip-item ${isAutoClip(clip) ? 'auto-clip' : ''}`}>
                       <span className="clip-time">{formatClipTime(clip)}</span>
-                      <span className="clip-tag">{TAG_EMOJI[clip.tag] || '🏷️'} {clip.tag}</span>
+                      <span className="clip-tag">
+                        {isAutoClip(clip) && '🤖 '}
+                        {TAG_EMOJI[clip.tag] || '🏷️'} {clip.tag}
+                        {clip.confidence && (
+                          <span className={`confidence-dot ${clip.confidence}`} title={clip.confidence}>
+                            {clip.confidence === 'high' ? '🟢' : '🟡'}
+                          </span>
+                        )}
+                      </span>
                       {clip.note && <span className="clip-note">{clip.note}</span>}
-                      <button className="btn-delete-small" title={t('tooltip.delete')} onClick={() => deleteClip(clip.id)}>✕</button>
+                      {isAutoClip(clip) ? (
+                        <div className="auto-clip-actions">
+                          <button className="btn-confirm-small" onClick={() => confirmClip(clip)} title={t('auto_clips.confirm')}>✓</button>
+                          <button className="btn-delete-small" onClick={() => deleteClip(clip.id)} title={t('auto_clips.reject')}>✕</button>
+                        </div>
+                      ) : (
+                        <button className="btn-delete-small" onClick={() => deleteClip(clip.id)} title={t('tooltip.delete')}>✕</button>
+                      )}
                     </div>
                   ))}
                 </div>

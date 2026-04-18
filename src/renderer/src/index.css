@@ -1670,3 +1670,33 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 }
 
 .theme-io { display: flex; gap: 8px; }
+
+/* Auto-Clips */
+.clip-item.auto-clip {
+  border-left: 3px solid #e67e22;
+}
+
+.confidence-dot {
+  margin-left: 4px;
+  font-size: 10px;
+}
+
+.auto-clip-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.btn-confirm-small {
+  background: none;
+  border: 1px solid #2ecc71;
+  color: #2ecc71;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.btn-confirm-small:hover {
+  background: #2ecc7122;
+}
