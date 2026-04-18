@@ -1,4 +1,4 @@
-export const SCHEMA_VERSION = 9;
+export const SCHEMA_VERSION = 10;
 
 export const SCHEMA = `
 CREATE TABLE IF NOT EXISTS schema_version (
@@ -84,6 +84,7 @@ CREATE TABLE IF NOT EXISTS clips (
   session_date        TEXT NOT NULL,
   stream_timecode     TEXT,
   recording_timecode  TEXT,
+  confidence          TEXT,
   created_at          DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 

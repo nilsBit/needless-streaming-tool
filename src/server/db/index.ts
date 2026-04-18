@@ -89,6 +89,11 @@ function runMigrations(from: number, to: number) {
     console.log('[DB] Migrated: added external_id to project_items');
   }
 
+  if (from < 10) {
+    try { db.exec('ALTER TABLE clips ADD COLUMN confidence TEXT'); } catch {}
+    console.log('[DB] Migrated: added confidence to clips');
+  }
+
   db.prepare('INSERT OR REPLACE INTO schema_version (version) VALUES (?)').run(to);
   console.log(`[DB] Migrated from v${from} to v${to}`);
 }

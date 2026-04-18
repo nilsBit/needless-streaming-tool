@@ -392,6 +392,19 @@ const translations = {
   'themes.export': { de: 'Theme exportieren', en: 'Export theme' },
   'themes.import': { de: 'Theme importieren', en: 'Import theme' },
   'themes.imported': { de: 'Theme importiert', en: 'Theme imported' },
+  // ---- Auto-Clips ----
+  'auto_clips.title': { de: 'Auto-Clips', en: 'Auto-Clips' },
+  'auto_clips.desc': { de: 'Automatisch Clips bei besonderen Momenten erstellen.', en: 'Automatically create clips at special moments.' },
+  'auto_clips.enabled': { de: 'Auto-Clips aktiviert', en: 'Auto-Clips enabled' },
+  'auto_clips.disabled': { de: 'Auto-Clips deaktiviert', en: 'Auto-Clips disabled' },
+  'auto_clips.spike_multiplier': { de: 'Chat-Spike Empfindlichkeit', en: 'Chat spike sensitivity' },
+  'auto_clips.trigger_chat': { de: 'Chat-Spikes', en: 'Chat spikes' },
+  'auto_clips.trigger_reward': { de: 'Channel Point Rewards', en: 'Channel point rewards' },
+  'auto_clips.trigger_hype': { de: 'Hype Moments', en: 'Hype moments' },
+  'auto_clips.trigger_milestone': { de: 'Milestones', en: 'Milestones' },
+  'auto_clips.trigger_raid': { de: 'Raids', en: 'Raids' },
+  'auto_clips.confirm': { de: 'Bestätigen', en: 'Confirm' },
+  'auto_clips.reject': { de: 'Verwerfen', en: 'Reject' },
 } as const;
 
 export type TranslationKey = keyof typeof translations;

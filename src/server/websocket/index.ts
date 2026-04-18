@@ -35,6 +35,13 @@ export function initWebSocket(server: HttpServer) {
   });
 }
 
+type BroadcastListener = (event: string, data: unknown) => void;
+const listeners: BroadcastListener[] = [];
+
+export function onBroadcast(listener: BroadcastListener): void {
+  listeners.push(listener);
+}
+
 export function broadcast(event: string, data: unknown) {
   if (!wss) return;
   const message = JSON.stringify({ event, data });
@@ -43,4 +50,5 @@ export function broadcast(event: string, data: unknown) {
       client.send(message);
     }
   });
+  listeners.forEach(fn => fn(event, data));
 }

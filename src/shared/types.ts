@@ -80,6 +80,7 @@ export interface Clip {
   session_date: string;
   stream_timecode: string | null;
   recording_timecode: string | null;
+  confidence: 'high' | 'medium' | null;
   created_at: string;
 }
 
