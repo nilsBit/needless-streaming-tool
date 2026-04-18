@@ -1535,3 +1535,103 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   font-style: italic;
   margin-top: -4px;
 }
+
+/* Kanban Board */
+.kanban-board {
+  display: flex;
+  gap: 10px;
+  min-height: 200px;
+}
+
+.kanban-column {
+  flex: 1;
+  background: #0d0d0d;
+  border-radius: 6px;
+  border: 2px solid #1a1a1a;
+  display: flex;
+  flex-direction: column;
+  min-height: 150px;
+  transition: border-color 0.2s;
+}
+
+.kanban-column.drag-over {
+  border-color: #e67e22;
+  background: #1a1a0d;
+}
+
+.kanban-column-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  border-bottom: 1px solid #1a1a1a;
+  color: #ccc;
+}
+
+.kanban-count {
+  background: #222;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  color: #888;
+}
+
+.kanban-items {
+  flex: 1;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+  max-height: 400px;
+}
+
+.kanban-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  background: #111;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: grab;
+  transition: opacity 0.2s;
+}
+
+.kanban-item:active { cursor: grabbing; }
+.kanban-item.dragging { opacity: 0.4; }
+
+.kanban-item .item-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kanban-item .item-time { font-size: 11px; color: #888; flex-shrink: 0; }
+.kanban-item.status-in_progress .item-time { color: #e67e22; }
+.kanban-item .status-toggle { background: none; border: none; cursor: pointer; font-size: 14px; padding: 0; }
+.kanban-item .btn-delete-small { opacity: 0; transition: opacity 0.2s; }
+.kanban-item:hover .btn-delete-small { opacity: 1; }
+
+.kanban-empty {
+  color: #444;
+  font-size: 12px;
+  text-align: center;
+  padding: 20px 0;
+  font-style: italic;
+}
+
+.kanban-add {
+  display: flex;
+  gap: 4px;
+  padding: 6px;
+  border-top: 1px solid #1a1a1a;
+}
+
+.kanban-add input {
+  flex: 1;
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+.kanban-add button {
+  font-size: 12px;
+  padding: 4px 10px;
+}

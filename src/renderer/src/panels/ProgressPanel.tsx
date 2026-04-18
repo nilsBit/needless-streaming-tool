@@ -20,6 +20,7 @@ export default function ProgressPanel() {
   const { toast } = useToast();
   const { data: streamState } = useApi<StreamState>('/stream-state');
   const [liveSeconds, setLiveSeconds] = useState(0);
+  const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
 
   useWebSocket((event) => {
     if (event.startsWith('progress-')) refetch();
@@ -36,6 +37,13 @@ export default function ProgressPanel() {
     }, 1000);
     return () => clearInterval(interval);
   }, [streamState?.timer_running]);
+
+  const formatTime = (seconds: number): string => {
+    if (seconds < 60) return t('progress.less_than_minute');
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    return h > 0 ? `${h}h ${m}m` : `${m}m`;
+  };
 
   const addItem = async () => {
     if (!newItem.trim()) return;
@@ -73,11 +81,50 @@ export default function ProgressPanel() {
     window.open(`http://localhost:4000/api/progress/export?token=${token}`, '_blank');
   };
 
-  const formatTime = (seconds: number): string => {
-    if (seconds < 60) return t('progress.less_than_minute');
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    return h > 0 ? `${h}h ${m}m` : `${m}m`;
+  // Drag-and-drop handlers
+  const handleDragStart = (e: React.DragEvent, itemId: number) => {
+    e.dataTransfer.setData('text/plain', String(itemId));
+    e.dataTransfer.effectAllowed = 'move';
+    (e.target as HTMLElement).classList.add('dragging');
+  };
+
+  const handleDragEnd = (e: React.DragEvent) => {
+    (e.target as HTMLElement).classList.remove('dragging');
+    setDragOverColumn(null);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDragEnter = (status: string) => {
+    setDragOverColumn(status);
+  };
+
+  const handleDragLeave = (e: React.DragEvent, status: string) => {
+    // Only clear if leaving the column entirely (not entering a child)
+    const related = e.relatedTarget as HTMLElement;
+    if (!related || !(e.currentTarget as HTMLElement).contains(related)) {
+      if (dragOverColumn === status) setDragOverColumn(null);
+    }
+  };
+
+  const handleDrop = async (targetStatus: string, e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOverColumn(null);
+    const itemId = Number(e.dataTransfer.getData('text/plain'));
+    if (!itemId) return;
+
+    const item = items.find(i => i.id === itemId);
+    if (!item || item.status === targetStatus) return;
+
+    const result = await apiPatch(`/progress/items/${itemId}`, {
+      status: targetStatus,
+      current_timer_seconds: liveSeconds,
+    });
+    if (!result) { toast.error(t('error.action_failed')); return; }
+    refetch();
   };
 
   if (loading && !data) {
@@ -85,9 +132,64 @@ export default function ProgressPanel() {
   }
 
   const items = data?.items || [];
-  const done = items.filter((i) => i.status === 'done').length;
+  const backlog = items.filter(i => i.status === 'pending').sort((a, b) => a.sort_order - b.sort_order);
+  const inProgress = items.filter(i => i.status === 'in_progress').sort((a, b) => a.sort_order - b.sort_order);
+  const done = items.filter(i => i.status === 'done').sort((a, b) => a.sort_order - b.sort_order);
+  const doneCount = done.length;
 
   const statusEmoji = (s: string) => s === 'done' ? '✅' : s === 'in_progress' ? '🔨' : '⬜';
+
+  const renderItem = (item: ProjectItem) => {
+    const isActive = item.status === 'in_progress';
+    const displayTime = isActive ? item.time_spent + liveSeconds : item.time_spent;
+    return (
+      <div
+        key={item.id}
+        className={`kanban-item status-${item.status}`}
+        draggable
+        onDragStart={e => handleDragStart(e, item.id)}
+        onDragEnd={handleDragEnd}
+      >
+        <button className="status-toggle" onClick={() => cycleStatus(item)}>{statusEmoji(item.status)}</button>
+        <span className="item-title">{item.title}</span>
+        {displayTime > 0 && <span className="item-time">{formatTime(displayTime)}</span>}
+        <button className="btn-delete-small" onClick={() => deleteItem(item.id)} title={t('tooltip.delete')}>✕</button>
+      </div>
+    );
+  };
+
+  const renderColumn = (status: string, label: string, emoji: string, columnItems: ProjectItem[]) => (
+    <div
+      className={`kanban-column ${dragOverColumn === status ? 'drag-over' : ''}`}
+      onDragOver={handleDragOver}
+      onDragEnter={() => handleDragEnter(status)}
+      onDragLeave={e => handleDragLeave(e, status)}
+      onDrop={e => handleDrop(status, e)}
+    >
+      <div className="kanban-column-header">
+        <span>{emoji} {label}</span>
+        <span className="kanban-count">{columnItems.length}</span>
+      </div>
+      <div className="kanban-items">
+        {columnItems.map(renderItem)}
+        {columnItems.length === 0 && (
+          <p className="kanban-empty">{t('kanban.drop_here')}</p>
+        )}
+      </div>
+      {status === 'pending' && (
+        <div className="kanban-add">
+          <input
+            type="text"
+            placeholder={t('progress.item_placeholder')}
+            value={newItem}
+            onChange={e => setNewItem(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && addItem()}
+          />
+          <button onClick={addItem}>+</button>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className="panel progress-panel">
@@ -99,8 +201,8 @@ export default function ProgressPanel() {
             <input
               type="text"
               value={projectName}
-              onChange={(e) => setProjectName(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && saveProjectName()}
+              onChange={e => setProjectName(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && saveProjectName()}
               placeholder={t('progress.project_placeholder')}
             />
             <button onClick={saveProjectName}>💾</button>
@@ -110,38 +212,18 @@ export default function ProgressPanel() {
             <strong>{data?.project_name || t('progress.no_project')}</strong> ✏️
           </div>
         )}
-        <span className="progress-count">{done}/{items.length} done</span>
+        <span className="progress-count">{doneCount}/{items.length} done</span>
         <button className="btn-export-small" onClick={exportCsv} title={t('progress.export_csv')}>📥</button>
       </div>
 
       <div className="progress-bar-container">
-        <div className="progress-bar" style={{ width: items.length > 0 ? `${(done / items.length) * 100}%` : '0%' }} />
+        <div className="progress-bar" style={{ width: items.length > 0 ? `${(doneCount / items.length) * 100}%` : '0%' }} />
       </div>
 
-      <div className="progress-items">
-        {items.map((item) => {
-          const isActive = item.status === 'in_progress';
-          const displayTime = isActive ? item.time_spent + liveSeconds : item.time_spent;
-          return (
-            <div key={item.id} className={`progress-item status-${item.status}`}>
-              <button className="status-toggle" onClick={() => cycleStatus(item)}>{statusEmoji(item.status)}</button>
-              <span className="item-title">{item.title}</span>
-              {displayTime > 0 && <span className="item-time">{formatTime(displayTime)}</span>}
-              <button className="btn-delete-small" onClick={() => deleteItem(item.id)} title={t('tooltip.delete')}>✕</button>
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="add-item">
-        <input
-          type="text"
-          placeholder={t('progress.item_placeholder')}
-          value={newItem}
-          onChange={(e) => setNewItem(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && addItem()}
-        />
-        <button onClick={addItem}>+</button>
+      <div className="kanban-board">
+        {renderColumn('pending', t('kanban.backlog'), '⬜', backlog)}
+        {renderColumn('in_progress', t('kanban.in_progress'), '🔨', inProgress)}
+        {renderColumn('done', t('kanban.done'), '✅', done)}
       </div>
 
       <ChatCommands commands={[

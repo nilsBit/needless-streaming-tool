@@ -369,6 +369,13 @@ const translations = {
   'progress.less_than_minute': { de: '< 1m', en: '< 1m' },
   'progress.active': { de: 'Aktiv', en: 'Active' },
   'progress.total_time': { de: 'Gesamtzeit', en: 'Total time' },
+
+  // ---- Kanban Board ----
+  'kanban.backlog': { de: 'Backlog', en: 'Backlog' },
+  'kanban.in_progress': { de: 'Aktiv', en: 'Active' },
+  'kanban.done': { de: 'Erledigt', en: 'Done' },
+  'kanban.add_item': { de: '+ Neues Item', en: '+ New Item' },
+  'kanban.drop_here': { de: 'Hierher ziehen', en: 'Drop here' },
 } as const;
 
 export type TranslationKey = keyof typeof translations;
