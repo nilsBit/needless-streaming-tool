@@ -180,4 +180,30 @@ router.post('/autostart', (req, res) => {
   }
 });
 
+// Generic key/value endpoints for arbitrary settings
+router.get('/get/:key', (req, res) => {
+  const row = getDb().prepare('SELECT value FROM settings WHERE key = ?').get(req.params.key) as { value: string } | undefined;
+  res.json({ value: row?.value ?? null });
+});
+
+router.post('/set', (req, res) => {
+  const { key, value } = req.body as { key?: string; value?: string };
+  if (!key) { res.status(400).json({ error: 'key required' }); return; }
+  getDb().prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run(key, String(value ?? ''));
+  res.json({ success: true });
+});
+
+router.post('/batch', (req, res) => {
+  const settings = req.body as Record<string, string>;
+  if (!settings || typeof settings !== 'object') {
+    res.status(400).json({ error: 'object of key/value pairs required' });
+    return;
+  }
+  const db = getDb();
+  for (const [key, value] of Object.entries(settings)) {
+    db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run(key, String(value));
+  }
+  res.json({ success: true });
+});
+
 export default router;

@@ -38,6 +38,50 @@ export default function SettingsPanel() {
 
   const [clientId, setClientId] = useState('');
 
+  const [autoClipsEnabled, setAutoClipsEnabled] = useState(true);
+  const [spikeMultiplier, setSpikeMultiplier] = useState(3);
+  const [triggerChat, setTriggerChat] = useState(true);
+  const [triggerReward, setTriggerReward] = useState(true);
+  const [triggerHype, setTriggerHype] = useState(true);
+  const [triggerMilestone, setTriggerMilestone] = useState(true);
+  const [triggerRaid, setTriggerRaid] = useState(true);
+
+  useEffect(() => {
+    const keys = [
+      'auto_clips_enabled',
+      'auto_clip_spike_multiplier',
+      'auto_clip_trigger_chat',
+      'auto_clip_trigger_reward',
+      'auto_clip_trigger_hype',
+      'auto_clip_trigger_milestone',
+      'auto_clip_trigger_raid',
+    ];
+    Promise.all(keys.map(k => apiFetch(`/settings/get/${k}`).then(r => r.json()).then(d => [k, d.value] as [string, string | null]))).then(entries => {
+      const m = Object.fromEntries(entries);
+      if (m['auto_clips_enabled'] !== null) setAutoClipsEnabled(m['auto_clips_enabled'] !== 'false');
+      if (m['auto_clip_spike_multiplier'] !== null) setSpikeMultiplier(parseFloat(m['auto_clip_spike_multiplier']));
+      if (m['auto_clip_trigger_chat'] !== null) setTriggerChat(m['auto_clip_trigger_chat'] !== 'false');
+      if (m['auto_clip_trigger_reward'] !== null) setTriggerReward(m['auto_clip_trigger_reward'] !== 'false');
+      if (m['auto_clip_trigger_hype'] !== null) setTriggerHype(m['auto_clip_trigger_hype'] !== 'false');
+      if (m['auto_clip_trigger_milestone'] !== null) setTriggerMilestone(m['auto_clip_trigger_milestone'] !== 'false');
+      if (m['auto_clip_trigger_raid'] !== null) setTriggerRaid(m['auto_clip_trigger_raid'] !== 'false');
+    }).catch(() => {});
+  }, []);
+
+  const saveAutoClipSettings = async () => {
+    const result = await apiPost('/settings/batch', {
+      auto_clips_enabled: String(autoClipsEnabled),
+      auto_clip_spike_multiplier: String(spikeMultiplier),
+      auto_clip_trigger_chat: String(triggerChat),
+      auto_clip_trigger_reward: String(triggerReward),
+      auto_clip_trigger_hype: String(triggerHype),
+      auto_clip_trigger_milestone: String(triggerMilestone),
+      auto_clip_trigger_raid: String(triggerRaid),
+    });
+    if (!result) { toast.error(t('error.action_failed')); return; }
+    toast.success(t('overlay_config.saved'));
+  };
+
   useEffect(() => {
     const interval = setInterval(() => {
       refetchBot();
@@ -341,6 +385,49 @@ export default function SettingsPanel() {
             {t('github.sync_btn')}
           </button>
         </div>
+      </div>
+
+      <div className="settings-section">
+        <h3>{t('auto_clips.title')}</h3>
+        <p className="setup-info">{t('auto_clips.desc')}</p>
+
+        <div className="language-toggle" style={{ marginBottom: '12px' }}>
+          <button
+            className={`lang-btn ${autoClipsEnabled ? 'active' : ''}`}
+            onClick={() => setAutoClipsEnabled(true)}
+          >
+            {t('auto_clips.enabled')}
+          </button>
+          <button
+            className={`lang-btn ${!autoClipsEnabled ? 'active' : ''}`}
+            onClick={() => setAutoClipsEnabled(false)}
+          >
+            {t('auto_clips.disabled')}
+          </button>
+        </div>
+
+        <div className="config-row">
+          <label>{t('auto_clips.spike_multiplier')}</label>
+          <input
+            type="range"
+            min="2"
+            max="6"
+            step="0.5"
+            value={spikeMultiplier}
+            onChange={e => setSpikeMultiplier(parseFloat(e.target.value))}
+          />
+          <span>{spikeMultiplier}x</span>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '8px' }}>
+          <label><input type="checkbox" checked={triggerChat} onChange={e => setTriggerChat(e.target.checked)} /> {t('auto_clips.trigger_chat')}</label>
+          <label><input type="checkbox" checked={triggerReward} onChange={e => setTriggerReward(e.target.checked)} /> {t('auto_clips.trigger_reward')}</label>
+          <label><input type="checkbox" checked={triggerHype} onChange={e => setTriggerHype(e.target.checked)} /> {t('auto_clips.trigger_hype')}</label>
+          <label><input type="checkbox" checked={triggerMilestone} onChange={e => setTriggerMilestone(e.target.checked)} /> {t('auto_clips.trigger_milestone')}</label>
+          <label><input type="checkbox" checked={triggerRaid} onChange={e => setTriggerRaid(e.target.checked)} /> {t('auto_clips.trigger_raid')}</label>
+        </div>
+
+        <button className="btn-connect" style={{ marginTop: '12px' }} onClick={saveAutoClipSettings}>{t('settings.save')}</button>
       </div>
 
       <div className="settings-section">
