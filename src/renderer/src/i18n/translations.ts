@@ -376,6 +376,15 @@ const translations = {
   'kanban.done': { de: 'Erledigt', en: 'Done' },
   'kanban.add_item': { de: '+ Neues Item', en: '+ New Item' },
   'kanban.drop_here': { de: 'Hierher ziehen', en: 'Drop here' },
+  // ---- GitHub Import ----
+  'github.title': { de: 'GitHub Import', en: 'GitHub Import' },
+  'github.desc': { de: 'Issues aus einem GitHub-Repository importieren.', en: 'Import issues from a GitHub repository.' },
+  'github.token_placeholder': { de: 'GitHub Personal Access Token (ghp_...)', en: 'GitHub Personal Access Token (ghp_...)' },
+  'github.repo_placeholder': { de: 'owner/repo', en: 'owner/repo' },
+  'github.import_btn': { de: '📥 Importieren', en: '📥 Import' },
+  'github.sync_btn': { de: '🔄 Re-Sync', en: '🔄 Re-Sync' },
+  'github.imported': { de: 'importiert', en: 'imported' },
+  'github.skipped': { de: 'übersprungen', en: 'skipped' },
 } as const;
 
 export type TranslationKey = keyof typeof translations;

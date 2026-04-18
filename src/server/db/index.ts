@@ -84,6 +84,11 @@ function runMigrations(from: number, to: number) {
     console.log('[DB] Migrated: added time_spent to project_items');
   }
 
+  if (from < 9) {
+    try { db.exec('ALTER TABLE project_items ADD COLUMN external_id TEXT'); } catch {}
+    console.log('[DB] Migrated: added external_id to project_items');
+  }
+
   db.prepare('INSERT OR REPLACE INTO schema_version (version) VALUES (?)').run(to);
   console.log(`[DB] Migrated from v${from} to v${to}`);
 }

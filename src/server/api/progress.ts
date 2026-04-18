@@ -157,4 +157,83 @@ router.get('/export', (_req, res) => {
   res.send(csv);
 });
 
+// GitHub settings
+router.get('/github', (_req, res) => {
+  const db = getDb();
+  const tokenRow = db.prepare('SELECT value FROM settings WHERE key = ?').get('github_token') as { value: string } | undefined;
+  const repoRow = db.prepare('SELECT value FROM settings WHERE key = ?').get('github_repo') as { value: string } | undefined;
+  res.json({
+    configured: !!tokenRow?.value,
+    preview: tokenRow?.value ? tokenRow.value.substring(0, 8) + '...' : null,
+    repo: repoRow?.value || null,
+  });
+});
+
+router.post('/github', (req, res) => {
+  const { token, repo } = req.body;
+  const db = getDb();
+  if (token !== undefined) {
+    db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('github_token', token);
+  }
+  if (repo !== undefined) {
+    db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('github_repo', repo);
+  }
+  res.json({ success: true });
+});
+
+// GitHub import
+router.post('/import/github', async (req, res) => {
+  const db = getDb();
+  const { owner, repo } = req.body;
+  if (!owner || !repo) { res.status(400).json({ error: 'owner and repo required' }); return; }
+
+  const tokenRow = db.prepare('SELECT value FROM settings WHERE key = ?').get('github_token') as { value: string } | undefined;
+  if (!tokenRow?.value) { res.status(400).json({ error: 'GitHub token not configured' }); return; }
+
+  try {
+    const response = await fetch(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/issues?state=open&per_page=100`, {
+      headers: {
+        'Authorization': `Bearer ${tokenRow.value}`,
+        'Accept': 'application/vnd.github+json',
+        'User-Agent': 'stream-toolkit',
+      },
+    });
+
+    if (response.status === 401) { res.status(401).json({ error: 'GitHub token invalid' }); return; }
+    if (response.status === 404) { res.status(404).json({ error: 'Repository not found' }); return; }
+    if (!response.ok) { res.status(502).json({ error: 'GitHub API error: ' + response.status }); return; }
+
+    const issues = await response.json() as Array<{ number: number; title: string; pull_request?: unknown }>;
+
+    // Filter out pull requests
+    const realIssues = issues.filter(i => !i.pull_request);
+
+    const maxOrder = db.prepare('SELECT MAX(sort_order) as max FROM project_items').get() as { max: number | null };
+    let sortOrder = (maxOrder?.max ?? -1) + 1;
+
+    let imported = 0;
+    let skipped = 0;
+
+    for (const issue of realIssues) {
+      const externalId = `github:${owner}/${repo}#${issue.number}`;
+      const existing = db.prepare('SELECT id FROM project_items WHERE external_id = ?').get(externalId);
+      if (existing) {
+        skipped++;
+        continue;
+      }
+      db.prepare('INSERT INTO project_items (title, status, sort_order, external_id) VALUES (?, ?, ?, ?)').run(issue.title, 'pending', sortOrder++, externalId);
+      imported++;
+    }
+
+    // Save repo for convenience
+    db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('github_repo', `${owner}/${repo}`);
+
+    broadcast('progress-update', { action: 'github-import', imported, skipped });
+    res.json({ imported, skipped, total: imported + skipped });
+  } catch (err) {
+    console.error('[Progress] GitHub import failed:', err);
+    res.status(502).json({ error: 'GitHub API unavailable' });
+  }
+});
+
 export default router;
