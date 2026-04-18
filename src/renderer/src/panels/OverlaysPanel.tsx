@@ -21,6 +21,77 @@ const FONT_OPTIONS = [
 
 const OVERLAY_NAMES = ['experiment', 'todos', 'progress', 'milestone', 'song', 'alerts', 'poll', 'roulette'];
 
+const THEME_PRESETS: { name: string; label: string; color: string; values: Record<string, string> }[] = [
+  {
+    name: 'gaming',
+    label: '🎮 Gaming',
+    color: '#ff2d7b',
+    values: {
+      '--color-primary': '#ff2d7b',
+      '--color-secondary': '#00d4ff',
+      '--color-accent': '#39ff14',
+      '--color-text': '#ffffff',
+      '--color-bg': '#0a0a0a',
+      '--color-bg-opacity': '0.92',
+      '--color-bg-secondary': '#0d0d0d',
+      '--font-display': "'Bebas Neue', sans-serif",
+      '--font-body': "'Inter', sans-serif",
+      '--font-size-base': '14px',
+    },
+  },
+  {
+    name: 'terminal',
+    label: '💻 Terminal',
+    color: '#39ff14',
+    values: {
+      '--color-primary': '#39ff14',
+      '--color-secondary': '#00d4ff',
+      '--color-accent': '#ff6b35',
+      '--color-text': '#ffffff',
+      '--color-bg': '#0a0a0a',
+      '--color-bg-opacity': '0.95',
+      '--color-bg-secondary': '#0d0d0d',
+      '--font-display': "'Fira Code', monospace",
+      '--font-body': "'Fira Code', monospace",
+      '--font-size-base': '13px',
+    },
+  },
+  {
+    name: 'minimal',
+    label: '✨ Minimal',
+    color: '#ffffff',
+    values: {
+      '--color-primary': '#ffffff',
+      '--color-secondary': '#888888',
+      '--color-accent': '#e67e22',
+      '--color-text': '#ffffff',
+      '--color-bg': '#111111',
+      '--color-bg-opacity': '0.9',
+      '--color-bg-secondary': '#1a1a1a',
+      '--font-display': "'Inter', sans-serif",
+      '--font-body': "'Inter', sans-serif",
+      '--font-size-base': '14px',
+    },
+  },
+  {
+    name: 'pastel',
+    label: '🎨 Pastel',
+    color: '#ff8fab',
+    values: {
+      '--color-primary': '#ff8fab',
+      '--color-secondary': '#a2d2ff',
+      '--color-accent': '#bde0fe',
+      '--color-text': '#ffffff',
+      '--color-bg': '#1a1a2e',
+      '--color-bg-opacity': '0.92',
+      '--color-bg-secondary': '#16213e',
+      '--font-display': "'Poppins', sans-serif",
+      '--font-body': "'Poppins', sans-serif",
+      '--font-size-base': '14px',
+    },
+  },
+];
+
 interface OverlayInfo {
   name: string;
   url: string;
@@ -77,6 +148,45 @@ export default function OverlaysPanel() {
       setOverlayConfig({ global: {}, overrides: {} });
       toast.success(t('overlay_config.saved'));
     } catch { toast.error(t('error.action_failed')); }
+  };
+
+  const applyTheme = async (theme: typeof THEME_PRESETS[0]) => {
+    const newConfig = { ...overlayConfig, global: { ...theme.values } };
+    setOverlayConfig(newConfig);
+    const result = await apiPost('/overlay-config', newConfig);
+    if (!result) { toast.error(t('error.action_failed')); return; }
+    toast.success(`${theme.label} ${t('themes.apply')}`);
+  };
+
+  const exportTheme = () => {
+    const json = JSON.stringify(overlayConfig, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'overlay-theme.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const importThemeRef = useRef<HTMLInputElement>(null);
+
+  const importTheme = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const imported = JSON.parse(text);
+      if (imported.global) {
+        setOverlayConfig(imported);
+        const result = await apiPost('/overlay-config', imported);
+        if (!result) { toast.error(t('error.action_failed')); return; }
+        toast.success(t('themes.imported'));
+      }
+    } catch {
+      toast.error(t('error.action_failed'));
+    }
+    if (importThemeRef.current) importThemeRef.current.value = '';
   };
 
   if (loadingBuiltin || loadingCustom) return <div className="panel"><p>{t('common.loading')}</p></div>;
@@ -272,6 +382,36 @@ export default function OverlaysPanel() {
       <div className="overlay-section">
         <h3>{t('overlay_config.title')}</h3>
         <p className="setup-info">{t('overlay_config.desc')}</p>
+
+        <div className="theme-presets">
+          <h4>{t('themes.title')}</h4>
+          <div className="theme-buttons">
+            {THEME_PRESETS.map(theme => (
+              <button
+                key={theme.name}
+                className="theme-btn"
+                onClick={() => applyTheme(theme)}
+                title={theme.label}
+              >
+                <span className="theme-dot" style={{ background: theme.color }} />
+                <span>{theme.label}</span>
+              </button>
+            ))}
+          </div>
+          <div className="theme-io" style={{ marginTop: '8px', display: 'flex', gap: '8px' }}>
+            <button className="btn-reset-small" onClick={exportTheme}>{t('themes.export')}</button>
+            <label className="btn-reset-small" style={{ cursor: 'pointer' }}>
+              {t('themes.import')}
+              <input
+                ref={importThemeRef}
+                type="file"
+                accept=".json"
+                onChange={importTheme}
+                style={{ display: 'none' }}
+              />
+            </label>
+          </div>
+        </div>
 
         <h4>{t('overlay_config.global')}</h4>
         <div className="config-grid">

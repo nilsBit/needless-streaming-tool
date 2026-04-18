@@ -385,6 +385,13 @@ const translations = {
   'github.sync_btn': { de: '🔄 Re-Sync', en: '🔄 Re-Sync' },
   'github.imported': { de: 'importiert', en: 'imported' },
   'github.skipped': { de: 'übersprungen', en: 'skipped' },
+
+  // ---- Overlay Themes ----
+  'themes.title': { de: 'Themes', en: 'Themes' },
+  'themes.apply': { de: 'Anwenden', en: 'Apply' },
+  'themes.export': { de: 'Theme exportieren', en: 'Export theme' },
+  'themes.import': { de: 'Theme importieren', en: 'Import theme' },
+  'themes.imported': { de: 'Theme importiert', en: 'Theme imported' },
 } as const;
 
 export type TranslationKey = keyof typeof translations;
