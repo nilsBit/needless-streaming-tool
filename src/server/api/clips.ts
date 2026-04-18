@@ -4,6 +4,32 @@ import { broadcast } from '../websocket/index';
 import { syncClipToNotion } from './notion-sync';
 import { getStreamTimecodes } from '../obs/index';
 
+// Shared clip creation function (used by POST handler and auto-clips)
+export async function createClip(tag: string, note?: string | null, confidence?: string | null): Promise<{ id: number; tag: string; note: string | null; session_date: string; stream_timecode: string | null; recording_timecode: string | null; confidence: string | null; created_at: string } | null> {
+  try {
+    const sessionDate = new Date().toISOString().split('T')[0];
+    const { stream_timecode, recording_timecode } = await getStreamTimecodes();
+
+    const result = getDb().prepare(
+      'INSERT INTO clips (tag, note, session_date, stream_timecode, recording_timecode, confidence) VALUES (?, ?, ?, ?, ?, ?)'
+    ).run(tag, note || null, sessionDate, stream_timecode, recording_timecode, confidence || null);
+
+    const clip = getDb().prepare('SELECT * FROM clips WHERE id = ?').get(result.lastInsertRowid) as {
+      id: number; tag: string; note: string | null; session_date: string;
+      stream_timecode: string | null; recording_timecode: string | null; confidence: string | null; created_at: string;
+    };
+    broadcast('clip-created', clip);
+
+    // Auto-sync to Notion (fire and forget)
+    syncClipToNotion(clip).catch(() => {});
+
+    return clip;
+  } catch (err) {
+    console.error('[Clips] createClip failed:', err);
+    return null;
+  }
+}
+
 const router = Router();
 
 // GET clips (filterable by session_date and tag)
@@ -98,22 +124,8 @@ router.post('/', async (req, res) => {
   const { tag, note } = req.body;
   if (!tag) { res.status(400).json({ error: 'tag required' }); return; }
 
-  const sessionDate = new Date().toISOString().split('T')[0];
-  const { stream_timecode, recording_timecode } = await getStreamTimecodes();
-
-  const result = getDb().prepare(
-    'INSERT INTO clips (tag, note, session_date, stream_timecode, recording_timecode) VALUES (?, ?, ?, ?, ?)'
-  ).run(tag, note || null, sessionDate, stream_timecode, recording_timecode);
-
-  const clip = getDb().prepare('SELECT * FROM clips WHERE id = ?').get(result.lastInsertRowid) as {
-    id: number; tag: string; note: string | null; session_date: string;
-    stream_timecode: string | null; recording_timecode: string | null; created_at: string;
-  };
-  broadcast('clip-created', clip);
-
-  // Auto-sync to Notion (fire and forget)
-  syncClipToNotion(clip).catch(() => {});
-
+  const clip = await createClip(tag, note);
+  if (!clip) { res.status(500).json({ error: 'Failed to create clip' }); return; }
   res.status(201).json(clip);
 });
 

@@ -13,6 +13,10 @@ export function getBotStatus(): { connected: boolean; channel: string | null } {
   return { connected, channel: config?.channel || null };
 }
 
+export function getClient(): tmi.Client | null {
+  return client;
+}
+
 export async function connectBot(): Promise<boolean> {
   const config = getBotConfig();
   if (!config) {
