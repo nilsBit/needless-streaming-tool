@@ -18,12 +18,16 @@ export default function SettingsPanel() {
   const { data: tokenInfo } = useApi<{ token: string | null }>('/settings/api-token');
   const { data: notionInfo, refetch: refetchNotion } = useApi<{ configured: boolean; preview: string | null }>('/settings/notion');
   const { data: notionDbInfo, refetch: refetchNotionDb } = useApi<{ configured: boolean; database_id: string | null }>('/settings/notion/database');
+  const { data: githubInfo, refetch: refetchGithub } = useApi<{ configured: boolean; preview: string | null; repo: string | null }>('/progress/github');
   const { data: obsConfig, refetch: refetchObs } = useApi<{ configured: boolean; host?: string; port?: number; has_password?: boolean }>('/obs/config');
   const { data: obsStatus, refetch: refetchObsStatus } = useApi<{ connected: boolean }>('/obs/status');
 
   const { toast } = useToast();
   const [notionToken, setNotionToken] = useState('');
   const [notionDbId, setNotionDbId] = useState('');
+  const [githubToken, setGithubToken] = useState('');
+  const [githubRepo, setGithubRepo] = useState('');
+  const [importing, setImporting] = useState(false);
   const [obsHost, setObsHost] = useState('localhost');
   const [obsPort, setObsPort] = useState('4455');
   const [obsPassword, setObsPassword] = useState('');
@@ -42,6 +46,10 @@ export default function SettingsPanel() {
     }, 3000);
     return () => clearInterval(interval);
   }, [refetchBot, refetchConfig, refetchObsStatus]);
+
+  useEffect(() => {
+    if (githubInfo?.repo && !githubRepo) setGithubRepo(githubInfo.repo);
+  }, [githubInfo]);
 
   if (loading) return <div className="panel"><p>{t('common.loading')}</p></div>;
 
@@ -117,6 +125,27 @@ export default function SettingsPanel() {
   const disconnectBot = async () => {
     await apiPost('/settings/bot/disconnect', {});
     refetchBot();
+  };
+
+  const importGithub = async () => {
+    const parts = githubRepo.trim().split('/');
+    if (parts.length !== 2) { toast.error('Format: owner/repo'); return; }
+    setImporting(true);
+    try {
+      const res = await apiFetch('/progress/import/github', {
+        method: 'POST',
+        body: JSON.stringify({ owner: parts[0], repo: parts[1] }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(`${data.imported} ${t('github.imported')}, ${data.skipped} ${t('github.skipped')}`);
+      } else {
+        toast.error(data.error || t('error.action_failed'));
+      }
+    } catch {
+      toast.error(t('error.action_failed'));
+    }
+    setImporting(false);
   };
 
   return (
@@ -248,6 +277,70 @@ export default function SettingsPanel() {
             }}>{t('settings.change_db')}</button>
           </div>
         )}
+      </div>
+
+      <div className="settings-section">
+        <h3>{t('github.title')}</h3>
+        <p className="setup-info">{t('github.desc')}</p>
+
+        {!githubInfo?.configured ? (
+          <div className="client-id-input">
+            <input
+              type="password"
+              placeholder={t('github.token_placeholder')}
+              value={githubToken}
+              onChange={e => setGithubToken(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && (async () => {
+                const result = await apiPost('/progress/github', { token: githubToken.trim() });
+                if (!result) { toast.error(t('error.action_failed')); return; }
+                setGithubToken('');
+                refetchGithub();
+              })()}
+            />
+            <button onClick={async () => {
+              const result = await apiPost('/progress/github', { token: githubToken.trim() });
+              if (!result) { toast.error(t('error.action_failed')); return; }
+              setGithubToken('');
+              refetchGithub();
+            }}>💾</button>
+          </div>
+        ) : (
+          <div className="setup-step">
+            <p className="setup-info">Token: {githubInfo.preview}</p>
+            <button className="btn-reset-small" onClick={async () => {
+              const result = await apiPost('/progress/github', { token: '' });
+              if (!result) { toast.error(t('error.action_failed')); return; }
+              refetchGithub();
+            }}>{t('settings.change_token')}</button>
+          </div>
+        )}
+
+        <div className="client-id-input" style={{ marginTop: '8px' }}>
+          <input
+            type="text"
+            placeholder={t('github.repo_placeholder')}
+            value={githubRepo}
+            onChange={e => setGithubRepo(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && importGithub()}
+          />
+        </div>
+
+        <div className="bot-controls" style={{ marginTop: '8px' }}>
+          <button
+            className="btn-connect"
+            onClick={importGithub}
+            disabled={importing || !githubInfo?.configured || !githubRepo.trim()}
+          >
+            {importing ? '⏳...' : t('github.import_btn')}
+          </button>
+          <button
+            className="btn-connect"
+            onClick={importGithub}
+            disabled={importing || !githubInfo?.configured || !githubRepo.trim()}
+          >
+            {t('github.sync_btn')}
+          </button>
+        </div>
       </div>
 
       <div className="settings-section">
