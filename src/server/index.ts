@@ -25,6 +25,7 @@ import backupRouter from './api/backup';
 import overlayConfigRouter, { getOverlayConfig } from './api/overlay-config';
 import { connectBot } from './bot/index';
 import { connectObs } from './obs/index';
+import { initAutoClips } from './auto-clips';
 import { getDb } from './db/index';
 import { rateLimit } from './middleware/rate-limit';
 import { getUserDataPath } from './paths';
@@ -168,6 +169,9 @@ export async function startServer(): Promise<string> {
 
       connectBot().catch(() => {});
       connectObs().catch(() => {});
+
+      // Init auto-clips after bot connects (needs a small delay for bot to be ready)
+      setTimeout(() => initAutoClips(), 3000);
 
       resolve(token);
     });
