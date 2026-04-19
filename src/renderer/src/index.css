@@ -57,6 +57,12 @@ body {
     padding: 12px;
     gap: 12px;
   }
+
+  .ov2-theme-grid { grid-template-columns: repeat(2, 1fr); }
+
+  .ov2-color-grid { grid-template-columns: repeat(3, 1fr); }
+
+  .config-row label { flex: 0 0 140px; }
 }
 
 @media (max-width: 600px) {
@@ -103,13 +109,47 @@ body {
   .api-token-display { flex-direction: column; gap: 6px; }
   .token-value { font-size: 10px; word-break: break-all; }
 
-  /* Overlays */
+  /* Overlays (legacy) */
   .overlay-item {
     flex-direction: column;
     align-items: flex-start;
     gap: 6px;
   }
   .overlay-actions { width: 100%; justify-content: flex-end; }
+
+  /* Overlays v2 */
+  .ov2-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .ov2-card-left { width: 100%; }
+
+  .ov2-card-url { max-width: 100%; }
+
+  .ov2-card-actions {
+    width: 100%;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .ov2-theme-grid { grid-template-columns: 1fr 1fr; }
+
+  .ov2-color-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+
+  .ov2-color-item input[type="color"] { width: 40px; height: 30px; }
+
+  .config-row { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .config-row label { flex: none; }
+  .config-row input[type="range"] { max-width: 100%; width: 100%; }
+  .config-row select { max-width: 100%; width: 100%; }
+
+  .ov2-preview iframe { height: 200px; }
+
+  .ov2-theme-io { flex-direction: column; }
+  .ov2-theme-io .ov2-small-btn { width: 100%; text-align: center; }
 
   /* Help */
   .help-table-row {
@@ -171,6 +211,21 @@ body {
   /* Language toggle */
   .language-toggle { width: 100%; }
   .lang-btn { flex: 1; }
+}
+
+@media (max-width: 400px) {
+  .ov2-tabs { flex-direction: column; gap: 2px; }
+
+  .ov2-theme-grid { grid-template-columns: 1fr; }
+
+  .ov2-color-grid { grid-template-columns: repeat(2, 1fr); }
+
+  .ov2-card-icon { display: none; }
+
+  .ov2-card-actions { gap: 3px; }
+  .ov2-action-btn { padding: 3px 6px; font-size: 11px; }
+
+  .ov2-badge { font-size: 8px; padding: 1px 4px; }
 }
 
 /* Panel Wrapper (collapse) */
@@ -776,38 +831,348 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .level-btn.active { opacity: 1; }
 .level-btn:hover { opacity: 0.7; }
 
-/* Overlays Panel */
-.overlay-section { margin-bottom: 16px; }
-.overlay-section h3 { color: #e67e22; font-size: 13px; margin-bottom: 8px; }
+/* Overlays Panel v2 */
+.ov2-tabs {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 16px;
+  background: #111;
+  border-radius: 8px;
+  padding: 3px;
+}
 
-.overlay-list { display: flex; flex-direction: column; gap: 4px; }
+.ov2-tab {
+  flex: 1;
+  padding: 8px 16px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: #888;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
 
-.overlay-item {
+.ov2-tab:hover { color: #ccc; }
+.ov2-tab--active { background: #222; color: #e67e22; }
+
+.ov2-section { margin-bottom: 20px; }
+.ov2-section h3 { color: #e67e22; font-size: 13px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+.ov2-section h4 { color: #aaa; font-size: 12px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+.ov2-section-desc { color: #666; font-size: 12px; margin-bottom: 12px; }
+
+.ov2-card-list { display: flex; flex-direction: column; gap: 6px; }
+
+.ov2-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 10px;
-  background: #1a1a1a;
-  border: 1px solid #2a2a2a;
-  border-radius: 4px;
+  padding: 10px 12px;
+  background: #151515;
+  border: 1px solid #252525;
+  border-radius: 8px;
+  transition: border-color 0.2s, background 0.2s;
 }
 
-.overlay-name-row { display: flex; align-items: center; gap: 8px; }
-.overlay-name { color: #ccc; font-size: 13px; }
-.overlay-badge {
+.ov2-card:hover { border-color: #333; background: #1a1a1a; }
+.ov2-card--customized { border-color: #e67e2244; }
+.ov2-card--active { border-color: #e67e22; background: #1a1a1a; }
+
+.ov2-card-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+
+.ov2-card-icon { font-size: 18px; flex-shrink: 0; width: 28px; text-align: center; }
+
+.ov2-card-info { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.ov2-card-name { color: #ddd; font-size: 13px; font-weight: 500; }
+.ov2-card-url { color: #555; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 220px; }
+
+.ov2-card-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+
+.ov2-badge {
   font-size: 9px;
   padding: 2px 6px;
-  background: rgba(230, 126, 34, 0.2);
-  border: 1px solid #e67e22;
-  border-radius: 3px;
+  background: rgba(230, 126, 34, 0.15);
+  border: 1px solid #e67e2244;
+  border-radius: 4px;
   color: #e67e22;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
-.overlay-customized { border-color: #e67e22; }
 
-.overlay-actions { display: flex; gap: 4px; }
+.ov2-action-btn {
+  background: none;
+  border: 1px solid #2a2a2a;
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #888;
+  transition: all 0.15s;
+}
 
+.ov2-action-btn:hover { border-color: #e67e22; background: rgba(230, 126, 34, 0.1); }
+.ov2-action-btn--active { border-color: #e67e22; color: #e67e22; background: rgba(230, 126, 34, 0.1); }
+.ov2-action-btn--danger:hover { border-color: #e74c3c; background: rgba(231, 76, 60, 0.1); }
+
+.ov2-preview {
+  background: #000;
+  border-radius: 0 0 8px 8px;
+  overflow: hidden;
+  border: 1px solid #252525;
+  border-top: none;
+  margin-top: -6px;
+}
+
+.ov2-preview iframe { width: 100%; height: 280px; border: none; }
+
+.ov2-test-btn {
+  display: block;
+  width: 100%;
+  padding: 8px;
+  background: #1a1a1a;
+  border: none;
+  border-top: 1px solid #252525;
+  color: #e67e22;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: background 0.15s;
+}
+
+.ov2-test-btn:hover { background: #222; }
+
+.ov2-empty { color: #555; font-size: 12px; font-style: italic; padding: 12px 0; }
+
+.ov2-add-btn {
+  margin-top: 8px;
+  padding: 10px;
+  background: transparent;
+  border: 1px dashed #333;
+  border-radius: 8px;
+  color: #666;
+  cursor: pointer;
+  font-size: 13px;
+  width: 100%;
+  transition: all 0.2s;
+}
+
+.ov2-add-btn:hover { border-color: #e67e22; color: #e67e22; background: rgba(230, 126, 34, 0.05); }
+
+.ov2-create-form {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: #151515;
+  border: 1px solid #252525;
+  border-radius: 8px;
+}
+
+.ov2-input {
+  padding: 8px 10px;
+  background: #111;
+  border: 1px solid #2a2a2a;
+  border-radius: 6px;
+  color: #eee;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.ov2-input:focus { border-color: #e67e22; }
+
+.ov2-mode-toggle { display: flex; gap: 4px; }
+
+.ov2-mode-btn {
+  flex: 1;
+  padding: 7px;
+  background: #111;
+  border: 1px solid #2a2a2a;
+  border-radius: 6px;
+  color: #888;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.15s;
+}
+
+.ov2-mode-btn--active { border-color: #e67e22; color: #e67e22; background: rgba(230, 126, 34, 0.08); }
+
+.ov2-create-btn {
+  padding: 9px;
+  background: #e67e22;
+  border: none;
+  border-radius: 6px;
+  color: #000;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  transition: background 0.15s;
+}
+
+.ov2-create-btn:hover { background: #d35400; }
+.ov2-create-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.ov2-cancel-btn {
+  padding: 7px;
+  background: none;
+  border: 1px solid #2a2a2a;
+  border-radius: 6px;
+  color: #888;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.15s;
+}
+
+.ov2-cancel-btn:hover { border-color: #e74c3c; color: #e74c3c; }
+
+.ov2-guide-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #151515;
+  border: 1px solid #252525;
+  border-radius: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  color: #888;
+  font-size: 13px;
+  width: 100%;
+  transition: all 0.2s;
+}
+
+.ov2-guide-toggle:hover { border-color: #333; color: #ccc; }
+
+.ov2-guide-steps {
+  padding: 12px 12px 12px 32px;
+  color: #888;
+  font-size: 12px;
+  line-height: 2;
+  background: #151515;
+  border: 1px solid #252525;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  margin-top: -8px;
+}
+
+/* Theme Cards */
+.ov2-theme-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.ov2-theme-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 10px;
+  background: #151515;
+  border: 1px solid #252525;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.ov2-theme-card:hover { border-color: #444; background: #1a1a1a; }
+.ov2-theme-card--active { border-color: #e67e22; background: rgba(230, 126, 34, 0.06); }
+
+.ov2-theme-palette {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.ov2-theme-swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid #333;
+}
+
+.ov2-theme-swatch--lg {
+  width: 24px;
+  height: 24px;
+}
+
+.ov2-theme-name { font-size: 12px; color: #aaa; font-weight: 500; }
+
+.ov2-theme-active-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #e67e22;
+}
+
+.ov2-theme-io { display: flex; gap: 8px; }
+
+.ov2-small-btn {
+  padding: 6px 12px;
+  background: #151515;
+  border: 1px solid #2a2a2a;
+  border-radius: 6px;
+  color: #888;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.15s;
+}
+
+.ov2-small-btn:hover { border-color: #555; color: #ccc; }
+.ov2-small-btn--danger { border-color: #3a2020; color: #e74c3c; }
+.ov2-small-btn--danger:hover { border-color: #e74c3c; background: rgba(231, 76, 60, 0.1); }
+
+/* Color Picker Grid */
+.ov2-config-group { margin-bottom: 16px; }
+
+.ov2-color-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.ov2-color-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.ov2-color-item input[type="color"] {
+  width: 48px;
+  height: 36px;
+  border: 1px solid #333;
+  border-radius: 8px;
+  cursor: pointer;
+  background: transparent;
+  padding: 2px;
+}
+
+.ov2-color-item span { font-size: 10px; color: #666; text-align: center; }
+
+.ov2-override-config {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  background: #151515;
+  border: 1px solid #252525;
+  border-radius: 8px;
+}
+
+.file-upload input[type="file"] {
+  color: #888;
+  font-size: 12px;
+}
+
+/* Keep old btn classes for backward compatibility */
 .btn-copy-small, .btn-delete-small {
   background: none;
   border: 1px solid #333;
@@ -819,88 +1184,17 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn-copy-small:hover { border-color: #e67e22; }
 .btn-delete-small:hover { border-color: #e74c3c; }
 
-.btn-add {
-  margin-top: 8px;
-  padding: 6px 14px;
-  background: #1a1a1a;
-  border: 1px dashed #444;
-  border-radius: 4px;
+.btn-reset-small {
+  padding: 6px 12px;
+  background: #151515;
+  border: 1px solid #2a2a2a;
+  border-radius: 6px;
   color: #888;
   cursor: pointer;
   font-size: 12px;
-  width: 100%;
+  transition: all 0.15s;
 }
-.btn-add:hover { border-color: #e67e22; color: #e67e22; }
-
-.upload-form {
-  margin-top: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.overlay-name-input {
-  padding: 8px;
-  background: #1a1a1a;
-  border: 1px solid #333;
-  border-radius: 4px;
-  color: #eee;
-  font-size: 13px;
-}
-
-.upload-mode-toggle {
-  display: flex;
-  gap: 4px;
-}
-
-.mode-btn {
-  flex: 1;
-  padding: 6px;
-  background: #1a1a1a;
-  border: 1px solid #333;
-  border-radius: 4px;
-  color: #888;
-  cursor: pointer;
-  font-size: 11px;
-}
-.mode-btn.active { border-color: #e67e22; color: #e67e22; }
-
-.btn-create {
-  padding: 8px;
-  background: #e67e22;
-  border: none;
-  border-radius: 4px;
-  color: #000;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 13px;
-}
-.btn-create:hover { background: #d35400; }
-.btn-create:disabled { opacity: 0.5; cursor: not-allowed; }
-
-.btn-cancel {
-  padding: 6px;
-  background: none;
-  border: 1px solid #333;
-  border-radius: 4px;
-  color: #888;
-  cursor: pointer;
-  font-size: 11px;
-}
-.btn-cancel:hover { border-color: #e74c3c; color: #e74c3c; }
-
-.file-upload input[type="file"] {
-  color: #888;
-  font-size: 12px;
-}
-
-.overlay-help ol {
-  padding-left: 20px;
-  color: #888;
-  font-size: 12px;
-  line-height: 1.8;
-}
-.overlay-help ol strong { color: #ccc; }
+.btn-reset-small:hover { border-color: #555; color: #ccc; }
 
 /* Onboarding Wizard */
 .onboarding-overlay {
@@ -1387,7 +1681,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .lang-btn.active { border-color: #e67e22; color: #e67e22; background: rgba(230, 126, 34, 0.1); }
 .lang-btn:hover { border-color: #666; }
 
-/* Overlay Preview */
+/* Overlay Preview (legacy) */
 .overlay-preview-frame { background: #000; border-radius: 6px; overflow: hidden; border: 1px solid #333; }
 .overlay-preview-frame iframe { width: 100%; height: 300px; border: none; }
 
@@ -1418,6 +1712,27 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 [data-theme="light"] .settings-section h3 { color: var(--accent); }
 [data-theme="light"] .setup-info { color: var(--text-secondary); }
 [data-theme="light"] .overlay-item { background: var(--bg-input); border-color: var(--border); }
+[data-theme="light"] .ov2-tabs { background: #eee; }
+[data-theme="light"] .ov2-tab { color: #888; }
+[data-theme="light"] .ov2-tab--active { background: #fff; color: var(--accent); }
+[data-theme="light"] .ov2-card { background: #fafafa; border-color: #e0e0e0; }
+[data-theme="light"] .ov2-card:hover { background: #f0f0f0; border-color: #ccc; }
+[data-theme="light"] .ov2-card-name { color: #333; }
+[data-theme="light"] .ov2-card-url { color: #999; }
+[data-theme="light"] .ov2-action-btn { border-color: #ddd; color: #888; }
+[data-theme="light"] .ov2-action-btn:hover { border-color: var(--accent); }
+[data-theme="light"] .ov2-theme-card { background: #fafafa; border-color: #e0e0e0; }
+[data-theme="light"] .ov2-theme-card:hover { background: #f0f0f0; border-color: #ccc; }
+[data-theme="light"] .ov2-input { background: #f0f0f0; border-color: #ddd; color: #333; }
+[data-theme="light"] .ov2-guide-toggle { background: #fafafa; border-color: #e0e0e0; color: #666; }
+[data-theme="light"] .ov2-guide-steps { background: #fafafa; border-color: #e0e0e0; }
+[data-theme="light"] .ov2-create-form { background: #fafafa; border-color: #e0e0e0; }
+[data-theme="light"] .ov2-preview { background: #f0f0f0; border-color: #e0e0e0; }
+[data-theme="light"] .ov2-small-btn { background: #fafafa; border-color: #ddd; }
+[data-theme="light"] .ov2-override-config { background: #fafafa; border-color: #e0e0e0; }
+[data-theme="light"] .ov2-add-btn { border-color: #ddd; color: #888; }
+[data-theme="light"] .ov2-mode-btn { background: #f0f0f0; border-color: #ddd; }
+[data-theme="light"] .ov2-test-btn { background: #f5f5f5; border-color: #e0e0e0; }
 [data-theme="light"] .help-section-header { background: var(--bg-input); color: var(--text); }
 [data-theme="light"] .help-content { background: var(--bg-panel); color: var(--text-secondary); }
 [data-theme="light"] .onboarding-overlay { background: var(--bg); }
@@ -1636,39 +1951,9 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   padding: 4px 10px;
 }
 
-/* Theme Presets */
+/* Theme Presets (legacy, kept for backward compat) */
 .theme-presets { margin-bottom: 16px; }
-
-.theme-buttons {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 8px;
-}
-
-.theme-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  background: #111;
-  border: 1px solid #333;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
-  color: #ccc;
-  transition: border-color 0.2s;
-}
-
-.theme-btn:hover { border-color: #888; }
-
-.theme-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
+.theme-buttons { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
 .theme-io { display: flex; gap: 8px; }
 
 /* Auto-Clips */

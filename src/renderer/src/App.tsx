@@ -15,7 +15,6 @@ import OverlaysPanel from './panels/OverlaysPanel';
 import HelpPanel from './panels/HelpPanel';
 import SongPanel from './panels/SongPanel';
 import RaidsPanel from './panels/RaidsPanel';
-import ChatPanel from './panels/ChatPanel';
 import StatsPanel from './panels/StatsPanel';
 import HotkeysPanel from './panels/HotkeysPanel';
 
@@ -29,7 +28,6 @@ const TABS = {
       { key: 'designs', label: 'Chat Designs', component: DesignsPanel },
       { key: 'song', label: 'Now Playing', component: SongPanel },
       { key: 'raids', label: 'Raids', component: RaidsPanel },
-      { key: 'chat', label: 'Chat', component: ChatPanel },
     ],
   },
   projekt: {

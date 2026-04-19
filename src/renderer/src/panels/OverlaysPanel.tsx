@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useApi, apiPost, apiFetch } from '../hooks/useApi';
 import { useTranslation } from '../i18n/LanguageContext';
 import { useToast } from '../i18n/ToastContext';
@@ -21,10 +21,23 @@ const FONT_OPTIONS = [
 
 const OVERLAY_NAMES = ['experiment', 'todos', 'progress', 'milestone', 'song', 'alerts', 'poll', 'roulette'];
 
+const OVERLAY_ICONS: Record<string, string> = {
+  experiment: '🧪',
+  todos: '✅',
+  progress: '📊',
+  milestone: '🏆',
+  song: '🎵',
+  alerts: '🔔',
+  poll: '📊',
+  roulette: '🎰',
+};
+
+const TESTABLE_OVERLAYS = new Set(['alerts', 'song', 'poll', 'milestone', 'roulette', 'experiment', 'todos', 'progress']);
+
 const THEME_PRESETS: { name: string; label: string; color: string; values: Record<string, string> }[] = [
   {
     name: 'gaming',
-    label: '🎮 Gaming',
+    label: 'Gaming',
     color: '#ff2d7b',
     values: {
       '--color-primary': '#ff2d7b',
@@ -41,7 +54,7 @@ const THEME_PRESETS: { name: string; label: string; color: string; values: Recor
   },
   {
     name: 'terminal',
-    label: '💻 Terminal',
+    label: 'Terminal',
     color: '#39ff14',
     values: {
       '--color-primary': '#39ff14',
@@ -58,7 +71,7 @@ const THEME_PRESETS: { name: string; label: string; color: string; values: Recor
   },
   {
     name: 'minimal',
-    label: '✨ Minimal',
+    label: 'Minimal',
     color: '#ffffff',
     values: {
       '--color-primary': '#ffffff',
@@ -75,7 +88,7 @@ const THEME_PRESETS: { name: string; label: string; color: string; values: Recor
   },
   {
     name: 'pastel',
-    label: '🎨 Pastel',
+    label: 'Pastel',
     color: '#ff8fab',
     values: {
       '--color-primary': '#ff8fab',
@@ -100,12 +113,19 @@ interface OverlayInfo {
   customized?: boolean;
 }
 
+function isThemeActive(theme: typeof THEME_PRESETS[0], global: Record<string, string>): boolean {
+  return theme.values['--color-primary'] === global['--color-primary']
+    && theme.values['--color-secondary'] === global['--color-secondary']
+    && theme.values['--color-accent'] === global['--color-accent'];
+}
+
 export default function OverlaysPanel() {
   const { t } = useTranslation();
   const { toast } = useToast();
   const { data: builtinOverlays, loading: loadingBuiltin, refetch: refetchBuiltin } = useApi<OverlayInfo[]>('/overlays/builtin');
   const { data: customOverlays, loading: loadingCustom, refetch: refetchCustom } = useApi<OverlayInfo[]>('/overlays');
 
+  const [subTab, setSubTab] = useState<'overlays' | 'design'>('overlays');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showUpload, setShowUpload] = useState(false);
   const [newName, setNewName] = useState('');
@@ -114,6 +134,7 @@ export default function OverlaysPanel() {
   const builtinFileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [editingBuiltin, setEditingBuiltin] = useState<string | null>(null);
+  const [showGuide, setShowGuide] = useState(false);
 
   const [overlayConfig, setOverlayConfig] = useState<{
     global: Record<string, string>;
@@ -125,21 +146,35 @@ export default function OverlaysPanel() {
     apiFetch('/overlay-config').then(r => r.json()).then(setOverlayConfig).catch(() => {});
   }, []);
 
+  // Auto-save with debounce
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const autoSave = useCallback((config: typeof overlayConfig) => {
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(async () => {
+      const result = await apiPost('/overlay-config', config);
+      if (result) toast.success(t('overlay_config.saved'));
+      else toast.error(t('error.action_failed'));
+    }, 600);
+  }, [toast, t]);
+
   const updateGlobal = (key: string, value: string) => {
-    setOverlayConfig(prev => ({ ...prev, global: { ...prev.global, [key]: value } }));
+    setOverlayConfig(prev => {
+      const next = { ...prev, global: { ...prev.global, [key]: value } };
+      autoSave(next);
+      return next;
+    });
   };
 
   const updateOverride = (overlay: string, key: string, value: string) => {
-    setOverlayConfig(prev => ({
-      ...prev,
-      overrides: { ...prev.overrides, [overlay]: { ...(prev.overrides[overlay] || {}), [key]: value } },
-    }));
-  };
-
-  const saveConfig = async () => {
-    const result = await apiPost('/overlay-config', overlayConfig);
-    if (!result) { toast.error(t('error.action_failed')); return; }
-    toast.success(t('overlay_config.saved'));
+    setOverlayConfig(prev => {
+      const next = {
+        ...prev,
+        overrides: { ...prev.overrides, [overlay]: { ...(prev.overrides[overlay] || {}), [key]: value } },
+      };
+      autoSave(next);
+      return next;
+    });
   };
 
   const resetConfig = async () => {
@@ -151,11 +186,12 @@ export default function OverlaysPanel() {
   };
 
   const applyTheme = async (theme: typeof THEME_PRESETS[0]) => {
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     const newConfig = { ...overlayConfig, global: { ...theme.values } };
     setOverlayConfig(newConfig);
     const result = await apiPost('/overlay-config', newConfig);
     if (!result) { toast.error(t('error.action_failed')); return; }
-    toast.success(`${theme.label} ${t('themes.apply')}`);
+    toast.success(`${theme.label} ${t('themes.applied')}`);
   };
 
   const exportTheme = () => {
@@ -240,7 +276,6 @@ export default function OverlaysPanel() {
     }
   };
 
-  // Builtin overlay: upload custom HTML to replace
   const customizeBuiltin = async (name: string, file: File) => {
     try {
       const html = await file.text();
@@ -256,7 +291,6 @@ export default function OverlaysPanel() {
     }
   };
 
-  // Builtin overlay: reset to default
   const resetBuiltin = async (name: string) => {
     try {
       await apiFetch(`/overlays/builtin/${name}/override`, { method: 'DELETE' });
@@ -267,25 +301,32 @@ export default function OverlaysPanel() {
     }
   };
 
-  return (
-    <div className="panel overlays-panel">
-      <h2>🎨 Overlays</h2>
-      <p className="panel-desc">{t('overlays_panel.desc')}</p>
+  const renderOverlayCard = (o: OverlayInfo, isBuiltin: boolean) => {
+    const icon = OVERLAY_ICONS[o.name] || '🔲';
+    const isPreview = previewUrl === o.url;
 
-      <div className="overlay-section">
-        <h3>{t('overlays_panel.builtin')}</h3>
-        <div className="overlay-list">
-          {builtinOverlays?.map((o) => (
-            <div key={o.name} className={`overlay-item ${o.customized ? 'overlay-customized' : ''}`}>
-              <div className="overlay-name-row">
-                <span className="overlay-name">{o.name}</span>
-                {o.customized && <span className="overlay-badge">{t('overlays_panel.customized')}</span>}
-              </div>
-              <div className="overlay-actions">
-                <CopyButton text={o.url} />
-                <button className="btn-copy-small" onClick={() => setPreviewUrl(o.url)} title={t('tooltip.preview')}>
-                  👁
-                </button>
+    return (
+      <div key={o.name} className="ov2-card-wrapper">
+        <div className={`ov2-card ${o.customized ? 'ov2-card--customized' : ''} ${isPreview ? 'ov2-card--active' : ''}`}>
+          <div className="ov2-card-left">
+            <span className="ov2-card-icon">{icon}</span>
+            <div className="ov2-card-info">
+              <span className="ov2-card-name">{o.name}</span>
+              <span className="ov2-card-url">{o.url}</span>
+            </div>
+          </div>
+          <div className="ov2-card-actions">
+            {o.customized && <span className="ov2-badge">{t('overlays_panel.customized')}</span>}
+            <CopyButton text={o.url} />
+            <button
+              className={`ov2-action-btn ${isPreview ? 'ov2-action-btn--active' : ''}`}
+              onClick={() => setPreviewUrl(isPreview ? null : o.url)}
+              title={t('tooltip.preview')}
+            >
+              {isPreview ? '✕' : '👁'}
+            </button>
+            {isBuiltin && (
+              <>
                 {editingBuiltin === o.name ? (
                   <>
                     <input
@@ -298,231 +339,299 @@ export default function OverlaysPanel() {
                         if (file) customizeBuiltin(o.name, file);
                       }}
                     />
-                    <button className="btn-copy-small" onClick={() => builtinFileRef.current?.click()}>
-                      📄 {t('overlays_panel.file')}
+                    <button className="ov2-action-btn" onClick={() => builtinFileRef.current?.click()} title={t('overlays_panel.file')}>
+                      📄
                     </button>
-                    <button className="btn-copy-small" onClick={() => setEditingBuiltin(null)}>
+                    <button className="ov2-action-btn" onClick={() => setEditingBuiltin(null)}>
                       ✕
                     </button>
                   </>
                 ) : (
-                  <button className="btn-copy-small" onClick={() => setEditingBuiltin(o.name)} title={t('tooltip.edit')}>
+                  <button className="ov2-action-btn" onClick={() => setEditingBuiltin(o.name)} title={t('tooltip.edit')}>
                     ✏️
                   </button>
                 )}
                 {o.customized && (
-                  <button className="btn-delete-small" onClick={() => resetBuiltin(o.name)} title={t('tooltip.reset')}>
+                  <button className="ov2-action-btn ov2-action-btn--danger" onClick={() => resetBuiltin(o.name)} title={t('tooltip.reset')}>
                     ↩️
                   </button>
                 )}
-              </div>
-            </div>
-          ))}
+              </>
+            )}
+            {!isBuiltin && (
+              <button className="ov2-action-btn ov2-action-btn--danger" onClick={() => deleteOverlay(o.name)} title={t('tooltip.delete')}>
+                🗑️
+              </button>
+            )}
+          </div>
         </div>
+        {isPreview && (
+          <div className="ov2-preview">
+            <iframe src={o.url} title={`Preview ${o.name}`} />
+            {TESTABLE_OVERLAYS.has(o.name) && (
+              <button
+                className="ov2-test-btn"
+                onClick={async () => {
+                  const result = await apiPost(`/actions/overlay-test/${o.name}`, {});
+                  if (result) toast.success(t('overlays_panel.test_sent'));
+                  else toast.error(t('error.action_failed'));
+                }}
+              >
+                {t('overlays_panel.test_event')}
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="panel overlays-panel">
+      <h2>🎨 Overlays</h2>
+      <p className="panel-desc">{t('overlays_panel.desc')}</p>
+
+      <div className="ov2-tabs">
+        <button className={`ov2-tab ${subTab === 'overlays' ? 'ov2-tab--active' : ''}`} onClick={() => setSubTab('overlays')}>
+          {t('overlays_panel.tab_overlays')}
+        </button>
+        <button className={`ov2-tab ${subTab === 'design' ? 'ov2-tab--active' : ''}`} onClick={() => setSubTab('design')}>
+          {t('overlays_panel.tab_design')}
+        </button>
       </div>
 
-      <div className="overlay-section">
-        <h3>{t('overlays_panel.custom')}</h3>
-        {customOverlays && customOverlays.length > 0 ? (
-          <div className="overlay-list">
-            {customOverlays.map((o) => (
-              <div key={o.name} className="overlay-item">
-                <span className="overlay-name">{o.name}</span>
-                <div className="overlay-actions">
-                  <CopyButton text={o.url} />
-                  <button className="btn-copy-small" onClick={() => setPreviewUrl(o.url)} title={t('tooltip.preview')}>
-                    👁
-                  </button>
-                  <button className="btn-delete-small" onClick={() => deleteOverlay(o.name)} title={t('tooltip.delete')}>
-                    🗑️
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="empty">{t('overlays_panel.no_custom')}</p>
-        )}
-
-        {!showUpload ? (
-          <button className="btn-add" onClick={() => setShowUpload(true)}>
-            {t('overlays_panel.new')}
-          </button>
-        ) : (
-          <div className="upload-form">
-            <input
-              type="text"
-              placeholder={t('overlays_panel.name_placeholder')}
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              className="overlay-name-input"
-            />
-            <div className="upload-mode-toggle">
-              <button className={`mode-btn ${uploadMode === 'template' ? 'active' : ''}`} onClick={() => setUploadMode('template')}>
-                {t('overlays_panel.from_template')}
-              </button>
-              <button className={`mode-btn ${uploadMode === 'file' ? 'active' : ''}`} onClick={() => setUploadMode('file')}>
-                {t('overlays_panel.upload_html')}
-              </button>
+      {subTab === 'overlays' && (
+        <>
+          {/* Built-in Overlays */}
+          <div className="ov2-section">
+            <h3>{t('overlays_panel.builtin')}</h3>
+            <div className="ov2-card-list">
+              {builtinOverlays?.map((o) => renderOverlayCard(o, true))}
             </div>
-            {uploadMode === 'template' ? (
-              <button className="btn-create" onClick={createFromTemplate} disabled={!newName.trim() || uploading}>
-                {uploading ? t('overlays_panel.creating') : t('overlays_panel.create')}
+          </div>
+
+          {/* Custom Overlays */}
+          <div className="ov2-section">
+            <h3>{t('overlays_panel.custom')}</h3>
+            {customOverlays && customOverlays.length > 0 ? (
+              <div className="ov2-card-list">
+                {customOverlays.map((o) => renderOverlayCard(o, false))}
+              </div>
+            ) : (
+              <p className="ov2-empty">{t('overlays_panel.no_custom')}</p>
+            )}
+
+            {!showUpload ? (
+              <button className="ov2-add-btn" onClick={() => setShowUpload(true)}>
+                + {t('overlays_panel.new')}
               </button>
             ) : (
-              <div className="file-upload">
-                <input ref={fileInputRef} type="file" accept=".html,.htm" onChange={uploadFile} disabled={!newName.trim() || uploading} />
+              <div className="ov2-create-form">
+                <input
+                  type="text"
+                  placeholder={t('overlays_panel.name_placeholder')}
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  className="ov2-input"
+                  autoFocus
+                />
+                <div className="ov2-mode-toggle">
+                  <button className={`ov2-mode-btn ${uploadMode === 'template' ? 'ov2-mode-btn--active' : ''}`} onClick={() => setUploadMode('template')}>
+                    {t('overlays_panel.from_template')}
+                  </button>
+                  <button className={`ov2-mode-btn ${uploadMode === 'file' ? 'ov2-mode-btn--active' : ''}`} onClick={() => setUploadMode('file')}>
+                    {t('overlays_panel.upload_html')}
+                  </button>
+                </div>
+                {uploadMode === 'template' ? (
+                  <button className="ov2-create-btn" onClick={createFromTemplate} disabled={!newName.trim() || uploading}>
+                    {uploading ? t('overlays_panel.creating') : t('overlays_panel.create')}
+                  </button>
+                ) : (
+                  <div className="file-upload">
+                    <input ref={fileInputRef} type="file" accept=".html,.htm" onChange={uploadFile} disabled={!newName.trim() || uploading} />
+                  </div>
+                )}
+                <button className="ov2-cancel-btn" onClick={() => { setShowUpload(false); setNewName(''); }}>
+                  {t('overlays_panel.cancel')}
+                </button>
               </div>
             )}
-            <button className="btn-cancel" onClick={() => { setShowUpload(false); setNewName(''); }}>{t('overlays_panel.cancel')}</button>
           </div>
-        )}
-      </div>
 
-      <div className="overlay-section">
-        <h3>{t('overlay_config.title')}</h3>
-        <p className="setup-info">{t('overlay_config.desc')}</p>
-
-        <div className="theme-presets">
-          <h4>{t('themes.title')}</h4>
-          <div className="theme-buttons">
-            {THEME_PRESETS.map(theme => (
-              <button
-                key={theme.name}
-                className="theme-btn"
-                onClick={() => applyTheme(theme)}
-                title={theme.label}
-              >
-                <span className="theme-dot" style={{ background: theme.color }} />
-                <span>{theme.label}</span>
-              </button>
-            ))}
+          {/* Guide (collapsible) */}
+          <div className="ov2-section">
+            <button className="ov2-guide-toggle" onClick={() => setShowGuide(!showGuide)}>
+              <span>{showGuide ? '▼' : '▶'}</span>
+              <span>{t('overlays_panel.guide_title')}</span>
+            </button>
+            {showGuide && (
+              <ol className="ov2-guide-steps">
+                <li>{t('overlays_panel.guide_step1')}</li>
+                <li>{t('overlays_panel.guide_step2')}</li>
+                <li>{t('overlays_panel.guide_step3')}</li>
+                <li>{t('overlays_panel.guide_step4')}</li>
+                <li>{t('overlays_panel.guide_step5')}</li>
+              </ol>
+            )}
           </div>
-          <div className="theme-io" style={{ marginTop: '8px', display: 'flex', gap: '8px' }}>
-            <button className="btn-reset-small" onClick={exportTheme}>{t('themes.export')}</button>
-            <label className="btn-reset-small" style={{ cursor: 'pointer' }}>
-              {t('themes.import')}
-              <input
-                ref={importThemeRef}
-                type="file"
-                accept=".json"
-                onChange={importTheme}
-                style={{ display: 'none' }}
-              />
-            </label>
-          </div>
-        </div>
-
-        <h4>{t('overlay_config.global')}</h4>
-        <div className="config-grid">
-          <div className="config-row">
-            <label>{t('overlay_config.color_primary')}</label>
-            <input type="color" value={overlayConfig.global['--color-primary'] || '#ff2d7b'} onChange={e => updateGlobal('--color-primary', e.target.value)} />
-          </div>
-          <div className="config-row">
-            <label>{t('overlay_config.color_secondary')}</label>
-            <input type="color" value={overlayConfig.global['--color-secondary'] || '#00d4ff'} onChange={e => updateGlobal('--color-secondary', e.target.value)} />
-          </div>
-          <div className="config-row">
-            <label>{t('overlay_config.color_accent')}</label>
-            <input type="color" value={overlayConfig.global['--color-accent'] || '#39ff14'} onChange={e => updateGlobal('--color-accent', e.target.value)} />
-          </div>
-          <div className="config-row">
-            <label>{t('overlay_config.color_text')}</label>
-            <input type="color" value={overlayConfig.global['--color-text'] || '#ffffff'} onChange={e => updateGlobal('--color-text', e.target.value)} />
-          </div>
-          <div className="config-row">
-            <label>{t('overlay_config.color_bg')}</label>
-            <input type="color" value={overlayConfig.global['--color-bg'] || '#0a0a0a'} onChange={e => updateGlobal('--color-bg', e.target.value)} />
-          </div>
-          <div className="config-row">
-            <label>{t('overlay_config.color_bg_secondary')}</label>
-            <input type="color" value={overlayConfig.global['--color-bg-secondary'] || '#0d0d0d'} onChange={e => updateGlobal('--color-bg-secondary', e.target.value)} />
-          </div>
-          <div className="config-row">
-            <label>{t('overlay_config.bg_opacity')}</label>
-            <input type="range" min="0" max="1" step="0.05" value={overlayConfig.global['--color-bg-opacity'] || '0.92'} onChange={e => updateGlobal('--color-bg-opacity', e.target.value)} />
-            <span>{overlayConfig.global['--color-bg-opacity'] || '0.92'}</span>
-          </div>
-          <div className="config-row">
-            <label>{t('overlay_config.font_display')}</label>
-            <select value={overlayConfig.global['--font-display'] || "'Bebas Neue', sans-serif"} onChange={e => updateGlobal('--font-display', e.target.value)}>
-              {FONT_OPTIONS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
-            </select>
-          </div>
-          <div className="config-row">
-            <label>{t('overlay_config.font_body')}</label>
-            <select value={overlayConfig.global['--font-body'] || "'Inter', sans-serif"} onChange={e => updateGlobal('--font-body', e.target.value)}>
-              {FONT_OPTIONS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
-            </select>
-          </div>
-          <div className="config-row">
-            <label>{t('overlay_config.font_size')}</label>
-            <input type="range" min="10" max="24" step="1" value={parseInt(overlayConfig.global['--font-size-base'] || '14')} onChange={e => updateGlobal('--font-size-base', e.target.value + 'px')} />
-            <span>{overlayConfig.global['--font-size-base'] || '14px'}</span>
-          </div>
-        </div>
-
-        <h4 style={{ marginTop: '16px' }}>{t('overlay_config.override')}</h4>
-        <select value={selectedOverride} onChange={e => setSelectedOverride(e.target.value)} style={{ marginBottom: '8px' }}>
-          <option value="">{t('overlay_config.select_overlay')}</option>
-          {OVERLAY_NAMES.map(name => (
-            <option key={name} value={name}>{name}{overlayConfig.overrides[name] ? ' (*)' : ''}</option>
-          ))}
-        </select>
-
-        {selectedOverride && (
-          <div className="config-grid">
-            <div className="config-row">
-              <label>{t('overlay_config.color_primary')}</label>
-              <input type="color" value={overlayConfig.overrides[selectedOverride]?.['--color-primary'] || overlayConfig.global['--color-primary'] || '#ff2d7b'} onChange={e => updateOverride(selectedOverride, '--color-primary', e.target.value)} />
-            </div>
-            <div className="config-row">
-              <label>{t('overlay_config.color_secondary')}</label>
-              <input type="color" value={overlayConfig.overrides[selectedOverride]?.['--color-secondary'] || overlayConfig.global['--color-secondary'] || '#00d4ff'} onChange={e => updateOverride(selectedOverride, '--color-secondary', e.target.value)} />
-            </div>
-            <div className="config-row">
-              <label>{t('overlay_config.color_accent')}</label>
-              <input type="color" value={overlayConfig.overrides[selectedOverride]?.['--color-accent'] || overlayConfig.global['--color-accent'] || '#39ff14'} onChange={e => updateOverride(selectedOverride, '--color-accent', e.target.value)} />
-            </div>
-            <button className="btn-reset-small" onClick={() => {
-              setOverlayConfig(prev => {
-                const next = { ...prev, overrides: { ...prev.overrides } };
-                delete next.overrides[selectedOverride];
-                return next;
-              });
-            }}>{t('overlay_config.clear_overrides')}</button>
-          </div>
-        )}
-
-        <div style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
-          <button className="btn-connect" onClick={saveConfig}>{t('settings.save')}</button>
-          <button className="btn-reset-small" onClick={resetConfig}>{t('overlay_config.reset_all')}</button>
-        </div>
-      </div>
-
-      {previewUrl && (
-        <div className="overlay-section">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3>{t('overlays_panel.preview')}</h3>
-            <button className="btn-delete-small" onClick={() => setPreviewUrl(null)}>✕ {t('overlays_panel.close')}</button>
-          </div>
-          <div className="overlay-preview-frame">
-            <iframe src={previewUrl} title="Overlay Preview" />
-          </div>
-        </div>
+        </>
       )}
 
-      <div className="overlay-section overlay-help">
-        <h3>{t('overlays_panel.guide_title')}</h3>
-        <ol>
-          <li>{t('overlays_panel.guide_step1')}</li>
-          <li>{t('overlays_panel.guide_step2')}</li>
-          <li>{t('overlays_panel.guide_step3')}</li>
-          <li>{t('overlays_panel.guide_step4')}</li>
-          <li>{t('overlays_panel.guide_step5')}</li>
-        </ol>
-      </div>
+      {subTab === 'design' && (
+        <>
+          {/* Theme Presets */}
+          <div className="ov2-section">
+            <h3>{t('themes.title')}</h3>
+            <div className="ov2-theme-grid">
+              {THEME_PRESETS.map(theme => {
+                const active = isThemeActive(theme, overlayConfig.global);
+                return (
+                  <button
+                    key={theme.name}
+                    className={`ov2-theme-card ${active ? 'ov2-theme-card--active' : ''}`}
+                    onClick={() => applyTheme(theme)}
+                    title={theme.label}
+                  >
+                    <div className="ov2-theme-palette">
+                      <span className="ov2-theme-swatch ov2-theme-swatch--lg" style={{ background: theme.values['--color-primary'] }} />
+                      <span className="ov2-theme-swatch" style={{ background: theme.values['--color-secondary'] }} />
+                      <span className="ov2-theme-swatch" style={{ background: theme.values['--color-accent'] }} />
+                      <span className="ov2-theme-swatch" style={{ background: theme.values['--color-bg'] }} />
+                    </div>
+                    <span className="ov2-theme-name">{theme.label}</span>
+                    {active && <span className="ov2-theme-active-dot" />}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="ov2-theme-io">
+              <button className="ov2-small-btn" onClick={exportTheme}>{t('themes.export')}</button>
+              <label className="ov2-small-btn" style={{ cursor: 'pointer' }}>
+                {t('themes.import')}
+                <input
+                  ref={importThemeRef}
+                  type="file"
+                  accept=".json"
+                  onChange={importTheme}
+                  style={{ display: 'none' }}
+                />
+              </label>
+            </div>
+          </div>
+
+          {/* Global Config */}
+          <div className="ov2-section">
+            <h3>{t('overlay_config.global')}</h3>
+            <p className="ov2-section-desc">{t('overlay_config.desc')}</p>
+
+            <div className="ov2-config-group">
+              <h4>{t('overlay_config.colors_label')}</h4>
+              <div className="ov2-color-grid">
+                <div className="ov2-color-item">
+                  <input type="color" value={overlayConfig.global['--color-primary'] || '#ff2d7b'} onChange={e => updateGlobal('--color-primary', e.target.value)} />
+                  <span>{t('overlay_config.color_primary')}</span>
+                </div>
+                <div className="ov2-color-item">
+                  <input type="color" value={overlayConfig.global['--color-secondary'] || '#00d4ff'} onChange={e => updateGlobal('--color-secondary', e.target.value)} />
+                  <span>{t('overlay_config.color_secondary')}</span>
+                </div>
+                <div className="ov2-color-item">
+                  <input type="color" value={overlayConfig.global['--color-accent'] || '#39ff14'} onChange={e => updateGlobal('--color-accent', e.target.value)} />
+                  <span>{t('overlay_config.color_accent')}</span>
+                </div>
+                <div className="ov2-color-item">
+                  <input type="color" value={overlayConfig.global['--color-text'] || '#ffffff'} onChange={e => updateGlobal('--color-text', e.target.value)} />
+                  <span>{t('overlay_config.color_text')}</span>
+                </div>
+                <div className="ov2-color-item">
+                  <input type="color" value={overlayConfig.global['--color-bg'] || '#0a0a0a'} onChange={e => updateGlobal('--color-bg', e.target.value)} />
+                  <span>{t('overlay_config.color_bg')}</span>
+                </div>
+                <div className="ov2-color-item">
+                  <input type="color" value={overlayConfig.global['--color-bg-secondary'] || '#0d0d0d'} onChange={e => updateGlobal('--color-bg-secondary', e.target.value)} />
+                  <span>{t('overlay_config.color_bg_secondary')}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="ov2-config-group">
+              <h4>{t('overlay_config.typography_label')}</h4>
+              <div className="config-grid">
+                <div className="config-row">
+                  <label>{t('overlay_config.font_display')}</label>
+                  <select value={overlayConfig.global['--font-display'] || "'Bebas Neue', sans-serif"} onChange={e => updateGlobal('--font-display', e.target.value)}>
+                    {FONT_OPTIONS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
+                  </select>
+                </div>
+                <div className="config-row">
+                  <label>{t('overlay_config.font_body')}</label>
+                  <select value={overlayConfig.global['--font-body'] || "'Inter', sans-serif"} onChange={e => updateGlobal('--font-body', e.target.value)}>
+                    {FONT_OPTIONS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
+                  </select>
+                </div>
+                <div className="config-row">
+                  <label>{t('overlay_config.font_size')}</label>
+                  <input type="range" min="10" max="24" step="1" value={parseInt(overlayConfig.global['--font-size-base'] || '14')} onChange={e => updateGlobal('--font-size-base', e.target.value + 'px')} />
+                  <span>{overlayConfig.global['--font-size-base'] || '14px'}</span>
+                </div>
+                <div className="config-row">
+                  <label>{t('overlay_config.bg_opacity')}</label>
+                  <input type="range" min="0" max="1" step="0.05" value={overlayConfig.global['--color-bg-opacity'] || '0.92'} onChange={e => updateGlobal('--color-bg-opacity', e.target.value)} />
+                  <span>{overlayConfig.global['--color-bg-opacity'] || '0.92'}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Per-overlay Overrides */}
+          <div className="ov2-section">
+            <h3>{t('overlay_config.override')}</h3>
+            <select className="ov2-input" value={selectedOverride} onChange={e => setSelectedOverride(e.target.value)} style={{ marginBottom: '8px' }}>
+              <option value="">{t('overlay_config.select_overlay')}</option>
+              {OVERLAY_NAMES.map(name => (
+                <option key={name} value={name}>
+                  {OVERLAY_ICONS[name] || ''} {name}{overlayConfig.overrides[name] ? ' (*)' : ''}
+                </option>
+              ))}
+            </select>
+
+            {selectedOverride && (
+              <div className="ov2-override-config">
+                <div className="ov2-color-grid">
+                  <div className="ov2-color-item">
+                    <input type="color" value={overlayConfig.overrides[selectedOverride]?.['--color-primary'] || overlayConfig.global['--color-primary'] || '#ff2d7b'} onChange={e => updateOverride(selectedOverride, '--color-primary', e.target.value)} />
+                    <span>{t('overlay_config.color_primary')}</span>
+                  </div>
+                  <div className="ov2-color-item">
+                    <input type="color" value={overlayConfig.overrides[selectedOverride]?.['--color-secondary'] || overlayConfig.global['--color-secondary'] || '#00d4ff'} onChange={e => updateOverride(selectedOverride, '--color-secondary', e.target.value)} />
+                    <span>{t('overlay_config.color_secondary')}</span>
+                  </div>
+                  <div className="ov2-color-item">
+                    <input type="color" value={overlayConfig.overrides[selectedOverride]?.['--color-accent'] || overlayConfig.global['--color-accent'] || '#39ff14'} onChange={e => updateOverride(selectedOverride, '--color-accent', e.target.value)} />
+                    <span>{t('overlay_config.color_accent')}</span>
+                  </div>
+                </div>
+                <button className="ov2-small-btn" onClick={() => {
+                  setOverlayConfig(prev => {
+                    const next = { ...prev, overrides: { ...prev.overrides } };
+                    delete next.overrides[selectedOverride];
+                    autoSave(next);
+                    return next;
+                  });
+                }}>{t('overlay_config.clear_overrides')}</button>
+              </div>
+            )}
+          </div>
+
+          {/* Reset */}
+          <div className="ov2-section">
+            <button className="ov2-small-btn ov2-small-btn--danger" onClick={resetConfig}>
+              {t('overlay_config.reset_all')}
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }

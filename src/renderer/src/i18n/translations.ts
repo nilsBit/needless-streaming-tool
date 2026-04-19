@@ -303,6 +303,8 @@ const translations = {
   'overlays_panel.reset': { de: 'Auf Standard zurücksetzen', en: 'Reset to default' },
   'overlays_panel.name_placeholder': { de: 'Overlay Name (z.B. mein-alerts)...', en: 'Overlay name (e.g. my-alerts)...' },
   'overlays_panel.creating': { de: 'Erstellen...', en: 'Creating...' },
+  'overlays_panel.test_event': { de: 'Test-Event senden', en: 'Send test event' },
+  'overlays_panel.test_sent': { de: 'Test-Event gesendet', en: 'Test event sent' },
   'overlays_panel.guide_step1': { de: 'URL kopieren (📋)', en: 'Copy URL (📋)' },
   'overlays_panel.guide_step2': { de: 'In OBS: Quellen → + → Browser', en: 'In OBS: Sources → + → Browser' },
   'overlays_panel.guide_step3': { de: 'URL einfügen, Breite/Höhe anpassen', en: 'Paste URL, adjust width/height' },
@@ -386,9 +388,16 @@ const translations = {
   'github.imported': { de: 'importiert', en: 'imported' },
   'github.skipped': { de: 'übersprungen', en: 'skipped' },
 
+  // ---- Overlay Tabs ----
+  'overlays_panel.tab_overlays': { de: 'Overlays', en: 'Overlays' },
+  'overlays_panel.tab_design': { de: 'Design', en: 'Design' },
+  'overlay_config.colors_label': { de: 'Farben', en: 'Colors' },
+  'overlay_config.typography_label': { de: 'Typografie', en: 'Typography' },
+
   // ---- Overlay Themes ----
   'themes.title': { de: 'Themes', en: 'Themes' },
   'themes.apply': { de: 'Anwenden', en: 'Apply' },
+  'themes.applied': { de: 'angewendet', en: 'applied' },
   'themes.export': { de: 'Theme exportieren', en: 'Export theme' },
   'themes.import': { de: 'Theme importieren', en: 'Import theme' },
   'themes.imported': { de: 'Theme importiert', en: 'Theme imported' },
