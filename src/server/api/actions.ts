@@ -92,4 +92,64 @@ export function triggerRoulette(): { winner: { id: number; title: string } } | {
   return { winner };
 }
 
+// Test events for overlay preview
+const STATIC_TEST_EVENTS: Record<string, { event: string; data: unknown }[]> = {
+  alerts: [
+    { event: 'raid-incoming', data: { enemy_tier: 'elite', streamer_name: 'TestRaider', viewer_count: 42 } },
+  ],
+  song: [
+    { event: 'song-update', data: { title: 'Neon Lights — Synthwave Mix', requester: 'TestUser' } },
+  ],
+  poll: [
+    { event: 'poll-update', data: { title: 'Welches Feature als nächstes?', options: [{ label: 'Dark Mode', votes: 12 }, { label: 'Chat Overlay', votes: 8 }, { label: 'Sound Alerts', votes: 15 }] } },
+  ],
+  milestone: [
+    { event: 'milestone-trigger', data: { level: 'major', title: 'Test Milestone!', message: 'Das ist ein Test-Event.' } },
+  ],
+  experiment: [
+    { event: 'stream-state', data: { challenge_title: 'Test Challenge: UI Redesign', challenge_status: 'in_progress', timer_seconds: 3723, timer_running: true, is_live: true } },
+  ],
+};
+
+function getTestEvents(name: string): { event: string; data: unknown }[] {
+  if (STATIC_TEST_EVENTS[name]) return STATIC_TEST_EVENTS[name];
+
+  if (name === 'roulette') {
+    const issues = getDb().prepare('SELECT * FROM issues WHERE status = ?').all('open') as Array<{ id: number; title: string }>;
+    if (issues.length === 0) {
+      const fakeIssues = [
+        { id: 1, title: 'Demo Issue A' },
+        { id: 2, title: 'Demo Issue B' },
+        { id: 3, title: 'Demo Issue C' },
+      ];
+      return [{ event: 'roulette-spin', data: { issues: fakeIssues, winner_id: 2 } }];
+    }
+    const winner = issues[Math.floor(Math.random() * issues.length)];
+    return [{ event: 'roulette-spin', data: { issues, winner_id: winner.id } }];
+  }
+
+  if (name === 'todos') {
+    return [{ event: 'todo-created', data: {} }];
+  }
+
+  if (name === 'progress') {
+    return [{ event: 'progress-updated', data: {} }];
+  }
+
+  return [];
+}
+
+router.post('/overlay-test/:name', (req, res) => {
+  const name = req.params.name;
+  const events = getTestEvents(name);
+  if (events.length === 0) {
+    res.json({ triggered: false, reason: 'no test events for this overlay' });
+    return;
+  }
+  for (const { event, data } of events) {
+    broadcast(event, data);
+  }
+  res.json({ triggered: true, events: events.length });
+});
+
 export default router;
