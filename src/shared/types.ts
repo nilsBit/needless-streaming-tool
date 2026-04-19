@@ -105,16 +105,33 @@ export interface Raid {
 }
 
 export interface Stats {
-  total_clips: number;
-  today_clips: number;
-  total_issues: number;
-  open_issues: number;
-  total_todos: number;
-  done_todos: number;
-  total_milestones: number;
-  completed_milestones: number;
-  total_raids: number;
-  total_rewards: number;
+  today: {
+    clips: number;
+    delta_clips: number;
+    todos_done: number;
+    delta_todos: number;
+    new_issues: number;
+    delta_issues: number;
+    milestones: number;
+    delta_milestones: number;
+  };
+  progress: {
+    todos:      { done: number; total: number };
+    milestones: { completed: number; total: number };
+    issues:     { open: number; total: number };
+  };
+  totals: {
+    clips: number;
+    raids: number;
+    rewards: number;
+    active_days_30d: number;
+  };
+  trends: {
+    clips:   number[]; // 14 entries, oldest first
+    raids:   number[];
+    rewards: number[];
+    active:  number[]; // 1 if day had ≥1 clip, else 0
+  };
 }
 
 export interface HotkeyConfig {
