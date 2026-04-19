@@ -304,6 +304,14 @@
     })
     .catch(function() {})
     .finally(function() { document.documentElement.style.visibility = 'visible'; });
+  window.__applyOverlayConfig = function(config) {
+    var vars = Object.assign({}, config.global || {}, (config.overrides || {})[name] || {});
+    var root = document.documentElement;
+    Object.keys(vars).forEach(function(k) { root.style.setProperty(k, vars[k]); });
+    ['--color-primary', '--color-secondary', '--color-accent', '--color-bg'].forEach(function(k) {
+      if (vars[k]) root.style.setProperty(k + '-rgb', hexToRgb(vars[k]));
+    });
+  };
 })();
 </script>
 <script>
@@ -427,6 +435,7 @@ function connectWS() {
     try {
       const msg = JSON.parse(e.data);
       if (msg.event === 'milestone-trigger') show(msg.data);
+      if (msg.event === 'overlay-config' && window.__applyOverlayConfig) window.__applyOverlayConfig(msg.data);
     } catch {}
   };
 

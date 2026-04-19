@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { getDb } from '../db/index';
+import { broadcast } from '../websocket/index';
 
 const router = Router();
 
@@ -48,11 +49,13 @@ router.post('/', (req, res) => {
     }
   }
   getDb().prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('overlay_config', JSON.stringify(config));
+  broadcast('overlay-config', config);
   res.json({ success: true });
 });
 
 router.delete('/', (_req, res) => {
   getDb().prepare('DELETE FROM settings WHERE key = ?').run('overlay_config');
+  broadcast('overlay-config', { global: {}, overrides: {} });
   res.json({ success: true });
 });
 

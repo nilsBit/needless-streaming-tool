@@ -296,6 +296,14 @@
     })
     .catch(function() {})
     .finally(function() { document.documentElement.style.visibility = 'visible'; });
+  window.__applyOverlayConfig = function(config) {
+    var vars = Object.assign({}, config.global || {}, (config.overrides || {})[name] || {});
+    var root = document.documentElement;
+    Object.keys(vars).forEach(function(k) { root.style.setProperty(k, vars[k]); });
+    ['--color-primary', '--color-secondary', '--color-accent', '--color-bg'].forEach(function(k) {
+      if (vars[k]) root.style.setProperty(k + '-rgb', hexToRgb(vars[k]));
+    });
+  };
 })();
 </script>
 <script>
@@ -370,6 +378,8 @@ const ws = new WebSocket('ws://localhost:4000?overlay=1');
 ws.onmessage = (e) => {
   try {
     const msg = JSON.parse(e.data);
+
+    if (msg.event === 'overlay-config' && window.__applyOverlayConfig) window.__applyOverlayConfig(msg.data);
 
     // Issues changed — rebuild wheel
     if (msg.event === 'issue-created' || msg.event === 'issue-updated' || msg.event === 'issue-deleted') {
