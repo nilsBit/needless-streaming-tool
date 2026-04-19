@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
+import { getAutoDetectSetting, setAutoDetectSetting, isSMTCSupported, isSMTCRunning } from '../integrations/smtc';
 
 const router = Router();
 
@@ -55,19 +56,39 @@ router.post('/roulette', (_req, res) => {
 // Song / Now Playing
 router.get('/song', (_req, res) => {
   const row = getDb().prepare('SELECT value FROM settings WHERE key = ?').get('current_song') as { value: string } | undefined;
-  res.json({ song: row?.value || null });
+  let song: { title: string; artist: string; source: string } | null = null;
+  if (row?.value) {
+    try {
+      song = JSON.parse(row.value);
+    } catch {
+      song = { title: row.value, artist: '', source: 'manual' };
+    }
+  }
+  res.json({
+    song,
+    auto_detect: getAutoDetectSetting(),
+    auto_detect_supported: isSMTCSupported(),
+    auto_detect_running: isSMTCRunning(),
+  });
 });
 
 router.post('/song', (req, res) => {
-  const { song } = req.body;
-  if (song) {
-    getDb().prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('current_song', song);
-    broadcast('song-update', { song });
+  const { title, artist, source } = req.body as { title?: string; artist?: string; source?: string };
+  if (title) {
+    const data = { title, artist: artist || '', source: source || 'manual' };
+    getDb().prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('current_song', JSON.stringify(data));
+    broadcast('song-update', data);
   } else {
     getDb().prepare('DELETE FROM settings WHERE key = ?').run('current_song');
     broadcast('song-clear', {});
   }
   res.json({ success: true });
+});
+
+router.post('/song/auto-detect', (req, res) => {
+  const { enabled } = req.body as { enabled?: boolean };
+  setAutoDetectSetting(Boolean(enabled));
+  res.json({ success: true, enabled: getAutoDetectSetting(), running: isSMTCRunning() });
 });
 
 // Direct trigger function (used by EventSub, bypasses HTTP + auth)
@@ -98,7 +119,7 @@ const STATIC_TEST_EVENTS: Record<string, { event: string; data: unknown }[]> = {
     { event: 'raid-incoming', data: { enemy_tier: 'elite', streamer_name: 'TestRaider', viewer_count: 42 } },
   ],
   song: [
-    { event: 'song-update', data: { title: 'Neon Lights — Synthwave Mix', requester: 'TestUser' } },
+    { event: 'song-update', data: { title: 'Neon Lights', artist: 'Synthwave Artist', source: 'test' } },
   ],
   poll: [
     { event: 'poll-update', data: { title: 'Welches Feature als nächstes?', options: [{ label: 'Dark Mode', votes: 12 }, { label: 'Chat Overlay', votes: 8 }, { label: 'Sound Alerts', votes: 15 }] } },

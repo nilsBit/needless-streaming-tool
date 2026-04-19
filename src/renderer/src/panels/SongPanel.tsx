@@ -4,11 +4,36 @@ import { useWebSocket } from '../hooks/useWebSocket';
 import { useTranslation } from '../i18n/LanguageContext';
 import { useToast } from '../i18n/ToastContext';
 
+interface SongData { title: string; artist: string; source: string }
+interface SongResponse {
+  song: SongData | null;
+  auto_detect: boolean;
+  auto_detect_supported: boolean;
+  auto_detect_running: boolean;
+}
+
+function prettySource(source: string): string {
+  if (!source) return '';
+  if (source === 'manual') return 'Manual';
+  if (source === 'test') return 'Test';
+  const lower = source.toLowerCase();
+  if (lower.includes('spotify')) return 'Spotify';
+  if (lower.includes('chrome')) return 'Chrome';
+  if (lower.includes('firefox')) return 'Firefox';
+  if (lower.includes('edge')) return 'Edge';
+  if (lower.includes('vlc')) return 'VLC';
+  if (lower.includes('potplayer')) return 'PotPlayer';
+  if (lower.includes('itunes') || lower.includes('apple')) return 'Apple Music';
+  return source.split('.')[0].split('!')[0];
+}
+
 export default function SongPanel() {
   const { t } = useTranslation();
   const { toast } = useToast();
-  const { data, loading, refetch } = useApi<{ song: string | null }>('/actions/song');
-  const [newSong, setNewSong] = useState('');
+  const { data, loading, refetch } = useApi<SongResponse>('/actions/song');
+  const [showManual, setShowManual] = useState(false);
+  const [manualTitle, setManualTitle] = useState('');
+  const [manualArtist, setManualArtist] = useState('');
 
   useWebSocket((event) => {
     if (event === 'song-update' || event === 'song-clear') refetch();
@@ -18,45 +43,96 @@ export default function SongPanel() {
     return <div className="panel"><p className="empty">{t('common.loading')}</p></div>;
   }
 
-  const setSong = async () => {
-    if (!newSong.trim()) return;
-    const result = await apiPost('/actions/song', { song: newSong.trim() });
+  const toggleAutoDetect = async () => {
+    const result = await apiPost<{ success: boolean; enabled: boolean }>('/actions/song/auto-detect', {
+      enabled: !data?.auto_detect,
+    });
     if (!result) { toast.error(t('error.action_failed')); return; }
-    setNewSong('');
+    refetch();
+  };
+
+  const setManualSong = async () => {
+    if (!manualTitle.trim()) return;
+    const result = await apiPost('/actions/song', {
+      title: manualTitle.trim(),
+      artist: manualArtist.trim(),
+      source: 'manual',
+    });
+    if (!result) { toast.error(t('error.action_failed')); return; }
+    setManualTitle('');
+    setManualArtist('');
+    setShowManual(false);
     refetch();
   };
 
   const clearSong = async () => {
-    const result = await apiPost('/actions/song', { song: null });
+    const result = await apiPost('/actions/song', { title: null });
     if (!result) { toast.error(t('error.action_failed')); return; }
     refetch();
   };
 
+  const autoSupported = data?.auto_detect_supported ?? false;
+  const autoOn = data?.auto_detect ?? false;
+  const song = data?.song ?? null;
+
   return (
     <div className="panel song-panel">
       <h2>🎵 Now Playing</h2>
-      <p className="panel-desc">{t('song.desc')}</p>
+      <p className="panel-desc">{t('song.desc_auto')}</p>
 
-      {!data?.song && (
-        <p className="empty">{t('song.no_song')}</p>
-      )}
-
-      {data?.song && (
-        <div className="song-current">
-          <span className="song-title">{data.song}</span>
-          <button className="btn-reset" onClick={clearSong}>{t('song.clear')}</button>
+      {autoSupported && (
+        <div className="song-auto-toggle">
+          <label className="song-toggle-label">
+            <input type="checkbox" checked={autoOn} onChange={toggleAutoDetect} />
+            <span>{t('song.auto_detect')}</span>
+          </label>
+          {autoOn && data?.auto_detect_running && (
+            <span className="song-status-dot song-status-dot--live" title="Live" />
+          )}
         </div>
       )}
 
-      <div className="song-input">
-        <input
-          type="text"
-          placeholder={t('song.placeholder')}
-          value={newSong}
-          onChange={(e) => setNewSong(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && setSong()}
-        />
-        <button onClick={setSong}>{t('song.set')}</button>
+      {!autoSupported && (
+        <p className="song-platform-note">{t('song.auto_unsupported')}</p>
+      )}
+
+      {song ? (
+        <div className="song-current">
+          <div className="song-current-info">
+            <span className="song-title">{song.title}</span>
+            {song.artist && <span className="song-artist">{song.artist}</span>}
+            {song.source && <span className="song-source">{prettySource(song.source)}</span>}
+          </div>
+          <button className="btn-reset" onClick={clearSong}>{t('song.clear')}</button>
+        </div>
+      ) : (
+        <p className="empty">{autoOn ? t('song.waiting') : t('song.no_song')}</p>
+      )}
+
+      <div className="song-manual">
+        <button className="song-manual-toggle" onClick={() => setShowManual(!showManual)}>
+          <span>{showManual ? '▼' : '▶'}</span>
+          <span>{t('song.manual_override')}</span>
+        </button>
+        {showManual && (
+          <div className="song-manual-form">
+            <input
+              type="text"
+              placeholder={t('song.title_placeholder')}
+              value={manualTitle}
+              onChange={(e) => setManualTitle(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && setManualSong()}
+            />
+            <input
+              type="text"
+              placeholder={t('song.artist_placeholder')}
+              value={manualArtist}
+              onChange={(e) => setManualArtist(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && setManualSong()}
+            />
+            <button onClick={setManualSong} disabled={!manualTitle.trim()}>{t('song.set')}</button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -227,6 +227,13 @@ const translations = {
 
   // ---- Song Panel ----
   'song.desc': { de: 'Aktuellen Song für den Stream setzen.', en: 'Set the current song for the stream.' },
+  'song.desc_auto': { de: 'Erkennt automatisch was du gerade hörst — Spotify, YouTube, Apple Music und mehr.', en: 'Automatically detects what you\'re listening to — Spotify, YouTube, Apple Music and more.' },
+  'song.auto_detect': { de: 'Song automatisch erkennen', en: 'Auto-detect song' },
+  'song.auto_unsupported': { de: 'Automatische Erkennung nur unter Windows verfügbar. Nutze das manuelle Feld unten.', en: 'Auto-detection only available on Windows. Use the manual field below.' },
+  'song.waiting': { de: 'Warte auf Musik…', en: 'Waiting for music…' },
+  'song.manual_override': { de: 'Manuell überschreiben', en: 'Manual override' },
+  'song.title_placeholder': { de: 'Song-Titel', en: 'Song title' },
+  'song.artist_placeholder': { de: 'Artist (optional)', en: 'Artist (optional)' },
   'song.placeholder': { de: 'Song eingeben...', en: 'Enter song...' },
   'song.set': { de: 'Übernehmen', en: 'Set' },
   'song.clear': { de: 'Löschen', en: 'Clear' },

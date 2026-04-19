@@ -210,7 +210,7 @@
       if (event === 'song-update') {
         song.classList.add('visible');
         songTitle.textContent = data.title || 'Unknown';
-        songRequester.textContent = data.requester ? `Requested by ${data.requester}` : '';
+        songRequester.textContent = data.artist || '';
       }
 
       if (event === 'song-clear') {

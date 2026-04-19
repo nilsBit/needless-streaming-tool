@@ -42,7 +42,12 @@ export function registerCommands(client: Client) {
       case '!song': {
         const row = getDb().prepare('SELECT value FROM settings WHERE key = ?').get('current_song') as { value: string } | undefined;
         if (row?.value) {
-          client.say(channel, `🎵 ${row.value}`);
+          try {
+            const d = JSON.parse(row.value) as { title: string; artist?: string };
+            client.say(channel, `🎵 ${d.artist ? d.artist + ' — ' : ''}${d.title}`);
+          } catch {
+            client.say(channel, `🎵 ${row.value}`);
+          }
         } else {
           client.say(channel, '🎵 Kein Song aktiv.');
         }

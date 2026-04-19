@@ -26,6 +26,7 @@ import overlayConfigRouter, { getOverlayConfig } from './api/overlay-config';
 import { connectBot } from './bot/index';
 import { connectObs } from './obs/index';
 import { initAutoClips } from './auto-clips';
+import { startSMTC, getAutoDetectSetting } from './integrations/smtc';
 import { getDb } from './db/index';
 import { rateLimit } from './middleware/rate-limit';
 import { getUserDataPath } from './paths';
@@ -172,6 +173,8 @@ export async function startServer(): Promise<string> {
 
       // Init auto-clips after bot connects (needs a small delay for bot to be ready)
       setTimeout(() => initAutoClips(), 3000);
+
+      if (getAutoDetectSetting()) startSMTC();
 
       resolve(token);
     });

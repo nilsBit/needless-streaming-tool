@@ -17,6 +17,7 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@coooookies/windows-smtc-monitor": "^1.0.12",
     "@types/tmi.js": "^1.8.6",
     "better-sqlite3": "^11.0.0",
     "express": "^4.21.0",
@@ -66,7 +67,8 @@
     },
     "asar": true,
     "asarUnpack": [
-      "node_modules/better-sqlite3/**"
+      "node_modules/better-sqlite3/**",
+      "node_modules/@coooookies/**"
     ]
   },
   "devDependencies": {
