@@ -1027,6 +1027,116 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .ov2-cancel-btn:hover { border-color: #e74c3c; color: #e74c3c; }
 
+/* ---- HTML Editor Modal ---- */
+.ov2-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 24px;
+}
+
+.ov2-modal {
+  background: #111;
+  border: 1px solid #2a2a2a;
+  border-radius: 10px;
+  width: 100%;
+  max-width: 900px;
+  height: 100%;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+
+.ov2-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ov2-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.ov2-modal-sub {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #888;
+  background: #1a1a1a;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.ov2-modal-hint {
+  color: #aaa;
+  font-size: 13px;
+  margin: 0;
+  padding: 10px 12px;
+  background: #0d0d0d;
+  border: 1px solid #222;
+  border-radius: 6px;
+}
+
+.ov2-modal-toolbar {
+  display: flex;
+  gap: 8px;
+}
+
+.ov2-modal-textarea {
+  flex: 1;
+  min-height: 300px;
+  padding: 12px;
+  background: #0a0a0a;
+  border: 1px solid #222;
+  border-radius: 6px;
+  color: #e0e0e0;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  resize: none;
+  tab-size: 2;
+}
+
+.ov2-modal-textarea:focus {
+  outline: none;
+  border-color: #555;
+}
+
+.ov2-modal-textarea:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.ov2-modal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.ov2-modal-actions .ov2-create-btn,
+.ov2-modal-actions .ov2-cancel-btn {
+  padding: 8px 18px;
+  font-size: 13px;
+}
+
+[data-theme="light"] .ov2-modal { background: #fff; border-color: #e0e0e0; }
+[data-theme="light"] .ov2-modal-title { color: #111; }
+[data-theme="light"] .ov2-modal-sub { background: #f0f0f0; color: #666; }
+[data-theme="light"] .ov2-modal-hint { background: #fafafa; border-color: #e0e0e0; color: #555; }
+[data-theme="light"] .ov2-modal-textarea { background: #fafafa; border-color: #ddd; color: #222; }
+
 .ov2-guide-toggle {
   display: flex;
   align-items: center;

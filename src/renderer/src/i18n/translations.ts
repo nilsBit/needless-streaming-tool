@@ -312,10 +312,17 @@ const translations = {
   'overlays_panel.creating': { de: 'Erstellen...', en: 'Creating...' },
   'overlays_panel.test_event': { de: 'Test-Event senden', en: 'Send test event' },
   'overlays_panel.test_sent': { de: 'Test-Event gesendet', en: 'Test event sent' },
+  'overlays_panel.copy_html': { de: 'HTML kopieren', en: 'Copy HTML' },
+  'overlays_panel.edit_html': { de: 'HTML bearbeiten', en: 'Edit HTML' },
+  'overlays_panel.html_copied': { de: 'HTML kopiert', en: 'HTML copied' },
+  'overlays_panel.html_saved': { de: 'Gespeichert', en: 'Saved' },
+  'overlays_panel.html_hint': { de: 'HTML kopieren → in ChatGPT bearbeiten → hier wieder einfügen → Speichern.', en: 'Copy HTML → edit in ChatGPT → paste back here → Save.' },
+  'overlays_panel.save_html': { de: 'HTML speichern', en: 'Save HTML' },
+  'overlays_panel.saving': { de: 'Speichert…', en: 'Saving…' },
   'overlays_panel.guide_step1': { de: 'URL kopieren (📋)', en: 'Copy URL (📋)' },
   'overlays_panel.guide_step2': { de: 'In OBS: Quellen → + → Browser', en: 'In OBS: Sources → + → Browser' },
   'overlays_panel.guide_step3': { de: 'URL einfügen, Breite/Höhe anpassen', en: 'Paste URL, adjust width/height' },
-  'overlays_panel.guide_step4': { de: 'Zum Anpassen: ✏️ klicken und eigene HTML-Datei hochladen', en: 'To customize: click ✏️ and upload your own HTML file' },
+  'overlays_panel.guide_step4': { de: 'Zum Anpassen: ✏️ klicken, HTML bearbeiten oder in ChatGPT reinladen', en: 'To customize: click ✏️, edit HTML or paste into ChatGPT' },
   'overlays_panel.guide_step5': { de: 'Zum Zurücksetzen: ↩️ klicken', en: 'To reset: click ↩️' },
 
   // ---- Error Boundary ----

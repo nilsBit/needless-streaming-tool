@@ -131,10 +131,9 @@ export default function OverlaysPanel() {
   const [newName, setNewName] = useState('');
   const [uploadMode, setUploadMode] = useState<'file' | 'template'>('template');
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const builtinFileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
-  const [editingBuiltin, setEditingBuiltin] = useState<string | null>(null);
   const [showGuide, setShowGuide] = useState(false);
+  const [htmlEditor, setHtmlEditor] = useState<{ name: string; isBuiltin: boolean; html: string; loading: boolean; saving: boolean } | null>(null);
 
   const [overlayConfig, setOverlayConfig] = useState<{
     global: Record<string, string>;
@@ -276,17 +275,47 @@ export default function OverlaysPanel() {
     }
   };
 
-  const customizeBuiltin = async (name: string, file: File) => {
+  const openHtmlEditor = async (name: string, isBuiltin: boolean) => {
+    setHtmlEditor({ name, isBuiltin, html: '', loading: true, saving: false });
     try {
-      const html = await file.text();
-      await apiFetch(`/overlays/builtin/${name}`, {
-        method: 'PUT',
-        body: JSON.stringify({ html }),
-      });
-      refetchBuiltin();
-      setEditingBuiltin(null);
+      const endpoint = isBuiltin ? `/overlays/builtin/${name}/source` : `/overlays/${name}/source`;
+      const res = await apiFetch(endpoint);
+      const { html } = await res.json();
+      setHtmlEditor({ name, isBuiltin, html, loading: false, saving: false });
     } catch (err) {
-      console.error('[Overlays] Customize failed:', err);
+      console.error('[Overlays] Load HTML failed:', err);
+      toast.error(t('error.action_failed'));
+      setHtmlEditor(null);
+    }
+  };
+
+  const saveHtmlEditor = async () => {
+    if (!htmlEditor) return;
+    setHtmlEditor({ ...htmlEditor, saving: true });
+    try {
+      const endpoint = htmlEditor.isBuiltin ? `/overlays/builtin/${htmlEditor.name}` : `/overlays/${htmlEditor.name}`;
+      const res = await apiFetch(endpoint, { method: 'PUT', body: JSON.stringify({ html: htmlEditor.html }) });
+      if (!res.ok) throw new Error('save failed');
+      toast.success(t('overlays_panel.html_saved'));
+      setHtmlEditor(null);
+      if (htmlEditor.isBuiltin) refetchBuiltin();
+      else refetchCustom();
+    } catch (err) {
+      console.error('[Overlays] Save HTML failed:', err);
+      toast.error(t('error.action_failed'));
+      setHtmlEditor({ ...htmlEditor, saving: false });
+    }
+  };
+
+  const copyHtmlQuick = async (name: string, isBuiltin: boolean) => {
+    try {
+      const endpoint = isBuiltin ? `/overlays/builtin/${name}/source` : `/overlays/${name}/source`;
+      const res = await apiFetch(endpoint);
+      const { html } = await res.json();
+      await navigator.clipboard.writeText(html);
+      toast.success(t('overlays_panel.html_copied'));
+    } catch (err) {
+      console.error('[Overlays] Copy HTML failed:', err);
       toast.error(t('error.action_failed'));
     }
   };
@@ -319,44 +348,30 @@ export default function OverlaysPanel() {
             {o.customized && <span className="ov2-badge">{t('overlays_panel.customized')}</span>}
             <CopyButton text={o.url} />
             <button
+              className="ov2-action-btn"
+              onClick={() => copyHtmlQuick(o.name, isBuiltin)}
+              title={t('overlays_panel.copy_html')}
+            >
+              {'</>'}
+            </button>
+            <button
               className={`ov2-action-btn ${isPreview ? 'ov2-action-btn--active' : ''}`}
               onClick={() => setPreviewUrl(isPreview ? null : o.url)}
               title={t('tooltip.preview')}
             >
               {isPreview ? '✕' : '👁'}
             </button>
-            {isBuiltin && (
-              <>
-                {editingBuiltin === o.name ? (
-                  <>
-                    <input
-                      ref={builtinFileRef}
-                      type="file"
-                      accept=".html,.htm"
-                      style={{ display: 'none' }}
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) customizeBuiltin(o.name, file);
-                      }}
-                    />
-                    <button className="ov2-action-btn" onClick={() => builtinFileRef.current?.click()} title={t('overlays_panel.file')}>
-                      📄
-                    </button>
-                    <button className="ov2-action-btn" onClick={() => setEditingBuiltin(null)}>
-                      ✕
-                    </button>
-                  </>
-                ) : (
-                  <button className="ov2-action-btn" onClick={() => setEditingBuiltin(o.name)} title={t('tooltip.edit')}>
-                    ✏️
-                  </button>
-                )}
-                {o.customized && (
-                  <button className="ov2-action-btn ov2-action-btn--danger" onClick={() => resetBuiltin(o.name)} title={t('tooltip.reset')}>
-                    ↩️
-                  </button>
-                )}
-              </>
+            <button
+              className="ov2-action-btn"
+              onClick={() => openHtmlEditor(o.name, isBuiltin)}
+              title={t('overlays_panel.edit_html')}
+            >
+              ✏️
+            </button>
+            {isBuiltin && o.customized && (
+              <button className="ov2-action-btn ov2-action-btn--danger" onClick={() => resetBuiltin(o.name)} title={t('tooltip.reset')}>
+                ↩️
+              </button>
             )}
             {!isBuiltin && (
               <button className="ov2-action-btn ov2-action-btn--danger" onClick={() => deleteOverlay(o.name)} title={t('tooltip.delete')}>
@@ -631,6 +646,51 @@ export default function OverlaysPanel() {
             </button>
           </div>
         </>
+      )}
+
+      {htmlEditor && (
+        <div className="ov2-modal-backdrop" onClick={() => !htmlEditor.saving && setHtmlEditor(null)}>
+          <div className="ov2-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="ov2-modal-header">
+              <div className="ov2-modal-title">
+                <span>{OVERLAY_ICONS[htmlEditor.name] || '🔲'}</span>
+                <span>{htmlEditor.name}</span>
+                <span className="ov2-modal-sub">HTML</span>
+              </div>
+              <button className="ov2-action-btn" onClick={() => setHtmlEditor(null)} disabled={htmlEditor.saving}>
+                ✕
+              </button>
+            </div>
+            <p className="ov2-modal-hint">{t('overlays_panel.html_hint')}</p>
+            <div className="ov2-modal-toolbar">
+              <button
+                className="ov2-small-btn"
+                onClick={async () => {
+                  await navigator.clipboard.writeText(htmlEditor.html);
+                  toast.success(t('overlays_panel.html_copied'));
+                }}
+                disabled={htmlEditor.loading}
+              >
+                📋 {t('overlays_panel.copy_html')}
+              </button>
+            </div>
+            <textarea
+              className="ov2-modal-textarea"
+              value={htmlEditor.loading ? t('common.loading') : htmlEditor.html}
+              onChange={(e) => setHtmlEditor({ ...htmlEditor, html: e.target.value })}
+              disabled={htmlEditor.loading || htmlEditor.saving}
+              spellCheck={false}
+            />
+            <div className="ov2-modal-actions">
+              <button className="ov2-cancel-btn" onClick={() => setHtmlEditor(null)} disabled={htmlEditor.saving}>
+                {t('overlays_panel.cancel')}
+              </button>
+              <button className="ov2-create-btn" onClick={saveHtmlEditor} disabled={htmlEditor.loading || htmlEditor.saving || !htmlEditor.html.trim()}>
+                {htmlEditor.saving ? t('overlays_panel.saving') : t('overlays_panel.save_html')}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
