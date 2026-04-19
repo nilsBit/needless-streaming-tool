@@ -35,7 +35,7 @@
 **Files:**
 - Modify: `src/shared/types.ts:107-118`
 
-- [ ] **Step 1: Replace the `Stats` interface**
+- [x] **Step 1: Replace the `Stats` interface** _(done in commit `7ceac2c`)_
 
 Replace lines 107–118 (the current flat `Stats` interface) with:
 
@@ -71,17 +71,21 @@ export interface Stats {
 }
 ```
 
-- [ ] **Step 2: Verify typecheck fails**
+- [x] **Step 2: Verify typecheck fails** _(confirmed — only `StatsPanel.tsx` errored)_
 
 Run: `npm run typecheck`
 Expected: Errors in `StatsPanel.tsx` (old field names) and `src/server/api/stats.ts` (return shape) — this is expected, we fix them in later tasks.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit** _(commit `7ceac2c`)_
 
 ```bash
 git add src/shared/types.ts
 git commit -m "refactor(stats): restructure Stats type to nested shape"
 ```
+
+---
+
+> **Resume marker:** Tasks 1 is complete (commit `7ceac2c`). Spec-review and code-quality-review were NOT yet run against Task 1 — optional to run retroactively (it's a mechanical one-interface change), or skip and proceed to Task 2.
 
 ---
 
