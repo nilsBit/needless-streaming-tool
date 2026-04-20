@@ -83,6 +83,7 @@ export interface Clip {
   stream_timecode: string | null;
   recording_timecode: string | null;
   confidence: 'high' | 'medium' | null;
+  notion_page_id: string | null;
   created_at: string;
 }
 
@@ -168,3 +169,23 @@ export const VALID_CHALLENGE_STATUS = ['idle', 'in_progress', 'done', 'failed'] 
 export const VALID_PROJECT_ITEM_STATUS = ['pending', 'in_progress', 'done'] as const;
 export const VALID_MILESTONE_LEVEL = ['minor', 'major', 'epic'] as const;
 export const VALID_MILESTONE_STATUS = ['pending', 'completed'] as const;
+
+export interface NotionDatabase {
+  id: string;
+  title: string;
+  icon: string | null;
+  url: string;
+  missing_properties: string[];
+}
+
+export interface NotionPage {
+  id: string;
+  title: string;
+  icon: string | null;
+  url: string;
+}
+
+export type NotionDatabaseCheck =
+  | { ok: true }
+  | { ok: false; missing_properties: string[] }
+  | { ok: false; error: 'token_invalid' | 'db_gone' | 'no_db' };

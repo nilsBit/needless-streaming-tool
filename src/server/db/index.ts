@@ -100,6 +100,11 @@ function runMigrations(from: number, to: number) {
     console.log('[DB] Migrated: added parent_id to todos, cleaned orphans');
   }
 
+  if (from < 12) {
+    try { db.exec('ALTER TABLE clips ADD COLUMN notion_page_id TEXT'); } catch {}
+    console.log('[DB] Migrated: added notion_page_id to clips');
+  }
+
   db.prepare('INSERT OR REPLACE INTO schema_version (version) VALUES (?)').run(to);
   console.log(`[DB] Migrated from v${from} to v${to}`);
 }
