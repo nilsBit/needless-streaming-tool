@@ -2453,3 +2453,77 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 }
 .hidden-bar-btn:hover { border-color: #888; }
 
+
+/* Sub-Todos in Kanban */
+.kanban-item-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.kanban-item.expanded {
+  background: #0d0d0d;
+}
+
+.todo-count {
+  font-size: 11px;
+  color: #888;
+  flex-shrink: 0;
+}
+
+.kanban-item-todos {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 6px 0 2px 24px;
+  border-top: 1px solid #1a1a1a;
+  margin-top: 4px;
+}
+
+.sub-todo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #ccc;
+}
+
+.sub-todo.done { opacity: 0.5; }
+.sub-todo.done .sub-todo-title { text-decoration: line-through; }
+
+.sub-todo-check {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 0;
+  color: #888;
+}
+
+.sub-todo-title { flex: 1; }
+
+.sub-todo .btn-delete-small { opacity: 0; }
+.sub-todo:hover .btn-delete-small { opacity: 1; }
+
+.sub-todo-add {
+  display: flex;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.sub-todo-add input {
+  flex: 1;
+  font-size: 11px;
+  padding: 3px 6px;
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 3px;
+  color: #ccc;
+}
+
+.sub-todo-add button {
+  font-size: 11px;
+  padding: 3px 8px;
+}

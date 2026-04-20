@@ -21,6 +21,8 @@ export default function ProgressPanel() {
   const { data: streamState } = useApi<StreamState>('/stream-state');
   const [liveSeconds, setLiveSeconds] = useState(0);
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
+  const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
+  const [newTodoText, setNewTodoText] = useState<Record<number, string>>({});
 
   useWebSocket((event) => {
     if (event.startsWith('progress-')) refetch();
@@ -65,6 +67,36 @@ export default function ProgressPanel() {
 
   const deleteItem = async (id: number) => {
     const ok = await apiDelete(`/progress/items/${id}`);
+    if (!ok) { toast.error(t('error.action_failed')); return; }
+    refetch();
+  };
+
+  const toggleExpand = (id: number) => {
+    setExpandedItems(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const addTodo = async (itemId: number) => {
+    const text = newTodoText[itemId]?.trim();
+    if (!text) return;
+    const result = await apiPost(`/progress/items/${itemId}/todos`, { title: text });
+    if (!result) { toast.error(t('error.action_failed')); return; }
+    setNewTodoText(prev => ({ ...prev, [itemId]: '' }));
+    refetch();
+  };
+
+  const toggleTodo = async (todoId: number, currentDone: number) => {
+    const result = await apiPatch(`/progress/todos/${todoId}`, { done: currentDone ? 0 : 1 });
+    if (!result) { toast.error(t('error.action_failed')); return; }
+    refetch();
+  };
+
+  const deleteTodo = async (todoId: number) => {
+    const ok = await apiDelete(`/progress/todos/${todoId}`);
     if (!ok) { toast.error(t('error.action_failed')); return; }
     refetch();
   };
@@ -142,18 +174,50 @@ export default function ProgressPanel() {
   const renderItem = (item: ProjectItem) => {
     const isActive = item.status === 'in_progress';
     const displayTime = isActive ? item.time_spent + liveSeconds : item.time_spent;
+    const isExpanded = expandedItems.has(item.id);
+    const todos = item.todos || [];
+    const doneTodos = todos.filter(td => td.done);
+    const hasTodos = todos.length > 0;
+
     return (
       <div
         key={item.id}
-        className={`kanban-item status-${item.status}`}
-        draggable
-        onDragStart={e => handleDragStart(e, item.id)}
+        className={`kanban-item status-${item.status} ${isExpanded ? 'expanded' : ''}`}
+        draggable={!isExpanded}
+        onDragStart={e => !isExpanded && handleDragStart(e, item.id)}
         onDragEnd={handleDragEnd}
       >
-        <button className="status-toggle" onClick={() => cycleStatus(item)}>{statusEmoji(item.status)}</button>
-        <span className="item-title">{item.title}</span>
-        {displayTime > 0 && <span className="item-time">{formatTime(displayTime)}</span>}
-        <button className="btn-delete-small" onClick={() => deleteItem(item.id)} title={t('tooltip.delete')}>✕</button>
+        <div className="kanban-item-header" onClick={() => toggleExpand(item.id)}>
+          <button className="status-toggle" onClick={e => { e.stopPropagation(); cycleStatus(item); }}>{statusEmoji(item.status)}</button>
+          <span className="item-title">{item.title}</span>
+          {hasTodos && <span className="todo-count">{doneTodos.length}/{todos.length} ✓</span>}
+          {displayTime > 0 && <span className="item-time">{formatTime(displayTime)}</span>}
+          <button className="btn-delete-small" onClick={e => { e.stopPropagation(); deleteItem(item.id); }} title={t('tooltip.delete')}>✕</button>
+        </div>
+        {isExpanded && (
+          <div className="kanban-item-todos">
+            {todos.map(td => (
+              <div key={td.id} className={`sub-todo ${td.done ? 'done' : ''}`}>
+                <button className="sub-todo-check" onClick={() => toggleTodo(td.id, td.done)}>
+                  {td.done ? '☑' : '☐'}
+                </button>
+                <span className="sub-todo-title">{td.title}</span>
+                <button className="btn-delete-small" onClick={() => deleteTodo(td.id)} title={t('tooltip.delete')}>✕</button>
+              </div>
+            ))}
+            <div className="sub-todo-add">
+              <input
+                type="text"
+                placeholder={t('todos.placeholder')}
+                value={newTodoText[item.id] || ''}
+                onChange={e => setNewTodoText(prev => ({ ...prev, [item.id]: e.target.value }))}
+                onKeyDown={e => e.key === 'Enter' && addTodo(item.id)}
+                onClick={e => e.stopPropagation()}
+              />
+              <button onClick={() => addTodo(item.id)}>+</button>
+            </div>
+          </div>
+        )}
       </div>
     );
   };

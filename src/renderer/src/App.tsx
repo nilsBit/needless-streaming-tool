@@ -10,7 +10,6 @@ import ProgressPanel from './panels/ProgressPanel';
 import DesignsPanel from './panels/DesignsPanel';
 import ClipsPanel from './panels/ClipsPanel';
 import MilestonesPanel from './panels/MilestonesPanel';
-import TodosPanel from './panels/TodosPanel';
 import SettingsPanel from './panels/SettingsPanel';
 import OverlaysPanel from './panels/OverlaysPanel';
 import HelpPanel from './panels/HelpPanel';
@@ -36,7 +35,6 @@ const TABS = {
     panels: [
       { key: 'progress', label: 'Progress Tracker', component: ProgressPanel },
       { key: 'milestones', label: 'Milestones', component: MilestonesPanel },
-      { key: 'todos', label: 'Todos', component: TodosPanel },
     ],
   },
   stats: {
