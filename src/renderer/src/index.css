@@ -2269,3 +2269,98 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 [data-theme="light"] .song-manual-form input { background: #fff; border-color: #ddd; color: #333; }
 [data-theme="light"] .song-manual-form button { background: #fff; border-color: #ddd; color: #333; }
 [data-theme="light"] .song-manual-form button:hover:not(:disabled) { background: #f0f0f0; }
+
+/* ============================================================
+ * Stats Panel
+ * ============================================================ */
+.stats-panel .stats-section { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.stats-panel .stats-section:first-of-type { margin-top: 8px; }
+.stats-panel .stats-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin: 0;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+}
+.stats-grid-hero {
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+
+.stat-card {
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 6px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 86px;
+}
+.stat-card-hero { min-height: 102px; }
+
+.stat-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.stat-icon { font-size: 20px; line-height: 1; }
+.stat-card-hero .stat-icon { font-size: 24px; }
+
+.stat-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: #e0e0e0;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.stat-card-hero .stat-value { font-size: 34px; }
+
+.stat-label {
+  font-size: 12px;
+  color: #888;
+  line-height: 1.2;
+}
+
+.stat-pct {
+  font-size: 12px;
+  color: #888;
+  font-variant-numeric: tabular-nums;
+}
+
+.delta-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  background: #2a2a2a;
+  color: #888;
+  font-variant-numeric: tabular-nums;
+}
+.delta-pill.up   { color: #2ecc71; background: #2ecc7118; }
+.delta-pill.down { color: #e74c3c; background: #e74c3c18; }
+.delta-pill.flat { color: #666; }
+
+.progress-bar {
+  height: 6px;
+  background: #2a2a2a;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+.progress-fill {
+  height: 100%;
+  background: #e67e22;
+  transition: width 200ms ease;
+}
+
+
