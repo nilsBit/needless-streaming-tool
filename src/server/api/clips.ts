@@ -4,8 +4,26 @@ import { broadcast } from '../websocket/index';
 import { syncClipToNotion } from './notion-sync';
 import { getStreamTimecodes } from '../obs/index';
 
+function isAutoSyncEnabled(): boolean {
+  const row = getDb().prepare('SELECT value FROM settings WHERE key = ?').get('notion_auto_sync') as { value: string } | undefined;
+  return row?.value === 'true';
+}
+
+function maybeAutoSync(clip: { id: number; tag: string; note: string | null; session_date: string; created_at: string }): void {
+  if (!isAutoSyncEnabled()) return;
+  if (clip.tag.startsWith('auto-')) return;
+  syncClipToNotion(clip).then((ok) => {
+    if (ok) {
+      const updated = getDb().prepare('SELECT * FROM clips WHERE id = ?').get(clip.id);
+      if (updated) broadcast('clip-updated', updated);
+    } else {
+      broadcast('clip-sync-failed', { id: clip.id });
+    }
+  }).catch(() => { broadcast('clip-sync-failed', { id: clip.id }); });
+}
+
 // Shared clip creation function (used by POST handler and auto-clips)
-export async function createClip(tag: string, note?: string | null, confidence?: string | null): Promise<{ id: number; tag: string; note: string | null; session_date: string; stream_timecode: string | null; recording_timecode: string | null; confidence: string | null; created_at: string } | null> {
+export async function createClip(tag: string, note?: string | null, confidence?: string | null): Promise<{ id: number; tag: string; note: string | null; session_date: string; stream_timecode: string | null; recording_timecode: string | null; confidence: string | null; notion_page_id: string | null; created_at: string } | null> {
   try {
     const sessionDate = new Date().toISOString().split('T')[0];
     const { stream_timecode, recording_timecode } = await getStreamTimecodes();
@@ -16,13 +34,11 @@ export async function createClip(tag: string, note?: string | null, confidence?:
 
     const clip = getDb().prepare('SELECT * FROM clips WHERE id = ?').get(result.lastInsertRowid) as {
       id: number; tag: string; note: string | null; session_date: string;
-      stream_timecode: string | null; recording_timecode: string | null; confidence: string | null; created_at: string;
+      stream_timecode: string | null; recording_timecode: string | null; confidence: string | null;
+      notion_page_id: string | null; created_at: string;
     };
     broadcast('clip-created', clip);
-
-    // Auto-sync to Notion (fire and forget)
-    syncClipToNotion(clip).catch(() => {});
-
+    maybeAutoSync(clip);
     return clip;
   } catch (err) {
     console.error('[Clips] createClip failed:', err);
@@ -104,16 +120,23 @@ router.post('/sync', async (req, res) => {
   if (!sessionDate) { res.status(400).json({ error: 'session_date required' }); return; }
 
   const clips = getDb().prepare(
-    'SELECT * FROM clips WHERE session_date = ? ORDER BY created_at ASC'
+    'SELECT * FROM clips WHERE session_date = ? AND notion_page_id IS NULL ORDER BY created_at ASC'
   ).all(sessionDate) as Array<{ id: number; tag: string; note: string | null; session_date: string; created_at: string }>;
 
-  if (clips.length === 0) { res.status(404).json({ error: 'No clips for this date' }); return; }
+  if (clips.length === 0) { res.json({ session_date: sessionDate, total: 0, synced: 0, failed: 0 }); return; }
 
   let synced = 0;
   let failed = 0;
   for (const clip of clips) {
     const ok = await syncClipToNotion(clip);
-    if (ok) synced++; else failed++;
+    if (ok) {
+      synced++;
+      const updated = getDb().prepare('SELECT * FROM clips WHERE id = ?').get(clip.id);
+      if (updated) broadcast('clip-updated', updated);
+    } else {
+      failed++;
+      broadcast('clip-sync-failed', { id: clip.id });
+    }
   }
 
   res.json({ session_date: sessionDate, total: clips.length, synced, failed });
@@ -134,7 +157,9 @@ router.patch('/:id', (req, res) => {
   const { tag, note } = req.body;
   const db = getDb();
 
-  const existing = db.prepare('SELECT * FROM clips WHERE id = ?').get(req.params.id);
+  const existing = db.prepare('SELECT * FROM clips WHERE id = ?').get(req.params.id) as
+    | { id: number; tag: string; note: string | null; session_date: string; created_at: string; notion_page_id: string | null }
+    | undefined;
   if (!existing) { res.status(404).json({ error: 'Clip not found' }); return; }
 
   const fields: string[] = [];
@@ -147,9 +172,19 @@ router.patch('/:id', (req, res) => {
 
   values.push(req.params.id);
   db.prepare(`UPDATE clips SET ${fields.join(', ')} WHERE id = ?`).run(...values);
-  const clip = db.prepare('SELECT * FROM clips WHERE id = ?').get(req.params.id);
+  const clip = db.prepare('SELECT * FROM clips WHERE id = ?').get(req.params.id) as {
+    id: number; tag: string; note: string | null; session_date: string; created_at: string; notion_page_id: string | null;
+  };
 
   broadcast('clip-updated', clip);
+
+  // If auto-clip was just confirmed (tag lost the auto- prefix) and not yet synced, sync now.
+  const wasAutoClip = existing.tag.startsWith('auto-');
+  const isNowConfirmed = !clip.tag.startsWith('auto-');
+  if (wasAutoClip && isNowConfirmed && !clip.notion_page_id) {
+    maybeAutoSync(clip);
+  }
+
   res.json(clip);
 });
 
