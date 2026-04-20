@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useApi, apiPost, apiDelete, apiPatch, getApiToken } from '../hooks/useApi';
 import { useTranslation } from '../i18n/LanguageContext';
 import { useToast } from '../i18n/ToastContext';
+import ClipSyncBadge, { SyncState } from '../components/ClipSyncBadge';
 
 interface SyncResult {
   synced: number;
@@ -46,10 +47,21 @@ export default function ClipsPanel() {
   const { data: clipTags, refetch: refetchTags } = useApi<ClipTag[]>('/clip-tags');
   const [newTagName, setNewTagName] = useState('');
   const [showNewTagInput, setShowNewTagInput] = useState(false);
+  const { data: dbInfo } = useApi<{ configured: boolean }>('/settings/notion/database');
+  const { data: autoSyncRaw, refetch: refetchAutoSync } = useApi<{ value: string | null }>('/settings/get/notion_auto_sync');
+  const notionConfigured = !!dbInfo?.configured;
+  const autoSync = autoSyncRaw?.value === 'true';
+  const [failedIds, setFailedIds] = useState<Set<number>>(new Set());
 
-  useWebSocket((event) => {
+  useWebSocket((event, data) => {
     if (event.startsWith('clip-')) { refetchClips(); refetchSessions(); }
     if (event === 'clip-tags-changed') { refetchTags(); }
+    if (event === 'clip-sync-failed' && data && typeof data === 'object' && 'id' in data) {
+      setFailedIds((prev) => new Set(prev).add((data as { id: number }).id));
+    }
+    if (event === 'clip-updated' && data && typeof data === 'object' && 'id' in data) {
+      setFailedIds((prev) => { const n = new Set(prev); n.delete((data as { id: number }).id); return n; });
+    }
   });
 
   const addClip = async (tag: string) => {
@@ -106,6 +118,25 @@ export default function ClipsPanel() {
     refetchTags();
   };
 
+  const toggleAutoSync = async () => {
+    const next = autoSync ? 'false' : 'true';
+    await apiPost('/settings/set', { key: 'notion_auto_sync', value: next });
+    refetchAutoSync();
+  };
+
+  const retryClip = async (id: number) => {
+    setFailedIds((prev) => { const n = new Set(prev); n.delete(id); return n; });
+    const clip = allClips?.find((c) => c.id === id);
+    if (clip) syncToNotion(clip.session_date);
+  };
+
+  const syncStateFor = (clip: Clip): SyncState => {
+    if (!notionConfigured) return 'disabled';
+    if (clip.notion_page_id) return 'synced';
+    if (failedIds.has(clip.id)) return 'failed';
+    return 'pending';
+  };
+
   const customTags = clipTags?.filter((t) => !t.preset) || [];
   const allTagNames = [...PRESET_TAGS, ...customTags.map((t) => t.tag)];
 
@@ -148,7 +179,14 @@ export default function ClipsPanel() {
 
   return (
     <div className="panel clips-panel">
-      <h2>🎬 Clip Moments</h2>
+      <div className="clips-panel-header">
+        <h2>🎬 Clip Moments</h2>
+        {notionConfigured && (
+          <button className={`auto-sync-toggle ${autoSync ? 'on' : 'off'}`} onClick={toggleAutoSync} title={t('clips.auto_sync_label')}>
+            ☁️ {t('clips.auto_sync_label')}: {autoSync ? t('clips.auto_sync_on') : t('clips.auto_sync_off')}
+          </button>
+        )}
+      </div>
 
       <div className="clip-tags">
         {PRESET_TAGS.map((tag) => (
@@ -223,10 +261,23 @@ export default function ClipsPanel() {
               <div className="clip-day-header" onClick={() => toggleDay(date)}>
                 <span className="day-toggle">{isCollapsed ? '▶' : '▼'}</span>
                 <span className="day-date">{isToday ? `${t('clips.today')} (${date})` : date}</span>
+                <span className="day-breakdown">
+                  {Array.from(
+                    (clipsByDay.get(date) || []).reduce((m, c) => {
+                      const key = c.tag.startsWith('auto-') ? c.tag.replace('auto-', '') : c.tag;
+                      m.set(key, (m.get(key) || 0) + 1);
+                      return m;
+                    }, new Map<string, number>()).entries()
+                  ).map(([tag, count]) => (
+                    <span key={tag} className="tag-chip">{TAG_EMOJI[tag] || '🏷️'}{count}</span>
+                  ))}
+                </span>
                 <span className="day-count">{dayClips.length} Clips</span>
-                <button className="btn-export" onClick={(e) => { e.stopPropagation(); syncToNotion(date); }} disabled={syncingDay === date}>
-                  {syncingDay === date ? '⏳' : '📤'} Notion
-                </button>
+                {notionConfigured && (
+                  <button className="btn-export" onClick={(e) => { e.stopPropagation(); syncToNotion(date); }} disabled={syncingDay === date}>
+                    {syncingDay === date ? '⏳' : '📤'} {t('clips.re_sync')}
+                  </button>
+                )}
                 <button className="btn-export" onClick={(e) => { e.stopPropagation(); exportDay(date); }}>📥 DaVinci</button>
               </div>
 
@@ -235,25 +286,30 @@ export default function ClipsPanel() {
                   {dayClips.length === 0 && <p className="empty">{activeFilter ? `${t('clips.empty')} ${t('clips.with_tag')} "${activeFilter}"` : t('clips.empty')}</p>}
                   {dayClips.map((clip) => (
                     <div key={clip.id} className={`clip-item ${isAutoClip(clip) ? 'auto-clip' : ''}`}>
-                      <span className="clip-time">{formatClipTime(clip)}</span>
-                      <span className="clip-tag">
-                        {isAutoClip(clip) && '🤖 '}
-                        {TAG_EMOJI[clip.tag] || '🏷️'} {clip.tag}
-                        {clip.confidence && (
-                          <span className={`confidence-dot ${clip.confidence}`} title={clip.confidence}>
-                            {clip.confidence === 'high' ? '🟢' : '🟡'}
-                          </span>
+                      <div className="clip-row-top">
+                        <span className="clip-time">{formatClipTime(clip)}</span>
+                        <ClipSyncBadge state={syncStateFor(clip)} onRetry={() => retryClip(clip.id)} />
+                      </div>
+                      <div className="clip-row-mid">
+                        <span className="clip-tag">
+                          {isAutoClip(clip) && '🤖 '}
+                          {TAG_EMOJI[clip.tag.replace('auto-', '')] || '🏷️'} {clip.tag}
+                          {clip.confidence && (
+                            <span className={`confidence-dot ${clip.confidence}`} title={clip.confidence}>
+                              {clip.confidence === 'high' ? '🟢' : '🟡'}
+                            </span>
+                          )}
+                        </span>
+                        {isAutoClip(clip) ? (
+                          <div className="auto-clip-actions">
+                            <button className="btn-confirm-small" onClick={() => confirmClip(clip)} title={t('auto_clips.confirm')}>✓</button>
+                            <button className="btn-delete-small" onClick={() => deleteClip(clip.id)} title={t('auto_clips.reject')}>✕</button>
+                          </div>
+                        ) : (
+                          <button className="btn-delete-small" onClick={() => deleteClip(clip.id)} title={t('tooltip.delete')}>✕</button>
                         )}
-                      </span>
-                      {clip.note && <span className="clip-note">{clip.note}</span>}
-                      {isAutoClip(clip) ? (
-                        <div className="auto-clip-actions">
-                          <button className="btn-confirm-small" onClick={() => confirmClip(clip)} title={t('auto_clips.confirm')}>✓</button>
-                          <button className="btn-delete-small" onClick={() => deleteClip(clip.id)} title={t('auto_clips.reject')}>✕</button>
-                        </div>
-                      ) : (
-                        <button className="btn-delete-small" onClick={() => deleteClip(clip.id)} title={t('tooltip.delete')}>✕</button>
-                      )}
+                      </div>
+                      {clip.note && <div className="clip-row-note">"{clip.note}"</div>}
                     </div>
                   ))}
                 </div>
