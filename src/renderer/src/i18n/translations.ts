@@ -439,6 +439,14 @@ const translations = {
   'auto_clips.trigger_raid': { de: 'Raids', en: 'Raids' },
   'auto_clips.confirm': { de: 'Bestätigen', en: 'Confirm' },
   'auto_clips.reject': { de: 'Verwerfen', en: 'Reject' },
+
+  // ---- Dashboard Layout ----
+  'layout.hidden_panels': { de: 'Ausgeblendet', en: 'Hidden' },
+  'layout.reset': { de: 'Layout zurücksetzen', en: 'Reset layout' },
+  'layout.full_width': { de: 'Volle Breite', en: 'Full width' },
+  'layout.half_width': { de: 'Halbe Breite', en: 'Half width' },
+  'layout.hide': { de: 'Ausblenden', en: 'Hide' },
+  'layout.show': { de: 'Einblenden', en: 'Show' },
 } as const;
 
 export type TranslationKey = keyof typeof translations;
