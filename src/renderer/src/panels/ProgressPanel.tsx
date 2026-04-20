@@ -5,6 +5,7 @@ import { useWebSocket } from '../hooks/useWebSocket';
 import ChatCommands from '../components/ChatCommands';
 import { useTranslation } from '../i18n/LanguageContext';
 import { useToast } from '../i18n/ToastContext';
+import EmptyState from '../components/ux/EmptyState';
 
 interface ProgressData {
   project_name: string | null;
@@ -126,6 +127,13 @@ export default function ProgressPanel() {
     const result = await apiPatch('/progress/project', { project_name: projectName });
     if (!result) { toast.error(t('error.action_failed')); return; }
     setEditingName(false);
+    refetch();
+  };
+
+  const seedExamples = async () => {
+    const result = await apiPost('/progress/seed-examples', {});
+    if (!result) { toast.error(t('progress.seed_error')); return; }
+    toast.success(t('progress.seed_success'));
     refetch();
   };
 
@@ -320,11 +328,38 @@ export default function ProgressPanel() {
         <div className="progress-bar" style={{ width: items.length > 0 ? `${(doneCount / items.length) * 100}%` : '0%' }} />
       </div>
 
-      <div className="kanban-board">
-        {renderColumn('pending', t('kanban.backlog'), '⬜', backlog)}
-        {renderColumn('in_progress', t('kanban.in_progress'), '🔨', inProgress)}
-        {renderColumn('done', t('kanban.done'), '✅', done)}
-      </div>
+      {items.length === 0 ? (
+        <>
+          <EmptyState
+            icon="📋"
+            title={t('empty.kanban.title')}
+            description={t('empty.kanban.desc')}
+            cta={{ label: t('empty.kanban.cta'), onClick: () => {
+              const el = document.getElementById('kanban-empty-input');
+              if (el instanceof HTMLInputElement) el.focus();
+            } }}
+            secondaryLeadIn={t('empty.kanban.secondary_lead')}
+            secondaryCta={{ label: t('empty.kanban.seed'), onClick: seedExamples }}
+          />
+          <div className="kanban-add kanban-add-empty">
+            <input
+              id="kanban-empty-input"
+              type="text"
+              placeholder={t('progress.item_placeholder')}
+              value={newItem}
+              onChange={e => setNewItem(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && addItem()}
+            />
+            <button onClick={addItem}>+</button>
+          </div>
+        </>
+      ) : (
+        <div className="kanban-board">
+          {renderColumn('pending', t('kanban.backlog'), '⬜', backlog)}
+          {renderColumn('in_progress', t('kanban.in_progress'), '🔨', inProgress)}
+          {renderColumn('done', t('kanban.done'), '✅', done)}
+        </div>
+      )}
 
       <ChatCommands commands={[
         { cmd: '!progress', desc: t('progress.cmd_progress') },
