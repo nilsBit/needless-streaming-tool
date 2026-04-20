@@ -184,7 +184,7 @@ export default function App() {
           <span className="column-toggle-label">{singleColumn ? '1' : '2'}</span>
         </button>
       </header>
-      <main className={`panels ${singleColumn ? 'single-column' : ''}`}>
+      <main className={`panels ${singleColumn || layout.order.length === 1 ? 'single-column' : ''}`}>
         {layout.order.map((key) => {
           const p = panelMap.get(key);
           if (!p) return null;
