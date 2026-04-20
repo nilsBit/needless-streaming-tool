@@ -1,6 +1,7 @@
 import express from 'express';
 import http from 'http';
 import path from 'path';
+import { execSync } from 'child_process';
 import { initWebSocket } from './websocket/index';
 import { initDatabase } from './db/index';
 import { generateApiToken, validateApiToken, getApiToken } from './auth-token';
@@ -157,10 +158,36 @@ export async function startServer(): Promise<string> {
   const server = http.createServer(app);
   initWebSocket(server);
 
+  // Kill any stale process on our port before starting
+  function killPortProcess() {
+    try {
+      if (process.platform === 'win32') {
+        const out = execSync(`netstat -ano | findstr :${PORT} | findstr LISTENING`, { encoding: 'utf-8' });
+        const pid = out.trim().split(/\s+/).pop();
+        if (pid && pid !== String(process.pid)) {
+          execSync(`taskkill /PID ${pid} /F`);
+          console.log(`[Server] Killed stale process ${pid} on port ${PORT}`);
+        }
+      } else {
+        const out = execSync(`lsof -ti:${PORT}`, { encoding: 'utf-8' }).trim();
+        const pids = out.split('\n').filter(p => p && p !== String(process.pid));
+        for (const pid of pids) {
+          execSync(`kill -9 ${pid}`);
+          console.log(`[Server] Killed stale process ${pid} on port ${PORT}`);
+        }
+      }
+    } catch {
+      // No process on port — good
+    }
+  }
+
+  let retryCount = 0;
   server.on('error', (err: NodeJS.ErrnoException) => {
-    if (err.code === 'EADDRINUSE') {
-      console.log(`[Server] Port ${PORT} busy, retrying in 1s...`);
-      setTimeout(() => server.listen(PORT), 1000);
+    if (err.code === 'EADDRINUSE' && retryCount < 3) {
+      retryCount++;
+      console.log(`[Server] Port ${PORT} busy, killing stale process and retrying...`);
+      killPortProcess();
+      setTimeout(() => server.listen(PORT), 500);
     }
   });
 
