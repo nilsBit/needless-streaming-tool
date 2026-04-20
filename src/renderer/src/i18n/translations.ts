@@ -12,7 +12,7 @@ const translations = {
   'panel.challenge': { de: 'Challenge', en: 'Challenge' },
   'panel.issues': { de: 'Glücksrad', en: 'Lucky Wheel' },
   'panel.clips': { de: 'Clip Moments', en: 'Clip Moments' },
-  'panel.designs': { de: 'Chat Designs', en: 'Chat Designs' },
+  'panel.designs': { de: 'Chat Voting', en: 'Chat Voting' },
   'panel.progress': { de: 'Progress Tracker', en: 'Progress Tracker' },
   'panel.milestones': { de: 'Milestones', en: 'Milestones' },
   'panel.todos': { de: 'Todos', en: 'Todos' },
@@ -168,23 +168,23 @@ const translations = {
   'challenge.cmd_uptime': { de: 'Wie lange läuft der Stream', en: 'How long the stream has been running' },
 
   // ---- Issues Panel ----
-  'issues.desc': { de: 'Issues sammeln, Rad drehen, Chat entscheidet was dran kommt.', en: 'Collect issues, spin the wheel, chat decides what\'s next.' },
-  'issues.placeholder': { de: 'Neues Issue...', en: 'New issue...' },
+  'issues.desc': { de: 'Themen sammeln, Rad drehen — der Chat entscheidet was dran kommt.', en: 'Collect topics, spin the wheel — chat decides what\'s next.' },
+  'issues.placeholder': { de: 'Neuer Eintrag...', en: 'New entry...' },
   'issues.spinning': { de: 'Spinning...', en: 'Spinning...' },
   'issues.cooldown': { de: 'Cooldown', en: 'Cooldown' },
   'issues.spin': { de: 'Drehen!', en: 'Spin!' },
   'issues.open': { de: 'Offen', en: 'Open' },
-  'issues.fixed': { de: 'Gefixt', en: 'Fixed' },
-  'issues.cmd_issues': { de: 'Zeigt offene Issues', en: 'Shows open issues' },
+  'issues.fixed': { de: 'Erledigt', en: 'Done' },
+  'issues.cmd_issues': { de: 'Zeigt offene Einträge', en: 'Shows open entries' },
 
   // ---- Todos Panel ----
-  'todos.desc': { de: 'Deine Stream-Todos. Sichtbar als Overlay in OBS.', en: 'Your stream todos. Visible as overlay in OBS.' },
+  'todos.desc': { de: 'Deine Aufgaben für den Stream. Sichtbar als Overlay.', en: 'Your tasks for the stream. Visible as overlay.' },
   'todos.placeholder': { de: 'Neues Todo...', en: 'New todo...' },
   'todos.empty': { de: 'Keine Todos', en: 'No todos' },
   'todos.done_section': { de: 'Erledigt', en: 'Done' },
 
   // ---- Rewards Panel ----
-  'rewards.desc': { de: 'Channel Point Rewards die eingelöst wurden. Abhaken wenn erledigt.', en: 'Channel point rewards redeemed. Check off when done.' },
+  'rewards.desc': { de: 'Eingelöste Channel Point Rewards. Abhaken wenn erledigt.', en: 'Redeemed channel point rewards. Check off when done.' },
   'rewards.empty': { de: 'Keine offenen Rewards', en: 'No pending rewards' },
   'rewards.done_section': { de: 'Erledigt', en: 'Done' },
   'rewards.clear_done': { de: '🗑️ Erledigte löschen', en: '🗑️ Clear done' },
@@ -199,12 +199,12 @@ const translations = {
 
   'stats.today.clips':      { de: 'Clips heute', en: 'Clips today' },
   'stats.today.todos_done': { de: 'Todos erledigt', en: 'Todos done' },
-  'stats.today.new_issues': { de: 'Neue Issues', en: 'New issues' },
+  'stats.today.new_issues': { de: 'Neue Einträge', en: 'New entries' },
   'stats.today.milestones': { de: 'Milestones heute', en: 'Milestones today' },
 
   'stats.progress.todos':      { de: 'Todos', en: 'Todos' },
   'stats.progress.milestones': { de: 'Milestones', en: 'Milestones' },
-  'stats.progress.issues':     { de: 'Issues offen', en: 'Issues open' },
+  'stats.progress.issues':     { de: 'Offen', en: 'Open' },
 
   'stats.totals.clips':       { de: 'Clips gesamt', en: 'Total clips' },
   'stats.totals.raids':       { de: 'Raids gesamt', en: 'Total raids' },
@@ -222,14 +222,14 @@ const translations = {
   'clips.with_tag': { de: 'mit Tag', en: 'with tag' },
 
   // ---- Designs Panel ----
-  'designs.desc': { de: '1x im Monat designed der Chat ein Feature. Erstell ein Design und lass abstimmen.', en: 'Once a month the chat designs a feature. Create a design and let them vote.' },
-  'designs.placeholder': { de: 'Design-Titel...', en: 'Design title...' },
+  'designs.desc': { de: 'Sammle Vorschläge und lass den Chat abstimmen.', en: 'Collect ideas and let the chat vote.' },
+  'designs.placeholder': { de: 'Neuer Vorschlag...', en: 'New suggestion...' },
   'designs.vote_running': { de: 'Abstimmung läuft', en: 'Vote running' },
   'designs.vote_end': { de: 'Beenden', en: 'End' },
   'designs.vote_cancel': { de: 'Abbrechen', en: 'Cancel' },
   'designs.option_placeholder': { de: 'Option hinzufügen...', en: 'Add option...' },
   'designs.vote_start': { de: 'Abstimmung starten', en: 'Start vote' },
-  'designs.no_active': { de: 'Kein aktives Design', en: 'No active design' },
+  'designs.no_active': { de: 'Keine Vorschläge', en: 'No suggestions' },
   'designs.completed': { de: 'Abgeschlossen', en: 'Completed' },
   'designs.cmd_start': { de: 'Abstimmung starten', en: 'Start vote' },
   'designs.cmd_end': { de: 'Abstimmung beenden', en: 'End vote' },
@@ -354,7 +354,7 @@ const translations = {
   'common.loading': { de: 'Laden...', en: 'Loading...' },
 
   // ---- Missing Empty States ----
-  'issues.empty_list': { de: 'Keine Issues', en: 'No issues' },
+  'issues.empty_list': { de: 'Keine Einträge', en: 'No entries' },
   'song.no_song': { de: 'Kein Song aktiv', en: 'No song active' },
 
   // ---- Tooltips ----
