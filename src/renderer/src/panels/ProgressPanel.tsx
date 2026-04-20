@@ -23,10 +23,27 @@ export default function ProgressPanel() {
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
   const [newTodoText, setNewTodoText] = useState<Record<number, string>>({});
+  const [focusItemId, setFocusItemId] = useState<number | null>(null);
 
   useWebSocket((event) => {
     if (event.startsWith('progress-')) refetch();
   });
+
+  // Auto-expand active items that have no sub-todos — guides the user to add some
+  useEffect(() => {
+    const items = data?.items;
+    if (!items) return;
+    const emptyActive = items.filter(i => i.status === 'in_progress' && (i.todos || []).length === 0);
+    if (emptyActive.length === 0) return;
+    setExpandedItems(prev => {
+      const next = new Set(prev);
+      let changed = false;
+      for (const i of emptyActive) {
+        if (!next.has(i.id)) { next.add(i.id); changed = true; }
+      }
+      return changed ? next : prev;
+    });
+  }, [data?.items]);
 
   useEffect(() => {
     if (streamState) setLiveSeconds(streamState.timer_seconds);
@@ -62,6 +79,10 @@ export default function ProgressPanel() {
       current_timer_seconds: liveSeconds,
     });
     if (!result) { toast.error(t('error.action_failed')); return; }
+    if (next === 'in_progress' && (item.todos || []).length === 0) {
+      toast.info(t('progress.subtodo_hint_toast').replace('{title}', item.title));
+      setFocusItemId(item.id);
+    }
     refetch();
   };
 
@@ -156,6 +177,10 @@ export default function ProgressPanel() {
       current_timer_seconds: liveSeconds,
     });
     if (!result) { toast.error(t('error.action_failed')); return; }
+    if (targetStatus === 'in_progress' && (item.todos || []).length === 0) {
+      toast.info(t('progress.subtodo_hint_toast').replace('{title}', item.title));
+      setFocusItemId(itemId);
+    }
     refetch();
   };
 
@@ -198,6 +223,9 @@ export default function ProgressPanel() {
         </div>
         {isExpanded && (
           <div className="kanban-item-todos">
+            {isActive && todos.length === 0 && (
+              <div className="sub-todos-hint">📺 {t('progress.subtodo_hint')}</div>
+            )}
             {todos.map(td => (
               <div key={td.id} className={`sub-todo ${td.done ? 'done' : ''}`}>
                 <button className="sub-todo-check" onClick={() => toggleTodo(td.id, td.done)}>
@@ -209,6 +237,12 @@ export default function ProgressPanel() {
             ))}
             <div className="sub-todo-add">
               <input
+                ref={el => {
+                  if (el && focusItemId === item.id) {
+                    el.focus();
+                    setFocusItemId(null);
+                  }
+                }}
                 type="text"
                 placeholder={t('todos.placeholder')}
                 value={newTodoText[item.id] || ''}

@@ -2482,6 +2482,17 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   margin-top: 4px;
 }
 
+.sub-todos-hint {
+  background: rgba(74, 158, 255, 0.08);
+  border: 1px dashed rgba(74, 158, 255, 0.35);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  font-size: 12px;
+  color: #4a9eff;
+  line-height: 1.4;
+}
+
 .sub-todo {
   display: flex;
   align-items: center;

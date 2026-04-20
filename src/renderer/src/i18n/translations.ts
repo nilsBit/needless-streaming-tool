@@ -282,6 +282,8 @@ const translations = {
   'progress.no_project': { de: 'Kein Projekt', en: 'No project' },
   'progress.item_placeholder': { de: 'Neues Item...', en: 'New item...' },
   'progress.cmd_progress': { de: 'Zeigt Projektfortschritt', en: 'Shows project progress' },
+  'progress.subtodo_hint': { de: 'Sub-Tasks erscheinen live im Overlay — füge hier welche hinzu 👇', en: 'Sub-tasks appear live in the overlay — add some here 👇' },
+  'progress.subtodo_hint_toast': { de: '💡 Füge Sub-Tasks zu „{title}" hinzu — sie erscheinen live im Overlay', en: '💡 Add sub-tasks to "{title}" — they appear live in the overlay' },
 
   // ---- Chat Panel ----
   'chat.connect_first': { de: 'Verbinde zuerst Twitch in den Settings.', en: 'Connect Twitch in Settings first.' },
