@@ -12,6 +12,25 @@
 
 **Memory reference:** `memory/reference_ux_patterns_catalog.md` — consult for any UX decision.
 
+## Progress (as of 2026-04-20)
+
+**Tasks 1–11: DONE + pushed to origin/main.** Commits:
+- `c143e58` — Task 1 (celebrate() + keyframes)
+- `ae4bae4` — Task 2 (useFirstTouch hook)
+- `947740d` — Task 3 (EmptyState component)
+- `e023e40` — Task 4 (TryThisBadge component)
+- `1395fb1` — Task 5 (errorAction toast extension)
+- `df40316` — Task 6 (i18n keys)
+- `8c579e6` — Task 7 (/seed-examples backend)
+- `9ef0e83` — Task 8 (ProgressPanel empty-state)
+- `63c6d25` — Task 9 (Card progress bar + strikethrough)
+- `26e08fa` — Task 10 (first-touch + celebrate)
+- `6e60ba4` — Task 11 (overlay empty-state copy)
+
+**Task 12 (Manual E2E QA): NOT STARTED.** Requires `npm run dev` + interactive QA (fresh-DB empty state, seed-examples, first-touch gates, celebrate animation, overlay copy, reduced-motion, i18n switch). See Task 12 section for the full checklist.
+
+Baseline SHA before implementation: `1f6dd2f`.
+
 **Conventions:**
 - Projekt hat keine Automated Tests — Verifikation per `npm run typecheck` und `npm run lint`. Manuelle QA am Ende.
 - Direkte Commits auf `main` sind für das Projekt freigegeben.
