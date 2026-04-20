@@ -99,3 +99,16 @@ export async function apiDelete(endpoint: string): Promise<boolean> {
     return false;
   }
 }
+
+export async function apiGet<T>(endpoint: string): Promise<T | null> {
+  try {
+    const res = await fetch(`${API_BASE}${endpoint}`, {
+      headers: authHeaders(),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  } catch (err) {
+    console.error(`[apiGet] ${endpoint}:`, err);
+    return null;
+  }
+}
