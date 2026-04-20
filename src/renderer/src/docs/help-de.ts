@@ -3,7 +3,7 @@
 export const HELP_SECTIONS_DE = [
   {
     title: 'Erste Schritte',
-    content: `Das Stream Toolkit ist deine Zentrale für Streaming. Hier steuerst du alles — Overlays, Challenges, Issues, Clips, Todos, Milestones und mehr.
+    content: `Das Stream Toolkit ist deine Zentrale für Streaming. Hier steuerst du alles — Overlays, Challenges, Clips, Aufgaben, Milestones und mehr.
 
 Beim ersten Start führt dich der **Setup-Wizard** durch die Einrichtung. Du kannst ihn jederzeit unter **Settings → Setup-Wizard erneut starten** wiederholen.
 
@@ -33,11 +33,11 @@ Beim ersten Start führt dich der **Setup-Wizard** durch die Einrichtung. Du kan
 | !challenge | Zeigt aktuelle Challenge |
 | !song | Zeigt aktuellen Song |
 | !hype | Löst einen Hype Moment aus |
-| !issues | Listet offene Issues |
-| !todo | Zeigt offene Todos |
+| !issues | Zeigt offene Einträge |
+| !todo | Zeigt offene Aufgaben |
 | !progress | Zeigt Projekt-Fortschritt |
 | !vote <option> | Stimme bei Abstimmung ab |
-| !design start/end/status | Design-Abstimmung |
+| !design start/end/status | Chat-Abstimmung |
 | !scene | Listet OBS-Szenen (nur Mods) |
 | !scene <name> | Wechselt OBS-Szene (nur Mods) |
 | !uptime | Zeigt Stream-Laufzeit |`,
@@ -71,7 +71,7 @@ Beim ersten Start führt dich der **Setup-Wizard** durch die Einrichtung. Du kan
 |---------------------|--------|
 | "spawn" | Spawn Enemies Event |
 | "roulette" | Glücksrad drehen |
-| "feature" | Feature Request |
+| "feature" | Vorschlag einreichen |
 | "musik" oder "song" | Musik ändern |
 | "scene" oder "szene" | Szene wechseln (mit User-Input) |
 
@@ -156,7 +156,7 @@ Das Template unter /overlay/_template/index.html enthält:
 |--------|--------|-------------|
 | Scene Switch | OBS-Szene wechseln | Aktuelle Szene |
 | Clip Marker | Clip markieren | Session Clip-Anzahl |
-| Issue Report | Issue erstellen | Offene Issue-Anzahl |
+| Neuer Eintrag | Eintrag erstellen | Offene Einträge |
 | Challenge | Start/Stop/Done/Fail | Status + Titel |
 | Todo Check | Nächstes Todo abhaken | Offene Todos |
 | Hype Moment | Hype Moment auslösen | Flash-Animation |
@@ -171,14 +171,14 @@ Das Template unter /overlay/_template/index.html enthält:
     title: 'Dashboard Panels',
     content: `**Stream Tab:**
 - **Challenge** — Starte Challenges mit Timer und Status-Tracking
-- **Glücksrad** — Tracke Items, drehe das Roulette-Rad
-- **Clip Moments** — Markiere Clip-würdige Momente mit Tags
-- **Chat Designs** — Starte Design-Abstimmungen im Chat
+- **Glücksrad** — Sammle Themen, drehe das Rad — der Chat entscheidet
+- **Clip Moments** — Markiere besondere Momente mit Tags
+- **Chat Voting** — Sammle Vorschläge und lass den Chat abstimmen
 - **Now Playing** — Aktuellen Song setzen und im Overlay anzeigen
 - **Raids** — Raid-Verlauf anzeigen
 
 **Projekt Tab:**
-- **Progress Tracker** — Tracke Features deines Projekts
+- **Progress Tracker** — Verfolge den Fortschritt deines Projekts
 - **Milestones** — Achievement-System (Minor, Major, Epic)
 - **Todos** — Aufgabenliste für den Stream
 
@@ -260,7 +260,7 @@ Alle Events werden als JSON gesendet: { "event": "name", "data": { ... } }
 **Stream:**
 - stream-state — Stream-Status geändert
 
-**Issues:**
+**Einträge:**
 - issue-created / issue-updated / issue-deleted
 
 **Todos:**
