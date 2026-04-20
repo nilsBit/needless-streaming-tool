@@ -183,13 +183,15 @@ export default function ProgressPanel() {
       <div
         key={item.id}
         className={`kanban-item status-${item.status} ${isExpanded ? 'expanded' : ''}`}
-        draggable={!isExpanded}
-        onDragStart={e => !isExpanded && handleDragStart(e, item.id)}
-        onDragEnd={handleDragEnd}
       >
-        <div className="kanban-item-header" onClick={() => toggleExpand(item.id)}>
+        <div
+          className="kanban-item-header"
+          draggable
+          onDragStart={e => handleDragStart(e, item.id)}
+          onDragEnd={handleDragEnd}
+        >
           <button className="status-toggle" onClick={e => { e.stopPropagation(); cycleStatus(item); }}>{statusEmoji(item.status)}</button>
-          <span className="item-title">{item.title}</span>
+          <span className="item-title" onClick={() => toggleExpand(item.id)}>{item.title}</span>
           {hasTodos && <span className="todo-count">{doneTodos.length}/{todos.length} ✓</span>}
           {displayTime > 0 && <span className="item-time">{formatTime(displayTime)}</span>}
           <button className="btn-delete-small" onClick={e => { e.stopPropagation(); deleteItem(item.id); }} title={t('tooltip.delete')}>✕</button>
