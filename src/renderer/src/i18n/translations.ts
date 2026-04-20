@@ -191,17 +191,28 @@ const translations = {
 
   // ---- Stats Panel ----
   'stats.loading': { de: 'Wird geladen...', en: 'Loading...' },
-  'stats.desc': { de: 'Überblick über alle Stream-Daten.', en: 'Overview of all stream data.' },
-  'stats.total_clips': { de: 'Clips gesamt', en: 'Total clips' },
-  'stats.today_clips': { de: 'Clips heute', en: 'Clips today' },
-  'stats.total_issues': { de: 'Issues gesamt', en: 'Total issues' },
-  'stats.open_issues': { de: 'Offene Issues', en: 'Open issues' },
-  'stats.done_todos': { de: 'Erledigte Todos', en: 'Completed todos' },
-  'stats.total_todos': { de: 'Todos gesamt', en: 'Total todos' },
-  'stats.completed_milestones': { de: 'Erreichte Meilensteine', en: 'Completed milestones' },
-  'stats.total_milestones': { de: 'Meilensteine gesamt', en: 'Total milestones' },
-  'stats.total_raids': { de: 'Raids gesamt', en: 'Total raids' },
-  'stats.total_rewards': { de: 'Belohnungen gesamt', en: 'Total rewards' },
+  'stats.desc':    { de: 'Überblick über alle Stream-Daten.', en: 'Overview of all stream data.' },
+
+  'stats.section.today':    { de: 'Heute', en: 'Today' },
+  'stats.section.progress': { de: 'Fortschritt', en: 'Progress' },
+  'stats.section.totals':   { de: 'Gesamt & Trend', en: 'Totals & Trend' },
+
+  'stats.today.clips':      { de: 'Clips heute', en: 'Clips today' },
+  'stats.today.todos_done': { de: 'Todos erledigt', en: 'Todos done' },
+  'stats.today.new_issues': { de: 'Neue Issues', en: 'New issues' },
+  'stats.today.milestones': { de: 'Milestones heute', en: 'Milestones today' },
+
+  'stats.progress.todos':      { de: 'Todos', en: 'Todos' },
+  'stats.progress.milestones': { de: 'Milestones', en: 'Milestones' },
+  'stats.progress.issues':     { de: 'Issues offen', en: 'Issues open' },
+
+  'stats.totals.clips':       { de: 'Clips gesamt', en: 'Total clips' },
+  'stats.totals.raids':       { de: 'Raids gesamt', en: 'Total raids' },
+  'stats.totals.rewards':     { de: 'Belohnungen gesamt', en: 'Total rewards' },
+  'stats.totals.active_days': { de: 'Aktive Tage (30d)', en: 'Active days (30d)' },
+
+  'stats.delta.vs_yesterday': { de: 'vs. gestern', en: 'vs. yesterday' },
+  'stats.delta.vs_7d_avg':    { de: 'vs. 7-Tage-Ø', en: 'vs. 7-day avg' },
 
   // ---- Clips Panel ----
   'clips.note_placeholder': { de: 'Notiz (optional)...', en: 'Note (optional)...' },
