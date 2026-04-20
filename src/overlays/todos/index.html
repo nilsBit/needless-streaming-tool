@@ -412,7 +412,11 @@ function render() {
   }
 
   if (total === 0) {
-    list.innerHTML = '<div class="empty-msg">KEINE TASKS VORHANDEN</div>';
+    list.innerHTML = ''
+      + '<div class="empty-msg" style="text-transform:none;font-size:14px;letter-spacing:1px;line-height:1.5;padding:18px 12px;">'
+      + '<div style="font-family:var(--font-display);font-size:16px;letter-spacing:4px;color:var(--color-secondary);margin-bottom:10px;">NOCH KEINE SUB-TASKS</div>'
+      + 'Füge welche in der App hinzu —<br/>sie erscheinen hier live.'
+      + '</div>';
     return;
   }
 
