@@ -68,6 +68,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<TabKey>('stream');
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
+  const [singleColumn, setSingleColumn] = useState(() => localStorage.getItem('dashboard-single-column') === 'true');
 
   // Get default panel keys for active tab
   const defaultPanelKeys = useMemo(() =>
@@ -167,19 +168,28 @@ export default function App() {
             </button>
           ))}
         </nav>
+        <button
+          className="column-toggle-btn"
+          onClick={() => {
+            const next = !singleColumn;
+            setSingleColumn(next);
+            localStorage.setItem('dashboard-single-column', String(next));
+          }}
+          title={singleColumn ? t('layout.half_width') : t('layout.full_width')}
+        >
+          {singleColumn ? '▤' : '▥'}
+        </button>
       </header>
-      <main className="panels">
+      <main className={`panels ${singleColumn ? 'single-column' : ''}`}>
         {layout.order.map((key) => {
           const p = panelMap.get(key);
           if (!p) return null;
           const isCollapsed = collapsed.has(key);
           const Component = p.component;
-          const onlyOneVisible = layout.order.length === 1;
-          const isFull = onlyOneVisible || layout.isFullWidth(key);
           return (
             <div
               key={key}
-              className={`panel-wrapper ${isCollapsed ? 'collapsed' : ''} ${isFull ? 'full-width' : ''} ${dragKey === key ? 'dragging' : ''} ${dragOverKey === key ? 'drag-over' : ''}`}
+              className={`panel-wrapper ${isCollapsed ? 'collapsed' : ''} ${dragKey === key ? 'dragging' : ''} ${dragOverKey === key ? 'drag-over' : ''}`}
               onDragOver={handleDragOver}
               onDragEnter={() => handleDragEnter(key)}
               onDrop={(e) => handleDrop(key, e)}
@@ -198,15 +208,6 @@ export default function App() {
                   <span className="collapse-label">{p.label}</span>
                 </button>
                 <div className="panel-header-controls">
-                  {!onlyOneVisible && (
-                    <button
-                      className="panel-header-btn"
-                      onClick={() => layout.toggleWidth(key)}
-                      title={layout.isFullWidth(key) ? t('layout.half_width') : t('layout.full_width')}
-                    >
-                      {layout.isFullWidth(key) ? '⬛' : '⬜'}
-                    </button>
-                  )}
                   <button
                     className="panel-header-btn"
                     onClick={() => layout.hide(key)}
