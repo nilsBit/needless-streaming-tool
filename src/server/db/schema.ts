@@ -1,4 +1,4 @@
-export const SCHEMA_VERSION = 10;
+export const SCHEMA_VERSION = 11;
 
 export const SCHEMA = `
 CREATE TABLE IF NOT EXISTS schema_version (
@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS todos (
   title       TEXT NOT NULL,
   done        INTEGER DEFAULT 0,
   sort_order  INTEGER DEFAULT 0,
+  parent_id   INTEGER,
   created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 

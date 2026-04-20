@@ -9,7 +9,10 @@ const router = Router();
 // GET project + all items
 router.get('/', (_req, res) => {
   const state = getDb().prepare('SELECT project_name FROM stream_state WHERE id = 1').get() as { project_name: string | null };
-  const items = getDb().prepare('SELECT * FROM project_items ORDER BY sort_order ASC, created_at ASC').all();
+  const items = getDb().prepare('SELECT * FROM project_items ORDER BY sort_order ASC, created_at ASC').all() as Array<Record<string, unknown>>;
+  for (const item of items) {
+    item.todos = getDb().prepare('SELECT * FROM todos WHERE parent_id = ? ORDER BY done ASC, sort_order ASC, created_at ASC').all(item.id as number);
+  }
   res.json({ project_name: state?.project_name || null, items });
 });
 
@@ -127,6 +130,7 @@ router.delete('/items/:id', (req, res) => {
       db.prepare('UPDATE project_items SET time_spent = time_spent + ? WHERE id = ?').run(state.timer_seconds, req.params.id);
       db.prepare('UPDATE stream_state SET challenge_title = NULL, challenge_status = ?, timer_seconds = 0, timer_running = 0 WHERE id = 1').run('idle');
     }
+    db.prepare('DELETE FROM todos WHERE parent_id = ?').run(req.params.id);
     db.prepare('DELETE FROM project_items WHERE id = ?').run(req.params.id);
   });
 
@@ -234,6 +238,60 @@ router.post('/import/github', async (req, res) => {
     console.error('[Progress] GitHub import failed:', err);
     res.status(502).json({ error: 'GitHub API unavailable' });
   }
+});
+
+// POST sub-todo for an item
+router.post('/items/:id/todos', (req, res) => {
+  const { title } = req.body;
+  if (!title) { res.status(400).json({ error: 'title required' }); return; }
+
+  const db = getDb();
+  const item = db.prepare('SELECT id FROM project_items WHERE id = ?').get(req.params.id);
+  if (!item) { res.status(404).json({ error: 'Item not found' }); return; }
+
+  const maxOrder = db.prepare('SELECT MAX(sort_order) as max FROM todos WHERE parent_id = ?').get(req.params.id) as { max: number | null };
+  const sortOrder = (maxOrder?.max ?? -1) + 1;
+
+  const result = db.prepare('INSERT INTO todos (title, sort_order, parent_id) VALUES (?, ?, ?)').run(title, sortOrder, req.params.id);
+  const todo = db.prepare('SELECT * FROM todos WHERE id = ?').get(result.lastInsertRowid);
+
+  broadcast('progress-update', { action: 'todo-created', todo });
+  res.status(201).json(todo);
+});
+
+// PATCH sub-todo
+router.patch('/todos/:id', (req, res) => {
+  const { title, done } = req.body;
+  const db = getDb();
+
+  const existing = db.prepare('SELECT * FROM todos WHERE id = ?').get(req.params.id);
+  if (!existing) { res.status(404).json({ error: 'Todo not found' }); return; }
+
+  const fields: string[] = [];
+  const values: unknown[] = [];
+
+  if (title !== undefined) { fields.push('title = ?'); values.push(title); }
+  if (done !== undefined) { fields.push('done = ?'); values.push(done ? 1 : 0); }
+
+  if (fields.length === 0) { res.status(400).json({ error: 'No fields to update' }); return; }
+
+  values.push(req.params.id);
+  db.prepare(`UPDATE todos SET ${fields.join(', ')} WHERE id = ?`).run(...values);
+  const todo = db.prepare('SELECT * FROM todos WHERE id = ?').get(req.params.id);
+
+  broadcast('progress-update', { action: 'todo-updated', todo });
+  res.json(todo);
+});
+
+// DELETE sub-todo
+router.delete('/todos/:id', (req, res) => {
+  const db = getDb();
+  const existing = db.prepare('SELECT * FROM todos WHERE id = ?').get(req.params.id);
+  if (!existing) { res.status(404).json({ error: 'Todo not found' }); return; }
+
+  db.prepare('DELETE FROM todos WHERE id = ?').run(req.params.id);
+  broadcast('progress-update', { action: 'todo-deleted', id: Number(req.params.id) });
+  res.status(204).send();
 });
 
 export default router;

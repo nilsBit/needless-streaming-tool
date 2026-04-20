@@ -94,6 +94,12 @@ function runMigrations(from: number, to: number) {
     console.log('[DB] Migrated: added confidence to clips');
   }
 
+  if (from < 11) {
+    try { db.exec('ALTER TABLE todos ADD COLUMN parent_id INTEGER'); } catch {}
+    db.exec('DELETE FROM todos WHERE parent_id IS NULL');
+    console.log('[DB] Migrated: added parent_id to todos, cleaned orphans');
+  }
+
   db.prepare('INSERT OR REPLACE INTO schema_version (version) VALUES (?)').run(to);
   console.log(`[DB] Migrated from v${from} to v${to}`);
 }

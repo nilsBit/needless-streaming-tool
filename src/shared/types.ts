@@ -42,6 +42,7 @@ export interface Todo {
   title: string;
   done: number;
   sort_order: number;
+  parent_id: number;
   created_at: string;
 }
 
@@ -70,6 +71,7 @@ export interface ProjectItem {
   sort_order: number;
   time_spent: number;
   external_id: string | null;
+  todos?: Todo[];
   created_at: string;
 }
 

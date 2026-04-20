@@ -12,7 +12,6 @@ import settingsRouter from './api/settings';
 import actionsRouter from './api/actions';
 import authRouter from './api/auth';
 import votingRouter from './api/voting';
-import todosRouter from './api/todos';
 import raidsRouter from './api/raids';
 import progressRouter from './api/progress';
 import clipsRouter from './api/clips';
@@ -100,7 +99,6 @@ export async function startServer(): Promise<string> {
   app.use('/api/actions', actionsRouter);
   app.use('/api/auth', authRouter);
   app.use('/api/voting', votingRouter);
-  app.use('/api/todos', todosRouter);
   app.use('/api/raids', raidsRouter);
   app.use('/api/progress', progressRouter);
   app.use('/api/clips', clipsRouter);
@@ -126,18 +124,16 @@ export async function startServer(): Promise<string> {
     res.json(issues);
   });
 
-  app.get('/public/todos', (_req, res) => {
-    const todos = getDb().prepare('SELECT * FROM todos ORDER BY done ASC, sort_order ASC, created_at DESC').all();
-    res.json(todos);
-  });
-
   app.get('/public/overlay-config', (_req, res) => {
     res.json(getOverlayConfig());
   });
 
   app.get('/public/progress', (_req, res) => {
     const state = getDb().prepare('SELECT project_name FROM stream_state WHERE id = 1').get() as { project_name: string | null };
-    const items = getDb().prepare('SELECT * FROM project_items ORDER BY sort_order ASC').all();
+    const items = getDb().prepare('SELECT * FROM project_items ORDER BY sort_order ASC').all() as Array<Record<string, unknown>>;
+    for (const item of items) {
+      item.todos = getDb().prepare('SELECT * FROM todos WHERE parent_id = ? ORDER BY done ASC, sort_order ASC, created_at ASC').all(item.id as number);
+    }
     res.json({ project_name: state?.project_name || null, items });
   });
 
