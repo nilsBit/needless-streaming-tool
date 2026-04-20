@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApi, apiPost, apiFetch, getApiToken } from '../hooks/useApi';
+import { useWebSocket } from '../hooks/useWebSocket';
 import { TwitchConfigResponse, BotStatus } from '../../../shared/types';
 import { useTranslation } from '../i18n/LanguageContext';
 import { useTheme } from '../i18n/ThemeContext';
@@ -82,14 +83,10 @@ export default function SettingsPanel() {
     toast.success(t('overlay_config.saved'));
   };
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      refetchBot();
-      refetchConfig();
-      refetchObsStatus();
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [refetchBot, refetchConfig, refetchObsStatus]);
+  useWebSocket((event) => {
+    if (event === 'bot-status') { refetchBot(); refetchConfig(); }
+    if (event === 'obs-status') refetchObsStatus();
+  });
 
   useEffect(() => {
     if (githubInfo?.repo && !githubRepo) setGithubRepo(githubInfo.repo);
