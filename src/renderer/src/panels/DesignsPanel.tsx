@@ -19,21 +19,19 @@ interface ActiveVote {
 export default function DesignsPanel() {
   const { t } = useTranslation();
   const { toast } = useToast();
-  const { data: designs, refetch } = useApi<Design[]>('/designs');
+  const { data: designs, loading, refetch } = useApi<Design[]>('/designs');
   const { data: vote, refetch: refetchVote } = useApi<ActiveVote>('/voting');
   const [title, setTitle] = useState('');
-  const [voteOptionInput, setVoteOptionInput] = useState('');
-  const [voteOptionsList, setVoteOptionsList] = useState<string[]>([]);
+  const [voteDuration, setVoteDuration] = useState(60);
 
   useWebSocket((event) => {
     if (event === 'design-created' || event === 'design-updated' || event === 'design-deleted') refetch();
     if (event === 'design-vote-started' || event === 'design-vote-ended' || event === 'poll-update' || event === 'poll-close' || event === 'vote-result') refetchVote();
   });
-  const [voteDuration, setVoteDuration] = useState(60);
 
-  const createDesign = async () => {
+  const addDesign = async () => {
     if (!title.trim()) return;
-    const result = await apiPost('/designs', { title, type: 'general' });
+    const result = await apiPost('/designs', { title: title.trim(), type: 'general' });
     if (!result) { toast.error(t('error.action_failed')); return; }
     setTitle('');
     refetch();
@@ -51,22 +49,12 @@ export default function DesignsPanel() {
     refetch();
   };
 
-  const addVoteOption = () => {
-    const opt = voteOptionInput.trim().toLowerCase();
-    if (!opt || voteOptionsList.includes(opt)) return;
-    setVoteOptionsList([...voteOptionsList, opt]);
-    setVoteOptionInput('');
-  };
-
-  const removeVoteOption = (opt: string) => {
-    setVoteOptionsList(voteOptionsList.filter((o) => o !== opt));
-  };
-
-  const startVote = async () => {
-    if (voteOptionsList.length < 2) return;
-    const result = await apiPost('/voting/start', { title: '🎨 Chat Design', options: voteOptionsList, duration: voteDuration });
+  // Start vote using active designs as options
+  const startVoteFromDesigns = async () => {
+    if (active.length < 2) return;
+    const options = active.map(d => d.title);
+    const result = await apiPost('/voting/start', { title: '🎨 Chat Design', options, duration: voteDuration });
     if (!result) { toast.error(t('error.action_failed')); return; }
-    setVoteOptionsList([]);
     refetchVote();
   };
 
@@ -82,6 +70,10 @@ export default function DesignsPanel() {
     refetchVote();
   };
 
+  if (loading && !designs) {
+    return <div className="panel"><p className="empty">{t('common.loading')}</p></div>;
+  }
+
   const active = designs?.filter((d) => d.status === 'active') || [];
   const completed = designs?.filter((d) => d.status === 'completed') || [];
   const hasActiveVote = vote && vote.active !== false && vote.options;
@@ -91,18 +83,32 @@ export default function DesignsPanel() {
       <h2>🎨 Chat Designs</h2>
       <p className="panel-desc">{t('designs.desc')}</p>
 
+      {/* Step 1: Collect design proposals */}
       <div className="design-create">
         <input
           type="text"
           placeholder={t('designs.placeholder')}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && createDesign()}
+          onKeyDown={(e) => e.key === 'Enter' && addDesign()}
         />
-        <button onClick={createDesign}>+</button>
+        <button onClick={addDesign}>+</button>
       </div>
 
-      {/* Voting Section */}
+      <div className="design-list">
+        {active.length === 0 && !hasActiveVote && <p className="empty">{t('designs.no_active')}</p>}
+        {active.map((d) => (
+          <div key={d.id} className="design-item active">
+            <span>🎨 {d.title}</span>
+            <div className="design-actions">
+              <button onClick={() => completeDesign(d.id)} title={t('auto_clips.confirm')}>✅</button>
+              <button title={t('tooltip.delete')} onClick={() => deleteDesign(d.id)}>🗑️</button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Step 2: Start vote from collected designs */}
       <div className="vote-section">
         {hasActiveVote ? (
           <div className="vote-active">
@@ -130,26 +136,6 @@ export default function DesignsPanel() {
           </div>
         ) : (
           <div className="vote-start">
-            <div className="vote-option-input">
-              <input
-                type="text"
-                placeholder={t('designs.option_placeholder')}
-                value={voteOptionInput}
-                onChange={(e) => setVoteOptionInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && addVoteOption()}
-              />
-              <button onClick={addVoteOption}>+</button>
-            </div>
-            {voteOptionsList.length > 0 && (
-              <div className="vote-options-list">
-                {voteOptionsList.map((opt) => (
-                  <span key={opt} className="vote-option-tag">
-                    {opt}
-                    <button onClick={() => removeVoteOption(opt)}>×</button>
-                  </span>
-                ))}
-              </div>
-            )}
             <div className="vote-start-row">
               <select value={voteDuration} onChange={(e) => setVoteDuration(Number(e.target.value))}>
                 <option value={30}>30s</option>
@@ -157,41 +143,30 @@ export default function DesignsPanel() {
                 <option value={120}>2 Min</option>
                 <option value={300}>5 Min</option>
               </select>
-              <button onClick={startVote} disabled={voteOptionsList.length < 2}>🗳️ {t('designs.vote_start')}</button>
+              <button onClick={startVoteFromDesigns} disabled={active.length < 2}>
+                🗳️ {t('designs.vote_start')} ({active.length})
+              </button>
             </div>
           </div>
         )}
       </div>
 
-      <div className="design-list">
-        {active.length === 0 && <p className="empty">{t('designs.no_active')}</p>}
-        {active.map((d) => (
-          <div key={d.id} className="design-item active">
-            <span>🎨 {d.title}</span>
-            <div className="design-actions">
-              <button onClick={() => completeDesign(d.id)}>✅</button>
+      {completed.length > 0 && (
+        <div className="design-list">
+          <h3>{t('designs.completed')} ({completed.length})</h3>
+          {completed.slice(0, 5).map((d) => (
+            <div key={d.id} className="design-item done">
+              <span>🎨 {d.title}</span>
               <button title={t('tooltip.delete')} onClick={() => deleteDesign(d.id)}>🗑️</button>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
+      )}
 
-        {completed.length > 0 && (
-          <>
-            <h3>{t('designs.completed')} ({completed.length})</h3>
-            {completed.slice(0, 5).map((d) => (
-              <div key={d.id} className="design-item done">
-                <span>🎨 {d.title}</span>
-                <button title={t('tooltip.delete')} onClick={() => deleteDesign(d.id)}>🗑️</button>
-              </div>
-            ))}
-          </>
-        )}
-      </div>
       <ChatCommands commands={[
-        { cmd: '!design start 60 opt1 opt2', desc: t('designs.cmd_start') },
+        { cmd: '!vote <option>', desc: t('designs.cmd_vote') },
         { cmd: '!design end', desc: t('designs.cmd_end') },
         { cmd: '!design status', desc: t('designs.cmd_status') },
-        { cmd: '!vote <option>', desc: t('designs.cmd_vote') },
       ]} />
     </div>
   );
