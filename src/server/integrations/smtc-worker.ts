@@ -4,8 +4,18 @@ if (!parentPort) {
   throw new Error('smtc-worker must be run as a worker thread');
 }
 
-const POLL_INTERVAL_MS = 3000;
+const ACTIVE_INTERVAL_MS = 3000;   // 3s when music is playing
+const IDLE_INTERVAL_MS = 15000;    // 15s when no music detected
 let lastKey: string | null = null;
+let currentInterval: ReturnType<typeof setInterval> | null = null;
+let isActive = false;
+
+function setPollingRate(active: boolean): void {
+  if (active === isActive && currentInterval) return;
+  isActive = active;
+  if (currentInterval) clearInterval(currentInterval);
+  currentInterval = setInterval(poll, active ? ACTIVE_INTERVAL_MS : IDLE_INTERVAL_MS);
+}
 
 function poll(): void {
   try {
@@ -17,8 +27,11 @@ function poll(): void {
         lastKey = null;
         parentPort!.postMessage({ type: 'clear' });
       }
+      setPollingRate(false);
       return;
     }
+
+    setPollingRate(true);
 
     const data = {
       title: String(session.media.title),
@@ -35,4 +48,4 @@ function poll(): void {
 }
 
 poll();
-setInterval(poll, POLL_INTERVAL_MS);
+setPollingRate(false);
