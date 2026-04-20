@@ -16,7 +16,7 @@ export default function TwitchStep() {
   const [clientId, setClientId] = useState('');
 
   useWebSocket((event) => {
-    if (event === 'bot-status') { refetchBot(); refetchConfig(); }
+    if (event === 'bot-status') { refetchBot(); refetchClientId(); }
   });
 
   const saveClientId = async () => {
