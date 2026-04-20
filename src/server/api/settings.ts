@@ -206,4 +206,31 @@ router.post('/batch', (req, res) => {
   res.json({ success: true });
 });
 
+// Custom command names
+router.get('/commands', (_req, res) => {
+  const row = getDb().prepare('SELECT value FROM settings WHERE key = ?').get('custom_commands') as { value: string } | undefined;
+  const defaults: Record<string, string> = {
+    challenge: '!challenge', issues: '!issues', song: '!song', hype: '!hype',
+    uptime: '!uptime', design: '!design', todo: '!todo', progress: '!progress',
+    scene: '!scene', vote: '!vote',
+  };
+  let custom: Record<string, string> = {};
+  if (row?.value) { try { custom = JSON.parse(row.value); } catch {} }
+  res.json({ ...defaults, ...custom });
+});
+
+router.post('/commands', (req, res) => {
+  const commands = req.body as Record<string, string>;
+  if (!commands || typeof commands !== 'object') { res.status(400).json({ error: 'Invalid data' }); return; }
+  // Ensure all values start with !
+  const cleaned: Record<string, string> = {};
+  for (const [key, val] of Object.entries(commands)) {
+    if (typeof val === 'string' && val.trim()) {
+      cleaned[key] = val.startsWith('!') ? val.toLowerCase() : `!${val.toLowerCase()}`;
+    }
+  }
+  getDb().prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('custom_commands', JSON.stringify(cleaned));
+  res.json({ success: true });
+});
+
 export default router;

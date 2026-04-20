@@ -432,6 +432,11 @@ const translations = {
   'auto_clips.confirm': { de: 'Bestätigen', en: 'Confirm' },
   'auto_clips.reject': { de: 'Verwerfen', en: 'Reject' },
 
+  // ---- Custom Commands ----
+  'commands.title': { de: 'Chat Commands', en: 'Chat Commands' },
+  'commands.desc': { de: 'Chat-Befehle umbenennen. Alle Befehle beginnen mit !', en: 'Rename chat commands. All commands start with !' },
+  'commands.saved': { de: 'Commands gespeichert', en: 'Commands saved' },
+
   // ---- Dashboard Layout ----
   'layout.hidden_panels': { de: 'Ausgeblendet', en: 'Hidden' },
   'layout.reset': { de: 'Layout zurücksetzen', en: 'Reset layout' },

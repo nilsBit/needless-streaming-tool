@@ -7,16 +7,49 @@ import { broadcast } from '../websocket/index';
 
 const startTime = Date.now();
 
+// Default command names — can be overridden via settings
+const DEFAULT_COMMANDS: Record<string, string> = {
+  challenge: '!challenge',
+  issues: '!issues',
+  song: '!song',
+  hype: '!hype',
+  uptime: '!uptime',
+  design: '!design',
+  todo: '!todo',
+  progress: '!progress',
+  scene: '!scene',
+  vote: '!vote',
+};
+
+function getCommandNames(): Record<string, string> {
+  try {
+    const row = getDb().prepare('SELECT value FROM settings WHERE key = ?').get('custom_commands') as { value: string } | undefined;
+    if (row?.value) {
+      const custom = JSON.parse(row.value) as Record<string, string>;
+      return { ...DEFAULT_COMMANDS, ...custom };
+    }
+  } catch {}
+  return { ...DEFAULT_COMMANDS };
+}
+
+function matchCommand(input: string, cmds: Record<string, string>): string | null {
+  for (const [key, name] of Object.entries(cmds)) {
+    if (input === name) return key;
+  }
+  return null;
+}
+
 export function registerCommands(client: Client) {
   client.on('message', async (channel, tags, message, self) => {
     if (self) return;
     if (!message.startsWith('!')) return;
 
-    const command = message.trim().toLowerCase().split(' ')[0];
+    const input = message.trim().toLowerCase().split(' ')[0];
+    const cmds = getCommandNames();
+    const command = matchCommand(input, cmds);
 
     switch (command) {
-      case '!challenge':
-      case '!experiment': {
+      case 'challenge': {
         const state = getDb().prepare('SELECT * FROM stream_state WHERE id = 1').get() as StreamState;
         if (!state.challenge_title) {
           client.say(channel, 'Keine Challenge aktiv.');
@@ -27,8 +60,7 @@ export function registerCommands(client: Client) {
         break;
       }
 
-      case '!issues':
-      case '!bugs': {
+      case 'issues': {
         const bugs = getDb().prepare('SELECT * FROM issues WHERE status = ? ORDER BY created_at DESC LIMIT 5').all('open') as Issue[];
         if (bugs.length === 0) {
           client.say(channel, 'Keine offenen Issues! 🎉');
@@ -39,7 +71,7 @@ export function registerCommands(client: Client) {
         break;
       }
 
-      case '!song': {
+      case 'song': {
         const row = getDb().prepare('SELECT value FROM settings WHERE key = ?').get('current_song') as { value: string } | undefined;
         if (row?.value) {
           try {
@@ -54,19 +86,19 @@ export function registerCommands(client: Client) {
         break;
       }
 
-      case '!hype': {
+      case 'hype': {
         broadcast('compile-pray', { user: tags['display-name'] || tags.username || 'Chat' });
         client.say(channel, '🙌 HYPE MOMENT!');
         break;
       }
 
-      case '!uptime': {
+      case 'uptime': {
         const uptime = Math.floor((Date.now() - startTime) / 1000 / 60);
         client.say(channel, `⏱️ Stream läuft seit ${uptime} Minuten`);
         break;
       }
 
-      case '!design': {
+      case 'design': {
         const args = message.trim().split(/\s+/).slice(1);
         const subCommand = args[0]?.toLowerCase();
 
@@ -106,7 +138,7 @@ export function registerCommands(client: Client) {
         break;
       }
 
-      case '!todo': {
+      case 'todo': {
         const todos = getDb().prepare('SELECT * FROM todos WHERE done = 0').all() as Todo[];
         if (todos.length === 0) {
           client.say(channel, '📋 Keine Todos!');
@@ -117,7 +149,7 @@ export function registerCommands(client: Client) {
         break;
       }
 
-      case '!progress': {
+      case 'progress': {
         const state = getDb().prepare('SELECT project_name FROM stream_state WHERE id = 1').get() as { project_name: string | null };
         const items = getDb().prepare('SELECT * FROM project_items').all() as Array<{ status: string }>;
         const done = items.filter((i) => i.status === 'done').length;
@@ -127,7 +159,7 @@ export function registerCommands(client: Client) {
         break;
       }
 
-      case '!scene': {
+      case 'scene': {
         const isMod = tags.mod || tags.badges?.broadcaster === '1';
         if (!isMod) {
           client.say(channel, '❌ Nur Mods und Broadcaster können Szenen wechseln!');
@@ -154,7 +186,7 @@ export function registerCommands(client: Client) {
         break;
       }
 
-      case '!vote': {
+      case 'vote': {
         const option = message.trim().split(/\s+/).slice(1).join(' ');
         const username = tags['display-name'] || tags.username || 'anon';
         if (!option) {

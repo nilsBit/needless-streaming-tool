@@ -39,6 +39,25 @@ export default function SettingsPanel() {
 
   const [clientId, setClientId] = useState('');
 
+  // Custom commands
+  const { data: commandsData, refetch: refetchCommands } = useApi<Record<string, string>>('/settings/commands');
+  const [editCommands, setEditCommands] = useState<Record<string, string>>({});
+  const [commandsLoaded, setCommandsLoaded] = useState(false);
+
+  useEffect(() => {
+    if (commandsData && !commandsLoaded) {
+      setEditCommands(commandsData);
+      setCommandsLoaded(true);
+    }
+  }, [commandsData, commandsLoaded]);
+
+  const saveCommands = async () => {
+    const result = await apiPost('/settings/commands', editCommands);
+    if (!result) { toast.error(t('error.action_failed')); return; }
+    toast.success(t('commands.saved'));
+    refetchCommands();
+  };
+
   const [autoClipsEnabled, setAutoClipsEnabled] = useState(true);
   const [triggerReward, setTriggerReward] = useState(true);
   const [triggerHype, setTriggerHype] = useState(true);
@@ -552,6 +571,25 @@ export default function SettingsPanel() {
             />
           </label>
         </div>
+      </div>
+
+      <div className="settings-section">
+        <h3>{t('commands.title')}</h3>
+        <p className="setup-info">{t('commands.desc')}</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          {Object.entries(editCommands).map(([key, value]) => (
+            <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ flex: '0 0 120px', fontSize: '13px', color: '#aaa' }}>{key}</span>
+              <input
+                type="text"
+                value={value}
+                onChange={e => setEditCommands(prev => ({ ...prev, [key]: e.target.value }))}
+                style={{ flex: 1, fontSize: '13px' }}
+              />
+            </div>
+          ))}
+        </div>
+        <button className="btn-connect" style={{ marginTop: '12px' }} onClick={saveCommands}>{t('settings.save')}</button>
       </div>
 
       <div className="settings-section">
