@@ -2848,3 +2848,8 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 }
 .kanban-item-progress-fill.full { background: #2ecc71; }
 .kanban-item .item-title.all-done { text-decoration: line-through; text-decoration-color: rgba(46, 204, 113, 0.6); opacity: 0.7; }
+
+/* TryThisBadge wrapping sub-todo-add should still take full width */
+.sub-todo-add { width: 100%; }
+.ux-try-this-wrapper > .sub-todo-add { width: 100%; }
+.kanban-item-todos .ux-try-this-wrapper { width: 100%; }

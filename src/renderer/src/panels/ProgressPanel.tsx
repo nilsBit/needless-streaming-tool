@@ -6,6 +6,9 @@ import ChatCommands from '../components/ChatCommands';
 import { useTranslation } from '../i18n/LanguageContext';
 import { useToast } from '../i18n/ToastContext';
 import EmptyState from '../components/ux/EmptyState';
+import TryThisBadge from '../components/ux/TryThisBadge';
+import { celebrate } from '../components/ux/celebrate';
+import { useFirstTouch } from '../components/ux/useFirstTouch';
 
 interface ProgressData {
   project_name: string | null;
@@ -25,6 +28,8 @@ export default function ProgressPanel() {
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
   const [newTodoText, setNewTodoText] = useState<Record<number, string>>({});
   const [focusItemId, setFocusItemId] = useState<number | null>(null);
+  const firstActivate = useFirstTouch('progress.activate_item');
+  const firstCheck = useFirstTouch('progress.first_todo_checked');
 
   useWebSocket((event) => {
     if (event.startsWith('progress-')) refetch();
@@ -81,7 +86,10 @@ export default function ProgressPanel() {
     });
     if (!result) { toast.error(t('error.action_failed')); return; }
     if (next === 'in_progress' && (item.todos || []).length === 0) {
-      toast.info(t('progress.subtodo_hint_toast').replace('{title}', item.title));
+      if (!firstActivate.seen && !firstActivate.loading) {
+        toast.info(t('progress.subtodo_hint_toast').replace('{title}', item.title));
+        firstActivate.markSeen();
+      }
       setFocusItemId(item.id);
     }
     refetch();
@@ -111,9 +119,14 @@ export default function ProgressPanel() {
     refetch();
   };
 
-  const toggleTodo = async (todoId: number, currentDone: number) => {
+  const toggleTodo = async (todoId: number, currentDone: number, el?: HTMLElement | null) => {
     const result = await apiPatch(`/progress/todos/${todoId}`, { done: currentDone ? 0 : 1 });
     if (!result) { toast.error(t('error.action_failed')); return; }
+    if (currentDone === 0 && !firstCheck.seen && !firstCheck.loading) {
+      if (el) celebrate('check', el);
+      toast.success(t('celebrate.first_todo_done'));
+      firstCheck.markSeen();
+    }
     refetch();
   };
 
@@ -186,7 +199,10 @@ export default function ProgressPanel() {
     });
     if (!result) { toast.error(t('error.action_failed')); return; }
     if (targetStatus === 'in_progress' && (item.todos || []).length === 0) {
-      toast.info(t('progress.subtodo_hint_toast').replace('{title}', item.title));
+      if (!firstActivate.seen && !firstActivate.loading) {
+        toast.info(t('progress.subtodo_hint_toast').replace('{title}', item.title));
+        firstActivate.markSeen();
+      }
       setFocusItemId(itemId);
     }
     refetch();
@@ -244,30 +260,35 @@ export default function ProgressPanel() {
             )}
             {todos.map(td => (
               <div key={td.id} className={`sub-todo ${td.done ? 'done' : ''}`}>
-                <button className="sub-todo-check" onClick={() => toggleTodo(td.id, td.done)}>
+                <button
+                  className="sub-todo-check"
+                  onClick={e => toggleTodo(td.id, td.done, e.currentTarget)}
+                >
                   {td.done ? '☑' : '☐'}
                 </button>
                 <span className="sub-todo-title">{td.title}</span>
                 <button className="btn-delete-small" onClick={() => deleteTodo(td.id)} title={t('tooltip.delete')}>✕</button>
               </div>
             ))}
-            <div className="sub-todo-add">
-              <input
-                ref={el => {
-                  if (el && focusItemId === item.id) {
-                    el.focus();
-                    setFocusItemId(null);
-                  }
-                }}
-                type="text"
-                placeholder={t('todos.placeholder')}
-                value={newTodoText[item.id] || ''}
-                onChange={e => setNewTodoText(prev => ({ ...prev, [item.id]: e.target.value }))}
-                onKeyDown={e => e.key === 'Enter' && addTodo(item.id)}
-                onClick={e => e.stopPropagation()}
-              />
-              <button onClick={() => addTodo(item.id)}>+</button>
-            </div>
+            <TryThisBadge hint={t('try_this.add_subtodo')} done={!isActive || todos.length > 0}>
+              <div className="sub-todo-add">
+                <input
+                  ref={el => {
+                    if (el && focusItemId === item.id) {
+                      el.focus();
+                      setFocusItemId(null);
+                    }
+                  }}
+                  type="text"
+                  placeholder={t('todos.placeholder')}
+                  value={newTodoText[item.id] || ''}
+                  onChange={e => setNewTodoText(prev => ({ ...prev, [item.id]: e.target.value }))}
+                  onKeyDown={e => e.key === 'Enter' && addTodo(item.id)}
+                  onClick={e => e.stopPropagation()}
+                />
+                <button onClick={() => addTodo(item.id)}>+</button>
+              </div>
+            </TryThisBadge>
           </div>
         )}
       </div>
