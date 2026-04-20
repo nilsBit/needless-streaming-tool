@@ -1,24 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useApi, apiPost, apiPatch, apiDelete } from '../hooks/useApi';
 import { Issue } from '../../../shared/types';
 import { useWebSocket } from '../hooks/useWebSocket';
 import ChatCommands from '../components/ChatCommands';
 import { useTranslation } from '../i18n/LanguageContext';
 import { useToast } from '../i18n/ToastContext';
+import { useCountdown } from '../hooks/useCountdown';
 
 export default function IssuesPanel() {
   const { t } = useTranslation();
   const { toast } = useToast();
   const { data: bugs, loading, refetch } = useApi<Issue[]>('/issues');
   const [newIssue, setNewIssue] = useState('');
-  const [cooldown, setCooldown] = useState(0);
+  const [cooldownServer, setCooldownServer] = useState(0);
+  const cooldown = useCountdown(cooldownServer);
 
   const [spinning, setSpinning] = useState(false);
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
 
   useWebSocket((event, data) => {
     if (event === 'issue-created' || event === 'issue-updated' || event === 'issue-deleted') refetch();
-    if (event === 'roulette-cooldown') setCooldown((data as { remaining_seconds: number }).remaining_seconds);
+    if (event === 'roulette-cooldown') setCooldownServer((data as { remaining_seconds: number }).remaining_seconds);
     if (event === 'roulette-result') {
       const result = data as { title: string; id: number };
       const found = bugs?.find((b) => b.id === result.id);
@@ -26,15 +28,6 @@ export default function IssuesPanel() {
       setSpinning(false);
     }
   });
-
-  // Cooldown countdown
-  useEffect(() => {
-    if (cooldown <= 0) return;
-    const interval = setInterval(() => {
-      setCooldown((c) => Math.max(0, c - 1));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [cooldown > 0]);
 
   if (loading && !bugs) {
     return <div className="panel"><p className="empty">{t('common.loading')}</p></div>;

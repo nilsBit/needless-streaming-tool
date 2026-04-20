@@ -47,5 +47,6 @@ function poll(): void {
   }
 }
 
-poll();
+// Start with idle rate, then poll — poll() will switch to active rate if music is detected
 setPollingRate(false);
+poll();

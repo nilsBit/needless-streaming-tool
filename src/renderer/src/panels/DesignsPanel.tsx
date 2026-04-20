@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { useApi, apiPost, apiPatch, apiDelete } from '../hooks/useApi';
 import { Design } from '../../../shared/types';
 import { useWebSocket } from '../hooks/useWebSocket';
 import ChatCommands from '../components/ChatCommands';
 import { useTranslation } from '../i18n/LanguageContext';
 import { useToast } from '../i18n/ToastContext';
+import { useCountdown } from '../hooks/useCountdown';
 
 interface ActiveVote {
   active?: boolean;
@@ -15,7 +16,6 @@ interface ActiveVote {
   remaining?: number;
 }
 
-
 export default function DesignsPanel() {
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -23,36 +23,7 @@ export default function DesignsPanel() {
   const { data: vote, refetch: refetchVote } = useApi<ActiveVote>('/voting');
   const [title, setTitle] = useState('');
   const [voteDuration, setVoteDuration] = useState(60);
-  const [countdown, setCountdown] = useState(0);
-  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  // Sync countdown from server value, then tick locally
-  useEffect(() => {
-    if (vote?.remaining && vote.remaining > 0) {
-      setCountdown(vote.remaining);
-    } else {
-      setCountdown(0);
-    }
-  }, [vote?.remaining]);
-
-  useEffect(() => {
-    if (countdown <= 0) {
-      if (countdownRef.current) { clearInterval(countdownRef.current); countdownRef.current = null; }
-      return;
-    }
-    countdownRef.current = setInterval(() => {
-      setCountdown(c => {
-        if (c <= 1) {
-          if (countdownRef.current) clearInterval(countdownRef.current);
-          countdownRef.current = null;
-          refetchVote();
-          return 0;
-        }
-        return c - 1;
-      });
-    }, 1000);
-    return () => { if (countdownRef.current) clearInterval(countdownRef.current); };
-  }, [countdown > 0]);
+  const countdown = useCountdown(vote?.remaining ?? 0, refetchVote);
 
   useWebSocket((event) => {
     if (event === 'design-created' || event === 'design-updated' || event === 'design-deleted') refetch();
