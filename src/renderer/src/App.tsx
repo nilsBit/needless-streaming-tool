@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import ErrorBoundary from './components/ErrorBoundary';
 import OnboardingWizard from './components/OnboardingWizard';
 import { apiFetch, getApiToken } from './hooks/useApi';
+import { useDashboardLayout } from './hooks/useDashboardLayout';
 import { useTranslation } from './i18n/LanguageContext';
 import ChallengePanel from './panels/ChallengePanel';
 import IssuesPanel from './panels/IssuesPanel';
@@ -68,6 +69,17 @@ export default function App() {
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
 
+  // Get default panel keys for active tab
+  const defaultPanelKeys = useMemo(() =>
+    TABS[activeTab].panels.map(p => p.key),
+    [activeTab]
+  );
+  const layout = useDashboardLayout(activeTab, defaultPanelKeys);
+
+  // Drag state
+  const [dragKey, setDragKey] = useState<string | null>(null);
+  const [dragOverKey, setDragOverKey] = useState<string | null>(null);
+
   useEffect(() => {
     let retries = 0;
     function checkOnboarding() {
@@ -99,6 +111,44 @@ export default function App() {
 
   const tab = TABS[activeTab];
 
+  const panelMap = useMemo(() => {
+    const map = new Map<string, { key: string; label: string; component: React.ComponentType }>();
+    for (const p of tab.panels) {
+      map.set(p.key, p);
+    }
+    return map;
+  }, [tab]);
+
+  const handleDragStart = (e: React.DragEvent, key: string) => {
+    e.dataTransfer.setData('text/plain', key);
+    e.dataTransfer.effectAllowed = 'move';
+    setDragKey(key);
+  };
+
+  const handleDragEnd = () => {
+    setDragKey(null);
+    setDragOverKey(null);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDragEnter = (key: string) => {
+    if (dragKey && dragKey !== key) setDragOverKey(key);
+  };
+
+  const handleDrop = (targetKey: string, e: React.DragEvent) => {
+    e.preventDefault();
+    const fromKey = e.dataTransfer.getData('text/plain');
+    if (fromKey && fromKey !== targetKey) {
+      layout.reorder(fromKey, targetKey);
+    }
+    setDragKey(null);
+    setDragOverKey(null);
+  };
+
   if (showOnboarding === null) return null; // Loading
   if (showOnboarding) return <OnboardingWizard onComplete={() => setShowOnboarding(false)} />;
 
@@ -119,15 +169,50 @@ export default function App() {
         </nav>
       </header>
       <main className="panels">
-        {tab.panels.map((p) => {
-          const isCollapsed = collapsed.has(p.key);
+        {layout.order.map((key) => {
+          const p = panelMap.get(key);
+          if (!p) return null;
+          const isCollapsed = collapsed.has(key);
           const Component = p.component;
+          const isFull = layout.isFullWidth(key);
           return (
-            <div key={p.key} className={`panel-wrapper ${isCollapsed ? 'collapsed' : ''}`}>
-              <button className="panel-collapse-btn" onClick={() => toggleCollapse(p.key)}>
-                <span className="collapse-icon">{isCollapsed ? '▶' : '▼'}</span>
-                <span className="collapse-label">{p.label}</span>
-              </button>
+            <div
+              key={key}
+              className={`panel-wrapper ${isCollapsed ? 'collapsed' : ''} ${isFull ? 'full-width' : ''} ${dragKey === key ? 'dragging' : ''} ${dragOverKey === key ? 'drag-over' : ''}`}
+              onDragOver={handleDragOver}
+              onDragEnter={() => handleDragEnter(key)}
+              onDrop={(e) => handleDrop(key, e)}
+            >
+              <div className="panel-header-bar">
+                <span
+                  className="drag-handle"
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, key)}
+                  onDragEnd={handleDragEnd}
+                >
+                  ⠿
+                </span>
+                <button className="panel-collapse-btn" onClick={() => toggleCollapse(key)}>
+                  <span className="collapse-icon">{isCollapsed ? '▶' : '▼'}</span>
+                  <span className="collapse-label">{p.label}</span>
+                </button>
+                <div className="panel-header-controls">
+                  <button
+                    className="panel-header-btn"
+                    onClick={() => layout.toggleWidth(key)}
+                    title={isFull ? t('layout.half_width') : t('layout.full_width')}
+                  >
+                    {isFull ? '⬛' : '⬜'}
+                  </button>
+                  <button
+                    className="panel-header-btn"
+                    onClick={() => layout.hide(key)}
+                    title={t('layout.hide')}
+                  >
+                    👁
+                  </button>
+                </div>
+              </div>
               {!isCollapsed && (
                 <ErrorBoundary
                   fallback={p.label}
@@ -142,6 +227,24 @@ export default function App() {
           );
         })}
       </main>
+
+      {/* Hidden panels bar */}
+      {layout.hidden.length > 0 && (
+        <div className="hidden-bar">
+          <span className="hidden-bar-label">{t('layout.hidden_panels')}:</span>
+          {layout.hidden.map((key) => {
+            const p = panelMap.get(key);
+            return p ? (
+              <button key={key} className="hidden-bar-btn" onClick={() => layout.show(key)}>
+                {p.label}
+              </button>
+            ) : null;
+          })}
+          <button className="hidden-bar-btn" onClick={layout.reset} title={t('layout.reset')}>
+            ↩️ {t('layout.reset')}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

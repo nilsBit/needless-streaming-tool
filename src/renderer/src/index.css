@@ -2363,4 +2363,70 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   transition: width 200ms ease;
 }
 
+/* Dashboard Layout - Drag & Drop */
+.panel-wrapper.dragging { opacity: 0.4; }
+.panel-wrapper.drag-over { outline: 2px solid #3498db; outline-offset: -2px; }
+.panel-wrapper.full-width { grid-column: 1 / -1; }
+
+/* Panel Header Bar */
+.panel-header-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 4px;
+}
+
+.drag-handle {
+  cursor: grab;
+  padding: 4px 6px;
+  font-size: 14px;
+  opacity: 0.4;
+  user-select: none;
+}
+.drag-handle:hover { opacity: 0.8; }
+.drag-handle:active { cursor: grabbing; }
+
+.panel-header-controls {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
+}
+
+.panel-header-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  opacity: 0.4;
+  font-size: 12px;
+  padding: 4px 6px;
+  transition: opacity 0.2s;
+}
+.panel-header-btn:hover { opacity: 1; }
+
+/* Hidden Panels Bar */
+.hidden-bar {
+  display: flex;
+  gap: 6px;
+  padding: 8px 16px;
+  flex-wrap: wrap;
+  align-items: center;
+  border-top: 1px solid #1a1a1a;
+}
+
+.hidden-bar-label {
+  font-size: 12px;
+  color: #666;
+}
+
+.hidden-bar-btn {
+  font-size: 12px;
+  padding: 3px 10px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #ccc;
+  transition: border-color 0.2s;
+}
+.hidden-bar-btn:hover { border-color: #888; }
 
