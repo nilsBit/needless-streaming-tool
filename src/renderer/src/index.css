@@ -2587,36 +2587,67 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .notion-picker-hint { font-size: 12px; color: var(--muted, #888); margin-top: 8px; }
 
 /* ---------- Clips Panel ---------- */
-.clips-panel-header { display: flex; align-items: center; justify-content: space-between; }
+.clips-panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 10px; }
 .auto-sync-toggle {
   background: rgba(74,158,255,0.15);
   color: #4a9eff;
   border: 1px solid rgba(74,158,255,0.3);
-  padding: 4px 10px;
-  border-radius: 12px;
+  padding: 5px 12px;
+  border-radius: 14px;
   cursor: pointer;
   font-size: 12px;
 }
 .auto-sync-toggle.off { background: rgba(255,255,255,0.05); color: var(--muted, #888); border-color: rgba(255,255,255,0.1); }
-.day-breakdown { display: inline-flex; gap: 6px; margin-left: 8px; }
+
+.clip-tags { margin-bottom: 10px; }
+.clip-custom { margin: 12px 0 16px 0; }
+
+.clip-sessions { display: flex; flex-direction: column; gap: 18px; }
+.clip-day { display: flex; flex-direction: column; }
+.clip-day-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 4px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  margin-bottom: 8px;
+}
+.clip-day-header .day-toggle { font-size: 10px; color: var(--muted, #888); }
+.clip-day-header .day-date { font-weight: 600; font-size: 13px; }
+.clip-day-header .day-count { font-size: 12px; color: var(--muted, #888); margin-left: auto; }
+.clip-day.today .day-date { color: var(--accent, #4a9eff); }
+.day-breakdown { display: inline-flex; gap: 6px; }
 .day-breakdown .tag-chip {
   font-size: 11px;
-  padding: 2px 6px;
+  padding: 3px 8px;
   border-radius: 10px;
   background: rgba(255,255,255,0.08);
 }
+.clip-day-header .btn-export {
+  padding: 5px 10px;
+  font-size: 12px;
+  border-radius: 6px;
+}
+
+.clip-list { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; }
 .clip-item {
+  display: flex;
+  flex-direction: column;
   background: var(--bg-elevated, rgba(255,255,255,0.03));
   border: 1px solid var(--border, #2a2a2a);
   border-radius: 8px;
-  padding: 10px 12px;
-  margin: 6px 0;
-  transition: background 0.15s;
+  padding: 14px 16px;
+  margin: 0;
+  gap: 6px;
+  font-size: 14px;
+  transition: background 0.15s, border-color 0.15s;
 }
-.clip-item:hover { background: rgba(255,255,255,0.05); }
+.clip-item:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.12); }
+.clip-item.auto-clip { border-style: dashed; border-color: rgba(250,180,50,0.3); }
 .clip-row-top { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--muted, #888); }
-.clip-row-mid { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
-.clip-row-note { margin-top: 4px; font-size: 12px; color: var(--muted, #aaa); font-style: italic; }
+.clip-row-mid { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.clip-row-note { font-size: 13px; color: var(--muted, #aaa); font-style: italic; line-height: 1.4; }
 .clip-sync-badge { font-size: 14px; cursor: default; }
 .clip-sync-badge.clickable { cursor: pointer; }
 .clip-sync-badge.syncing { animation: spin 1.2s linear infinite; }
