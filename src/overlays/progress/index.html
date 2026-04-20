@@ -501,11 +501,28 @@ function formatTime(seconds) {
   return h > 0 ? h + 'h ' + m + 'm' : m + 'm';
 }
 
+let wsConnected = false;
+let fallbackInterval = null;
+
+function startFallbackPolling() {
+  if (fallbackInterval) return;
+  fallbackInterval = setInterval(fetchProgress, 10000);
+}
+
+function stopFallbackPolling() {
+  if (fallbackInterval) {
+    clearInterval(fallbackInterval);
+    fallbackInterval = null;
+  }
+}
+
 function connectWS() {
   const ws = new WebSocket('ws://localhost:4000?overlay=1');
 
   ws.onopen = () => {
     console.log('[Progress] WebSocket connected');
+    wsConnected = true;
+    stopFallbackPolling();
     fetchProgress();
   };
 
@@ -523,6 +540,8 @@ function connectWS() {
 
   ws.onclose = () => {
     console.log('[Progress] WebSocket closed, reconnecting...');
+    wsConnected = false;
+    startFallbackPolling();
     setTimeout(connectWS, 2000);
   };
 
@@ -530,7 +549,7 @@ function connectWS() {
 }
 
 connectWS();
-setInterval(fetchProgress, 10000);
+startFallbackPolling();
 </script>
 </body>
 </html>
