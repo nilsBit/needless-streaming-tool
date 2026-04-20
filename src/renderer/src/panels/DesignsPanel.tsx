@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useApi, apiPost, apiPatch, apiDelete } from '../hooks/useApi';
 import { Design } from '../../../shared/types';
 import { useWebSocket } from '../hooks/useWebSocket';
@@ -27,15 +27,9 @@ export default function DesignsPanel() {
 
   useWebSocket((event) => {
     if (event === 'design-created' || event === 'design-updated' || event === 'design-deleted') refetch();
+    if (event === 'design-vote-started' || event === 'design-vote-ended' || event === 'poll-update' || event === 'poll-close' || event === 'vote-result') refetchVote();
   });
   const [voteDuration, setVoteDuration] = useState(60);
-
-  // Poll vote status every 2s when active
-  useEffect(() => {
-    if (!vote || vote.active === false) return;
-    const interval = setInterval(refetchVote, 2000);
-    return () => clearInterval(interval);
-  }, [vote, refetchVote]);
 
   const createDesign = async () => {
     if (!title.trim()) return;
