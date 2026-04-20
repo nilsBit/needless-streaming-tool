@@ -26,7 +26,7 @@ const TABS = {
       { key: 'challenge', label: 'Challenge', component: ChallengePanel },
       { key: 'issues', label: 'Glücksrad', component: IssuesPanel },
       { key: 'clips', label: 'Clip Moments', component: ClipsPanel },
-      { key: 'designs', label: 'Chat Designs', component: DesignsPanel },
+      { key: 'designs', label: 'Abstimmungen', component: DesignsPanel },
       { key: 'song', label: 'Now Playing', component: SongPanel },
       { key: 'raids', label: 'Raids', component: RaidsPanel },
     ],

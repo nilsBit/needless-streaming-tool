@@ -12,7 +12,7 @@ const translations = {
   'panel.challenge': { de: 'Challenge', en: 'Challenge' },
   'panel.issues': { de: 'Glücksrad', en: 'Lucky Wheel' },
   'panel.clips': { de: 'Clip Moments', en: 'Clip Moments' },
-  'panel.designs': { de: 'Chat Voting', en: 'Chat Voting' },
+  'panel.designs': { de: 'Abstimmungen', en: 'Polls' },
   'panel.progress': { de: 'Progress Tracker', en: 'Progress Tracker' },
   'panel.milestones': { de: 'Milestones', en: 'Milestones' },
   'panel.todos': { de: 'Todos', en: 'Todos' },
