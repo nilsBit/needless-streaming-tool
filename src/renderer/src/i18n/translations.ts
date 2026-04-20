@@ -183,12 +183,6 @@ const translations = {
   'todos.empty': { de: 'Keine Todos', en: 'No todos' },
   'todos.done_section': { de: 'Erledigt', en: 'Done' },
 
-  // ---- Rewards Panel ----
-  'rewards.desc': { de: 'Eingelöste Channel Point Rewards. Abhaken wenn erledigt.', en: 'Redeemed channel point rewards. Check off when done.' },
-  'rewards.empty': { de: 'Keine offenen Rewards', en: 'No pending rewards' },
-  'rewards.done_section': { de: 'Erledigt', en: 'Done' },
-  'rewards.clear_done': { de: '🗑️ Erledigte löschen', en: '🗑️ Clear done' },
-
   // ---- Stats Panel ----
   'stats.loading': { de: 'Wird geladen...', en: 'Loading...' },
   'stats.desc':    { de: 'Überblick über alle Stream-Daten.', en: 'Overview of all stream data.' },

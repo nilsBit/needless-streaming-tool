@@ -72,8 +72,7 @@ async function handleRedemption(event: Record<string, unknown>) {
   // Map reward title to our reward types
   let rewardType = rewardId;
   const titleLower = rewardTitle.toLowerCase();
-  if (titleLower.includes('spawn')) rewardType = 'spawn_enemys';
-  else if (titleLower.includes('roulette')) rewardType = 'roulette';
+  if (titleLower.includes('roulette')) rewardType = 'roulette';
   else if (titleLower.includes('feature')) rewardType = 'feature_request';
   else if (titleLower.includes('musik') || titleLower.includes('song')) rewardType = 'change_music';
   else if (titleLower.includes('scene') || titleLower.includes('szene')) rewardType = 'scene_change';

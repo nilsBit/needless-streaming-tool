@@ -69,7 +69,6 @@ On first launch, the **Setup Wizard** will guide you through the setup. You can 
 **Built-in Reward Types:**
 | Reward name contains | Action |
 |---------------------|--------|
-| "spawn" | Spawn Enemies Event |
 | "roulette" | Spin the lucky wheel |
 | "feature" | Submit a suggestion |
 | "musik" or "song" | Change music |

@@ -69,7 +69,6 @@ Beim ersten Start führt dich der **Setup-Wizard** durch die Einrichtung. Du kan
 **Eingebaute Reward-Typen:**
 | Reward-Name enthält | Aktion |
 |---------------------|--------|
-| "spawn" | Spawn Enemies Event |
 | "roulette" | Glücksrad drehen |
 | "feature" | Vorschlag einreichen |
 | "musik" oder "song" | Musik ändern |
