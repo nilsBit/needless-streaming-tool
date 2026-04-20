@@ -1,7 +1,5 @@
 import { onBroadcast } from './websocket/index';
 import { createClip } from './api/clips';
-import { getClient } from './bot/index';
-import { initChatMonitor, setSpikeMultiplier } from './bot/chat-monitor';
 import { getDb } from './db/index';
 
 let lastAutoClipTime = 0;
@@ -41,20 +39,6 @@ async function autoClip(tag: string, note: string, confidence: 'high' | 'medium'
 }
 
 export function initAutoClips(): void {
-  // Load spike multiplier from settings
-  const mult = parseFloat(getSetting('auto_clip_spike_multiplier', '3'));
-  setSpikeMultiplier(mult);
-
-  // Init chat monitor if bot client is available
-  const client = getClient();
-  if (client) {
-    initChatMonitor(client, (multiplier: number) => {
-      if (!isTriggerEnabled('chat')) return;
-      const confidence = multiplier > 5 ? 'high' : 'medium';
-      autoClip('auto-chat', `Chat spike (${multiplier}x)`, confidence);
-    });
-  }
-
   // Listen for broadcast events
   onBroadcast((event: string, data: unknown) => {
     if (!isEnabled()) return;

@@ -425,8 +425,6 @@ const translations = {
   'auto_clips.desc': { de: 'Automatisch Clips bei besonderen Momenten erstellen.', en: 'Automatically create clips at special moments.' },
   'auto_clips.enabled': { de: 'Auto-Clips aktiviert', en: 'Auto-Clips enabled' },
   'auto_clips.disabled': { de: 'Auto-Clips deaktiviert', en: 'Auto-Clips disabled' },
-  'auto_clips.spike_multiplier': { de: 'Chat-Spike Empfindlichkeit', en: 'Chat spike sensitivity' },
-  'auto_clips.trigger_chat': { de: 'Chat-Spikes', en: 'Chat spikes' },
   'auto_clips.trigger_reward': { de: 'Channel Point Rewards', en: 'Channel point rewards' },
   'auto_clips.trigger_hype': { de: 'Hype Moments', en: 'Hype moments' },
   'auto_clips.trigger_milestone': { de: 'Milestones', en: 'Milestones' },
