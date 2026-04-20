@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useApi } from '../../hooks/useApi';
+import { useWebSocket } from '../../hooks/useWebSocket';
 import { BotStatus } from '../../../../shared/types';
 import { useTranslation } from '../../i18n/LanguageContext';
 
@@ -12,14 +13,10 @@ export default function DoneStep({ onFinish }: { onFinish: () => void }) {
   const twitchDone = !!botStatus?.connected;
   const obsDone = !!obsStatus?.connected;
 
-  useEffect(() => {
-    if (twitchDone && obsDone) return;
-    const interval = setInterval(() => {
-      refetchBot();
-      refetchObs();
-    }, 2000);
-    return () => clearInterval(interval);
-  }, [refetchBot, refetchObs, twitchDone, obsDone]);
+  useWebSocket((event) => {
+    if (event === 'bot-status') refetchBot();
+    if (event === 'obs-status') refetchObs();
+  });
   const notionDone = !!notionInfo?.configured;
   const canFinish = twitchDone && obsDone;
 

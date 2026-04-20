@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useApi, apiFetch } from '../../hooks/useApi';
+import { useWebSocket } from '../../hooks/useWebSocket';
 import { BotStatus } from '../../../../shared/types';
 import { useTranslation } from '../../i18n/LanguageContext';
 
@@ -14,11 +15,9 @@ export default function TwitchStep() {
   const { data: clientIdInfo, refetch: refetchClientId } = useApi<ClientIdResponse>('/auth/twitch/client-id');
   const [clientId, setClientId] = useState('');
 
-  useEffect(() => {
-    if (botStatus?.connected) return;
-    const interval = setInterval(refetchBot, 2000);
-    return () => clearInterval(interval);
-  }, [refetchBot, botStatus?.connected]);
+  useWebSocket((event) => {
+    if (event === 'bot-status') { refetchBot(); refetchConfig(); }
+  });
 
   const saveClientId = async () => {
     if (!clientId.trim()) return;

@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useApi, apiPost } from '../../hooks/useApi';
+import { useWebSocket } from '../../hooks/useWebSocket';
 import { useTranslation } from '../../i18n/LanguageContext';
 
 export default function ObsStep() {
@@ -10,11 +11,9 @@ export default function ObsStep() {
   const [port, setPort] = useState('4455');
   const [password, setPassword] = useState('');
 
-  useEffect(() => {
-    if (obsStatus?.connected) return;
-    const interval = setInterval(refetchStatus, 2000);
-    return () => clearInterval(interval);
-  }, [refetchStatus, obsStatus?.connected]);
+  useWebSocket((event) => {
+    if (event === 'obs-status') refetchStatus();
+  });
 
   const saveAndConnect = async () => {
     await apiPost('/obs/config', {
