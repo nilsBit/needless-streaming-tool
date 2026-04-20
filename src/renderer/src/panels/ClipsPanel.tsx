@@ -300,16 +300,21 @@ export default function ClipsPanel() {
                             </span>
                           )}
                         </span>
-                        {isAutoClip(clip) ? (
-                          <div className="auto-clip-actions">
-                            <button className="btn-confirm-small" onClick={() => confirmClip(clip)} title={t('auto_clips.confirm')}>✓</button>
-                            <button className="btn-delete-small" onClick={() => deleteClip(clip.id)} title={t('auto_clips.reject')}>✕</button>
-                          </div>
-                        ) : (
+                        {!isAutoClip(clip) && (
                           <button className="btn-delete-small" onClick={() => deleteClip(clip.id)} title={t('tooltip.delete')}>✕</button>
                         )}
                       </div>
                       {clip.note && <div className="clip-row-note">"{clip.note}"</div>}
+                      {isAutoClip(clip) && (
+                        <div className="clip-row-actions">
+                          <button className="btn-auto-confirm" onClick={() => confirmClip(clip)}>
+                            ✓ {t('auto_clips.confirm')}
+                          </button>
+                          <button className="btn-auto-reject" onClick={() => deleteClip(clip.id)}>
+                            ✕ {t('auto_clips.reject')}
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

@@ -2648,6 +2648,27 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .clip-row-top { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--muted, #888); }
 .clip-row-mid { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .clip-row-note { font-size: 13px; color: var(--muted, #aaa); font-style: italic; line-height: 1.4; }
+.clip-row-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(250,180,50,0.2);
+}
+.btn-auto-confirm, .btn-auto-reject {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  background: transparent;
+}
+.btn-auto-confirm { border: 1px solid rgba(46, 204, 113, 0.5); color: #2ecc71; }
+.btn-auto-confirm:hover { background: rgba(46, 204, 113, 0.15); border-color: #2ecc71; }
+.btn-auto-reject { border: 1px solid rgba(231, 76, 60, 0.4); color: #b94a4a; }
+.btn-auto-reject:hover { background: rgba(231, 76, 60, 0.12); border-color: #e74c3c; color: #e74c3c; }
 .clip-sync-badge { font-size: 14px; cursor: default; }
 .clip-sync-badge.clickable { cursor: pointer; }
 .clip-sync-badge.syncing { animation: spin 1.2s linear infinite; }
