@@ -40,6 +40,47 @@ router.post('/items', (req, res) => {
   res.status(201).json(item);
 });
 
+// POST /seed-examples — creates 3 pre-made kanban items with sub-todos when the board is empty
+router.post('/seed-examples', (_req, res) => {
+  const db = getDb();
+  const count = db.prepare('SELECT COUNT(*) as c FROM project_items').get() as { c: number };
+  if (count.c > 0) { res.status(409).json({ error: 'already_has_items' }); return; }
+
+  const EXAMPLES: Array<{ title: string; todos: string[] }> = [
+    {
+      title: '🎨 Intro überarbeiten',
+      todos: ['Neue Musik aussuchen', 'Titel-Card designen', 'In OBS einfügen & testen'],
+    },
+    {
+      title: '🔧 Overlay-Set erneuern',
+      todos: ['Farbschema festlegen', 'Alerts stylen', 'Chat-Box stylen'],
+    },
+    {
+      title: '🎮 Nächste Stream-Session planen',
+      todos: ['Thema wählen', 'Discord-Post vorbereiten'],
+    },
+  ];
+
+  const inserted: Array<Record<string, unknown>> = [];
+  const doSeed = db.transaction(() => {
+    EXAMPLES.forEach((ex, idx) => {
+      const itemResult = db.prepare('INSERT INTO project_items (title, status, sort_order) VALUES (?, ?, ?)').run(ex.title, 'pending', idx);
+      const itemId = Number(itemResult.lastInsertRowid);
+      ex.todos.forEach((title, j) => {
+        db.prepare('INSERT INTO todos (title, sort_order, parent_id) VALUES (?, ?, ?)').run(title, j, itemId);
+      });
+      const item = db.prepare('SELECT * FROM project_items WHERE id = ?').get(itemId) as Record<string, unknown>;
+      item.todos = db.prepare('SELECT * FROM todos WHERE parent_id = ? ORDER BY sort_order ASC').all(itemId);
+      inserted.push(item);
+    });
+  });
+
+  doSeed();
+
+  broadcast('progress-update', { action: 'items-seeded', count: inserted.length });
+  res.status(201).json({ items: inserted });
+});
+
 // PATCH item (status, title, sort_order) — with timer linking
 router.patch('/items/:id', (req, res) => {
   const { title, status, sort_order, current_timer_seconds } = req.body;
