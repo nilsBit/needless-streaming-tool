@@ -163,6 +163,20 @@ export async function startServer(): Promise<string> {
     }
   });
 
+  // Graceful shutdown — close server so port is freed before process exits
+  function shutdown() {
+    console.log('[Server] Shutting down...');
+    server.close(() => {
+      console.log('[Server] Closed');
+      process.exit(0);
+    });
+    // Force exit after 2s if server doesn't close cleanly
+    setTimeout(() => process.exit(0), 2000);
+  }
+
+  process.on('SIGTERM', shutdown);
+  process.on('SIGINT', shutdown);
+
   return new Promise((resolve) => {
     server.listen(PORT, () => {
       console.log(`[Server] Running on http://localhost:${PORT}`);
