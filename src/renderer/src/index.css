@@ -2527,3 +2527,98 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   font-size: 11px;
   padding: 3px 8px;
 }
+
+/* ---------- Notion DB Picker ---------- */
+.notion-picker {
+  border: 1px solid var(--border, #333);
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 8px;
+  background: var(--bg-elevated, rgba(255,255,255,0.03));
+}
+.notion-picker.compact { padding: 8px; }
+.notion-picker-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.notion-picker-header h4 { margin: 0; font-size: 14px; }
+.notion-picker-refresh { background: none; border: none; cursor: pointer; font-size: 14px; }
+.notion-picker-create-btn {
+  width: 100%;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  background: var(--accent, #4a9eff);
+  color: white;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+.notion-picker-list { list-style: none; padding: 0; margin: 0; }
+.notion-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.notion-picker-item:hover { background: var(--hover, rgba(255,255,255,0.05)); }
+.notion-picker-icon { font-size: 16px; }
+.notion-picker-title { flex: 1; }
+.notion-picker-badge {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.1);
+}
+.notion-picker-badge.ok { background: rgba(40, 200, 80, 0.2); color: #4ade80; }
+.notion-picker-badge.warn { background: rgba(250, 180, 50, 0.2); color: #fbbf24; }
+.notion-picker-badge.error { background: rgba(255, 80, 80, 0.2); color: #f87171; }
+.notion-picker-manual-toggle { margin-top: 8px; font-size: 12px; }
+.notion-picker-manual-toggle button.link { background: none; border: none; color: var(--accent, #4a9eff); cursor: pointer; padding: 0; }
+.notion-picker-manual-input { display: flex; gap: 6px; margin-top: 6px; }
+.notion-picker-manual-input input { flex: 1; padding: 6px 8px; border-radius: 4px; border: 1px solid var(--border, #333); background: transparent; color: inherit; }
+.notion-picker-actions { display: flex; gap: 8px; margin-top: 10px; justify-content: flex-end; }
+.notion-picker.empty ol { padding-left: 20px; margin: 8px 0; }
+.notion-picker.empty li { margin: 4px 0; font-size: 13px; }
+.notion-picker-sub { font-size: 12px; color: var(--muted, #888); margin: 4px 0 8px 0; }
+.notion-picker-current { display: flex; align-items: center; gap: 8px; }
+.notion-picker-pages { border: 1px solid var(--border, #333); border-radius: 6px; padding: 8px; margin-top: 8px; }
+.notion-picker-page-option { display: flex; align-items: center; gap: 6px; padding: 4px 0; cursor: pointer; }
+.notion-picker-hint { font-size: 12px; color: var(--muted, #888); margin-top: 8px; }
+
+/* ---------- Clips Panel ---------- */
+.clips-panel-header { display: flex; align-items: center; justify-content: space-between; }
+.auto-sync-toggle {
+  background: rgba(74,158,255,0.15);
+  color: #4a9eff;
+  border: 1px solid rgba(74,158,255,0.3);
+  padding: 4px 10px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.auto-sync-toggle.off { background: rgba(255,255,255,0.05); color: var(--muted, #888); border-color: rgba(255,255,255,0.1); }
+.day-breakdown { display: inline-flex; gap: 6px; margin-left: 8px; }
+.day-breakdown .tag-chip {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.08);
+}
+.clip-item {
+  background: var(--bg-elevated, rgba(255,255,255,0.03));
+  border: 1px solid var(--border, #2a2a2a);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 6px 0;
+  transition: background 0.15s;
+}
+.clip-item:hover { background: rgba(255,255,255,0.05); }
+.clip-row-top { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--muted, #888); }
+.clip-row-mid { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
+.clip-row-note { margin-top: 4px; font-size: 12px; color: var(--muted, #aaa); font-style: italic; }
+.clip-sync-badge { font-size: 14px; cursor: default; }
+.clip-sync-badge.clickable { cursor: pointer; }
+.clip-sync-badge.syncing { animation: spin 1.2s linear infinite; }
+.clip-sync-badge.pending { opacity: 0.5; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
