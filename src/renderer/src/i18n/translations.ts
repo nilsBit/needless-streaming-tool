@@ -170,9 +170,9 @@ const translations = {
   // ---- Issues Panel ----
   'issues.desc': { de: 'Issues sammeln, Rad drehen, Chat entscheidet was dran kommt.', en: 'Collect issues, spin the wheel, chat decides what\'s next.' },
   'issues.placeholder': { de: 'Neues Issue...', en: 'New issue...' },
-  'issues.spinning': { de: '🎰 Spinning...', en: '🎰 Spinning...' },
+  'issues.spinning': { de: 'Spinning...', en: 'Spinning...' },
   'issues.cooldown': { de: 'Cooldown', en: 'Cooldown' },
-  'issues.spin': { de: '🎰 Drehen!', en: '🎰 Spin!' },
+  'issues.spin': { de: 'Drehen!', en: 'Spin!' },
   'issues.open': { de: 'Offen', en: 'Open' },
   'issues.fixed': { de: 'Gefixt', en: 'Fixed' },
   'issues.cmd_issues': { de: 'Zeigt offene Issues', en: 'Shows open issues' },
