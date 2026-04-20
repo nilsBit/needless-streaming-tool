@@ -174,7 +174,8 @@ export default function App() {
           if (!p) return null;
           const isCollapsed = collapsed.has(key);
           const Component = p.component;
-          const isFull = layout.isFullWidth(key);
+          const onlyOneVisible = layout.order.length === 1;
+          const isFull = onlyOneVisible || layout.isFullWidth(key);
           return (
             <div
               key={key}
@@ -197,13 +198,15 @@ export default function App() {
                   <span className="collapse-label">{p.label}</span>
                 </button>
                 <div className="panel-header-controls">
-                  <button
-                    className="panel-header-btn"
-                    onClick={() => layout.toggleWidth(key)}
-                    title={isFull ? t('layout.half_width') : t('layout.full_width')}
-                  >
-                    {isFull ? '⬛' : '⬜'}
-                  </button>
+                  {!onlyOneVisible && (
+                    <button
+                      className="panel-header-btn"
+                      onClick={() => layout.toggleWidth(key)}
+                      title={layout.isFullWidth(key) ? t('layout.half_width') : t('layout.full_width')}
+                    >
+                      {layout.isFullWidth(key) ? '⬛' : '⬜'}
+                    </button>
+                  )}
                   <button
                     className="panel-header-btn"
                     onClick={() => layout.hide(key)}
