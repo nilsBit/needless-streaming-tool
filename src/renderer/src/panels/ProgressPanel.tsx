@@ -224,11 +224,19 @@ export default function ProgressPanel() {
           onDragEnd={handleDragEnd}
         >
           <button className="status-toggle" onClick={e => { e.stopPropagation(); cycleStatus(item); }}>{statusEmoji(item.status)}</button>
-          <span className="item-title" onClick={() => toggleExpand(item.id)}>{item.title}</span>
-          {hasTodos && <span className="todo-count">{doneTodos.length}/{todos.length} ✓</span>}
+          <span className={`item-title ${hasTodos && doneTodos.length === todos.length ? 'all-done' : ''}`} onClick={() => toggleExpand(item.id)}>{item.title}</span>
+          {hasTodos && <span className="todo-count">☑ {doneTodos.length}/{todos.length}</span>}
           {displayTime > 0 && <span className="item-time">{formatTime(displayTime)}</span>}
           <button className="btn-delete-small" onClick={e => { e.stopPropagation(); deleteItem(item.id); }} title={t('tooltip.delete')}>✕</button>
         </div>
+        {hasTodos && (
+          <div className="kanban-item-progress">
+            <div
+              className={`kanban-item-progress-fill ${doneTodos.length === todos.length ? 'full' : ''}`}
+              style={{ width: `${(doneTodos.length / todos.length) * 100}%` }}
+            />
+          </div>
+        )}
         {isExpanded && (
           <div className="kanban-item-todos">
             {isActive && todos.length === 0 && (

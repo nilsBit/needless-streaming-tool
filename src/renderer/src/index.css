@@ -2832,3 +2832,19 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .kanban-add-empty { max-width: 420px; margin: 12px auto 0 auto; display: flex; gap: 6px; }
 .kanban-add-empty input { flex: 1; padding: 8px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.03); color: inherit; font-size: 13px; }
 .kanban-add-empty button { padding: 8px 14px; border-radius: 6px; background: rgba(255,255,255,0.08); color: inherit; border: 1px solid rgba(255,255,255,0.15); cursor: pointer; }
+
+/* Kanban-item progress bar on card face (Trello pattern) */
+.kanban-item-progress {
+  height: 2px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 1px;
+  margin: 0 10px 6px 10px;
+  overflow: hidden;
+}
+.kanban-item-progress-fill {
+  height: 100%;
+  background: var(--accent, #4a9eff);
+  transition: width 0.25s ease, background 0.2s ease;
+}
+.kanban-item-progress-fill.full { background: #2ecc71; }
+.kanban-item .item-title.all-done { text-decoration: line-through; text-decoration-color: rgba(46, 204, 113, 0.6); opacity: 0.7; }
