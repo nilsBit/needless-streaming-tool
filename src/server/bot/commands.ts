@@ -1,7 +1,7 @@
 import { Client } from 'tmi.js';
 import { getDb } from '../db/index';
 import { startVote, castVote, getActiveVote, endVote } from './voting';
-import { StreamState, Issue, Todo } from '../../shared/types';
+import { StreamState, Issue } from '../../shared/types';
 import { changeScene, getScenes } from '../obs/index';
 import { broadcast } from '../websocket/index';
 
@@ -139,12 +139,17 @@ export function registerCommands(client: Client) {
       }
 
       case 'todo': {
-        const todos = getDb().prepare('SELECT * FROM todos WHERE done = 0').all() as Todo[];
+        const activeItem = getDb().prepare('SELECT * FROM project_items WHERE status = ?').get('in_progress') as { id: number; title: string } | undefined;
+        if (!activeItem) {
+          client.say(channel, '📋 Kein aktives Feature.');
+          break;
+        }
+        const todos = getDb().prepare('SELECT * FROM todos WHERE parent_id = ? AND done = 0 ORDER BY sort_order ASC').all(activeItem.id) as Array<{ title: string }>;
         if (todos.length === 0) {
-          client.say(channel, '📋 Keine Todos!');
+          client.say(channel, `📋 ${activeItem.title} — Alle Aufgaben erledigt! 🎉`);
         } else {
-          const list = todos.map((t, i) => `${i + 1}. ${t.title}`).join(' | ');
-          client.say(channel, `📋 Todos: ${list}`);
+          const list = todos.map((td, i) => `${i + 1}. ${td.title}`).join(' | ');
+          client.say(channel, `📋 ${activeItem.title}: ${list}`);
         }
         break;
       }

@@ -366,14 +366,24 @@
 </script>
 <script>
 let todos = [];
+let projectTitle = '';
 
-async function fetchTodos() {
+async function fetchData() {
   try {
-    const res = await fetch('http://localhost:4000/public/todos');
-    todos = await res.json();
+    const res = await fetch('http://localhost:4000/public/progress');
+    const data = await res.json();
+    const activeItem = (data.items || []).find(i => i.status === 'in_progress');
+
+    if (!activeItem) {
+      projectTitle = '';
+      todos = [];
+    } else {
+      projectTitle = activeItem.title;
+      todos = activeItem.todos || [];
+    }
     render();
   } catch (err) {
-    console.error('[Todo] Fetch failed:', err);
+    console.error('[Todos] Fetch failed:', err);
   }
 }
 
@@ -389,6 +399,17 @@ function render() {
   document.getElementById('openCount').textContent = openCount + ' OFFEN';
 
   const list = document.getElementById('todoList');
+
+  // Update header to show active item title
+  const headerEl = document.querySelector('.header h1');
+  if (headerEl) {
+    headerEl.textContent = projectTitle ? projectTitle.toUpperCase() : 'TASKS';
+  }
+
+  if (!projectTitle && total === 0) {
+    list.innerHTML = '<div class="empty-msg">KEIN AKTIVES FEATURE</div>';
+    return;
+  }
 
   if (total === 0) {
     list.innerHTML = '<div class="empty-msg">KEINE TASKS VORHANDEN</div>';
@@ -430,8 +451,8 @@ const ws = new WebSocket('ws://localhost:4000?overlay=1');
 ws.onmessage = (e) => {
   try {
     const msg = JSON.parse(e.data);
-    if (msg.event && (msg.event.startsWith('todo-') || msg.event === 'todos-cleared')) {
-      fetchTodos();
+    if (msg.event === 'progress-update') {
+      fetchData();
     }
     if (msg.event === 'overlay-config' && window.__applyOverlayConfig) window.__applyOverlayConfig(msg.data);
   } catch {}
@@ -439,7 +460,7 @@ ws.onmessage = (e) => {
 
 ws.onclose = () => setTimeout(() => location.reload(), 3000);
 
-fetchTodos();
+fetchData();
 </script>
 </body>
 </html>
