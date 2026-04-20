@@ -85,7 +85,11 @@ git commit -m "refactor(stats): restructure Stats type to nested shape"
 
 ---
 
-> **Resume marker:** Tasks 1 is complete (commit `7ceac2c`). Spec-review and code-quality-review were NOT yet run against Task 1 — optional to run retroactively (it's a mechanical one-interface change), or skip and proceed to Task 2.
+> **Resume marker (2026-04-20):** Tasks 1–8 are complete. Commits:
+> - Task 1 `7ceac2c` · Task 2 `6f67f3d` · Task 3 `7aaa847` · Task 4 `4e0b7f1`
+> - Task 5 `dbe44ec` · Task 6 `605f376` · Task 7 `ed91756` · Task 8 `c064ffa`
+>
+> Spec-review and code-quality-review sub-agents were NOT dispatched between tasks (work was pushed mid-flight across a machine switch). On resume: either run retroactive reviews against the current `main` HEAD, or skip straight to **Task 9 (end-to-end manual QA)** since the changes are mechanically constrained by the plan and can be validated by QA directly.
 
 ---
 
