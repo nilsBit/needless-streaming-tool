@@ -2761,3 +2761,29 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   font-size: 12px;
 }
 .ux-empty-secondary:hover:not(:disabled) { background: rgba(255,255,255,0.05); }
+
+/* ---------- UX Foundation: TryThisBadge ---------- */
+.ux-try-this-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+.ux-try-this-dot {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ff2d7b;
+  box-shadow: 0 0 0 2px var(--bg, #0f0f0f);
+  animation: ux-try-this-pulse 1.6s ease-in-out infinite;
+  pointer-events: auto;
+  cursor: help;
+}
+@keyframes ux-try-this-pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 2px var(--bg, #0f0f0f), 0 0 0 0 rgba(255, 45, 123, 0.5); }
+  50%      { transform: scale(1.25); box-shadow: 0 0 0 2px var(--bg, #0f0f0f), 0 0 0 6px rgba(255, 45, 123, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ux-try-this-dot { animation: none; }
+}
