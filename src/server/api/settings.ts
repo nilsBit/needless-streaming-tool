@@ -7,6 +7,7 @@ import { getDb } from '../db/index';
 import path from 'path';
 import fs from 'fs';
 import { DEFAULT_HOTKEYS } from '../../shared/types';
+import { listDatabases, listPages, createDatabase, healDatabase, checkDatabase } from './notion-sync';
 
 const router = Router();
 
@@ -86,10 +87,81 @@ router.post('/notion/database', (req, res) => {
     // Clean up: accept full Notion URLs or just the ID
     const cleanId = database_id.replace(/[-]/g, '').replace(/.*\/([a-f0-9]{32}).*/, '$1');
     getDb().prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('notion_clips_db', cleanId);
+    const existingAutoSync = getDb().prepare('SELECT value FROM settings WHERE key = ?').get('notion_auto_sync') as { value: string } | undefined;
+    if (!existingAutoSync) {
+      getDb().prepare('INSERT INTO settings (key, value) VALUES (?, ?)').run('notion_auto_sync', 'true');
+    }
   } else {
     getDb().prepare('DELETE FROM settings WHERE key = ?').run('notion_clips_db');
   }
   res.json({ success: true });
+});
+
+router.get('/notion/databases', async (_req, res) => {
+  try {
+    const dbs = await listDatabases();
+    res.json(dbs);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (msg === 'no_token' || msg === 'token_invalid') {
+      res.status(401).json({ error: msg });
+    } else {
+      res.status(502).json({ error: 'notion_error', details: msg });
+    }
+  }
+});
+
+router.get('/notion/pages', async (_req, res) => {
+  try {
+    const pages = await listPages();
+    res.json(pages);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (msg === 'no_token' || msg === 'token_invalid') {
+      res.status(401).json({ error: msg });
+    } else {
+      res.status(502).json({ error: 'notion_error', details: msg });
+    }
+  }
+});
+
+router.post('/notion/database/create', async (req, res) => {
+  const { parent_page_id, title } = req.body as { parent_page_id?: string; title?: string };
+  if (!parent_page_id) { res.status(400).json({ error: 'parent_page_id required' }); return; }
+  try {
+    const created = await createDatabase(parent_page_id, (title && title.trim()) || 'Stream Clips');
+    getDb().prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('notion_clips_db', created.id);
+    // Auto-Sync-Default on first configuration
+    const existingAutoSync = getDb().prepare('SELECT value FROM settings WHERE key = ?').get('notion_auto_sync') as { value: string } | undefined;
+    if (!existingAutoSync) {
+      getDb().prepare('INSERT INTO settings (key, value) VALUES (?, ?)').run('notion_auto_sync', 'true');
+    }
+    res.json(created);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (msg === 'no_parent_access') res.status(403).json({ error: msg });
+    else if (msg === 'token_invalid' || msg === 'no_token') res.status(401).json({ error: msg });
+    else res.status(502).json({ error: 'notion_error', details: msg });
+  }
+});
+
+router.post('/notion/database/heal', async (req, res) => {
+  const { database_id } = req.body as { database_id?: string };
+  if (!database_id) { res.status(400).json({ error: 'database_id required' }); return; }
+  try {
+    const result = await healDatabase(database_id);
+    res.json(result);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (msg === 'db_gone') res.status(404).json({ error: msg });
+    else if (msg === 'token_invalid' || msg === 'no_token') res.status(401).json({ error: msg });
+    else res.status(502).json({ error: 'notion_error', details: msg });
+  }
+});
+
+router.get('/notion/database/check', async (_req, res) => {
+  const result = await checkDatabase();
+  res.json(result);
 });
 
 // Onboarding
