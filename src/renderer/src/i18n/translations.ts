@@ -284,6 +284,19 @@ const translations = {
   'progress.cmd_progress': { de: 'Zeigt Projektfortschritt', en: 'Shows project progress' },
   'progress.subtodo_hint': { de: 'Sub-Tasks erscheinen live im Overlay — füge hier welche hinzu 👇', en: 'Sub-tasks appear live in the overlay — add some here 👇' },
   'progress.subtodo_hint_toast': { de: '💡 Füge Sub-Tasks zu „{title}" hinzu — sie erscheinen live im Overlay', en: '💡 Add sub-tasks to "{title}" — they appear live in the overlay' },
+  // Empty-state foundations
+  'empty.kanban.title': { de: 'Dein Kanban ist leer', en: 'Your kanban is empty' },
+  'empty.kanban.desc': { de: 'Features und Tasks, die du streamst, verwaltest du hier. Fang klein an.', en: 'Features and tasks you are streaming live here. Start small.' },
+  'empty.kanban.cta': { de: '➕ Erstes Feature anlegen', en: '➕ Create your first feature' },
+  'empty.kanban.secondary_lead': { de: 'oder lass mich 3 Beispiele anlegen:', en: 'or let me create 3 examples:' },
+  'empty.kanban.seed': { de: 'Beispiele einfügen', en: 'Insert examples' },
+  // Try-this
+  'try_this.add_subtodo': { de: 'Füge hier deine erste Sub-Task hinzu', en: 'Add your first sub-task here' },
+  // Celebrate
+  'celebrate.first_todo_done': { de: 'Erstes Task erledigt 🎯 — das erscheint live im Overlay.', en: 'First task done 🎯 — it appears live on the overlay.' },
+  // Seed
+  'progress.seed_success': { de: '3 Beispiele angelegt. Du kannst sie anpassen oder löschen.', en: '3 examples created. You can edit or delete them.' },
+  'progress.seed_error': { de: 'Konnte keine Beispiele einfügen.', en: 'Could not insert examples.' },
 
   // ---- Chat Panel ----
   'chat.connect_first': { de: 'Verbinde zuerst Twitch in den Settings.', en: 'Connect Twitch in Settings first.' },
