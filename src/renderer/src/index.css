@@ -20,16 +20,42 @@ body {
 .app-header h1 { font-size: 20px; font-weight: 600; }
 
 .column-toggle-btn {
-  background: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #111;
   border: 1px solid #333;
-  border-radius: 4px;
-  color: #888;
+  border-radius: 6px;
+  color: #aaa;
   cursor: pointer;
-  font-size: 16px;
-  padding: 4px 8px;
-  transition: border-color 0.2s, color 0.2s;
+  padding: 6px 12px;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
 }
-.column-toggle-btn:hover { border-color: #888; color: #ccc; }
+.column-toggle-btn:hover { border-color: #666; color: #fff; background: #1a1a1a; }
+
+.column-toggle-icon {
+  display: flex;
+  gap: 3px;
+}
+
+.col-block {
+  display: block;
+  width: 14px;
+  height: 16px;
+  border-radius: 2px;
+  background: #555;
+  transition: background 0.2s;
+}
+
+.column-toggle-btn:hover .col-block { background: #888; }
+.column-toggle-btn.single .col-block { width: 28px; }
+
+.column-toggle-label {
+  font-size: 12px;
+  font-weight: 600;
+  min-width: 10px;
+  text-align: center;
+}
 
 /* Tab Navigation */
 .tab-nav {

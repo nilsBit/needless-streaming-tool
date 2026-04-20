@@ -169,7 +169,7 @@ export default function App() {
           ))}
         </nav>
         <button
-          className="column-toggle-btn"
+          className={`column-toggle-btn ${singleColumn ? 'single' : ''}`}
           onClick={() => {
             const next = !singleColumn;
             setSingleColumn(next);
@@ -177,7 +177,11 @@ export default function App() {
           }}
           title={singleColumn ? t('layout.half_width') : t('layout.full_width')}
         >
-          {singleColumn ? '▤' : '▥'}
+          <span className="column-toggle-icon">
+            <span className="col-block" />
+            {!singleColumn && <span className="col-block" />}
+          </span>
+          <span className="column-toggle-label">{singleColumn ? '1' : '2'}</span>
         </button>
       </header>
       <main className={`panels ${singleColumn ? 'single-column' : ''}`}>
