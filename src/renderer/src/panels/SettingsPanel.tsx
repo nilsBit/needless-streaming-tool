@@ -6,6 +6,7 @@ import { useTranslation } from '../i18n/LanguageContext';
 import { useTheme } from '../i18n/ThemeContext';
 import { useToast } from '../i18n/ToastContext';
 import CopyButton from '../components/CopyButton';
+import NotionDatabasePicker from '../components/NotionDatabasePicker';
 
 interface ClientIdResponse {
   configured: boolean;
@@ -18,14 +19,12 @@ export default function SettingsPanel() {
   const { data: clientIdInfo, refetch: refetchClientId } = useApi<ClientIdResponse>('/auth/twitch/client-id');
   const { data: tokenInfo } = useApi<{ token: string | null }>('/settings/api-token');
   const { data: notionInfo, refetch: refetchNotion } = useApi<{ configured: boolean; preview: string | null }>('/settings/notion');
-  const { data: notionDbInfo, refetch: refetchNotionDb } = useApi<{ configured: boolean; database_id: string | null }>('/settings/notion/database');
   const { data: githubInfo, refetch: refetchGithub } = useApi<{ configured: boolean; preview: string | null; repo: string | null }>('/progress/github');
   const { data: obsConfig, refetch: refetchObs } = useApi<{ configured: boolean; host?: string; port?: number; has_password?: boolean }>('/obs/config');
   const { data: obsStatus, refetch: refetchObsStatus } = useApi<{ connected: boolean }>('/obs/status');
 
   const { toast } = useToast();
   const [notionToken, setNotionToken] = useState('');
-  const [notionDbId, setNotionDbId] = useState('');
   const [githubToken, setGithubToken] = useState('');
   const [githubRepo, setGithubRepo] = useState('');
   const [importing, setImporting] = useState(false);
@@ -297,38 +296,9 @@ export default function SettingsPanel() {
           </div>
         )}
 
-        <p className="setup-info" style={{ marginTop: '12px' }}>{t('settings.clips_db')}</p>
-        {!notionDbInfo?.configured ? (
-          <div className="client-id-input">
-            <input
-              type="text"
-              placeholder={t('settings.notion_db_placeholder')}
-              value={notionDbId}
-              onChange={(e) => setNotionDbId(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && (async () => {
-                const result = await apiPost('/settings/notion/database', { database_id: notionDbId.trim() });
-                if (!result) { toast.error(t('error.action_failed')); return; }
-                setNotionDbId('');
-                refetchNotionDb();
-              })()}
-            />
-            <button onClick={async () => {
-              const result = await apiPost('/settings/notion/database', { database_id: notionDbId.trim() });
-              if (!result) { toast.error(t('error.action_failed')); return; }
-              setNotionDbId('');
-              refetchNotionDb();
-            }}>💾</button>
-          </div>
-        ) : (
-          <div className="setup-step">
-            <p className="setup-info">Database: {notionDbInfo.database_id?.substring(0, 8)}...{notionDbInfo.database_id?.substring(24)}</p>
-            <button className="btn-reset-small" onClick={async () => {
-              const result = await apiPost('/settings/notion/database', { database_id: '' });
-              if (!result) { toast.error(t('error.action_failed')); return; }
-              refetchNotionDb();
-            }}>{t('settings.change_db')}</button>
-          </div>
-        )}
+        <div style={{ marginTop: '12px' }}>
+          <NotionDatabasePicker compact />
+        </div>
       </div>
 
       <div className="settings-section">
