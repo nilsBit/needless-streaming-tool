@@ -185,13 +185,13 @@ export default function ClipsPanel() {
     refetchClips();
   };
 
-  const formatClipTime = (clip: Clip) => {
-    const wallClock = new Date(clip.created_at + 'Z').toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const buildTimecodeTooltip = (clip: Clip): string => {
     const parts: string[] = [];
-    if (clip.stream_timecode) parts.push(`🔴 ${clip.stream_timecode}`);
-    if (clip.recording_timecode) parts.push(`⏺ ${clip.recording_timecode}`);
-    if (parts.length > 0) return `${parts.join(' ')} | ${wallClock}`;
-    return wallClock;
+    const wallClock = new Date(clip.created_at + 'Z').toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    parts.push(`Wall: ${wallClock}`);
+    if (clip.stream_timecode) parts.push(`Stream: ${clip.stream_timecode}`);
+    if (clip.recording_timecode) parts.push(`Recording: ${clip.recording_timecode}`);
+    return parts.join(' | ');
   };
 
   return (
@@ -305,35 +305,28 @@ export default function ClipsPanel() {
                 <div className="clip-list">
                   {dayClips.length === 0 && <p className="empty">{activeFilter ? `${t('clips.empty')} ${t('clips.with_tag')} "${activeFilter}"` : t('clips.empty')}</p>}
                   {dayClips.map((clip) => (
-                    <div key={clip.id} className={`clip-item ${isAutoClip(clip) ? 'auto-clip' : ''}`}>
-                      <div className="clip-row-top">
-                        <span className="clip-time">{formatClipTime(clip)}</span>
-                        <ClipSyncBadge state={syncStateFor(clip)} onRetry={() => retryClip(clip.id)} />
-                      </div>
-                      <div className="clip-row-mid">
-                        <span className="clip-tag">
-                          {isAutoClip(clip) && '🤖 '}
-                          {TAG_EMOJI[clip.tag.replace('auto-', '')] || '🏷️'} {clip.tag}
-                          {clip.confidence && (
-                            <span className={`confidence-dot ${clip.confidence}`} title={clip.confidence}>
-                              {clip.confidence === 'high' ? '🟢' : '🟡'}
-                            </span>
-                          )}
-                        </span>
-                        {!isAutoClip(clip) && (
-                          <button className="btn-delete-small" onClick={() => deleteClip(clip.id)} title={t('tooltip.delete')}>✕</button>
+                    <div key={clip.id} className={`clip-row ${isAutoClip(clip) ? 'auto-clip' : ''}`}>
+                      <span className="clip-row-time" title={buildTimecodeTooltip(clip)}>
+                        {clip.stream_timecode ? `🔴 ${clip.stream_timecode}` : new Date(clip.created_at + 'Z').toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                      </span>
+                      <span className="clip-row-tag">
+                        {isAutoClip(clip) && '🤖 '}
+                        {TAG_EMOJI[clip.tag.replace('auto-', '')] || '🏷️'} {clip.tag}
+                        {clip.confidence && (
+                          <span className={`confidence-dot ${clip.confidence}`} title={clip.confidence}>
+                            {clip.confidence === 'high' ? '🟢' : '🟡'}
+                          </span>
                         )}
-                      </div>
-                      {clip.note && <div className="clip-row-note">"{clip.note}"</div>}
-                      {isAutoClip(clip) && (
-                        <div className="clip-row-actions">
-                          <button className="btn-auto-confirm" onClick={() => confirmClip(clip)}>
-                            ✓ {t('auto_clips.confirm')}
-                          </button>
-                          <button className="btn-auto-reject" onClick={() => deleteClip(clip.id)}>
-                            ✕ {t('auto_clips.reject')}
-                          </button>
-                        </div>
+                      </span>
+                      <span className="clip-row-note">{clip.note && `"${clip.note}"`}</span>
+                      <ClipSyncBadge state={syncStateFor(clip)} onRetry={() => retryClip(clip.id)} />
+                      {isAutoClip(clip) ? (
+                        <>
+                          <button className="btn-clip-confirm" onClick={() => confirmClip(clip)} title={t('auto_clips.confirm')}>✓</button>
+                          <button className="btn-clip-reject" onClick={() => deleteClip(clip.id)} title={t('auto_clips.reject')}>✕</button>
+                        </>
+                      ) : (
+                        <button className="btn-clip-delete" onClick={() => deleteClip(clip.id)} title={t('tooltip.delete')}>✕</button>
                       )}
                     </div>
                   ))}
