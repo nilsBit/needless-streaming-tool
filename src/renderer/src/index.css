@@ -3100,3 +3100,47 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 [data-theme="light"] .sr-row { border-bottom-color: rgba(0,0,0,0.08); }
 [data-theme="light"] .sr-row:hover { background: rgba(0,0,0,0.02); }
 [data-theme="light"] .sr-playing { background: rgba(74,158,255,0.06); }
+
+/* ---------- Settings Groups ---------- */
+.settings-group {
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+.settings-group-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.settings-group-header:hover { background: rgba(255,255,255,0.03); }
+.settings-group-toggle { font-size: 10px; color: var(--muted, #888); }
+.settings-group-title { font-size: 15px; font-weight: 600; margin: 0; }
+.settings-group-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+.status-dot-mini {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.settings-group-content {
+  padding: 0 16px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.settings-group.open { background: rgba(255,255,255,0.01); }
+
+[data-theme="light"] .settings-group { border-color: rgba(0,0,0,0.1); }
+[data-theme="light"] .settings-group-header:hover { background: rgba(0,0,0,0.02); }
+[data-theme="light"] .settings-group.open { background: rgba(0,0,0,0.01); }
+[data-theme="light"] .settings-group-content { border-top-color: rgba(0,0,0,0.06); }
