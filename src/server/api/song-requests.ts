@@ -1,9 +1,14 @@
 import { Router } from 'express';
 import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
-import { VALID_SONG_REQUEST_STATUS } from '../../shared/types';
 
 const router = Router();
+
+export function getActiveQueue() {
+  return getDb().prepare(
+    "SELECT * FROM song_requests WHERE status IN ('pending', 'playing') ORDER BY CASE status WHEN 'playing' THEN 0 ELSE 1 END, created_at ASC"
+  ).all();
+}
 
 const YOUTUBE_RE = /(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([\w-]+)/i;
 const SPOTIFY_RE = /open\.spotify\.com\/track\/([\w]+)/i;
@@ -47,10 +52,7 @@ export function detectSource(url: string): 'youtube' | 'spotify' | null {
 
 // GET / — queue (pending + playing)
 router.get('/', (_req, res) => {
-  const rows = getDb().prepare(
-    "SELECT * FROM song_requests WHERE status IN ('pending', 'playing') ORDER BY CASE status WHEN 'playing' THEN 0 ELSE 1 END, created_at ASC"
-  ).all();
-  res.json(rows);
+  res.json(getActiveQueue());
 });
 
 // POST /clear — skip all pending
@@ -63,34 +65,27 @@ router.post('/clear', (_req, res) => {
 // POST /:id/play
 router.post('/:id/play', (req, res) => {
   const db = getDb();
-  const existing = db.prepare('SELECT * FROM song_requests WHERE id = ?').get(req.params.id);
-  if (!existing) { res.status(404).json({ error: 'Not found' }); return; }
-  db.prepare("UPDATE song_requests SET status = 'done' WHERE status = 'playing'").run();
-  db.prepare("UPDATE song_requests SET status = 'playing' WHERE id = ?").run(req.params.id);
+  const { changes } = db.prepare("UPDATE song_requests SET status = 'playing' WHERE id = ?").run(req.params.id);
+  if (!changes) { res.status(404).json({ error: 'Not found' }); return; }
+  db.prepare("UPDATE song_requests SET status = 'done' WHERE status = 'playing' AND id != ?").run(req.params.id);
   broadcast('sr-update', {});
   res.json({ success: true });
 });
 
 // POST /:id/skip
 router.post('/:id/skip', (req, res) => {
-  const db = getDb();
-  const existing = db.prepare('SELECT * FROM song_requests WHERE id = ?').get(req.params.id);
-  if (!existing) { res.status(404).json({ error: 'Not found' }); return; }
-  db.prepare("UPDATE song_requests SET status = 'skipped' WHERE id = ?").run(req.params.id);
+  const { changes } = getDb().prepare("UPDATE song_requests SET status = 'skipped' WHERE id = ?").run(req.params.id);
+  if (!changes) { res.status(404).json({ error: 'Not found' }); return; }
   broadcast('sr-update', {});
   res.json({ success: true });
 });
 
 // DELETE /:id
 router.delete('/:id', (req, res) => {
-  const db = getDb();
-  const existing = db.prepare('SELECT * FROM song_requests WHERE id = ?').get(req.params.id);
-  if (!existing) { res.status(404).json({ error: 'Not found' }); return; }
-  db.prepare('DELETE FROM song_requests WHERE id = ?').run(req.params.id);
+  const { changes } = getDb().prepare('DELETE FROM song_requests WHERE id = ?').run(req.params.id);
+  if (!changes) { res.status(404).json({ error: 'Not found' }); return; }
   broadcast('sr-update', {});
   res.status(204).send();
 });
-
-void VALID_SONG_REQUEST_STATUS; // used by commands.ts for reference
 
 export default router;

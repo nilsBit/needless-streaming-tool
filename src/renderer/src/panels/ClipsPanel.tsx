@@ -326,7 +326,7 @@ export default function ClipsPanel() {
                           <button className="btn-clip-reject" onClick={() => deleteClip(clip.id)} title={t('auto_clips.reject')}>✕</button>
                         </>
                       ) : (
-                        <button className="btn-clip-delete" onClick={() => deleteClip(clip.id)} title={t('tooltip.delete')}>✕</button>
+                        <button className="btn-row-action" onClick={() => deleteClip(clip.id)} title={t('tooltip.delete')}>✕</button>
                       )}
                     </div>
                   ))}

@@ -182,7 +182,7 @@ export default function SongPanel() {
             <span className="sr-row-source">{playingNow.source === 'youtube' ? '🔴' : '🟢'}</span>
             <span className="sr-row-user">@{playingNow.requested_by}</span>
             <a className="sr-row-link" href={playingNow.url} target="_blank" rel="noopener noreferrer" title="Open">🔗</a>
-            <button className="btn-clip-delete" onClick={() => skipSong(playingNow.id)} title={t('sr.skip')}>⏭</button>
+            <button className="btn-row-action" onClick={() => skipSong(playingNow.id)} title={t('sr.skip')}>⏭</button>
           </div>
         )}
 
@@ -196,9 +196,9 @@ export default function SongPanel() {
               <span className="sr-row-source">{sr.source === 'youtube' ? '🔴' : '🟢'}</span>
               <span className="sr-row-user">@{sr.requested_by}</span>
               <a className="sr-row-link" href={sr.url} target="_blank" rel="noopener noreferrer" title="Open">🔗</a>
-              <button className="btn-clip-delete" onClick={() => playSong(sr.id)} title={t('sr.play')}>▶</button>
-              <button className="btn-clip-delete" onClick={() => skipSong(sr.id)} title={t('sr.skip')}>⏭</button>
-              <button className="btn-clip-delete" onClick={() => deleteSong(sr.id)} title={t('tooltip.delete')}>✕</button>
+              <button className="btn-row-action" onClick={() => playSong(sr.id)} title={t('sr.play')}>▶</button>
+              <button className="btn-row-action" onClick={() => skipSong(sr.id)} title={t('sr.skip')}>⏭</button>
+              <button className="btn-row-action" onClick={() => deleteSong(sr.id)} title={t('tooltip.delete')}>✕</button>
             </div>
           ))
         )}

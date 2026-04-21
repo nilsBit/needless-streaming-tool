@@ -21,7 +21,7 @@ import customOverlaysRouter from './api/custom-overlays';
 import statsRouter from './api/stats';
 import backupRouter from './api/backup';
 import overlayConfigRouter, { getOverlayConfig } from './api/overlay-config';
-import songRequestsRouter from './api/song-requests';
+import songRequestsRouter, { getActiveQueue } from './api/song-requests';
 import { connectBot } from './bot/index';
 import { connectObs } from './obs/index';
 import { initAutoClips } from './auto-clips';
@@ -129,10 +129,7 @@ export async function startServer(): Promise<string> {
   });
 
   app.get('/public/song-queue', (_req, res) => {
-    const rows = getDb().prepare(
-      "SELECT * FROM song_requests WHERE status IN ('pending', 'playing') ORDER BY CASE status WHEN 'playing' THEN 0 ELSE 1 END, created_at ASC"
-    ).all();
-    res.json(rows);
+    res.json(getActiveQueue());
   });
 
   app.get('/public/progress', (_req, res) => {

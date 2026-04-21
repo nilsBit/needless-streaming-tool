@@ -2740,7 +2740,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .clip-row-time { min-width: 70px; font-size: 12px; color: var(--muted, #888); white-space: nowrap; }
 .clip-row-tag { min-width: 100px; color: #e67e22; white-space: nowrap; font-size: 13px; }
 .clip-row-note { flex: 1; color: var(--muted, #aaa); font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
-.btn-clip-delete {
+.btn-row-action {
   opacity: 0;
   background: none;
   border: none;
@@ -2750,8 +2750,8 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   padding: 2px 6px;
   transition: opacity 0.15s, color 0.15s;
 }
-.clip-row:hover .btn-clip-delete { opacity: 1; }
-.btn-clip-delete:hover { color: #e74c3c; }
+.clip-row:hover .btn-row-action { opacity: 1; }
+.btn-row-action:hover { color: #e74c3c; }
 .btn-clip-confirm, .btn-clip-reject {
   background: none;
   border: 1px solid;
@@ -2768,7 +2768,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 [data-theme="light"] .clip-row { border-bottom-color: rgba(0,0,0,0.08); }
 [data-theme="light"] .clip-row:hover { background: rgba(0,0,0,0.02); }
 [data-theme="light"] .clip-row.auto-clip { border-left-color: rgba(230,126,34,0.3); }
-[data-theme="light"] .btn-clip-delete { color: var(--text-secondary); }
+[data-theme="light"] .btn-row-action { color: var(--text-secondary); }
 .clip-sync-badge { font-size: 14px; cursor: default; }
 .clip-sync-badge.clickable { cursor: pointer; }
 .clip-sync-badge.syncing { animation: spin 1.2s linear infinite; }
@@ -3161,8 +3161,8 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .sr-row-user { font-size: 12px; color: var(--muted, #888); white-space: nowrap; }
 .sr-row-link { font-size: 12px; text-decoration: none; opacity: 0.5; }
 .sr-row-link:hover { opacity: 1; }
-.sr-row .btn-clip-delete { opacity: 0; }
-.sr-row:hover .btn-clip-delete { opacity: 1; }
+.sr-row .btn-row-action { opacity: 0; }
+.sr-row:hover .btn-row-action { opacity: 1; }
 
 [data-theme="light"] .sr-row { border-bottom-color: rgba(0,0,0,0.08); }
 [data-theme="light"] .sr-row:hover { background: rgba(0,0,0,0.02); }

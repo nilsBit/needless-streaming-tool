@@ -174,6 +174,7 @@ export default function GuidedTour({ steps, currentEvent, onEventConsumed, onCom
 }
 
 const TOOLTIP_WIDTH = 300;
+const TOOLTIP_MIN_HEIGHT = 120;
 const MARGIN = 12;
 
 function computeTooltipStyle(rect: Rect, pos: string): React.CSSProperties {
@@ -188,7 +189,7 @@ function computeTooltipStyle(rect: Rect, pos: string): React.CSSProperties {
   };
 
   // Clamp vertical position
-  const clampY = (y: number): number => Math.max(MARGIN, Math.min(vh - MARGIN - 120, y));
+  const clampY = (y: number): number => Math.max(MARGIN, Math.min(vh - MARGIN - TOOLTIP_MIN_HEIGHT, y));
 
   const centerX = rect.left + rect.width / 2;
   const centerY = rect.top + rect.height / 2;
@@ -216,7 +217,7 @@ function computeTooltipStyle(rect: Rect, pos: string): React.CSSProperties {
     default: {
       let top = rect.top + rect.height + gap;
       // Fall back to top if no space below
-      if (top + 120 > vh) {
+      if (top + TOOLTIP_MIN_HEIGHT > vh) {
         return { bottom: vh - rect.top + gap, left: clampX(centerX), transform: 'translateX(-50%)' };
       }
       return { top, left: clampX(centerX), transform: 'translateX(-50%)' };

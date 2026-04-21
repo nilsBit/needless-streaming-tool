@@ -205,6 +205,20 @@ export default function SettingsPanel() {
     setImporting(false);
   };
 
+  const saveNotionToken = async () => {
+    const result = await apiPost('/settings/notion', { token: notionToken.trim() });
+    if (!result) { toast.error(t('error.action_failed')); return; }
+    setNotionToken('');
+    refetchNotion();
+  };
+
+  const saveGithubToken = async () => {
+    const result = await apiPost('/progress/github', { token: githubToken.trim() });
+    if (!result) { toast.error(t('error.action_failed')); return; }
+    setGithubToken('');
+    refetchGithub();
+  };
+
   const SettingsGroup = ({ id, title, badge, children }: { id: string; title: string; badge?: React.ReactNode; children: React.ReactNode }) => {
     const isOpen = openGroups.has(id);
     return (
@@ -385,19 +399,9 @@ export default function SettingsPanel() {
                 placeholder={t('settings.notion_placeholder')}
                 value={notionToken}
                 onChange={(e) => setNotionToken(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && (async () => {
-                  const result = await apiPost('/settings/notion', { token: notionToken.trim() });
-                  if (!result) { toast.error(t('error.action_failed')); return; }
-                  setNotionToken('');
-                  refetchNotion();
-                })()}
+                onKeyDown={(e) => e.key === 'Enter' && saveNotionToken()}
               />
-              <button onClick={async () => {
-                const result = await apiPost('/settings/notion', { token: notionToken.trim() });
-                if (!result) { toast.error(t('error.action_failed')); return; }
-                setNotionToken('');
-                refetchNotion();
-              }}>💾</button>
+              <button onClick={saveNotionToken}>💾</button>
             </div>
           ) : (
             <div className="setup-step">
@@ -426,19 +430,9 @@ export default function SettingsPanel() {
                 placeholder={t('github.token_placeholder')}
                 value={githubToken}
                 onChange={e => setGithubToken(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && (async () => {
-                  const result = await apiPost('/progress/github', { token: githubToken.trim() });
-                  if (!result) { toast.error(t('error.action_failed')); return; }
-                  setGithubToken('');
-                  refetchGithub();
-                })()}
+                onKeyDown={e => e.key === 'Enter' && saveGithubToken()}
               />
-              <button onClick={async () => {
-                const result = await apiPost('/progress/github', { token: githubToken.trim() });
-                if (!result) { toast.error(t('error.action_failed')); return; }
-                setGithubToken('');
-                refetchGithub();
-              }}>💾</button>
+              <button onClick={saveGithubToken}>💾</button>
             </div>
           ) : (
             <div className="setup-step">
@@ -468,13 +462,6 @@ export default function SettingsPanel() {
               disabled={importing || !githubInfo?.configured || !githubRepo.trim()}
             >
               {importing ? '⏳...' : t('github.import_btn')}
-            </button>
-            <button
-              className="btn-settings-primary"
-              onClick={importGithub}
-              disabled={importing || !githubInfo?.configured || !githubRepo.trim()}
-            >
-              {t('github.sync_btn')}
             </button>
           </div>
         </div>
