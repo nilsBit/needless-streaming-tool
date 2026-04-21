@@ -485,6 +485,22 @@ const translations = {
   'layout.half_width': { de: 'Halbe Breite', en: 'Half width' },
   'layout.hide': { de: 'Ausblenden', en: 'Hide' },
   'layout.show': { de: 'Einblenden', en: 'Show' },
+
+  // ---- Guided Tour ----
+  'tour.start': { de: 'Tour starten', en: 'Start tour' },
+  'tour.skip': { de: 'Überspringen', en: 'Skip' },
+  'tour.acknowledged_button': { de: 'Verstanden', en: 'Got it' },
+  'tour.complete_toast': { de: 'Tour abgeschlossen! Du kennst jetzt die Basics.', en: 'Tour complete! You know the basics now.' },
+  'tour.progress.step1_title': { de: 'Dein Kanban-Board', en: 'Your Kanban Board' },
+  'tour.progress.step1_text': { de: 'Hier verwaltest du deine Features und Tasks. Drei Spalten: Backlog, Aktiv, Erledigt.', en: 'Manage your features and tasks here. Three columns: Backlog, Active, Done.' },
+  'tour.progress.step2_title': { de: 'Erstelle dein erstes Item', en: 'Create your first item' },
+  'tour.progress.step2_text': { de: 'Gib einen Namen ein und drücke Enter.', en: 'Type a name and press Enter.' },
+  'tour.progress.step3_title': { de: 'Aktiviere es', en: 'Activate it' },
+  'tour.progress.step3_text': { de: 'Klicke auf das Symbol um das Item zu starten. Der Timer läuft dann mit.', en: 'Click the icon to start the item. The timer will start automatically.' },
+  'tour.progress.step4_title': { de: 'Füge eine Sub-Task hinzu', en: 'Add a sub-task' },
+  'tour.progress.step4_text': { de: 'Sub-Tasks erscheinen live im Overlay. Gib eine ein und drücke Enter.', en: 'Sub-tasks appear live in the overlay. Type one and press Enter.' },
+  'tour.progress.step5_title': { de: 'Hake sie ab', en: 'Check it off' },
+  'tour.progress.step5_text': { de: 'Geschafft! So trackst du deinen Fortschritt live on-stream.', en: 'Done! This is how you track progress live on-stream.' },
 } as const;
 
 export type TranslationKey = keyof typeof translations;
