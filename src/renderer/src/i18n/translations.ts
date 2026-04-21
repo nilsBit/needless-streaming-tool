@@ -94,6 +94,13 @@ const translations = {
   // Notion Step
   'notion.title': { de: 'Notion (optional)', en: 'Notion (optional)' },
   'notion.desc': { de: 'Wenn du Notion nutzt, kannst du deine Clips automatisch dorthin syncen. Falls nicht, überspringe diesen Schritt.', en: 'If you use Notion, you can auto-sync your clips there. If not, skip this step.' },
+  'notion.step1': { de: 'Öffne notion.so/my-integrations in deinem Browser und logge dich mit deinem Notion-Account ein', en: 'Open notion.so/my-integrations in your browser and log in with your Notion account' },
+  'notion.step2': { de: 'Klicke auf "+ New integration" (oder "Neue Integration")', en: 'Click "+ New integration"' },
+  'notion.step3': { de: 'Vergib einen Namen (z. B. "Stream Toolkit"), wähle deinen Workspace und Type "Internal". Dann auf "Save" klicken.', en: 'Pick a name (e.g. "Stream Toolkit"), choose your workspace and type "Internal". Click "Save".' },
+  'notion.step4': { de: 'Klicke auf "Show" beim "Internal Integration Secret" und kopiere den Token (beginnt mit ntn_ oder secret_)', en: 'Click "Show" next to "Internal Integration Secret" and copy the token (starts with ntn_ or secret_)' },
+  'notion.step5': { de: 'Füge den Token hier unten ein und speichere:', en: 'Paste the token below and save:' },
+  'notion.token_placeholder': { de: 'ntn_... oder secret_...', en: 'ntn_... or secret_...' },
+  'notion.share_hint': { de: 'Im nächsten Schritt verbindest du eine Notion-Seite oder Datenbank mit der Integration.', en: 'In the next step you connect a Notion page or database to the integration.' },
   'notion.token_saved': { de: 'Notion-Token gespeichert', en: 'Notion token saved' },
   'notion.complete': { de: 'Notion komplett eingerichtet — Clips werden automatisch gesynct!', en: 'Notion fully configured — clips will be synced automatically!' },
   'notion.picker.title': { de: 'Wähle deine Clip-Datenbank', en: 'Pick your clip database' },
