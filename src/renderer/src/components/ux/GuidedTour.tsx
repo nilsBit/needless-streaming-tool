@@ -59,11 +59,13 @@ export default function GuidedTour({ steps, currentEvent, onEventConsumed, onCom
     });
   }, [step]);
 
-  // Poll for target element if not in DOM yet
+  // Poll for target element if not in DOM yet (or if it disappears mid-step)
+  const hadTargetRef = useRef(false);
   useEffect(() => {
+    hadTargetRef.current = false;
     updateRect();
     const el = document.querySelector(step?.targetSelector || '');
-    if (el) return; // already found
+    if (el) { hadTargetRef.current = true; return; }
 
     const start = Date.now();
     let rafId = 0;
@@ -74,6 +76,7 @@ export default function GuidedTour({ steps, currentEvent, onEventConsumed, onCom
       }
       const found = document.querySelector(step?.targetSelector || '');
       if (found) {
+        hadTargetRef.current = true;
         updateRect();
       } else {
         rafId = requestAnimationFrame(poll);
@@ -83,6 +86,18 @@ export default function GuidedTour({ steps, currentEvent, onEventConsumed, onCom
     pollRef.current = rafId;
     return () => cancelAnimationFrame(rafId);
   }, [step, updateRect]);
+
+  // Abort if target disappears after being found (e.g. user deletes item mid-tour)
+  useEffect(() => {
+    if (targetRect !== null || !hadTargetRef.current) return;
+    // Target was found before but is now gone — start abort timer
+    const timer = setTimeout(() => {
+      // Re-check: maybe it came back (e.g. re-render)
+      const el = document.querySelector(step?.targetSelector || '');
+      if (!el) onSkipRef.current();
+    }, POLL_TIMEOUT);
+    return () => clearTimeout(timer);
+  }, [targetRect, step]);
 
   // Reposition on resize/scroll
   useEffect(() => {
