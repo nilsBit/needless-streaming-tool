@@ -12,7 +12,6 @@ const STATS_REFRESH_EVENTS = new Set([
   'todo-updated',
   'issue-created', 'issue-updated', 'issue-deleted',
   'milestone-created', 'milestone-updated', 'milestone-deleted',
-  'raid-created', 'raid-deleted',
   'reward-redeemed', 'reward-updated',
 ]);
 
@@ -104,8 +103,6 @@ export default function StatsPanel() {
         <div className="stats-grid">
           <TrendCard icon="🎬" value={stats.totals.clips}
                      label={t('stats.totals.clips')}   trend={stats.trends.clips} />
-          <TrendCard icon="⚔️" value={stats.totals.raids}
-                     label={t('stats.totals.raids')}   trend={stats.trends.raids} />
           <TrendCard icon="🎁" value={stats.totals.rewards}
                      label={t('stats.totals.rewards')} trend={stats.trends.rewards} />
           <TrendCard icon="📅" value={stats.totals.active_days_30d}

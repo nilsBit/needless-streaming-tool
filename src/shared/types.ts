@@ -97,16 +97,6 @@ export interface Milestone {
   created_at: string;
 }
 
-export interface Raid {
-  id: number;
-  streamer_name: string;
-  viewer_count: number;
-  enemy_tier: string;
-  enemy_name: string | null;
-  status: string;
-  created_at: string;
-}
-
 export interface Stats {
   today: {
     clips: number;
@@ -125,13 +115,11 @@ export interface Stats {
   };
   totals: {
     clips: number;
-    raids: number;
     rewards: number;
     active_days_30d: number;
   };
   trends: {
     clips:   number[]; // 14 entries, oldest first
-    raids:   number[];
     rewards: number[];
     active:  number[]; // 1 if day had ≥1 clip, else 0
   };

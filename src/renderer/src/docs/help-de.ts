@@ -174,7 +174,6 @@ Das Template unter /overlay/_template/index.html enthält:
 - **Clip Moments** — Markiere besondere Momente mit Tags
 - **Chat Voting** — Sammle Vorschläge und lass den Chat abstimmen
 - **Now Playing** — Aktuellen Song setzen und im Overlay anzeigen
-- **Raids** — Raid-Verlauf anzeigen
 
 **Projekt Tab:**
 - **Progress Tracker** — Verfolge den Fortschritt deines Projekts
@@ -182,7 +181,7 @@ Das Template unter /overlay/_template/index.html enthält:
 - **Todos** — Aufgabenliste für den Stream
 
 **Stats Tab:**
-- **Statistiken** — Überblick über alle Daten (Clips, Todos, Milestones, Raids etc.)
+- **Statistiken** — Überblick über alle Daten (Clips, Todos, Milestones etc.)
 
 **Settings Tab:**
 - **Settings** — Twitch, OBS, Notion, Stream Deck, Backup
@@ -236,9 +235,6 @@ Auth-Header: Authorization: Bearer <token>
 - POST /api/actions/roulette — GET /api/actions/roulette/status
 - GET /api/actions/song — POST /api/actions/song
 
-**Raids:**
-- GET /api/raids — POST /api/raids — DELETE /api/raids/:id
-
 **Stats:**
 - GET /api/stats
 
@@ -290,7 +286,6 @@ Alle Events werden als JSON gesendet: { "event": "name", "data": { ... } }
 **Actions:**
 - compile-pray — Hype Moment ausgelöst
 - roulette-spin / roulette-result — Roulette Events
-- raid-incoming — Raid empfangen
 - song-update / song-clear — Song Events`,
   },
   {

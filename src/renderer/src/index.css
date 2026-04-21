@@ -426,33 +426,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .issue-actions { display: flex; gap: 4px; }
 .issue-actions button { padding: 4px 8px; font-size: 12px; }
 
-/* Raids Panel */
-.raid-list { display: flex; flex-direction: column; gap: 6px; }
-
-.raid-item {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 10px;
-  background: #0d0d0d;
-  border-radius: 4px;
-  font-size: 14px;
-}
-
-.raid-item.done { opacity: 0.5; flex-direction: row; justify-content: space-between; align-items: center; }
-
-.raid-info { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.raid-tier { font-size: 16px; }
-.raid-name { font-weight: 600; }
-.raid-viewers { color: #888; }
-.raid-tier-label { color: #e67e22; font-size: 12px; text-transform: uppercase; margin-left: auto; }
-
-.raid-actions { display: flex; align-items: center; gap: 6px; }
-.raid-edit { display: flex; gap: 6px; }
-.raid-edit input { flex: 1; }
-.enemy-name { color: #e67e22; font-size: 12px; }
-.raid-status-label { color: #666; font-size: 12px; }
-
 /* Designs Panel */
 .design-create { display: flex; gap: 8px; flex-wrap: wrap; }
 .design-create input { flex: 1; min-width: 100px; }

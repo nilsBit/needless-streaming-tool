@@ -14,7 +14,6 @@ import SettingsPanel from './panels/SettingsPanel';
 import OverlaysPanel from './panels/OverlaysPanel';
 import HelpPanel from './panels/HelpPanel';
 import SongPanel from './panels/SongPanel';
-import RaidsPanel from './panels/RaidsPanel';
 import StatsPanel from './panels/StatsPanel';
 import HotkeysPanel from './panels/HotkeysPanel';
 
@@ -27,7 +26,6 @@ const TABS = {
       { key: 'clips', label: 'Clip Moments', component: ClipsPanel },
       { key: 'designs', label: 'Abstimmungen', component: DesignsPanel },
       { key: 'song', label: 'Now Playing', component: SongPanel },
-      { key: 'raids', label: 'Raids', component: RaidsPanel },
     ],
   },
   projekt: {

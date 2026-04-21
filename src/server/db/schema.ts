@@ -5,16 +5,6 @@ CREATE TABLE IF NOT EXISTS schema_version (
   version INTEGER PRIMARY KEY
 );
 
-CREATE TABLE IF NOT EXISTS raids (
-  id            INTEGER PRIMARY KEY AUTOINCREMENT,
-  streamer_name TEXT NOT NULL,
-  viewer_count  INTEGER NOT NULL,
-  enemy_tier    TEXT NOT NULL,
-  enemy_name    TEXT,
-  status        TEXT DEFAULT 'pending',
-  created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
 CREATE TABLE IF NOT EXISTS issues (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
   title       TEXT NOT NULL,

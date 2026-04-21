@@ -12,7 +12,6 @@ import settingsRouter from './api/settings';
 import actionsRouter from './api/actions';
 import authRouter from './api/auth';
 import votingRouter from './api/voting';
-import raidsRouter from './api/raids';
 import progressRouter from './api/progress';
 import clipsRouter from './api/clips';
 import clipTagsRouter from './api/clip-tags';
@@ -100,7 +99,6 @@ export async function startServer(): Promise<string> {
   app.use('/api/actions', actionsRouter);
   app.use('/api/auth', authRouter);
   app.use('/api/voting', votingRouter);
-  app.use('/api/raids', raidsRouter);
   app.use('/api/progress', progressRouter);
   app.use('/api/clips', clipsRouter);
   app.use('/api/clip-tags', clipTagsRouter);

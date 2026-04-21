@@ -58,11 +58,6 @@ export function initAutoClips(): void {
       const d = data as { title?: string } | null;
       autoClip('auto-milestone', `Milestone: ${d?.title || 'Achievement'}`, 'high');
     }
-
-    if (event === 'raid-created' && isTriggerEnabled('raid')) {
-      const d = data as { streamer_name?: string; viewer_count?: number } | null;
-      autoClip('auto-raid', `Raid: ${d?.streamer_name || 'Unknown'} (${d?.viewer_count || 0})`, 'high');
-    }
   });
 
   console.log('[AutoClips] Initialized');

@@ -61,7 +61,6 @@ router.get('/', (_req, res) => {
       (SELECT COUNT(*) FROM issues)                                                           AS prog_issues_total,
 
       (SELECT COUNT(*) FROM clips)                                                            AS total_clips,
-      (SELECT COUNT(*) FROM raids)                                                            AS total_raids,
       (SELECT COUNT(*) FROM rewards)                                                          AS total_rewards,
       (SELECT COUNT(DISTINCT session_date) FROM clips WHERE session_date >= ?)                AS active_days_30d
   `).get(
@@ -104,13 +103,11 @@ router.get('/', (_req, res) => {
     },
     totals: {
       clips: row.total_clips,
-      raids: row.total_raids,
       rewards: row.total_rewards,
       active_days_30d: row.active_days_30d,
     },
     trends: {
       clips:   trendCounts('clips',   'session_date'),
-      raids:   trendCounts('raids',   "strftime('%Y-%m-%d', created_at)"),
       rewards: trendCounts('rewards', "strftime('%Y-%m-%d', created_at)"),
       active:  activeTrend,
     },

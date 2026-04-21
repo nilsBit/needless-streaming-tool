@@ -116,7 +116,7 @@ export function triggerRoulette(): { winner: { id: number; title: string } } | {
 // Test events for overlay preview
 const STATIC_TEST_EVENTS: Record<string, { event: string; data: unknown }[]> = {
   alerts: [
-    { event: 'raid-incoming', data: { enemy_tier: 'elite', streamer_name: 'TestRaider', viewer_count: 42 } },
+    { event: 'reward-redeemed', data: { reward_type: 'roulette', user_name: 'TestViewer' } },
   ],
   song: [
     { event: 'song-update', data: { title: 'Neon Lights', artist: 'Synthwave Artist', source: 'test' } },

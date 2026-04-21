@@ -94,18 +94,6 @@
       text-shadow: none;
     }
 
-    /* Raid: magenta glow */
-    .alert.raid {
-      border-color: var(--color-primary);
-      box-shadow: 0 0 20px rgb(var(--color-primary-rgb) / 0.5), inset 0 0 30px rgb(var(--color-primary-rgb) / 0.08);
-      text-shadow: 0 0 10px rgb(var(--color-primary-rgb) / 0.6);
-      animation: alertSlideIn 0.5s cubic-bezier(0.22, 1, 0.36, 1), pulseRaid 1.5s ease-in-out infinite, alertSlideOut 0.4s ease-in forwards;
-      animation-delay: 0s, 0s, 4s;
-    }
-    .alert.raid::after {
-      background: repeating-linear-gradient(45deg, var(--color-primary), var(--color-primary) 2px, transparent 2px, transparent 5px);
-    }
-
     /* Reward: electric blue */
     .alert.reward {
       border-color: var(--color-secondary);
@@ -136,11 +124,6 @@
     @keyframes alertSlideOut {
       from { opacity: 1; transform: translateX(0) skewX(-3deg); }
       to { opacity: 0; transform: translateX(60px) skewX(-3deg); }
-    }
-
-    @keyframes pulseRaid {
-      0%, 100% { box-shadow: 0 0 20px rgb(var(--color-primary-rgb) / 0.5), inset 0 0 30px rgb(var(--color-primary-rgb) / 0.08); }
-      50% { box-shadow: 0 0 35px rgb(var(--color-primary-rgb) / 0.8), inset 0 0 40px rgb(var(--color-primary-rgb) / 0.15); }
     }
 
     @keyframes pulseCompile {
@@ -202,8 +185,6 @@
     const ws = new WebSocket('ws://localhost:4000?overlay=1');
     const container = document.getElementById('container');
 
-    const TIER_EMOJI = { mob: '\uD83D\uDDE1\uFE0F', elite: '\u2694\uFE0F', 'mini-boss': '\uD83D\uDC80', boss: '\uD83D\uDC51' };
-
     const REWARD_LABELS = {
       roulette: '\uD83C\uDFB0 Gl\u00FCcksrad!',
       feature_request: '\uD83D\uDCA1 Vorschlag!',
@@ -232,14 +213,6 @@
       if (event === 'overlay-config' && window.__applyOverlayConfig) window.__applyOverlayConfig(data);
 
       switch (event) {
-        case 'raid-incoming':
-          showAlert(
-            `${TIER_EMOJI[data.enemy_tier] || '\u2694\uFE0F'} RAID!`,
-            `${data.streamer_name} mit ${data.viewer_count} Viewern \u2014 ${data.enemy_tier} Enemy!`,
-            'raid'
-          );
-          break;
-
         case 'reward-redeemed':
           showAlert(
             REWARD_LABELS[data.reward_type] || '\uD83C\uDF81 Reward!',

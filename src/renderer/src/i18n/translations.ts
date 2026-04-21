@@ -233,7 +233,6 @@ const translations = {
   'stats.progress.issues':     { de: 'Offen', en: 'Open' },
 
   'stats.totals.clips':       { de: 'Clips gesamt', en: 'Total clips' },
-  'stats.totals.raids':       { de: 'Raids gesamt', en: 'Total raids' },
   'stats.totals.rewards':     { de: 'Belohnungen gesamt', en: 'Total rewards' },
   'stats.totals.active_days': { de: 'Aktive Tage (30d)', en: 'Active days (30d)' },
 
@@ -274,11 +273,6 @@ const translations = {
   'song.placeholder': { de: 'Song eingeben...', en: 'Enter song...' },
   'song.set': { de: 'Übernehmen', en: 'Set' },
   'song.clear': { de: 'Löschen', en: 'Clear' },
-
-  // ---- Raids Panel ----
-  'raids.desc': { de: 'Übersicht aller eingegangenen Raids.', en: 'Overview of all incoming raids.' },
-  'raids.empty': { de: 'Noch keine Raids', en: 'No raids yet' },
-  'raids.viewers': { de: 'Zuschauer', en: 'viewers' },
 
   // ---- Milestones Panel ----
   'milestones.empty': { de: 'Keine offenen Milestones', en: 'No pending milestones' },
@@ -474,7 +468,6 @@ const translations = {
   'auto_clips.trigger_reward': { de: 'Channel Point Rewards', en: 'Channel point rewards' },
   'auto_clips.trigger_hype': { de: 'Hype Moments', en: 'Hype moments' },
   'auto_clips.trigger_milestone': { de: 'Milestones', en: 'Milestones' },
-  'auto_clips.trigger_raid': { de: 'Raids', en: 'Raids' },
   'auto_clips.confirm': { de: 'Bestätigen', en: 'Confirm' },
   'auto_clips.reject': { de: 'Verwerfen', en: 'Reject' },
 

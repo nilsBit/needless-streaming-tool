@@ -61,7 +61,6 @@ export default function SettingsPanel() {
   const [triggerReward, setTriggerReward] = useState(true);
   const [triggerHype, setTriggerHype] = useState(true);
   const [triggerMilestone, setTriggerMilestone] = useState(true);
-  const [triggerRaid, setTriggerRaid] = useState(true);
 
   useEffect(() => {
     const keys = [
@@ -69,7 +68,6 @@ export default function SettingsPanel() {
       'auto_clip_trigger_reward',
       'auto_clip_trigger_hype',
       'auto_clip_trigger_milestone',
-      'auto_clip_trigger_raid',
     ];
     Promise.all(keys.map(k => apiFetch(`/settings/get/${k}`).then(r => r.json()).then(d => [k, d.value] as [string, string | null]))).then(entries => {
       const m = Object.fromEntries(entries);
@@ -77,7 +75,6 @@ export default function SettingsPanel() {
       if (m['auto_clip_trigger_reward'] !== null) setTriggerReward(m['auto_clip_trigger_reward'] !== 'false');
       if (m['auto_clip_trigger_hype'] !== null) setTriggerHype(m['auto_clip_trigger_hype'] !== 'false');
       if (m['auto_clip_trigger_milestone'] !== null) setTriggerMilestone(m['auto_clip_trigger_milestone'] !== 'false');
-      if (m['auto_clip_trigger_raid'] !== null) setTriggerRaid(m['auto_clip_trigger_raid'] !== 'false');
     }).catch(() => {});
   }, []);
 
@@ -87,7 +84,6 @@ export default function SettingsPanel() {
       auto_clip_trigger_reward: String(triggerReward),
       auto_clip_trigger_hype: String(triggerHype),
       auto_clip_trigger_milestone: String(triggerMilestone),
-      auto_clip_trigger_raid: String(triggerRaid),
     });
     if (!result) { toast.error(t('error.action_failed')); return; }
     toast.success(t('overlay_config.saved'));
@@ -508,7 +504,6 @@ export default function SettingsPanel() {
             <label><input type="checkbox" checked={triggerReward} onChange={e => setTriggerReward(e.target.checked)} /> {t('auto_clips.trigger_reward')}</label>
             <label><input type="checkbox" checked={triggerHype} onChange={e => setTriggerHype(e.target.checked)} /> {t('auto_clips.trigger_hype')}</label>
             <label><input type="checkbox" checked={triggerMilestone} onChange={e => setTriggerMilestone(e.target.checked)} /> {t('auto_clips.trigger_milestone')}</label>
-            <label><input type="checkbox" checked={triggerRaid} onChange={e => setTriggerRaid(e.target.checked)} /> {t('auto_clips.trigger_raid')}</label>
           </div>
 
           <button className="btn-settings-primary mt-12" onClick={saveAutoClipSettings}>{t('settings.save')}</button>
