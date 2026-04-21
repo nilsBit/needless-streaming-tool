@@ -54,12 +54,15 @@ Funktion `resolveOEmbed(url: string)` in `src/server/api/song-requests.ts`:
 
 - **YouTube:** `https://www.youtube.com/oembed?url={url}&format=json` → `{ title, author_name }`
   - Akzeptiert `youtube.com/watch?v=`, `youtu.be/`, `youtube.com/shorts/`
-- **Spotify:** `https://open.spotify.com/oembed?url={url}` → `{ title }` (Format: "Song - Artist")
+- **Spotify:** `https://open.spotify.com/oembed?url={url}` → `{ title }` (Format oft "Song - Artist")
   - Akzeptiert `open.spotify.com/track/`
+  - Titel-Parsing: Best-Effort-Split bei " - ". Wenn kein " - " vorhanden, wird der gesamte title als Titel ohne Artist gespeichert. Nicht kritisch — Darstellung funktioniert auch ohne getrennten Artist.
 
 URL-Validierung per Regex vor dem oEmbed-Call. Ungültige URLs werden sofort abgelehnt.
 
 Timeout: 5 Sekunden. Bei Fehler → Chat-Antwort "Konnte den Song nicht laden."
+
+**Limit-Default:** `sr_max_per_user` wird NICHT in der DB geseeded. Code fällt auf Hardcoded-Default `2` zurück wenn der Key nicht existiert: `const max = parseInt(settingsRow?.value || '2', 10)`.
 
 ## Chat-Commands
 
@@ -99,10 +102,14 @@ Neuer Router in `src/server/api/song-requests.ts`, registriert als `app.use('/ap
 | Route | Method | Zweck |
 |---|---|---|
 | `/` | GET | Queue abrufen (pending + playing, sortiert nach created_at ASC) |
+| `/clear` | POST | Alle pending Songs auf skipped setzen |
 | `/:id/play` | POST | Song als playing markieren. Setzt vorherigen playing-Song auf done. |
 | `/:id/skip` | POST | Song auf skipped setzen |
 | `/:id` | DELETE | Song aus Queue entfernen |
-| `/clear` | POST | Alle pending Songs auf skipped setzen |
+
+**Wichtig:** `/clear` muss VOR `/:id` registriert werden, da Express sonst `"clear"` als `:id` matcht.
+
+Der gesamte `!sr`-Handler muss in try/catch gewrapped werden, damit bei oEmbed-/DB-Fehlern immer eine Chat-Antwort gesendet wird (kein silent drop).
 
 Alle Endpoints broadcasten `sr-update` via WebSocket.
 
