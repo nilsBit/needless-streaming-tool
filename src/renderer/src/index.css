@@ -2934,3 +2934,123 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .sub-todo-add { width: 100%; }
 .ux-try-this-wrapper > .sub-todo-add { width: 100%; }
 .kanban-item-todos .ux-try-this-wrapper { width: 100%; }
+
+/* ---------- Guided Tour ---------- */
+.guided-tour-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  pointer-events: none;
+}
+.guided-tour-highlight {
+  position: fixed;
+  border-radius: 8px;
+  box-shadow: 0 0 0 9999px rgba(0,0,0,0.6);
+  z-index: 9000;
+  pointer-events: none;
+  transition: top 0.3s ease, left 0.3s ease, width 0.3s ease, height 0.3s ease;
+}
+.guided-tour-tooltip {
+  position: fixed;
+  z-index: 9001;
+  background: var(--bg-card, #1e1e2e);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 10px;
+  padding: 16px 20px;
+  max-width: 300px;
+  min-width: 220px;
+  pointer-events: auto;
+  filter: drop-shadow(0 4px 20px rgba(0,0,0,0.4));
+}
+.guided-tour-tooltip::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: var(--bg-card, #1e1e2e);
+  border: 1px solid rgba(255,255,255,0.15);
+  transform: rotate(45deg);
+}
+/* Arrow positions */
+.guided-tour-tooltip--bottom::after {
+  top: -6px;
+  left: 50%;
+  margin-left: -5px;
+  border-right: none;
+  border-bottom: none;
+}
+.guided-tour-tooltip--top::after {
+  bottom: -6px;
+  left: 50%;
+  margin-left: -5px;
+  border-left: none;
+  border-top: none;
+}
+.guided-tour-tooltip--left::after {
+  right: -6px;
+  top: 50%;
+  margin-top: -5px;
+  border-left: none;
+  border-top: none;
+}
+.guided-tour-tooltip--right::after {
+  left: -6px;
+  top: 50%;
+  margin-top: -5px;
+  border-right: none;
+  border-bottom: none;
+}
+.guided-tour-tooltip-title {
+  font-weight: 600;
+  font-size: 14px;
+}
+.guided-tour-tooltip-text {
+  font-size: 13px;
+  opacity: 0.8;
+  margin-top: 6px;
+  line-height: 1.45;
+}
+.guided-tour-tooltip-ack {
+  margin-top: 12px;
+  padding: 7px 16px;
+  border-radius: 8px;
+  background: var(--accent, #4a9eff);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  width: 100%;
+}
+.guided-tour-tooltip-ack:hover { filter: brightness(1.1); }
+.guided-tour-tooltip-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+}
+.guided-tour-tooltip-skip {
+  font-size: 12px;
+  opacity: 0.6;
+  cursor: pointer;
+}
+.guided-tour-tooltip-skip:hover { opacity: 1; }
+.guided-tour-tooltip-step {
+  font-size: 11px;
+  opacity: 0.5;
+}
+
+/* Light mode */
+[data-theme="light"] .guided-tour-tooltip {
+  background: var(--bg, #fff);
+  border-color: var(--border, #ddd);
+  color: var(--text, #333);
+}
+[data-theme="light"] .guided-tour-tooltip::after {
+  background: var(--bg, #fff);
+  border-color: var(--border, #ddd);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .guided-tour-highlight { transition: none; }
+}
