@@ -240,6 +240,7 @@ export default function ProgressPanel() {
       current_timer_seconds: liveSeconds,
     });
     if (!result) { toast.error(t('error.action_failed')); return; }
+    if (tourActive && targetStatus === 'in_progress') setTourEvent('item-activated');
     if (targetStatus === 'in_progress' && (item.todos || []).length === 0) {
       if (!firstActivate.seen && !firstActivate.loading) {
         toast.info(t('progress.subtodo_hint_toast').replace('{title}', item.title));
