@@ -501,6 +501,18 @@ const translations = {
   'tour.progress.step4_text': { de: 'Sub-Tasks erscheinen live im Overlay. Gib eine ein und drücke Enter.', en: 'Sub-tasks appear live in the overlay. Type one and press Enter.' },
   'tour.progress.step5_title': { de: 'Hake sie ab', en: 'Check it off' },
   'tour.progress.step5_text': { de: 'Geschafft! So trackst du deinen Fortschritt live on-stream.', en: 'Done! This is how you track progress live on-stream.' },
+  'tour.clips.step1_title': { de: 'Dein Clip-Board', en: 'Your Clip Board' },
+  'tour.clips.step1_text': { de: 'Hier sammelst du besondere Momente aus deinem Stream — Highlights, Fails, lustige Szenen und mehr.', en: 'Collect special moments from your stream here — highlights, fails, funny moments and more.' },
+  'tour.clips.step2_title': { de: 'Wähle einen Tag', en: 'Pick a tag' },
+  'tour.clips.step2_text': { de: 'Tags kategorisieren deine Clips. Wähle einen aus der Liste.', en: 'Tags categorize your clips. Pick one from the list.' },
+  'tour.clips.step3_title': { de: 'Erstelle deinen ersten Clip', en: 'Create your first clip' },
+  'tour.clips.step3_text': { de: 'Gib eine kurze Notiz ein und drücke Enter.', en: 'Type a short note and press Enter.' },
+  'tour.clips.step4_title': { de: 'Filtere nach Tags', en: 'Filter by tags' },
+  'tour.clips.step4_text': { de: 'Klicke auf einen Tag um nur Clips dieser Kategorie zu sehen.', en: 'Click a tag to see only clips of that category.' },
+  'tour.clips.step5_title': { de: 'Erstelle einen eigenen Tag', en: 'Create a custom tag' },
+  'tour.clips.step5_text': { de: 'Klicke auf + um einen eigenen Tag hinzuzufügen.', en: 'Click + to add your own tag.' },
+  'tour.clips.step6_title': { de: 'Gib den Tag-Namen ein', en: 'Enter the tag name' },
+  'tour.clips.step6_text': { de: 'Tippe einen Namen und drücke Enter.', en: 'Type a name and press Enter.' },
 } as const;
 
 export type TranslationKey = keyof typeof translations;
