@@ -34,21 +34,30 @@ interface GuidedTourProps {
 ```
 
 **Rendering:**
-- React Portal in `document.body`
+- React Portal via `createPortal(jsx, document.body)` — erster Portal-Einsatz in der Codebase
 - Fullscreen dunkles Overlay mit `z-index: 9000`
 - Ziel-Element wird per `document.querySelector(targetSelector)` gefunden
 - `getBoundingClientRect()` liefert Position → Highlight via `box-shadow: 0 0 0 9999px rgba(0,0,0,0.6)` auf einem Highlight-Element über dem Target
-- Tooltip-Bubble neben dem Ausschnitt positioniert
+- Tooltip-Bubble neben dem Ausschnitt positioniert, `z-index: 9001` (unter Toast-Container `z-index: 9999`, damit Toasts immer sichtbar bleiben)
 - Step-Indikator ("2/5") und "Überspringen"-Link im Tooltip
+- Escape-Taste schließt die Tour (ruft `onSkip` auf)
+
+**Target-Element nicht im DOM:**
+- Wenn `querySelector` für den aktuellen Step `null` liefert, pollt die Komponente per `requestAnimationFrame`-Loop (max 2 Sekunden). Sobald das Element erscheint → Spotlight positionieren.
+- Falls nach 2 Sekunden immer noch nicht da → Tour automatisch abbrechen (`onSkip`), kein Crash.
+- Das ist relevant für Step 4 (`.sub-todo-add input` erscheint erst nach Auto-Expand) und Step 5 (`.sub-todo-check` erscheint erst nach Todo-Erstellung).
 
 **Step-Fortschritt:**
-- Komponente exposed `advance(eventName: string)` via `useImperativeHandle` / Ref
-- ProgressPanel ruft `tourRef.current?.advance('item-created')` auf wenn eine relevante Aktion passiert
-- Wenn `eventName` zum aktuellen Step's `waitFor` passt → nächster Step
+- Komponente akzeptiert `currentEvent: string | null` als Prop (kein `useImperativeHandle` — bleibt konsistent mit dem Props-basierten Pattern der Codebase)
+- ProgressPanel setzt `setTourEvent('item-created')` in den Handlern, GuidedTour reagiert per `useEffect` auf Änderungen
+- Wenn `currentEvent` zum aktuellen Step's `waitFor` passt → nächster Step, dann `currentEvent` zurücksetzen (Callback `onEventConsumed`)
 - Letzter Step → `onComplete()`
 
 **Repositionierung:**
-- `ResizeObserver` + `scroll`-Listener auf dem Panel um Highlight + Tooltip bei Layout-Änderungen neu zu positionieren (z.B. wenn ein Item expandiert wird und der Content shiftet)
+- `ResizeObserver` auf `document.body` + `scroll`-Listener auf `window` um Highlight + Tooltip bei Layout-Änderungen neu zu positionieren (z.B. wenn ein Item expandiert wird und der Content shiftet)
+
+**Defensiv — Item gelöscht während Tour:**
+- Wenn der User das gerade erstellte Item löscht während Steps 3-5 laufen, findet `querySelector` das Target nicht mehr → Tour bricht nach 2s Polling automatisch ab (wie oben). Button bleibt sichtbar für Neustart.
 
 ### Tour-Steps
 
@@ -56,9 +65,9 @@ interface GuidedTourProps {
 |---|---|---|---|---|
 | 1 | `.kanban-board` | "Dein Kanban-Board" | "Hier verwaltest du deine Features und Tasks. Drei Spalten: Backlog, Aktiv, Erledigt." | `tour-acknowledged` |
 | 2 | `.kanban-column:first-child .kanban-add input` | "Erstelle dein erstes Item" | "Gib einen Namen ein und drücke Enter." | `item-created` |
-| 3 | `.kanban-item .status-toggle` | "Aktiviere es" | "Klicke auf das Symbol um das Item zu starten. Der Timer läuft dann mit." | `item-activated` |
+| 3 | `.kanban-column:first-child .kanban-item:last-child .status-toggle` | "Aktiviere es" | "Klicke auf das Symbol um das Item zu starten. Der Timer läuft dann mit." | `item-activated` |
 | 4 | `.kanban-item.expanded .sub-todo-add input` | "Füge eine Sub-Task hinzu" | "Sub-Tasks erscheinen live im Overlay. Gib eine ein und drücke Enter." | `todo-created` |
-| 5 | `.kanban-item .sub-todo-check` | "Hake sie ab" | "Geschafft! So trackst du deinen Fortschritt live on-stream." | `todo-checked` |
+| 5 | `.kanban-item.expanded .sub-todo-check` | "Hake sie ab" | "Geschafft! So trackst du deinen Fortschritt live on-stream." | `todo-checked` |
 
 Step 1 ist der einzige passive Step — ein "Verstanden"-Button im Tooltip löst `tour-acknowledged` aus. Ab Step 2 wartet die Tour auf echte User-Aktionen.
 
@@ -75,13 +84,14 @@ Alle Texte werden zweisprachig (de/en) in `translations.ts` gepflegt.
 
 **State:**
 - `const [tourActive, setTourActive] = useState(false)`
-- `const tourRef = useRef<{ advance: (event: string) => void }>(null)`
+- `const [tourEvent, setTourEvent] = useState<string | null>(null)`
 
 **Event-Dispatching in bestehenden Handlern:**
-- `addItem()` → nach erfolgreichem Refetch: `tourRef.current?.advance('item-created')`
-- `cycleStatus()` → wenn `next === 'in_progress'`: `tourRef.current?.advance('item-activated')`
-- `addTodo()` → nach Erfolg: `tourRef.current?.advance('todo-created')`
-- `toggleTodo()` → wenn gecheckt: `tourRef.current?.advance('todo-checked')`
+- `addItem()` → nach erfolgreichem Refetch: `setTourEvent('item-created')`
+- `cycleStatus()` → wenn `next === 'in_progress'`: `setTourEvent('item-activated')`
+- `addTodo()` → nach Erfolg: `setTourEvent('todo-created')`
+- `toggleTodo()` → wenn gecheckt: `setTourEvent('todo-checked')`
+- GuidedTour ruft `onEventConsumed` Callback auf nachdem ein Event verarbeitet wurde → `setTourEvent(null)`
 
 **onComplete:**
 - `tourComplete.markSeen()` — Button verschwindet permanent
@@ -100,7 +110,7 @@ Alles in `src/renderer/src/index.css`:
 - Highlight-Element über dem Target positioniert
 - `box-shadow: 0 0 0 9999px rgba(0,0,0,0.6)` für den Dimming-Effekt
 - `border-radius: 8px`, `4px` Padding um das Target
-- `transition: all 0.3s ease` für smooth Step-Wechsel
+- `transition: top 0.3s ease, left 0.3s ease, width 0.3s ease, height 0.3s ease` für smooth Step-Wechsel (kein `all` um Jank bei ResizeObserver-Callbacks zu vermeiden)
 
 **Tooltip-Bubble:**
 - `position: absolute`, relativ zum Target
@@ -129,7 +139,7 @@ Neue Keys in `translations.ts`:
 - `tour.progress.step3_title`, `tour.progress.step3_text`
 - `tour.progress.step4_title`, `tour.progress.step4_text`
 - `tour.progress.step5_title`, `tour.progress.step5_text`
-- `tour.start`, `tour.skip`, `tour.acknowledged`, `tour.complete_toast`
+- `tour.start`, `tour.skip`, `tour.acknowledged_button`, `tour.complete_toast`
 
 ## Geänderte Dateien
 
