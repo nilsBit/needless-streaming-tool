@@ -32,7 +32,7 @@ const OVERLAY_ICONS: Record<string, string> = {
   roulette: '🎰',
 };
 
-const TESTABLE_OVERLAYS = new Set(['alerts', 'song', 'poll', 'milestone', 'roulette', 'experiment', 'todos', 'progress']);
+const TESTABLE_OVERLAYS = new Set(['alerts', 'song', 'poll', 'milestone', 'roulette', 'experiment', 'todos', 'progress', 'song-queue']);
 
 const THEME_PRESETS: { name: string; label: string; color: string; values: Record<string, string> }[] = [
   {
