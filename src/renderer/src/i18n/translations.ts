@@ -486,6 +486,18 @@ const translations = {
   'layout.hide': { de: 'Ausblenden', en: 'Hide' },
   'layout.show': { de: 'Einblenden', en: 'Show' },
 
+  // ---- Song Request Queue ----
+  'sr.title': { de: 'Song Queue', en: 'Song Queue' },
+  'sr.empty': { de: 'Queue ist leer — Viewer können mit !sr einen Song requesten', en: 'Queue is empty — viewers can request with !sr' },
+  'sr.clear': { de: 'Queue leeren', en: 'Clear queue' },
+  'sr.play': { de: 'Abspielen', en: 'Play' },
+  'sr.skip': { de: 'Überspringen', en: 'Skip' },
+  'sr.position': { de: 'Position', en: 'Position' },
+  'sr.requested_by': { de: 'von', en: 'by' },
+  'sr.cleared': { de: 'Queue geleert', en: 'Queue cleared' },
+  'sr.cmd_sr': { de: 'Song zur Queue hinzufügen (!sr <URL>)', en: 'Add song to queue (!sr <URL>)' },
+  'sr.cmd_queue': { de: 'Nächste Songs anzeigen', en: 'Show next songs' },
+
   // ---- Guided Tour ----
   'tour.start': { de: 'Tour starten', en: 'Start tour' },
   'tour.skip': { de: 'Überspringen', en: 'Skip' },
