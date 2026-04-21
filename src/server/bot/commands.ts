@@ -4,6 +4,7 @@ import { startVote, castVote, getActiveVote, endVote } from './voting';
 import { StreamState, Issue } from '../../shared/types';
 import { changeScene, getScenes } from '../obs/index';
 import { broadcast } from '../websocket/index';
+import { resolveOEmbed, detectSource } from '../api/song-requests';
 
 const startTime = Date.now();
 
@@ -19,6 +20,8 @@ const DEFAULT_COMMANDS: Record<string, string> = {
   progress: '!progress',
   scene: '!scene',
   vote: '!vote',
+  sr: '!sr',
+  queue: '!queue',
 };
 
 function getCommandNames(): Record<string, string> {
@@ -206,6 +209,55 @@ export function registerCommands(client: Client) {
           } else {
             client.say(channel, `❌ Ungültige Option. Wähle: ${vote.options.join(', ')}`);
           }
+        }
+        break;
+      }
+
+      case 'sr': {
+        const url = message.trim().split(/\s+/)[1];
+        const username = tags['display-name'] || tags.username || 'anon';
+        if (!url) {
+          client.say(channel, '❌ Benutzung: !sr <YouTube oder Spotify URL>');
+          break;
+        }
+        const source = detectSource(url);
+        if (!source) {
+          client.say(channel, '❌ Nur YouTube- und Spotify-Links erlaubt.');
+          break;
+        }
+        try {
+          const db = getDb();
+          const maxRow = db.prepare('SELECT value FROM settings WHERE key = ?').get('sr_max_per_user') as { value: string } | undefined;
+          const max = parseInt(maxRow?.value || '2', 10);
+          const count = db.prepare("SELECT COUNT(*) as c FROM song_requests WHERE requested_by = ? AND status = 'pending'").get(username) as { c: number };
+          if (count.c >= max) {
+            client.say(channel, `❌ Du hast bereits ${max} Songs in der Queue, @${username}.`);
+            break;
+          }
+          const meta = await resolveOEmbed(url);
+          if (!meta) {
+            client.say(channel, '❌ Konnte den Song nicht laden.');
+            break;
+          }
+          db.prepare('INSERT INTO song_requests (url, title, artist, source, requested_by) VALUES (?, ?, ?, ?, ?)').run(url, meta.title, meta.artist, meta.source, username);
+          const pos = db.prepare("SELECT COUNT(*) as c FROM song_requests WHERE status = 'pending'").get() as { c: number };
+          broadcast('sr-update', {});
+          client.say(channel, `🎵 "${meta.title}" von @${username} zur Queue hinzugefügt (Position ${pos.c})`);
+        } catch (err) {
+          console.error('[SR] Error:', err);
+          client.say(channel, '❌ Konnte den Song nicht laden.');
+        }
+        break;
+      }
+
+      case 'queue': {
+        const db = getDb();
+        const pending = db.prepare("SELECT title, requested_by FROM song_requests WHERE status = 'pending' ORDER BY created_at ASC LIMIT 3").all() as Array<{ title: string; requested_by: string }>;
+        if (pending.length === 0) {
+          client.say(channel, '🎵 Die Queue ist leer. Requeste mit !sr <URL>');
+        } else {
+          const list = pending.map((s, i) => `${i + 1}. "${s.title}" (@${s.requested_by})`).join(' | ');
+          client.say(channel, `🎵 Queue: ${list}`);
         }
         break;
       }
