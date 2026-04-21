@@ -760,21 +760,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .clip-custom { display: flex; gap: 6px; flex-wrap: wrap; }
 .clip-custom input { flex: 1; min-width: 100px; }
 
-.clip-list { display: flex; flex-direction: column; gap: 4px; }
-
-.clip-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  background: #0d0d0d;
-  border-radius: 4px;
-  font-size: 14px;
-}
-
-.clip-time { color: #666; font-size: 13px; white-space: nowrap; }
-.clip-tag { color: #e67e22; white-space: nowrap; }
-.clip-note { flex: 1; color: #888; font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* Milestones Panel */
 .milestone-list,
@@ -2669,45 +2654,54 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   border-radius: 6px;
 }
 
-.clip-list { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; }
-.clip-item {
+.clip-list { display: flex; flex-direction: column; gap: 0; margin: 0; padding: 0; }
+.clip-row {
   display: flex;
-  flex-direction: column;
-  background: var(--bg-elevated, rgba(255,255,255,0.03));
-  border: 1px solid var(--border, #2a2a2a);
-  border-radius: 8px;
-  padding: 14px 16px;
-  margin: 0;
-  gap: 6px;
-  font-size: 14px;
-  transition: background 0.15s, border-color 0.15s;
-}
-.clip-item:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.12); }
-.clip-item.auto-clip { border-style: dashed; border-color: rgba(250,180,50,0.3); }
-.clip-row-top { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--muted, #888); }
-.clip-row-mid { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.clip-row-note { font-size: 13px; color: var(--muted, #aaa); font-style: italic; line-height: 1.4; }
-.clip-row-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 4px;
-  padding-top: 10px;
-  border-top: 1px dashed rgba(250,180,50,0.2);
-}
-.btn-auto-confirm, .btn-auto-reject {
-  flex: 1;
-  padding: 8px 12px;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 4px;
   font-size: 13px;
-  font-weight: 500;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
-  background: transparent;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  transition: background 0.12s;
 }
-.btn-auto-confirm { border: 1px solid rgba(46, 204, 113, 0.5); color: #2ecc71; }
-.btn-auto-confirm:hover { background: rgba(46, 204, 113, 0.15); border-color: #2ecc71; }
-.btn-auto-reject { border: 1px solid rgba(231, 76, 60, 0.4); color: #b94a4a; }
-.btn-auto-reject:hover { background: rgba(231, 76, 60, 0.12); border-color: #e74c3c; color: #e74c3c; }
+.clip-row:last-child { border-bottom: none; }
+.clip-row:hover { background: rgba(255,255,255,0.03); }
+.clip-row.auto-clip {
+  border-left: 2px dashed rgba(250,180,50,0.4);
+  padding-left: 8px;
+}
+.clip-row-time { min-width: 70px; font-size: 12px; color: var(--muted, #888); white-space: nowrap; }
+.clip-row-tag { min-width: 100px; color: #e67e22; white-space: nowrap; font-size: 13px; }
+.clip-row-note { flex: 1; color: var(--muted, #aaa); font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+.btn-clip-delete {
+  opacity: 0;
+  background: none;
+  border: none;
+  color: var(--muted, #888);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 2px 6px;
+  transition: opacity 0.15s, color 0.15s;
+}
+.clip-row:hover .btn-clip-delete { opacity: 1; }
+.btn-clip-delete:hover { color: #e74c3c; }
+.btn-clip-confirm, .btn-clip-reject {
+  background: none;
+  border: 1px solid;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  padding: 2px 8px;
+  transition: background 0.12s, border-color 0.12s;
+}
+.btn-clip-confirm { border-color: rgba(46,204,113,0.5); color: #2ecc71; }
+.btn-clip-confirm:hover { background: rgba(46,204,113,0.15); border-color: #2ecc71; }
+.btn-clip-reject { border-color: rgba(231,76,60,0.4); color: #b94a4a; }
+.btn-clip-reject:hover { background: rgba(231,76,60,0.12); border-color: #e74c3c; color: #e74c3c; }
+[data-theme="light"] .clip-row { border-bottom-color: rgba(0,0,0,0.08); }
+[data-theme="light"] .clip-row:hover { background: rgba(0,0,0,0.02); }
+[data-theme="light"] .clip-row.auto-clip { border-left-color: rgba(230,126,34,0.3); }
+[data-theme="light"] .btn-clip-delete { color: var(--text-secondary); }
 .clip-sync-badge { font-size: 14px; cursor: default; }
 .clip-sync-badge.clickable { cursor: pointer; }
 .clip-sync-badge.syncing { animation: spin 1.2s linear infinite; }
