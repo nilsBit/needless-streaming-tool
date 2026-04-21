@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useApi, apiPost, apiPatch, apiDelete, getApiToken } from '../hooks/useApi';
+import React, { useState, useEffect, useRef } from 'react';
+import { useApi, apiGet, apiPost, apiPatch, apiDelete, getApiToken } from '../hooks/useApi';
 import { ProjectItem, StreamState } from '../../../shared/types';
 import { useWebSocket } from '../hooks/useWebSocket';
 import ChatCommands from '../components/ChatCommands';
@@ -34,6 +34,41 @@ export default function ProgressPanel() {
   useWebSocket((event) => {
     if (event.startsWith('progress-')) refetch();
   });
+
+  // Auto-seed 3 example items on first ever panel-mount when board is empty
+  // (Trello/Notion-Pattern, see docs/superpowers/specs/2026-04-21-progress-auto-seed-design.md)
+  const triedSeedRef = useRef(false);
+  useEffect(() => {
+    if (loading) return;
+    if (!data) return;
+    if (data.items.length !== 0) return;
+    if (triedSeedRef.current) return;
+
+    triedSeedRef.current = true;
+
+    (async () => {
+      const marker = await apiGet<{ value: string | null }>('/settings/get/progress_seeded_v1');
+      if (marker?.value === 'true') return;
+
+      const token = getApiToken();
+      const res = await fetch('http://localhost:4000/api/progress/seed-examples', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: '{}',
+      });
+
+      if (res.status === 201) {
+        await apiPost('/settings/set', { key: 'progress_seeded_v1', value: 'true' });
+        refetch();
+      } else if (res.status === 409) {
+        // Defensive: items already exist (race), mark as seeded so we don't retry next mount
+        await apiPost('/settings/set', { key: 'progress_seeded_v1', value: 'true' });
+      } else {
+        // Network/server error — silently allow retry on next mount
+        triedSeedRef.current = false;
+      }
+    })();
+  }, [loading, data, refetch]);
 
   // Auto-expand active items that have no sub-todos — guides the user to add some
   useEffect(() => {
