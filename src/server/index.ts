@@ -22,6 +22,7 @@ import customOverlaysRouter from './api/custom-overlays';
 import statsRouter from './api/stats';
 import backupRouter from './api/backup';
 import overlayConfigRouter, { getOverlayConfig } from './api/overlay-config';
+import songRequestsRouter from './api/song-requests';
 import { connectBot } from './bot/index';
 import { connectObs } from './obs/index';
 import { initAutoClips } from './auto-clips';
@@ -109,6 +110,7 @@ export async function startServer(): Promise<string> {
   app.use('/api/stats', statsRouter);
   app.use('/api/backup', backupRouter);
   app.use('/api/overlay-config', overlayConfigRouter);
+  app.use('/api/song-requests', songRequestsRouter);
 
   // Twitch OAuth callback redirect (no auth needed)
   app.get('/auth/twitch/callback', (req, res) => res.redirect('/api/auth/twitch/callback'));
@@ -126,6 +128,13 @@ export async function startServer(): Promise<string> {
 
   app.get('/public/overlay-config', (_req, res) => {
     res.json(getOverlayConfig());
+  });
+
+  app.get('/public/song-queue', (_req, res) => {
+    const rows = getDb().prepare(
+      "SELECT * FROM song_requests WHERE status IN ('pending', 'playing') ORDER BY CASE status WHEN 'playing' THEN 0 ELSE 1 END, created_at ASC"
+    ).all();
+    res.json(rows);
   });
 
   app.get('/public/progress', (_req, res) => {
