@@ -105,6 +105,20 @@ function runMigrations(from: number, to: number) {
     console.log('[DB] Migrated: added notion_page_id to clips');
   }
 
+  if (from < 13) {
+    db.exec(`CREATE TABLE IF NOT EXISTS song_requests (
+      id            INTEGER PRIMARY KEY AUTOINCREMENT,
+      url           TEXT NOT NULL,
+      title         TEXT NOT NULL,
+      artist        TEXT,
+      source        TEXT NOT NULL,
+      requested_by  TEXT NOT NULL,
+      status        TEXT NOT NULL DEFAULT 'pending',
+      created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
+    console.log('[DB] Migrated: added song_requests table');
+  }
+
   db.prepare('INSERT OR REPLACE INTO schema_version (version) VALUES (?)').run(to);
   console.log(`[DB] Migrated from v${from} to v${to}`);
 }
