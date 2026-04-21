@@ -265,10 +265,10 @@ export default function SettingsPanel() {
 
           <div className="bot-controls">
             {botStatus?.connected ? (
-              <button className="btn-disconnect" onClick={disconnectBot}>{t('settings.disconnect')}</button>
+              <button className="btn-settings-danger" onClick={disconnectBot}>{t('settings.disconnect')}</button>
             ) : (
               <button
-                className="btn-connect"
+                className="btn-settings-primary"
                 onClick={connectTwitch}
                 disabled={!clientIdInfo?.configured}
               >
@@ -279,7 +279,7 @@ export default function SettingsPanel() {
 
           {clientIdInfo?.configured && (
             <div className="reset-section">
-              <button className="btn-reset-small" onClick={async () => {
+              <button className="btn-settings-ghost" onClick={async () => {
                 setClientId('');
                 await apiFetch('/auth/twitch/client-id', {
                   method: 'POST',
@@ -318,7 +318,7 @@ export default function SettingsPanel() {
                   style={{ flex: 1 }}
                 />
               </div>
-              <div className="client-id-input" style={{ marginTop: '4px' }}>
+              <div className="client-id-input mt-8">
                 <input
                   type="password"
                   placeholder={t('settings.obs_password')}
@@ -345,14 +345,14 @@ export default function SettingsPanel() {
 
           <div className="bot-controls">
             {obsStatus?.connected ? (
-              <button className="btn-disconnect" onClick={async () => {
+              <button className="btn-settings-danger" onClick={async () => {
                 const result = await apiPost('/obs/disconnect', {});
                 if (!result) { toast.error(t('error.action_failed')); return; }
                 refetchObsStatus();
               }}>{t('settings.obs_disconnect')}</button>
             ) : (
               <button
-                className="btn-connect"
+                className="btn-settings-primary"
                 onClick={async () => {
                   const result = await apiPost('/obs/connect', {});
                   if (!result) { toast.error(t('error.action_failed')); return; }
@@ -367,7 +367,7 @@ export default function SettingsPanel() {
 
           {obsConfig?.configured && (
             <div className="reset-section">
-              <button className="btn-reset-small" onClick={async () => {
+              <button className="btn-settings-ghost" onClick={async () => {
                 const result = await apiPost('/obs/config', { host: '', port: 0, password: '' });
                 if (!result) { toast.error(t('error.action_failed')); return; }
                 setObsHost('localhost');
@@ -406,7 +406,7 @@ export default function SettingsPanel() {
           ) : (
             <div className="setup-step">
               <p className="setup-info">Token: {notionInfo.preview}</p>
-              <button className="btn-reset-small" onClick={async () => {
+              <button className="btn-settings-ghost" onClick={async () => {
                 const result = await apiPost('/settings/notion', { token: '' });
                 if (!result) { toast.error(t('error.action_failed')); return; }
                 refetchNotion();
@@ -414,7 +414,7 @@ export default function SettingsPanel() {
             </div>
           )}
 
-          <div style={{ marginTop: '12px' }}>
+          <div className="mt-12">
             <NotionDatabasePicker compact />
           </div>
         </div>
@@ -447,7 +447,7 @@ export default function SettingsPanel() {
           ) : (
             <div className="setup-step">
               <p className="setup-info">Token: {githubInfo.preview}</p>
-              <button className="btn-reset-small" onClick={async () => {
+              <button className="btn-settings-ghost" onClick={async () => {
                 const result = await apiPost('/progress/github', { token: '' });
                 if (!result) { toast.error(t('error.action_failed')); return; }
                 refetchGithub();
@@ -455,7 +455,7 @@ export default function SettingsPanel() {
             </div>
           )}
 
-          <div className="client-id-input" style={{ marginTop: '8px' }}>
+          <div className="client-id-input mt-8">
             <input
               type="text"
               placeholder={t('github.repo_placeholder')}
@@ -465,16 +465,16 @@ export default function SettingsPanel() {
             />
           </div>
 
-          <div className="bot-controls" style={{ marginTop: '8px' }}>
+          <div className="bot-controls mt-8">
             <button
-              className="btn-connect"
+              className="btn-settings-primary"
               onClick={importGithub}
               disabled={importing || !githubInfo?.configured || !githubRepo.trim()}
             >
               {importing ? '⏳...' : t('github.import_btn')}
             </button>
             <button
-              className="btn-connect"
+              className="btn-settings-primary"
               onClick={importGithub}
               disabled={importing || !githubInfo?.configured || !githubRepo.trim()}
             >
@@ -489,7 +489,7 @@ export default function SettingsPanel() {
           <h3>{t('auto_clips.title')}</h3>
           <p className="setup-info">{t('auto_clips.desc')}</p>
 
-          <div className="language-toggle" style={{ marginBottom: '12px' }}>
+          <div className="language-toggle mb-12">
             <button
               className={`lang-btn ${autoClipsEnabled ? 'active' : ''}`}
               onClick={() => setAutoClipsEnabled(true)}
@@ -504,33 +504,32 @@ export default function SettingsPanel() {
             </button>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '8px' }}>
+          <div className="settings-checkboxes">
             <label><input type="checkbox" checked={triggerReward} onChange={e => setTriggerReward(e.target.checked)} /> {t('auto_clips.trigger_reward')}</label>
             <label><input type="checkbox" checked={triggerHype} onChange={e => setTriggerHype(e.target.checked)} /> {t('auto_clips.trigger_hype')}</label>
             <label><input type="checkbox" checked={triggerMilestone} onChange={e => setTriggerMilestone(e.target.checked)} /> {t('auto_clips.trigger_milestone')}</label>
             <label><input type="checkbox" checked={triggerRaid} onChange={e => setTriggerRaid(e.target.checked)} /> {t('auto_clips.trigger_raid')}</label>
           </div>
 
-          <button className="btn-connect" style={{ marginTop: '12px' }} onClick={saveAutoClipSettings}>{t('settings.save')}</button>
+          <button className="btn-settings-primary mt-12" onClick={saveAutoClipSettings}>{t('settings.save')}</button>
         </div>
 
         <div className="settings-section">
           <h3>{t('commands.title')}</h3>
           <p className="setup-info">{t('commands.desc')}</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <div className="settings-checkboxes">
             {Object.entries(editCommands).map(([key, value]) => (
-              <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ flex: '0 0 120px', fontSize: '13px', color: '#aaa' }}>{key}</span>
+              <div key={key} className="settings-command-row">
+                <span className="settings-command-label">{key}</span>
                 <input
                   type="text"
                   value={value}
                   onChange={e => setEditCommands(prev => ({ ...prev, [key]: e.target.value }))}
-                  style={{ flex: 1, fontSize: '13px' }}
                 />
               </div>
             ))}
           </div>
-          <button className="btn-connect" style={{ marginTop: '12px' }} onClick={saveCommands}>{t('settings.save')}</button>
+          <button className="btn-settings-primary mt-12" onClick={saveCommands}>{t('settings.save')}</button>
         </div>
       </SettingsGroup>
 
@@ -583,7 +582,7 @@ export default function SettingsPanel() {
         <div className="settings-section">
           <h3>{t('settings.wizard')}</h3>
           <p className="setup-info">{t('settings.wizard_desc')}</p>
-          <button className="btn-connect" onClick={async () => {
+          <button className="btn-settings-ghost" onClick={async () => {
             await apiPost('/settings/onboarding', { completed: false });
             window.location.reload();
           }}>{t('settings.wizard_restart')}</button>
@@ -602,8 +601,8 @@ export default function SettingsPanel() {
           ) : (
             <p className="empty">{t('settings.token_loading')}</p>
           )}
-          <div className="api-endpoints">
-            <p className="setup-info" style={{ marginTop: '8px' }}>Base URL: <code>http://localhost:4000/api</code></p>
+          <div className="api-endpoints mt-8">
+            <p className="setup-info">Base URL: <code>http://localhost:4000/api</code></p>
             <p className="setup-info">Header: <code>Authorization: Bearer &lt;token&gt;</code></p>
           </div>
         </div>
@@ -612,8 +611,8 @@ export default function SettingsPanel() {
           <h3>{t('settings.backup')}</h3>
           <p className="setup-info">{t('settings.backup_desc')}</p>
           <div className="bot-controls">
-            <button className="btn-connect" onClick={exportBackup}>{t('settings.backup_export')}</button>
-            <label className="btn-connect" style={{ cursor: 'pointer', textAlign: 'center' }}>
+            <button className="btn-settings-primary" onClick={exportBackup}>{t('settings.backup_export')}</button>
+            <label className="btn-settings-primary btn-file-upload">
               {t('settings.backup_import')}
               <input
                 ref={fileInputRef}
