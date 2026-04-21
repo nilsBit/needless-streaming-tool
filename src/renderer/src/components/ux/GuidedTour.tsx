@@ -173,17 +173,53 @@ export default function GuidedTour({ steps, currentEvent, onEventConsumed, onCom
   );
 }
 
+const TOOLTIP_WIDTH = 300;
+const MARGIN = 12;
+
 function computeTooltipStyle(rect: Rect, pos: string): React.CSSProperties {
   const gap = 12;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  // Clamp horizontal center so tooltip stays within viewport
+  const clampX = (centerX: number): number => {
+    const half = TOOLTIP_WIDTH / 2;
+    return Math.max(MARGIN + half, Math.min(vw - MARGIN - half, centerX));
+  };
+
+  // Clamp vertical position
+  const clampY = (y: number): number => Math.max(MARGIN, Math.min(vh - MARGIN - 120, y));
+
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+
   switch (pos) {
     case 'top':
-      return { bottom: window.innerHeight - rect.top + gap, left: rect.left + rect.width / 2, transform: 'translateX(-50%)' };
-    case 'left':
-      return { top: rect.top + rect.height / 2, right: window.innerWidth - rect.left + gap, transform: 'translateY(-50%)' };
-    case 'right':
-      return { top: rect.top + rect.height / 2, left: rect.left + rect.width + gap, transform: 'translateY(-50%)' };
+      return { bottom: vh - rect.top + gap, left: clampX(centerX), transform: 'translateX(-50%)' };
+    case 'left': {
+      const left = rect.left - gap - TOOLTIP_WIDTH;
+      // Fall back to right if no space on left
+      if (left < MARGIN) {
+        return { top: clampY(centerY), left: rect.left + rect.width + gap, transform: 'translateY(-50%)' };
+      }
+      return { top: clampY(centerY), left, transform: 'translateY(-50%)' };
+    }
+    case 'right': {
+      const left = rect.left + rect.width + gap;
+      // Fall back to left if no space on right
+      if (left + TOOLTIP_WIDTH > vw - MARGIN) {
+        return { top: clampY(centerY), left: rect.left - gap - TOOLTIP_WIDTH, transform: 'translateY(-50%)' };
+      }
+      return { top: clampY(centerY), left, transform: 'translateY(-50%)' };
+    }
     case 'bottom':
-    default:
-      return { top: rect.top + rect.height + gap, left: rect.left + rect.width / 2, transform: 'translateX(-50%)' };
+    default: {
+      let top = rect.top + rect.height + gap;
+      // Fall back to top if no space below
+      if (top + 120 > vh) {
+        return { bottom: vh - rect.top + gap, left: clampX(centerX), transform: 'translateX(-50%)' };
+      }
+      return { top, left: clampX(centerX), transform: 'translateX(-50%)' };
+    }
   }
 }
