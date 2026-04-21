@@ -321,6 +321,11 @@ const translations = {
   'hotkeys.milestone_major': { de: 'Milestone (Major)', en: 'Milestone (Major)' },
   'hotkeys.milestone_epic': { de: 'Milestone (Epic)', en: 'Milestone (Epic)' },
 
+  'settings.group.connections': { de: 'Verbindungen', en: 'Connections' },
+  'settings.group.features': { de: 'Features', en: 'Features' },
+  'settings.group.app': { de: 'App', en: 'App' },
+  'settings.group.data': { de: 'Daten & API', en: 'Data & API' },
+
   // ---- Settings Panel (additional) ----
   'settings.twitch_step1': { de: 'Schritt 1: Erstelle eine App auf dev.twitch.tv und trage die Client-ID ein.', en: 'Step 1: Create an app on dev.twitch.tv and enter the Client ID.' },
   'settings.twitch_placeholder': { de: 'Twitch Client-ID...', en: 'Twitch Client ID...' },
