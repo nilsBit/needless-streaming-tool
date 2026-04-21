@@ -9,6 +9,7 @@ import EmptyState from '../components/ux/EmptyState';
 import TryThisBadge from '../components/ux/TryThisBadge';
 import { celebrate } from '../components/ux/celebrate';
 import { useFirstTouch } from '../components/ux/useFirstTouch';
+import GuidedTour, { TourStep } from '../components/ux/GuidedTour';
 
 interface ProgressData {
   project_name: string | null;
@@ -30,6 +31,17 @@ export default function ProgressPanel() {
   const [focusItemId, setFocusItemId] = useState<number | null>(null);
   const firstActivate = useFirstTouch('progress.activate_item');
   const firstCheck = useFirstTouch('progress.first_todo_checked');
+  const tourComplete = useFirstTouch('progress.tour_completed');
+  const [tourActive, setTourActive] = useState(false);
+  const [tourEvent, setTourEvent] = useState<string | null>(null);
+
+  const tourSteps: TourStep[] = [
+    { targetSelector: '.kanban-board', title: t('tour.progress.step1_title'), text: t('tour.progress.step1_text'), waitFor: 'tour-acknowledged', tooltipPosition: 'bottom' },
+    { targetSelector: '.kanban-column:first-child .kanban-add input', title: t('tour.progress.step2_title'), text: t('tour.progress.step2_text'), waitFor: 'item-created', tooltipPosition: 'top' },
+    { targetSelector: '.kanban-column:first-child .kanban-item:last-child .status-toggle', title: t('tour.progress.step3_title'), text: t('tour.progress.step3_text'), waitFor: 'item-activated', tooltipPosition: 'right' },
+    { targetSelector: '.kanban-item.expanded .sub-todo-add input', title: t('tour.progress.step4_title'), text: t('tour.progress.step4_text'), waitFor: 'todo-created', tooltipPosition: 'top' },
+    { targetSelector: '.kanban-item.expanded .sub-todo-check', title: t('tour.progress.step5_title'), text: t('tour.progress.step5_text'), waitFor: 'todo-checked', tooltipPosition: 'right' },
+  ];
 
   useWebSocket((event) => {
     if (event.startsWith('progress-')) refetch();
@@ -109,6 +121,7 @@ export default function ProgressPanel() {
     if (!result) { toast.error(t('error.action_failed')); return; }
     setNewItem('');
     refetch();
+    if (tourActive) setTourEvent('item-created');
   };
 
   const cycleStatus = async (item: ProjectItem) => {
@@ -118,6 +131,7 @@ export default function ProgressPanel() {
       current_timer_seconds: liveSeconds,
     });
     if (!result) { toast.error(t('error.action_failed')); return; }
+    if (tourActive && next === 'in_progress') setTourEvent('item-activated');
     if (next === 'in_progress' && (item.todos || []).length === 0) {
       if (!firstActivate.seen && !firstActivate.loading) {
         toast.info(t('progress.subtodo_hint_toast').replace('{title}', item.title));
@@ -150,11 +164,13 @@ export default function ProgressPanel() {
     if (!result) { toast.error(t('error.action_failed')); return; }
     setNewTodoText(prev => ({ ...prev, [itemId]: '' }));
     refetch();
+    if (tourActive) setTourEvent('todo-created');
   };
 
   const toggleTodo = async (todoId: number, currentDone: number, el?: HTMLElement | null) => {
     const result = await apiPatch(`/progress/todos/${todoId}`, { done: currentDone ? 0 : 1 });
     if (!result) { toast.error(t('error.action_failed')); return; }
+    if (tourActive && currentDone === 0) setTourEvent('todo-checked');
     if (currentDone === 0 && !firstCheck.seen && !firstCheck.loading) {
       if (el) celebrate('check', el);
       toast.success(t('celebrate.first_todo_done'));
@@ -377,6 +393,9 @@ export default function ProgressPanel() {
         )}
         <span className="progress-count">{doneCount}/{items.length} done</span>
         <button className="btn-export-small" onClick={exportCsv} title={t('progress.export_csv')}>📥</button>
+        {!tourComplete.seen && !tourComplete.loading && (
+          <button className="btn-export-small" onClick={() => setTourActive(true)} title={t('tour.start')}>🎯 {t('tour.start')}</button>
+        )}
       </div>
 
       <div className="progress-bar-container">
@@ -401,6 +420,24 @@ export default function ProgressPanel() {
           {renderColumn('in_progress', t('kanban.in_progress'), '🔨', inProgress)}
           {renderColumn('done', t('kanban.done'), '✅', done)}
         </div>
+      )}
+
+      {tourActive && (
+        <GuidedTour
+          steps={tourSteps}
+          currentEvent={tourEvent}
+          onEventConsumed={() => setTourEvent(null)}
+          onComplete={() => {
+            setTourActive(false);
+            tourComplete.markSeen();
+            celebrate('success', null);
+            toast.success(t('tour.complete_toast'));
+          }}
+          onSkip={() => {
+            setTourActive(false);
+            setTourEvent(null);
+          }}
+        />
       )}
 
       <ChatCommands commands={[
