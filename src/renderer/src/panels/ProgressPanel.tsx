@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useApi, apiGet, apiPost, apiPatch, apiDelete, getApiToken } from '../hooks/useApi';
+import { useApi, apiGet, apiPost, apiPatch, apiDelete, apiFetch, getApiToken } from '../hooks/useApi';
 import { ProjectItem, StreamState } from '../../../shared/types';
 import { useWebSocket } from '../hooks/useWebSocket';
 import ChatCommands from '../components/ChatCommands';
@@ -50,11 +50,9 @@ export default function ProgressPanel() {
       const marker = await apiGet<{ value: string | null }>('/settings/get/progress_seeded_v1');
       if (marker?.value === 'true') return;
 
-      const token = getApiToken();
-      const res = await fetch('http://localhost:4000/api/progress/seed-examples', {
+      const res = await apiFetch('/progress/seed-examples', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: '{}',
+        body: JSON.stringify({}),
       });
 
       if (res.status === 201) {
