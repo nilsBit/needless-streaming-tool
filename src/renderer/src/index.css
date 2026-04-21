@@ -2790,6 +2790,50 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 }
 .ux-empty-secondary:hover:not(:disabled) { background: rgba(255,255,255,0.05); }
 
+.ux-empty-inline-input {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+  max-width: 360px;
+  margin-top: 4px;
+}
+.ux-empty-inline-input input {
+  flex: 1;
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.04);
+  color: inherit;
+  font-size: 13px;
+}
+.ux-empty-inline-input input:focus {
+  outline: none;
+  border-color: var(--accent, #4a9eff);
+  box-shadow: 0 0 0 2px rgba(74, 158, 255, 0.2);
+}
+.ux-empty-inline-input button {
+  padding: 9px 16px;
+  border-radius: 8px;
+  background: var(--accent, #4a9eff);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+}
+.ux-empty-inline-input button:hover:not(:disabled) { filter: brightness(1.1); }
+.ux-empty-inline-input button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+[data-theme="light"] .ux-empty-inline-input input {
+  background: var(--bg-input);
+  border-color: var(--border);
+  color: var(--text);
+}
+[data-theme="light"] .ux-empty-inline-input input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(230, 126, 34, 0.2);
+}
+
 [data-theme="light"] .ux-empty {
   border-color: rgba(0,0,0,0.12);
   background: rgba(0,0,0,0.02);
@@ -2868,17 +2912,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   margin: 0;
 }
 
-.kanban-add-empty { max-width: 420px; margin: 12px auto 0 auto; display: flex; gap: 6px; }
-.kanban-add-empty input { flex: 1; padding: 8px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.03); color: inherit; font-size: 13px; }
-.kanban-add-empty button { padding: 8px 14px; border-radius: 6px; background: rgba(255,255,255,0.08); color: inherit; border: 1px solid rgba(255,255,255,0.15); cursor: pointer; }
-
-[data-theme="light"] .kanban-add-empty input {
-  background: var(--bg-input); border-color: var(--border); color: var(--text);
-}
-[data-theme="light"] .kanban-add-empty button {
-  background: var(--bg-input); border-color: var(--border); color: var(--text);
-}
-[data-theme="light"] .kanban-add-empty button:hover:not(:disabled) { background: #eee; }
 
 /* Kanban-item progress bar on card face (Trello pattern) */
 .kanban-item-progress {
