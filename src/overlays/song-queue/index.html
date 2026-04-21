@@ -22,50 +22,129 @@
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: transparent !important; font-family: var(--font-body); overflow: hidden; }
+    body { background: transparent !important; background-color: rgba(0,0,0,0) !important; font-family: var(--font-body); overflow: hidden; }
 
     #container { display: flex; flex-direction: column; gap: 6px; padding: 8px; }
 
-    .sr-now {
+    /* ---- Now Playing (from song overlay) ---- */
+    .song {
       display: none;
       align-items: center;
-      gap: 12px;
-      padding: 10px 16px;
-      background: rgb(var(--color-bg-rgb) / 0.92);
-      border: 2px solid var(--color-accent);
-      box-shadow: 0 0 12px rgb(var(--color-accent-rgb) / 0.3);
-      animation: srSlideIn 0.4s ease-out;
+      gap: 14px;
+      padding: 12px 20px;
+      background: rgb(var(--color-bg-rgb) / 0.95);
+      border: 3px solid var(--color-accent);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 15px rgb(var(--color-accent-rgb) / 0.4);
     }
-    .sr-now.visible { display: flex; }
 
-    .sr-now-label {
+    .song::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgb(var(--color-accent-rgb) / 0.03) 10px,
+        rgb(var(--color-accent-rgb) / 0.03) 20px
+      );
+      pointer-events: none;
+    }
+
+    .song.visible { display: flex; animation: songSlideIn 0.5s ease-out; }
+
+    @keyframes songSlideIn {
+      0% { opacity: 0; transform: translateX(-40px); }
+      100% { opacity: 1; transform: translateX(0); }
+    }
+
+    .now-playing {
       font-family: var(--font-display);
-      font-size: 10px;
-      letter-spacing: 3px;
+      font-size: 11px;
+      letter-spacing: 4px;
       color: var(--color-accent);
       text-transform: uppercase;
+      text-shadow: 0 0 8px rgb(var(--color-accent-rgb) / 0.6);
+      transform: skewX(-3deg);
+      display: inline-block;
+      padding: 2px 8px;
+      background: rgb(var(--color-accent-rgb) / 0.1);
+      border-left: 2px solid var(--color-accent);
+      margin-bottom: 2px;
     }
-    .sr-now-title {
+
+    .equalizer {
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+
+    .eq-bar {
+      width: 4px;
+      background: var(--color-accent);
+      box-shadow: 0 0 4px rgb(var(--color-accent-rgb) / 0.6);
+      animation: eqBounce 0.8s ease-in-out infinite alternate;
+    }
+
+    .eq-bar:nth-child(1) { height: 60%; animation-delay: 0s; }
+    .eq-bar:nth-child(2) { height: 100%; animation-delay: 0.15s; }
+    .eq-bar:nth-child(3) { height: 40%; animation-delay: 0.3s; }
+    .eq-bar:nth-child(4) { height: 80%; animation-delay: 0.45s; }
+    .eq-bar:nth-child(5) { height: 50%; animation-delay: 0.1s; }
+
+    @keyframes eqBounce {
+      0% { transform: scaleY(0.3); }
+      100% { transform: scaleY(1); }
+    }
+
+    .song-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .song-title {
       font-family: var(--font-display);
-      font-size: 18px;
+      font-size: 20px;
+      font-weight: 700;
       color: var(--color-text);
-      letter-spacing: 1px;
+      letter-spacing: 2px;
+      text-shadow: 0 0 8px rgb(var(--color-secondary-rgb) / 0.4), 2px 2px 0 rgba(0,0,0,0.6);
       text-transform: uppercase;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    .sr-now-artist {
+
+    .song-artist {
       font-size: 12px;
       color: var(--color-secondary);
-    }
-    .sr-now-user {
-      font-size: 11px;
-      color: #ff6b35;
-      margin-left: auto;
-      white-space: nowrap;
+      text-shadow: 0 0 4px rgb(var(--color-secondary-rgb) / 0.3);
     }
 
+    .song-requester {
+      font-size: 11px;
+      font-weight: 600;
+      color: #ff6b35;
+      text-shadow: 0 0 4px rgba(255,107,53,0.3);
+    }
+
+    .song::after {
+      content: '';
+      position: absolute;
+      bottom: 0; right: 0;
+      width: 30px; height: 3px;
+      background: var(--color-primary);
+      box-shadow: 0 0 8px rgb(var(--color-primary-rgb) / 0.5);
+    }
+
+    /* ---- Queue (upcoming songs) ---- */
     .sr-next {
       display: none;
       flex-direction: column;
@@ -75,6 +154,15 @@
       border-left: 2px solid rgba(255,255,255,0.15);
     }
     .sr-next.visible { display: flex; }
+
+    .sr-next-label {
+      font-family: var(--font-display);
+      font-size: 9px;
+      letter-spacing: 3px;
+      color: rgba(255,255,255,0.35);
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
 
     .sr-next-item {
       display: flex;
@@ -86,12 +174,8 @@
     }
     .sr-next-pos { min-width: 16px; color: rgba(255,255,255,0.3); }
     .sr-next-title { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .sr-next-user { color: rgba(255,107,53,0.6); }
+    .sr-next-user { color: rgba(255,107,53,0.6); font-size: 11px; }
 
-    @keyframes srSlideIn {
-      0% { opacity: 0; transform: translateY(-20px); }
-      100% { opacity: 1; transform: translateY(0); }
-    }
     @keyframes srFadeIn {
       0% { opacity: 0; }
       100% { opacity: 1; }
@@ -100,15 +184,27 @@
 </head>
 <body>
   <div id="container">
-    <div class="sr-now" id="now">
-      <div style="display:flex;flex-direction:column;gap:2px;flex:1;min-width:0">
-        <span class="sr-now-label">SONG REQUEST</span>
-        <span class="sr-now-title" id="now-title"></span>
-        <span class="sr-now-artist" id="now-artist"></span>
+    <!-- Now Playing — shows current song (manual/auto-detect OR song request) -->
+    <div class="song" id="song">
+      <div class="equalizer">
+        <div class="eq-bar"></div>
+        <div class="eq-bar"></div>
+        <div class="eq-bar"></div>
+        <div class="eq-bar"></div>
+        <div class="eq-bar"></div>
       </div>
-      <span class="sr-now-user" id="now-user"></span>
+      <div class="song-info">
+        <div class="now-playing">NOW PLAYING</div>
+        <span class="song-title" id="song-title"></span>
+        <span class="song-artist" id="song-artist"></span>
+        <span class="song-requester" id="song-requester"></span>
+      </div>
     </div>
-    <div class="sr-next" id="next"></div>
+
+    <!-- Queue — upcoming song requests -->
+    <div class="sr-next" id="next">
+      <span class="sr-next-label">UP NEXT</span>
+    </div>
   </div>
 
   <script>
@@ -130,6 +226,14 @@
       ['--color-primary', '--color-secondary', '--color-accent', '--color-bg'].forEach(function(k) {
         if (vars[k]) root.style.setProperty(k + '-rgb', hexToRgb(vars[k]));
       });
+      var fonts = [vars['--font-display'], vars['--font-body']].filter(Boolean);
+      if (fonts.length > 0) {
+        var families = fonts.map(function(f) { return f.split(',')[0].replace(/'/g, '').trim(); });
+        var link = document.createElement('link');
+        link.href = 'https://fonts.googleapis.com/css2?family=' + families.map(function(f) { return encodeURIComponent(f) + ':wght@400;600;700'; }).join('&') + '&display=swap';
+        link.rel = 'stylesheet';
+        document.head.appendChild(link);
+      }
     })
     .catch(function() {})
     .finally(function() { document.documentElement.style.visibility = 'visible'; });
@@ -144,55 +248,86 @@
 })();
   </script>
   <script>
-    const nowEl = document.getElementById('now');
-    const nowTitle = document.getElementById('now-title');
-    const nowArtist = document.getElementById('now-artist');
-    const nowUser = document.getElementById('now-user');
+    const songEl = document.getElementById('song');
+    const songTitle = document.getElementById('song-title');
+    const songArtist = document.getElementById('song-artist');
+    const songRequester = document.getElementById('song-requester');
     const nextEl = document.getElementById('next');
 
-    function render(queue) {
+    // --- Now Playing state (can come from song-update OR sr playing) ---
+    function showSong(title, artist, requester) {
+      songTitle.textContent = title || 'Unknown';
+      songArtist.textContent = artist || '';
+      songRequester.textContent = requester || '';
+      songEl.classList.remove('visible');
+      // Force reflow for re-animation
+      void songEl.offsetWidth;
+      songEl.classList.add('visible');
+    }
+
+    function hideSong() {
+      songEl.classList.remove('visible');
+    }
+
+    // --- Queue rendering ---
+    function renderQueue(queue) {
       const playing = queue.find(s => s.status === 'playing');
       const pending = queue.filter(s => s.status === 'pending').slice(0, 3);
 
+      // Show playing song request in the Now Playing section
       if (playing) {
-        nowEl.classList.add('visible');
-        nowTitle.textContent = playing.title;
-        nowArtist.textContent = playing.artist || '';
-        nowUser.textContent = '@' + playing.requested_by;
-      } else {
-        nowEl.classList.remove('visible');
+        showSong(playing.title, playing.artist, '@' + playing.requested_by);
       }
+
+      // Render upcoming queue
+      // Keep the label element, clear only the items
+      const label = nextEl.querySelector('.sr-next-label');
+      nextEl.innerHTML = '';
+      nextEl.appendChild(label);
 
       if (pending.length > 0) {
         nextEl.classList.add('visible');
-        nextEl.innerHTML = pending.map((s, i) =>
-          '<div class="sr-next-item">' +
+        pending.forEach((s, i) => {
+          const item = document.createElement('div');
+          item.className = 'sr-next-item';
+          item.innerHTML =
             '<span class="sr-next-pos">' + (i + 1) + '.</span>' +
-            '<span class="sr-next-title">' + s.title + '</span>' +
-            '<span class="sr-next-user">@' + s.requested_by + '</span>' +
-          '</div>'
-        ).join('');
+            '<span class="sr-next-title">' + s.title + (s.artist ? ' — ' + s.artist : '') + '</span>' +
+            '<span class="sr-next-user">@' + s.requested_by + '</span>';
+          nextEl.appendChild(item);
+        });
       } else {
         nextEl.classList.remove('visible');
-        nextEl.innerHTML = '';
       }
     }
 
-    // Initial fetch via public endpoint (no auth needed for overlay)
+    // --- Initial fetch for queue ---
     fetch('http://localhost:4000/public/song-queue')
       .then(r => r.json())
-      .then(render)
+      .then(renderQueue)
       .catch(() => {});
 
-    // WebSocket live updates
+    // --- WebSocket ---
     const ws = new WebSocket('ws://localhost:4000?overlay=1');
     ws.onmessage = (msg) => {
       const { event, data } = JSON.parse(msg.data);
+
       if (event === 'overlay-config' && window.__applyOverlayConfig) window.__applyOverlayConfig(data);
+
+      // Manual/auto-detect song update (from SongPanel or SMTC)
+      if (event === 'song-update') {
+        showSong(data.title, data.artist, '');
+      }
+
+      if (event === 'song-clear') {
+        hideSong();
+      }
+
+      // Song request queue update
       if (event === 'sr-update') {
-        fetch('http://localhost:4000/api/song-requests')
+        fetch('http://localhost:4000/public/song-queue')
           .then(r => r.json())
-          .then(render)
+          .then(renderQueue)
           .catch(() => {});
       }
     };
