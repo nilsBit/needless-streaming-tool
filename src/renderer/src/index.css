@@ -1869,8 +1869,36 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 [data-theme="light"] .help-section-header { background: var(--bg-input); color: var(--text); }
 [data-theme="light"] .help-content { background: var(--bg-panel); color: var(--text-secondary); }
 [data-theme="light"] .onboarding-overlay { background: var(--bg); }
-[data-theme="light"] .onboarding-status { background: var(--bg-input); border-color: var(--border); }
-[data-theme="light"] .setup-instruction { background: var(--bg-input); border-color: var(--border); color: var(--text); }
+[data-theme="light"] .onboarding-step h1 { color: var(--text); }
+[data-theme="light"] .welcome-text { color: var(--text); }
+[data-theme="light"] .welcome-sub { color: var(--text-secondary); }
+[data-theme="light"] .step-desc { color: var(--text-secondary); }
+[data-theme="light"] .step-hint { color: var(--text-secondary); }
+[data-theme="light"] .step-dot { background: #ccc; }
+[data-theme="light"] .onboarding-status { background: var(--bg-panel); border-color: var(--border); color: var(--text); }
+[data-theme="light"] .onboarding-field label { color: var(--text-secondary); }
+[data-theme="light"] .input-row input { background: var(--bg-input); border-color: var(--border); color: var(--text); }
+[data-theme="light"] .input-row button { background: var(--bg-input); border-color: var(--border); color: var(--text); }
+[data-theme="light"] .input-row button:hover { border-color: var(--accent); color: var(--accent); }
+[data-theme="light"] .overlay-item-onboarding { background: var(--bg-panel); border-color: var(--border); color: var(--text); }
+[data-theme="light"] .overlay-item-onboarding button { border-color: var(--border); color: var(--text-secondary); }
+[data-theme="light"] .overlay-item-onboarding button:hover { border-color: var(--accent); color: var(--accent); }
+[data-theme="light"] .token-display-onboarding { background: var(--bg-panel); border-color: var(--border); }
+[data-theme="light"] .token-display-onboarding button { border-color: var(--border); color: var(--text-secondary); }
+[data-theme="light"] .token-display-onboarding button:hover { border-color: var(--accent); color: var(--accent); }
+[data-theme="light"] .done-item { background: var(--bg-panel); color: var(--text); }
+[data-theme="light"] .step-nav { border-top-color: var(--border); }
+[data-theme="light"] .btn-back { border-color: var(--border); color: var(--text-secondary); }
+[data-theme="light"] .btn-back:hover { border-color: #999; color: var(--text); }
+[data-theme="light"] .btn-skip { color: var(--text-secondary); }
+[data-theme="light"] .btn-skip:hover { color: var(--text); }
+[data-theme="light"] .onboarding-info-box { background: var(--bg-panel); border-color: var(--border); }
+[data-theme="light"] .info-row { color: var(--text); }
+[data-theme="light"] .info-label { color: var(--text-secondary); }
+[data-theme="light"] .setup-instruction { background: var(--bg-panel); border-color: var(--border); color: var(--text); }
+[data-theme="light"] .lang-btn { background: var(--bg-panel); border-color: var(--border); color: var(--text-secondary); }
+[data-theme="light"] .lang-btn:hover { border-color: #999; }
+[data-theme="light"] .lang-btn.active { background: rgba(230,126,34,0.1); border-color: var(--accent); color: var(--accent); }
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
@@ -2762,6 +2790,17 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 }
 .ux-empty-secondary:hover:not(:disabled) { background: rgba(255,255,255,0.05); }
 
+[data-theme="light"] .ux-empty {
+  border-color: rgba(0,0,0,0.12);
+  background: rgba(0,0,0,0.02);
+  color: var(--text-secondary);
+}
+[data-theme="light"] .ux-empty-title { color: var(--text); }
+[data-theme="light"] .ux-empty-desc { color: var(--text-secondary); }
+[data-theme="light"] .ux-empty-secondary-row { color: var(--text-secondary); }
+[data-theme="light"] .ux-empty-secondary { border-color: var(--border); }
+[data-theme="light"] .ux-empty-secondary:hover:not(:disabled) { background: rgba(0,0,0,0.05); }
+
 /* ---------- UX Foundation: TryThisBadge ---------- */
 .ux-try-this-wrapper {
   position: relative;
@@ -2833,6 +2872,14 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .kanban-add-empty input { flex: 1; padding: 8px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.03); color: inherit; font-size: 13px; }
 .kanban-add-empty button { padding: 8px 14px; border-radius: 6px; background: rgba(255,255,255,0.08); color: inherit; border: 1px solid rgba(255,255,255,0.15); cursor: pointer; }
 
+[data-theme="light"] .kanban-add-empty input {
+  background: var(--bg-input); border-color: var(--border); color: var(--text);
+}
+[data-theme="light"] .kanban-add-empty button {
+  background: var(--bg-input); border-color: var(--border); color: var(--text);
+}
+[data-theme="light"] .kanban-add-empty button:hover:not(:disabled) { background: #eee; }
+
 /* Kanban-item progress bar on card face (Trello pattern) */
 .kanban-item-progress {
   height: 2px;
@@ -2841,6 +2888,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   margin: 0 10px 6px 10px;
   overflow: hidden;
 }
+[data-theme="light"] .kanban-item-progress { background: rgba(0,0,0,0.08); }
 .kanban-item-progress-fill {
   height: 100%;
   background: var(--accent, #4a9eff);
