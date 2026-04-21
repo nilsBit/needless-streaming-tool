@@ -176,13 +176,6 @@ export default function ProgressPanel() {
     refetch();
   };
 
-  const seedExamples = async () => {
-    const result = await apiPost('/progress/seed-examples', {});
-    if (!result) { toast.error(t('progress.seed_error')); return; }
-    toast.success(t('progress.seed_success'));
-    refetch();
-  };
-
   const exportCsv = () => {
     const token = getApiToken();
     window.open(`http://localhost:4000/api/progress/export?token=${token}`, '_blank');
@@ -391,30 +384,17 @@ export default function ProgressPanel() {
       </div>
 
       {items.length === 0 ? (
-        <>
-          <EmptyState
-            icon="📋"
-            title={t('empty.kanban.title')}
-            description={t('empty.kanban.desc')}
-            cta={{ label: t('empty.kanban.cta'), onClick: () => {
-              const el = document.getElementById('kanban-empty-input');
-              if (el instanceof HTMLInputElement) el.focus();
-            } }}
-            secondaryLeadIn={t('empty.kanban.secondary_lead')}
-            secondaryCta={{ label: t('empty.kanban.seed'), onClick: seedExamples }}
-          />
-          <div className="kanban-add kanban-add-empty">
-            <input
-              id="kanban-empty-input"
-              type="text"
-              placeholder={t('progress.item_placeholder')}
-              value={newItem}
-              onChange={e => setNewItem(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && addItem()}
-            />
-            <button onClick={addItem}>+</button>
-          </div>
-        </>
+        <EmptyState
+          icon="📋"
+          title={t('empty.kanban.title')}
+          description={t('empty.kanban.desc')}
+          inlineInput={{
+            value: newItem,
+            onChange: setNewItem,
+            onSubmit: addItem,
+            placeholder: t('progress.item_placeholder'),
+          }}
+        />
       ) : (
         <div className="kanban-board">
           {renderColumn('pending', t('kanban.backlog'), '⬜', backlog)}
