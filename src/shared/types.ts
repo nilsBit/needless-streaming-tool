@@ -170,6 +170,19 @@ export const VALID_PROJECT_ITEM_STATUS = ['pending', 'in_progress', 'done'] as c
 export const VALID_MILESTONE_LEVEL = ['minor', 'major', 'epic'] as const;
 export const VALID_MILESTONE_STATUS = ['pending', 'completed'] as const;
 
+export interface SongRequest {
+  id: number;
+  url: string;
+  title: string;
+  artist: string | null;
+  source: string;
+  requested_by: string;
+  status: string;
+  created_at: string;
+}
+
+export const VALID_SONG_REQUEST_STATUS = ['pending', 'playing', 'done', 'skipped'] as const;
+
 export interface NotionDatabase {
   id: string;
   title: string;

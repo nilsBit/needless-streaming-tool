@@ -1,4 +1,4 @@
-export const SCHEMA_VERSION = 12;
+export const SCHEMA_VERSION = 13;
 
 export const SCHEMA = `
 CREATE TABLE IF NOT EXISTS schema_version (
@@ -96,6 +96,17 @@ CREATE TABLE IF NOT EXISTS milestones (
   status        TEXT DEFAULT 'pending',
   message       TEXT,
   completed_at  DATETIME,
+  created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS song_requests (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  url           TEXT NOT NULL,
+  title         TEXT NOT NULL,
+  artist        TEXT,
+  source        TEXT NOT NULL,
+  requested_by  TEXT NOT NULL,
+  status        TEXT NOT NULL DEFAULT 'pending',
   created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 `;
