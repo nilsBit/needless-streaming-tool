@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { useApi, apiPost } from '../hooks/useApi';
+import { useApi, apiPost, apiDelete } from '../hooks/useApi';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { useTranslation } from '../i18n/LanguageContext';
 import { useToast } from '../i18n/ToastContext';
+import { SongRequest } from '../../../shared/types';
+import ChatCommands from '../components/ChatCommands';
 
 interface SongData { title: string; artist: string; source: string }
 interface SongResponse {
@@ -35,8 +37,11 @@ export default function SongPanel() {
   const [manualTitle, setManualTitle] = useState('');
   const [manualArtist, setManualArtist] = useState('');
 
+  const { data: queue, refetch: refetchQueue } = useApi<SongRequest[]>('/song-requests');
+
   useWebSocket((event) => {
     if (event === 'song-update' || event === 'song-clear') refetch();
+    if (event === 'sr-update') refetchQueue();
   });
 
   if (loading && !data) {
@@ -70,6 +75,34 @@ export default function SongPanel() {
     if (!result) { toast.error(t('error.action_failed')); return; }
     refetch();
   };
+
+  const playSong = async (id: number) => {
+    const result = await apiPost(`/song-requests/${id}/play`, {});
+    if (!result) { toast.error(t('error.action_failed')); return; }
+    refetchQueue();
+  };
+
+  const skipSong = async (id: number) => {
+    const result = await apiPost(`/song-requests/${id}/skip`, {});
+    if (!result) { toast.error(t('error.action_failed')); return; }
+    refetchQueue();
+  };
+
+  const deleteSong = async (id: number) => {
+    const ok = await apiDelete(`/song-requests/${id}`);
+    if (!ok) { toast.error(t('error.action_failed')); return; }
+    refetchQueue();
+  };
+
+  const clearQueue = async () => {
+    const result = await apiPost('/song-requests/clear', {});
+    if (!result) { toast.error(t('error.action_failed')); return; }
+    toast.success(t('sr.cleared'));
+    refetchQueue();
+  };
+
+  const pendingQueue = (queue || []).filter(s => s.status === 'pending');
+  const playingNow = (queue || []).find(s => s.status === 'playing');
 
   const autoSupported = data?.auto_detect_supported ?? false;
   const autoOn = data?.auto_detect ?? false;
@@ -134,6 +167,47 @@ export default function SongPanel() {
           </div>
         )}
       </div>
+      <div className="sr-section">
+        <div className="sr-header">
+          <h3>🎵 {t('sr.title')} <span className="sr-badge">{pendingQueue.length}</span></h3>
+          {pendingQueue.length > 0 && (
+            <button className="btn-export-small" onClick={clearQueue}>{t('sr.clear')}</button>
+          )}
+        </div>
+
+        {playingNow && (
+          <div className="sr-row sr-playing">
+            <span className="sr-row-pos">▶</span>
+            <span className="sr-row-title">{playingNow.title}{playingNow.artist ? ` — ${playingNow.artist}` : ''}</span>
+            <span className="sr-row-source">{playingNow.source === 'youtube' ? '🔴' : '🟢'}</span>
+            <span className="sr-row-user">@{playingNow.requested_by}</span>
+            <a className="sr-row-link" href={playingNow.url} target="_blank" rel="noopener noreferrer" title="Open">🔗</a>
+            <button className="btn-clip-delete" onClick={() => skipSong(playingNow.id)} title={t('sr.skip')}>⏭</button>
+          </div>
+        )}
+
+        {pendingQueue.length === 0 && !playingNow ? (
+          <p className="empty">{t('sr.empty')}</p>
+        ) : (
+          pendingQueue.map((sr, i) => (
+            <div key={sr.id} className="sr-row">
+              <span className="sr-row-pos">{i + 1}</span>
+              <span className="sr-row-title">{sr.title}{sr.artist ? ` — ${sr.artist}` : ''}</span>
+              <span className="sr-row-source">{sr.source === 'youtube' ? '🔴' : '🟢'}</span>
+              <span className="sr-row-user">@{sr.requested_by}</span>
+              <a className="sr-row-link" href={sr.url} target="_blank" rel="noopener noreferrer" title="Open">🔗</a>
+              <button className="btn-clip-delete" onClick={() => playSong(sr.id)} title={t('sr.play')}>▶</button>
+              <button className="btn-clip-delete" onClick={() => skipSong(sr.id)} title={t('sr.skip')}>⏭</button>
+              <button className="btn-clip-delete" onClick={() => deleteSong(sr.id)} title={t('tooltip.delete')}>✕</button>
+            </div>
+          ))
+        )}
+      </div>
+
+      <ChatCommands commands={[
+        { cmd: '!sr', desc: t('sr.cmd_sr') },
+        { cmd: '!queue', desc: t('sr.cmd_queue') },
+      ]} />
     </div>
   );
 }
