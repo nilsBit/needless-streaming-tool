@@ -3,6 +3,9 @@ import { useApi, apiPost, apiDelete, apiPatch, getApiToken } from '../hooks/useA
 import { useTranslation } from '../i18n/LanguageContext';
 import { useToast } from '../i18n/ToastContext';
 import ClipSyncBadge, { SyncState } from '../components/ClipSyncBadge';
+import GuidedTour, { TourStep } from '../components/ux/GuidedTour';
+import { useFirstTouch } from '../components/ux/useFirstTouch';
+import { celebrate } from '../components/ux/celebrate';
 
 interface SyncResult {
   synced: number;
@@ -52,6 +55,18 @@ export default function ClipsPanel() {
   const notionConfigured = !!dbInfo?.configured;
   const autoSync = autoSyncRaw?.value === 'true';
   const [failedIds, setFailedIds] = useState<Set<number>>(new Set());
+  const tourComplete = useFirstTouch('clips.tour_completed');
+  const [tourActive, setTourActive] = useState(false);
+  const [tourEvent, setTourEvent] = useState<string | null>(null);
+
+  const tourSteps: TourStep[] = [
+    { targetSelector: '.clips-panel-header', title: t('tour.clips.step1_title'), text: t('tour.clips.step1_text'), waitFor: 'tour-acknowledged', tooltipPosition: 'bottom' },
+    { targetSelector: '.clip-custom select', title: t('tour.clips.step2_title'), text: t('tour.clips.step2_text'), waitFor: 'tag-selected', tooltipPosition: 'bottom' },
+    { targetSelector: '.clip-custom input', title: t('tour.clips.step3_title'), text: t('tour.clips.step3_text'), waitFor: 'clip-created', tooltipPosition: 'bottom' },
+    { targetSelector: '.clip-tags .tag-btn', title: t('tour.clips.step4_title'), text: t('tour.clips.step4_text'), waitFor: 'tag-filtered', tooltipPosition: 'bottom' },
+    { targetSelector: '.clip-tags .tag-add', title: t('tour.clips.step5_title'), text: t('tour.clips.step5_text'), waitFor: 'tag-add-clicked', tooltipPosition: 'left' },
+    { targetSelector: '.clip-tags .tag-add-input input', title: t('tour.clips.step6_title'), text: t('tour.clips.step6_text'), waitFor: 'custom-tag-created', tooltipPosition: 'bottom' },
+  ];
 
   useWebSocket((event, data) => {
     if (event.startsWith('clip-')) { refetchClips(); refetchSessions(); }
@@ -70,6 +85,7 @@ export default function ClipsPanel() {
     setNote('');
     refetchClips();
     refetchSessions();
+    if (tourActive) setTourEvent('clip-created');
   };
 
   const deleteClip = async (id: number) => {
@@ -110,6 +126,7 @@ export default function ClipsPanel() {
     setNewTagName('');
     setShowNewTagInput(false);
     refetchTags();
+    if (tourActive) setTourEvent('custom-tag-created');
   };
 
   const deleteCustomTag = async (tag: string) => {
@@ -181,6 +198,9 @@ export default function ClipsPanel() {
     <div className="panel clips-panel">
       <div className="clips-panel-header">
         <h2>🎬 Clip Moments</h2>
+        {!tourComplete.seen && !tourComplete.loading && (
+          <button className="btn-export-small" onClick={() => setTourActive(true)} title={t('tour.start')}>🎯 {t('tour.start')}</button>
+        )}
         {notionConfigured && (
           <button className={`auto-sync-toggle ${autoSync ? 'on' : 'off'}`} onClick={toggleAutoSync} title={t('clips.auto_sync_label')}>
             ☁️ {t('clips.auto_sync_label')}: {autoSync ? t('clips.auto_sync_on') : t('clips.auto_sync_off')}
@@ -193,7 +213,7 @@ export default function ClipsPanel() {
           <button
             key={tag}
             className={`tag-btn ${activeFilter === tag ? 'active' : ''}`}
-            onClick={() => setActiveFilter(activeFilter === tag ? null : tag)}
+            onClick={() => { setActiveFilter(activeFilter === tag ? null : tag); if (tourActive) setTourEvent('tag-filtered'); }}
           >
             {TAG_EMOJI[tag] || '🏷️'} {tag}
           </button>
@@ -202,7 +222,7 @@ export default function ClipsPanel() {
           <button
             key={ct.tag}
             className={`tag-btn ${activeFilter === ct.tag ? 'active' : ''}`}
-            onClick={() => setActiveFilter(activeFilter === ct.tag ? null : ct.tag)}
+            onClick={() => { setActiveFilter(activeFilter === ct.tag ? null : ct.tag); if (tourActive) setTourEvent('tag-filtered'); }}
           >
             🏷️ {ct.tag}
             <span className="tag-delete" onClick={(e) => { e.stopPropagation(); deleteCustomTag(ct.tag); }}>✕</span>
@@ -211,7 +231,7 @@ export default function ClipsPanel() {
         <button
           key="auto"
           className={`tag-btn ${activeFilter === 'auto' ? 'active' : ''}`}
-          onClick={() => setActiveFilter(activeFilter === 'auto' ? null : 'auto')}
+          onClick={() => { setActiveFilter(activeFilter === 'auto' ? null : 'auto'); if (tourActive) setTourEvent('tag-filtered'); }}
         >
           🤖 Auto
         </button>
@@ -231,12 +251,12 @@ export default function ClipsPanel() {
             <button onClick={addCustomTag}>✓</button>
           </span>
         ) : (
-          <button className="tag-btn tag-add" onClick={() => setShowNewTagInput(true)}>+</button>
+          <button className="tag-btn tag-add" onClick={() => { setShowNewTagInput(true); if (tourActive) setTourEvent('tag-add-clicked'); }}>+</button>
         )}
       </div>
 
       <div className="clip-custom">
-        <select value={selectedTag} onChange={(e) => setSelectedTag(e.target.value)}>
+        <select value={selectedTag} onChange={(e) => { setSelectedTag(e.target.value); if (tourActive) setTourEvent('tag-selected'); }}>
           {allTagNames.map((t) => <option key={t} value={t}>{t}</option>)}
         </select>
         <input
@@ -323,6 +343,23 @@ export default function ClipsPanel() {
           );
         })}
       </div>
+      {tourActive && (
+        <GuidedTour
+          steps={tourSteps}
+          currentEvent={tourEvent}
+          onEventConsumed={() => setTourEvent(null)}
+          onComplete={() => {
+            setTourActive(false);
+            tourComplete.markSeen();
+            celebrate('success', null);
+            toast.success(t('tour.complete_toast'));
+          }}
+          onSkip={() => {
+            setTourActive(false);
+            setTourEvent(null);
+          }}
+        />
+      )}
     </div>
   );
 }
