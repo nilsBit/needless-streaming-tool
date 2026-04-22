@@ -496,6 +496,22 @@ const translations = {
   'sr.cmd_sr': { de: 'Song zur Queue hinzufügen (!sr <URL>)', en: 'Add song to queue (!sr <URL>)' },
   'sr.cmd_queue': { de: 'Nächste Songs anzeigen', en: 'Show next songs' },
 
+  // ---- Stream Profile ----
+  'profile.title': { de: 'Was streamst du?', en: 'What do you stream?' },
+  'profile.subtitle': { de: 'Wir zeigen dir nur die Features die du brauchst.', en: 'We\'ll show you only the features you need.' },
+  'profile.creative': { de: 'Kreativ', en: 'Creative' },
+  'profile.creative_desc': { de: 'Art, Design, Musik — Fokus auf Projekte & Fortschritt', en: 'Art, design, music — focus on projects & progress' },
+  'profile.gaming': { de: 'Gaming', en: 'Gaming' },
+  'profile.gaming_desc': { de: 'Gameplay, Clips & Chat-Interaktion', en: 'Gameplay, clips & chat interaction' },
+  'profile.coding': { de: 'Coding', en: 'Coding' },
+  'profile.coding_desc': { de: 'Programmieren, Tasks & Issues tracken', en: 'Programming, tracking tasks & issues' },
+  'profile.chatting': { de: 'Just Chatting', en: 'Just Chatting' },
+  'profile.chatting_desc': { de: 'Unterhaltung, Abstimmungen & Musik', en: 'Entertainment, polls & music' },
+  'profile.all': { de: 'Alles', en: 'Everything' },
+  'profile.all_desc': { de: 'Alle Features sichtbar', en: 'All features visible' },
+  'profile.settings_title': { de: 'Streaming-Profil', en: 'Streaming Profile' },
+  'profile.settings_desc': { de: 'Ändert welche Panels sichtbar sind. Du kannst einzelne Panels jederzeit manuell ein-/ausblenden.', en: 'Changes which panels are visible. You can always show/hide individual panels manually.' },
+
   // ---- Guided Tour ----
   'tour.start': { de: 'Tour starten', en: 'Start tour' },
   'tour.skip': { de: 'Überspringen', en: 'Skip' },
