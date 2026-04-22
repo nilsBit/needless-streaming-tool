@@ -76,10 +76,12 @@ const PROFILE_VISIBLE: Record<string, { stream: string[]; projekt: string[] }> =
 
 Für jeden Tab: `hidden = ALL_PANELS - PROFILE_VISIBLE[profile]`. Die `order` und `fullWidth` Arrays bleiben unverändert.
 
+**State-Synchronisation:** `applyProfilePreset` schreibt direkt in `localStorage` (da `useDashboardLayout` per-Tab instanziiert ist und keinen cross-Tab-Write bietet). Danach `window.location.reload()` um die Hook-States neu zu initialisieren. Einfachste Lösung, kein neuer State-Layer nötig — Profilwechsel passiert selten.
+
 ## Geänderte Dateien
 
 - **Neu:** `src/renderer/src/components/onboarding/ProfileStep.tsx`
-- **Modify:** `src/renderer/src/components/OnboardingWizard.tsx` — ProfileStep als Step 2 einfügen
+- **Modify:** `src/renderer/src/components/OnboardingWizard.tsx` — ProfileStep als Step 2 einfügen, SKIPPABLE-Indices von `{4, 6}` auf `{5, 7}` aktualisieren
 - **Modify:** `src/renderer/src/panels/SettingsPanel.tsx` — Profil-Auswahl in App-Gruppe
 - **Modify:** `src/renderer/src/hooks/useDashboardLayout.ts` — `applyProfilePreset()` Funktion exportieren
 - **Modify:** `src/renderer/src/i18n/translations.ts` — Profil-Texte de/en
