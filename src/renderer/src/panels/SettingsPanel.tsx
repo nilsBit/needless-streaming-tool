@@ -7,6 +7,7 @@ import { useTheme } from '../i18n/ThemeContext';
 import { useToast } from '../i18n/ToastContext';
 import CopyButton from '../components/CopyButton';
 import NotionDatabasePicker from '../components/NotionDatabasePicker';
+import { applyProfilePreset, PROFILE_KEYS, ProfileKey } from '../hooks/useDashboardLayout';
 
 interface ClientIdResponse {
   configured: boolean;
@@ -97,6 +98,9 @@ export default function SettingsPanel() {
   useEffect(() => {
     if (githubInfo?.repo && !githubRepo) setGithubRepo(githubInfo.repo);
   }, [githubInfo]);
+
+  const { data: profileData, refetch: refetchProfile } = useApi<{ value: string | null }>('/settings/get/stream_profile');
+  const currentProfile = (profileData?.value || 'all') as ProfileKey;
 
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set(['connections']));
   const toggleGroup = (group: string) => {
@@ -558,6 +562,27 @@ export default function SettingsPanel() {
             >
               {t('settings.disabled')}
             </button>
+          </div>
+        </div>
+
+        <div className="settings-section">
+          <h3>{t('profile.settings_title')}</h3>
+          <p className="setup-info">{t('profile.settings_desc')}</p>
+          <div className="profile-toggle">
+            {PROFILE_KEYS.map(key => (
+              <button
+                key={key}
+                className={`lang-btn ${currentProfile === key ? 'active' : ''}`}
+                onClick={async () => {
+                  await apiPost('/settings/set', { key: 'stream_profile', value: key });
+                  applyProfilePreset(key);
+                  refetchProfile();
+                  window.location.reload();
+                }}
+              >
+                {key === 'creative' ? '🎨' : key === 'gaming' ? '🎮' : key === 'coding' ? '💻' : key === 'chatting' ? '🎙️' : '⚙️'} {t(`profile.${key}` as any)}
+              </button>
+            ))}
           </div>
         </div>
 
