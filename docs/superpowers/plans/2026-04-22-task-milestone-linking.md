@@ -298,7 +298,7 @@ router.delete('/todos/:id', (req, res) => {
     db.prepare('DELETE FROM todos WHERE id = ?').run(req.params.id);
 
     if (milestoneId) {
-      const remaining = db.prepare('SELECT COUNT(*) as total, SUM(CASE WHEN done = 1 THEN 1 ELSE 0 END) as done FROM todos WHERE milestone_id = ?').get(milestoneId) as { total: number; done: number };
+      const remaining = db.prepare('SELECT COUNT(*) as total, COALESCE(SUM(CASE WHEN done = 1 THEN 1 ELSE 0 END), 0) as done FROM todos WHERE milestone_id = ?').get(milestoneId) as { total: number; done: number };
       if (remaining.total > 0 && remaining.done === remaining.total) {
         const milestone = db.prepare('SELECT * FROM milestones WHERE id = ? AND status != ?').get(milestoneId, 'completed') as { id: number; level: string; title: string } | undefined;
         if (milestone) {
@@ -634,7 +634,7 @@ Inside `renderItem`, in the todo list mapping (around line 304-314), replace the
 })}
 ```
 
-Also add the level config constant near the top of the file (outside the component):
+**Important: Before pasting the JSX above**, add this constant near the top of the file, outside the component function (e.g. after the imports):
 ```tsx
 const LEVEL_CONFIG_PROGRESS = {
   minor: { emoji: '✨' },
