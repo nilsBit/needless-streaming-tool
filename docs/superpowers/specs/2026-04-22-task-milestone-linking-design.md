@@ -56,6 +56,8 @@ All milestone-check logic must run inside a transaction to prevent double-trigge
 
 ### Todo deletion (`DELETE /api/progress/todos/:id`) — extended
 
+Must also run inside a transaction (same as toggle) to prevent race conditions.
+
 1. Before deleting, check if todo has `milestone_id`
 2. Delete the todo (existing behavior)
 3. If it had a `milestone_id` → query: are there remaining todos with this `milestone_id`?
