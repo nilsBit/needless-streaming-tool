@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useApi, apiPost, apiDelete, apiPatch, getApiToken } from '../hooks/useApi';
 import { useTranslation } from '../i18n/LanguageContext';
 import { useToast } from '../i18n/ToastContext';
@@ -6,6 +6,7 @@ import ClipSyncBadge, { SyncState } from '../components/ClipSyncBadge';
 import GuidedTour, { TourStep } from '../components/ux/GuidedTour';
 import { useFirstTouch } from '../components/ux/useFirstTouch';
 import { celebrate } from '../components/ux/celebrate';
+import NotionSetupModal from '../components/NotionSetupModal';
 
 interface SyncResult {
   synced: number;
@@ -58,6 +59,8 @@ export default function ClipsPanel() {
   const tourComplete = useFirstTouch('clips.tour_completed');
   const [tourActive, setTourActive] = useState(false);
   const [tourEvent, setTourEvent] = useState<string | null>(null);
+  const [notionModalOpen, setNotionModalOpen] = useState(false);
+  const autoSyncToggleRef = useRef<HTMLButtonElement>(null);
 
   const tourSteps: TourStep[] = [
     { targetSelector: '.clips-panel-header', title: t('tour.clips.step1_title'), text: t('tour.clips.step1_text'), waitFor: 'tour-acknowledged', tooltipPosition: 'bottom' },
@@ -136,9 +139,21 @@ export default function ClipsPanel() {
   };
 
   const toggleAutoSync = async () => {
+    if (!notionConfigured) {
+      if (!notionModalOpen) setNotionModalOpen(true);
+      return;
+    }
     const next = autoSync ? 'false' : 'true';
     await apiPost('/settings/set', { key: 'notion_auto_sync', value: next });
     refetchAutoSync();
+  };
+
+  const handleNotionSetupComplete = async () => {
+    setNotionModalOpen(false);
+    await apiPost('/settings/set', { key: 'notion_auto_sync', value: 'true' });
+    refetchAutoSync();
+    if (autoSyncToggleRef.current) celebrate('success', autoSyncToggleRef.current);
+    toast.success('Notion verbunden — Auto-Sync aktiv');
   };
 
   const retryClip = async (id: number) => {
@@ -201,11 +216,14 @@ export default function ClipsPanel() {
         {!tourComplete.seen && !tourComplete.loading && (
           <button className="btn-export-small" onClick={() => setTourActive(true)} title={t('tour.start')}>🎯 {t('tour.start')}</button>
         )}
-        {notionConfigured && (
-          <button className={`auto-sync-toggle ${autoSync ? 'on' : 'off'}`} onClick={toggleAutoSync} title={t('clips.auto_sync_label')}>
-            ☁️ {t('clips.auto_sync_label')}: {autoSync ? t('clips.auto_sync_on') : t('clips.auto_sync_off')}
-          </button>
-        )}
+        <button
+          ref={autoSyncToggleRef}
+          className={`auto-sync-toggle ${notionConfigured && autoSync ? 'on' : 'off'}`}
+          onClick={toggleAutoSync}
+          title={t('clips.auto_sync_label')}
+        >
+          ☁️ {t('clips.auto_sync_label')}: {notionConfigured && autoSync ? t('clips.auto_sync_on') : t('clips.auto_sync_off')}
+        </button>
       </div>
 
       <div className="clip-tags">
@@ -353,6 +371,11 @@ export default function ClipsPanel() {
           }}
         />
       )}
+      <NotionSetupModal
+        open={notionModalOpen}
+        onClose={() => setNotionModalOpen(false)}
+        onComplete={handleNotionSetupComplete}
+      />
     </div>
   );
 }
