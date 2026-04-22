@@ -110,3 +110,40 @@ export function useDashboardLayout(tabKey: string, defaultPanelKeys: string[]) {
     reset,
   };
 }
+
+// --- Stream Profile Presets ---
+const ALL_STREAM_PANELS = ['challenge', 'issues', 'clips', 'designs', 'song'];
+const ALL_PROJECT_PANELS = ['progress', 'milestones'];
+
+const PROFILE_VISIBLE: Record<string, { stream: string[]; projekt: string[] }> = {
+  creative: { stream: ['challenge', 'clips', 'song'], projekt: ['progress', 'milestones'] },
+  gaming:   { stream: ['challenge', 'clips', 'issues', 'song'], projekt: [] },
+  coding:   { stream: ['challenge', 'clips', 'issues'], projekt: ['progress', 'milestones'] },
+  chatting: { stream: ['challenge', 'clips', 'designs', 'song'], projekt: [] },
+  all:      { stream: ALL_STREAM_PANELS, projekt: ALL_PROJECT_PANELS },
+};
+
+export const PROFILE_KEYS = ['creative', 'gaming', 'coding', 'chatting', 'all'] as const;
+export type ProfileKey = typeof PROFILE_KEYS[number];
+
+export function applyProfilePreset(profile: string): void {
+  const preset = PROFILE_VISIBLE[profile] || PROFILE_VISIBLE['all'];
+  const layout: DashboardLayout = loadLayout();
+
+  // Set hidden arrays for stream and projekt tabs
+  const streamHidden = ALL_STREAM_PANELS.filter(k => !preset.stream.includes(k));
+  const projektHidden = ALL_PROJECT_PANELS.filter(k => !preset.projekt.includes(k));
+
+  layout['stream'] = {
+    order: layout['stream']?.order || [...ALL_STREAM_PANELS],
+    hidden: streamHidden,
+    fullWidth: layout['stream']?.fullWidth || [],
+  };
+  layout['projekt'] = {
+    order: layout['projekt']?.order || [...ALL_PROJECT_PANELS],
+    hidden: projektHidden,
+    fullWidth: layout['projekt']?.fullWidth || [],
+  };
+
+  saveLayout(layout);
+}
