@@ -6,7 +6,13 @@ Connect Progress Tracker todos to milestones so that completing all linked todos
 
 FK on todo level: `todos.milestone_id` references `milestones.id`. When a todo is toggled, the API checks if all todos sharing that `milestone_id` are done — if so, the milestone auto-completes and triggers the overlay. Milestones are scoped to a project via `milestones.project_id`.
 
+## Prerequisites
+
+**Enable SQLite foreign key enforcement.** The codebase currently does not enable FK enforcement (`PRAGMA foreign_keys` is off by default in SQLite). Add `db.pragma('foreign_keys = ON')` in `initDatabase()` (`src/server/db/index.ts`). Without this, `ON DELETE SET NULL` and `ON DELETE CASCADE` constraints will be silently ignored.
+
 ## Database Changes
+
+**Schema version:** Bump from current version to next (add migration block in `runMigrations()` with two `ALTER TABLE` statements).
 
 ### `todos` table — new column
 
@@ -31,6 +37,8 @@ project_id INTEGER REFERENCES project_items(id) ON DELETE CASCADE
 
 ### Todo toggle (`PATCH /api/progress/todos/:id`) — extended
 
+All milestone-check logic must run inside a transaction to prevent double-triggering from concurrent todo toggles.
+
 **On `done = 1`:**
 
 1. Set todo done (existing behavior)
@@ -46,9 +54,17 @@ project_id INTEGER REFERENCES project_items(id) ON DELETE CASCADE
 2. If todo has `milestone_id` and milestone `status = 'completed'` → set milestone back to `pending`, `completed_at = NULL`
 3. `broadcast('milestone-updated', milestone)` — UI refresh (no overlay trigger on revert)
 
+### Todo deletion (`DELETE /api/progress/todos/:id`) — extended
+
+1. Before deleting, check if todo has `milestone_id`
+2. Delete the todo (existing behavior)
+3. If it had a `milestone_id` → query: are there remaining todos with this `milestone_id`?
+4. If remaining todos exist AND all are `done = 1` → auto-trigger milestone (same logic as toggle)
+5. If no remaining todos (milestone now has zero linked todos) → no auto-trigger
+
 ### Todo milestone assignment (`PATCH /api/progress/todos/:id`) — extended
 
-Accept optional `milestone_id` field to link/unlink a todo from a milestone.
+Accept optional `milestone_id` field to link/unlink a todo from a milestone. **Server-side validation:** the milestone's `project_id` must match the todo's `parent_id` (project). Reject with 400 if mismatched.
 
 ### Milestone creation (`POST /api/milestones`) — extended
 
@@ -78,8 +94,8 @@ No changes needed — existing milestone overlay already reacts to `milestone-tr
 
 | Scenario | Behavior |
 |----------|----------|
-| Milestone manually completed, not all todos done | Stays completed. Reverts to pending only if a linked todo is set to undone. |
-| Linked todo deleted | Link removed. Recheck remaining todos — if all done (or none remain), no auto-trigger. Empty milestone does not auto-fire. |
+| Milestone manually completed, not all todos done | Stays completed. Reverts to pending only if a linked todo is set to undone. This is intentional — manual completion does not "lock" the milestone; it is always governed by todo state. |
+| Linked todo deleted | Link removed. Recheck remaining todos — if remaining todos exist and all are done, auto-trigger. If no linked todos remain (empty milestone), no auto-trigger. |
 | Milestone with no linked todos | Behaves as before — manual trigger only. |
 | Project deleted | CASCADE deletes milestones with that `project_id`. Todos lose `milestone_id` via `ON DELETE SET NULL`. |
 | Milestone deleted | Todos keep their data, `milestone_id` set to `NULL`. |
@@ -89,3 +105,11 @@ No changes needed — existing milestone overlay already reacts to `milestone-tr
 - `Todo` type: add optional `milestone_id?: number`
 - `Milestone` type: add optional `project_id?: number`
 - `Milestone` type: add optional `linkedTodoCount?: number` and `linkedTodoDone?: number` (for progress display)
+
+## Computed Fields
+
+`linkedTodoCount` and `linkedTodoDone` are computed server-side via `GET /api/milestones` using a LEFT JOIN with COUNT/SUM aggregation on the `todos` table (filtered by `milestone_id`). Not stored in the database.
+
+## Deletion Chain
+
+When a project is deleted: `project_items` row deleted → CASCADE deletes milestones with that `project_id` → `ON DELETE SET NULL` clears `milestone_id` on linked todos. This chain requires FK enforcement to be enabled (see Prerequisites).
