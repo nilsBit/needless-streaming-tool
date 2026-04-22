@@ -296,6 +296,58 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 
 ---
 
+## Architectural corrections (post Task 3 — OVERRIDES task code blocks below)
+
+Task 3 decoded the shipped `bin/plugin.js` and surfaced significant deviations from what the original plan assumed. The code blocks in Tasks 4, 5, 6, 7–14 were written before decoding and are **no longer authoritative**. Follow this architecture instead; treat the old code blocks as rough structural hints only.
+
+**Authoritative sources:**
+- `streamdeck-plugin/REBUILD-REFERENCE.md` — exact HTTP paths, bodies, WS events, title logic per action (written in Task 3).
+- Elgato SDK 1.4.1 API as installed at `streamdeck-plugin/node_modules/@elgato/streamdeck/types/plugin/**` — `SingletonAction<T>`, `@action({UUID})` decorator, `streamDeck.actions.registerAction`, `streamDeck.settings.getGlobalSettings<T>`, `streamDeck.settings.onDidReceiveGlobalSettings<T>`, `KeyAction.setTitle / showOk / showAlert`, `this.actions` getter on a SingletonAction returning an Enumerable of currently visible instances.
+
+**Module layout (replaces the one in File Structure at top of plan):**
+
+```
+streamdeck-plugin/src/
+  api.ts        — holds current settings (mutable module state) + request wrappers (apiGet / apiPost / apiPatch) + getBaseUrl + getWsUrl. Auth: always sends Authorization: Bearer ${currentSettings.apiToken}.
+  ws.ts         — single shared WS connection to ws://{host}:{port}?overlay=1 (no token, matches shipped behavior). Exports onEvent(handler) — returns disposer. Fires pseudo-events '_connected' / '_disconnected' on open/close. Reconnects with 5000ms delay. Has startWs() and restartWs() (called when settings change).
+  plugin.ts     — entry. On import: register all 8 actions via streamDeck.actions.registerAction. Wire streamDeck.settings.onDidReceiveGlobalSettings → updates api.ts's current settings then calls ws.ts's restartWs(). Main: (async () => { currentSettings = await streamDeck.settings.getGlobalSettings(); startWs(); await streamDeck.connect(); })()
+  actions/
+    scene.ts, clip.ts, bug.ts, experiment.ts, todo.ts, milestone.ts, compile-pray.ts, roulette.ts
+```
+
+**Per-action pattern (every action extends `SingletonAction<T>` with `@action({ UUID: 'com.thelab.toolkit.<id>' })`):**
+
+1. Module-level state: any shared counters / current-values the action displays (e.g. `let openCount = 0`, `let currentScene: string | null = null`).
+2. Constructor or top-level `onEvent` subscriber: subscribes to the action's WS events (from `REBUILD-REFERENCE.md`) + `_connected` + `_disconnected`. On each event, updates the module-level state and calls `updateAll()`.
+3. `updateAll()` helper: iterates `this.actions` (KeyAction instances currently visible) and sets their title to the computed display string. When disconnected, sets title to `"OFFLINE"`.
+4. `onWillAppear(ev)` — call `updateAll()` so the freshly-visible button shows current state.
+5. `onKeyDown(ev)` — performs the HTTP call per `REBUILD-REFERENCE.md`. On success: `await ev.action.showOk()`. On failure (including thrown errors from `request`): `await ev.action.showAlert()`. No manual setTitle for success/failure — SDK methods handle the flash.
+6. First-connection bootstrap: where the action needs an initial count / state fetch (clip, bug, experiment, todo, milestone), do it on `_connected` pseudo-event — `fetchCount()` or `fetchState()` helper hitting the appropriate public endpoint.
+
+**Backend paths (authoritative — do NOT use old paths from the pre-Task-3 code blocks):** See `REBUILD-REFERENCE.md` "Summary of all backend discrepancies" table. Key corrections:
+- bug POST → `/api/issues` (NOT `/api/bugs`)
+- bug count → `/public/issues`, filter `status === 'open'`
+- bug WS events → `issue-created`, `issue-updated`, `issue-deleted`
+- experiment PATCH field → `challenge_status` (NOT `experiment_status`); WS state field → `challenge_status` + `challenge_title`; PI values map: `running` → `in_progress`, `success` → `done` (other values pass through)
+- todo PATCH → `/api/progress/todos/:id` (NOT `/api/todos/:id`)
+- todo list → `GET /public/progress` then extract items[].todos (no `/public/todos` route)
+- todo WS event → `progress-update` (ignore `todos-cleared`)
+- clip POST body → `{ tag }`, omit `session_date` (harmless but server ignores it)
+
+**WS connection details:**
+- URL: `ws://{host}:{port}?overlay=1` — query param, NOT a token. `overlay=1` tells the backend this is an unauthenticated read-only subscriber.
+- If `apiToken` is unset/empty: the original also opens WS (token only affects HTTP). Match that — do not gate WS open on apiToken.
+- Message format received: `{ event: string, data?: unknown }` (JSON).
+- `_connected` pseudo-event: fired from `ws.onopen`. `_disconnected` pseudo-event: fired from `ws.onclose`. These are not backend events — they are internal-only signals fired inside the dispatch handler.
+
+**Roulette cooldown:** SERVER-SIDE ONLY. Client (plugin) does not track cooldown. Button sends POST; if server returns 4xx, the request throws and `showAlert()` fires. The visible "cooldown" feedback during a spin comes from subscribing to `roulette-spin` (setTitle "🎰...") and `roulette-result` (setTitle result.title for 3 s then back to "Roulette"). No setInterval / setTimeout for cooldown tracking in client code.
+
+**Visual feedback pattern for key-down: always `showOk()` on success, `showAlert()` on failure.** Do not manually setTitle a success/failure message — use the SDK helpers. setTitle is reserved for the action's state display (count / scene name / status emoji / "OFFLINE").
+
+**When Tasks 4–14 below reference specific code that conflicts with the above, the above wins.** Implementer subagents MUST read `REBUILD-REFERENCE.md` before writing their action and cross-reference the authoritative paths / events there.
+
+---
+
 ### Task 4: Implement HTTP client `src/api.ts`
 
 **Files:**
