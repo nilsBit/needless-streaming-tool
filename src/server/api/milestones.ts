@@ -8,19 +8,27 @@ import { sayInChat } from '../bot/index';
 const router = Router();
 
 router.get('/', (_req, res) => {
-  const milestones = getDb().prepare('SELECT * FROM milestones ORDER BY created_at DESC').all();
+  const milestones = getDb().prepare(`
+    SELECT m.*,
+      COUNT(t.id) AS linkedTodoCount,
+      COALESCE(SUM(CASE WHEN t.done = 1 THEN 1 ELSE 0 END), 0) AS linkedTodoDone
+    FROM milestones m
+    LEFT JOIN todos t ON t.milestone_id = m.id
+    GROUP BY m.id
+    ORDER BY m.created_at DESC
+  `).all();
   res.json(milestones);
 });
 
 router.post('/', (req, res) => {
-  const { title, level } = req.body;
+  const { title, level, project_id } = req.body;
   if (!title?.trim()) { res.status(400).json({ error: 'title required' }); return; }
   if (!level) { res.status(400).json({ error: 'level required' }); return; }
   if (!validateEnum(level, VALID_MILESTONE_LEVEL, 'level', res)) return;
 
   const result = getDb().prepare(
-    'INSERT INTO milestones (title, level) VALUES (?, ?)'
-  ).run(title.trim(), level);
+    'INSERT INTO milestones (title, level, project_id) VALUES (?, ?, ?)'
+  ).run(title.trim(), level, project_id ?? null);
 
   const milestone = getDb().prepare('SELECT * FROM milestones WHERE id = ?').get(result.lastInsertRowid);
 

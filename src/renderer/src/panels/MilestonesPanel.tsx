@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApi, apiPost, apiPatch, apiDelete } from '../hooks/useApi';
-import { Milestone } from '../../../shared/types';
+import { Milestone, ProjectItem } from '../../../shared/types';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { useTranslation } from '../i18n/LanguageContext';
 import { useToast } from '../i18n/ToastContext';
@@ -13,22 +13,36 @@ const LEVEL_CONFIG = {
 
 type Level = keyof typeof LEVEL_CONFIG;
 
+interface ProgressData {
+  project_name: string | null;
+  items: ProjectItem[];
+}
+
 export default function MilestonesPanel() {
   const { data: milestones, loading, refetch } = useApi<Milestone[]>('/milestones');
+  const { data: progressData } = useApi<ProgressData>('/progress');
   const [title, setTitle] = useState('');
   const [level, setLevel] = useState<Level>('major');
+  const [projectId, setProjectId] = useState<number | ''>('');
   const { t } = useTranslation();
   const { toast } = useToast();
 
   useWebSocket((event) => {
-    if (event.startsWith('milestone-')) refetch();
+    if (event.startsWith('milestone-') || event.startsWith('progress-')) refetch();
   });
+
+  const projectItems = progressData?.items || [];
 
   const addMilestone = async () => {
     if (!title.trim()) return;
-    const result = await apiPost('/milestones', { title: title.trim(), level });
+    const result = await apiPost('/milestones', {
+      title: title.trim(),
+      level,
+      project_id: projectId || null,
+    });
     if (!result) { toast.error(t('error.action_failed')); return; }
     setTitle('');
+    setProjectId('');
   };
 
   const completeMilestone = async (id: number) => {
@@ -50,6 +64,11 @@ export default function MilestonesPanel() {
   const pending = milestones?.filter((ms) => ms.status === 'pending') || [];
   const completed = milestones?.filter((ms) => ms.status === 'completed') || [];
 
+  const getProjectTitle = (pid: number | null) => {
+    if (!pid) return null;
+    return projectItems.find(p => p.id === pid)?.title || null;
+  };
+
   return (
     <div className="panel milestones-panel">
       <h2>🎉 Milestones</h2>
@@ -68,7 +87,17 @@ export default function MilestonesPanel() {
             <span className="ms-level" style={{ color: LEVEL_CONFIG[ms.level]?.color }}>
               {LEVEL_CONFIG[ms.level]?.emoji}
             </span>
-            <span className="ms-title">{ms.title}</span>
+            <div className="ms-content">
+              <span className="ms-title">{ms.title}</span>
+              {ms.project_id && (
+                <span className="ms-project">{getProjectTitle(ms.project_id)}</span>
+              )}
+              {(ms.linkedTodoCount ?? 0) > 0 && (
+                <span className="ms-todo-progress">
+                  ☑ {ms.linkedTodoDone ?? 0}/{ms.linkedTodoCount} Todos
+                </span>
+              )}
+            </div>
             <button className="btn-delete-small" onClick={() => deleteMilestone(ms.id)} title={t('tooltip.delete')}>✕</button>
           </div>
         ))}
@@ -99,6 +128,16 @@ export default function MilestonesPanel() {
           onChange={(e) => setTitle(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && addMilestone()}
         />
+        <select
+          className="milestone-project-select"
+          value={projectId}
+          onChange={(e) => setProjectId(e.target.value ? Number(e.target.value) : '')}
+        >
+          <option value="">Kein Projekt</option>
+          {projectItems.map((p) => (
+            <option key={p.id} value={p.id}>{p.title}</option>
+          ))}
+        </select>
         <div className="milestone-level-select">
           {(Object.entries(LEVEL_CONFIG) as Array<[Level, typeof LEVEL_CONFIG[Level]]>).map(([lvl, config]) => (
             <button

@@ -3248,3 +3248,99 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 [data-theme="light"] .profile-card { border-color: rgba(0,0,0,0.12); background: rgba(0,0,0,0.02); }
 [data-theme="light"] .profile-card:hover { border-color: rgba(0,0,0,0.2); background: rgba(0,0,0,0.04); }
 [data-theme="light"] .profile-card.active { border-color: var(--accent); background: rgba(230,126,34,0.08); }
+
+/* Milestone todo progress indicator */
+.ms-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.ms-project {
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
+.ms-todo-progress {
+  font-size: 0.75rem;
+  color: #3498db;
+}
+
+.milestone-project-select {
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+/* Inline milestone icon on todos */
+.sub-todo-milestone-wrapper {
+  position: relative;
+}
+
+.sub-todo-milestone {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 0 4px;
+  opacity: 0.3;
+  transition: opacity 0.2s;
+}
+
+.sub-todo-milestone.linked {
+  opacity: 1;
+}
+
+.sub-todo-milestone:hover {
+  opacity: 0.8;
+}
+
+/* Milestone picker dropdown */
+.milestone-picker {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 10;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 4px;
+  min-width: 180px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.milestone-picker-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 6px 10px;
+  border: none;
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.milestone-picker-item:hover {
+  background: var(--bg-hover);
+}
+
+.milestone-picker-item.active {
+  background: var(--accent-bg);
+}
+
+.milestone-picker-item.unlink {
+  color: #e74c3c;
+}
+
+.milestone-picker-empty {
+  display: block;
+  padding: 6px 10px;
+  font-size: 0.8rem;
+  opacity: 0.5;
+}

@@ -43,6 +43,7 @@ export interface Todo {
   done: number;
   sort_order: number;
   parent_id: number;
+  milestone_id: number | null;
   created_at: string;
 }
 
@@ -93,8 +94,11 @@ export interface Milestone {
   level: 'minor' | 'major' | 'epic';
   status: 'pending' | 'completed';
   message: string | null;
+  project_id: number | null;
   completed_at: string | null;
   created_at: string;
+  linkedTodoCount?: number;
+  linkedTodoDone?: number;
 }
 
 export interface Stats {

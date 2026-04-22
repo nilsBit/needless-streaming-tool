@@ -3,6 +3,7 @@ import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
 import { VALID_PROJECT_ITEM_STATUS } from '../../shared/types';
 import { validateEnum } from './validate';
+import { sayInChat } from '../bot/index';
 
 const router = Router();
 
@@ -300,37 +301,100 @@ router.post('/items/:id/todos', (req, res) => {
   res.status(201).json(todo);
 });
 
-// PATCH sub-todo
+// PATCH sub-todo — with milestone auto-trigger
 router.patch('/todos/:id', (req, res) => {
-  const { title, done } = req.body;
+  const { title, done, milestone_id } = req.body;
   const db = getDb();
 
-  const existing = db.prepare('SELECT * FROM todos WHERE id = ?').get(req.params.id);
+  const existing = db.prepare('SELECT * FROM todos WHERE id = ?').get(req.params.id) as { id: number; done: number; milestone_id: number | null; parent_id: number } | undefined;
   if (!existing) { res.status(404).json({ error: 'Todo not found' }); return; }
+
+  // Milestone assignment validation
+  if (milestone_id !== undefined && milestone_id !== null) {
+    const ms = db.prepare('SELECT project_id FROM milestones WHERE id = ?').get(milestone_id) as { project_id: number | null } | undefined;
+    if (!ms) { res.status(400).json({ error: 'Milestone not found' }); return; }
+    if (ms.project_id !== null && ms.project_id !== existing.parent_id) {
+      res.status(400).json({ error: 'Milestone belongs to a different project' }); return;
+    }
+  }
 
   const fields: string[] = [];
   const values: unknown[] = [];
 
   if (title !== undefined) { fields.push('title = ?'); values.push(title); }
   if (done !== undefined) { fields.push('done = ?'); values.push(done ? 1 : 0); }
+  if (milestone_id !== undefined) { fields.push('milestone_id = ?'); values.push(milestone_id); }
 
   if (fields.length === 0) { res.status(400).json({ error: 'No fields to update' }); return; }
 
-  values.push(req.params.id);
-  db.prepare(`UPDATE todos SET ${fields.join(', ')} WHERE id = ?`).run(...values);
-  const todo = db.prepare('SELECT * FROM todos WHERE id = ?').get(req.params.id);
+  const doUpdate = db.transaction(() => {
+    values.push(req.params.id);
+    db.prepare(`UPDATE todos SET ${fields.join(', ')} WHERE id = ?`).run(...values);
 
+    const todo = db.prepare('SELECT * FROM todos WHERE id = ?').get(req.params.id) as { id: number; done: number; milestone_id: number | null };
+
+    // Milestone auto-trigger check
+    if (todo.milestone_id && done !== undefined) {
+      const milestone = db.prepare('SELECT * FROM milestones WHERE id = ?').get(todo.milestone_id) as { id: number; status: string; level: string; title: string } | undefined;
+      if (milestone) {
+        if (done && milestone.status !== 'completed') {
+          const remaining = db.prepare('SELECT COUNT(*) as c FROM todos WHERE milestone_id = ? AND done = 0').get(todo.milestone_id) as { c: number };
+          if (remaining.c === 0) {
+            db.prepare('UPDATE milestones SET status = ?, completed_at = CURRENT_TIMESTAMP WHERE id = ?').run('completed', todo.milestone_id);
+            const updated = db.prepare('SELECT * FROM milestones WHERE id = ?').get(todo.milestone_id);
+            broadcast('milestone-trigger', updated);
+            if (milestone.level === 'major' || milestone.level === 'epic') {
+              const emoji = milestone.level === 'epic' ? '🏆🎉' : '🎉';
+              sayInChat(`${emoji} MILESTONE: ${milestone.title}`);
+            }
+            broadcast('milestone-updated', updated);
+          }
+        } else if (!done && milestone.status === 'completed') {
+          db.prepare('UPDATE milestones SET status = ?, completed_at = NULL WHERE id = ?').run('pending', todo.milestone_id);
+          const updated = db.prepare('SELECT * FROM milestones WHERE id = ?').get(todo.milestone_id);
+          broadcast('milestone-updated', updated);
+        }
+      }
+    }
+
+    return db.prepare('SELECT * FROM todos WHERE id = ?').get(req.params.id);
+  });
+
+  const todo = doUpdate();
   broadcast('progress-update', { action: 'todo-updated', todo });
   res.json(todo);
 });
 
-// DELETE sub-todo
+// DELETE sub-todo — with milestone recheck
 router.delete('/todos/:id', (req, res) => {
   const db = getDb();
-  const existing = db.prepare('SELECT * FROM todos WHERE id = ?').get(req.params.id);
+  const existing = db.prepare('SELECT * FROM todos WHERE id = ?').get(req.params.id) as { id: number; milestone_id: number | null } | undefined;
   if (!existing) { res.status(404).json({ error: 'Todo not found' }); return; }
 
-  db.prepare('DELETE FROM todos WHERE id = ?').run(req.params.id);
+  const milestoneId = existing.milestone_id;
+
+  const doDelete = db.transaction(() => {
+    db.prepare('DELETE FROM todos WHERE id = ?').run(req.params.id);
+
+    if (milestoneId) {
+      const remaining = db.prepare('SELECT COUNT(*) as total, COALESCE(SUM(CASE WHEN done = 1 THEN 1 ELSE 0 END), 0) as done FROM todos WHERE milestone_id = ?').get(milestoneId) as { total: number; done: number };
+      if (remaining.total > 0 && remaining.done === remaining.total) {
+        const milestone = db.prepare('SELECT * FROM milestones WHERE id = ? AND status != ?').get(milestoneId, 'completed') as { id: number; level: string; title: string } | undefined;
+        if (milestone) {
+          db.prepare('UPDATE milestones SET status = ?, completed_at = CURRENT_TIMESTAMP WHERE id = ?').run('completed', milestoneId);
+          const updated = db.prepare('SELECT * FROM milestones WHERE id = ?').get(milestoneId);
+          broadcast('milestone-trigger', updated);
+          if (milestone.level === 'major' || milestone.level === 'epic') {
+            const emoji = milestone.level === 'epic' ? '🏆🎉' : '🎉';
+            sayInChat(`${emoji} MILESTONE: ${milestone.title}`);
+          }
+          broadcast('milestone-updated', updated);
+        }
+      }
+    }
+  });
+
+  doDelete();
   broadcast('progress-update', { action: 'todo-deleted', id: Number(req.params.id) });
   res.status(204).send();
 });

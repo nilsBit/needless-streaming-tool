@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApi, apiGet, apiPost, apiPatch, apiDelete, apiFetch, getApiToken } from '../hooks/useApi';
-import { ProjectItem, StreamState } from '../../../shared/types';
+import { ProjectItem, StreamState, Milestone } from '../../../shared/types';
 import { useWebSocket } from '../hooks/useWebSocket';
 import ChatCommands from '../components/ChatCommands';
 import { useTranslation } from '../i18n/LanguageContext';
@@ -10,6 +10,12 @@ import TryThisBadge from '../components/ux/TryThisBadge';
 import { celebrate } from '../components/ux/celebrate';
 import { useFirstTouch } from '../components/ux/useFirstTouch';
 import GuidedTour, { TourStep } from '../components/ux/GuidedTour';
+
+const LEVEL_CONFIG_PROGRESS = {
+  minor: { emoji: '✨' },
+  major: { emoji: '🎉' },
+  epic: { emoji: '🏆' },
+} as const;
 
 interface ProgressData {
   project_name: string | null;
@@ -24,6 +30,7 @@ export default function ProgressPanel() {
   const { t } = useTranslation();
   const { toast } = useToast();
   const { data: streamState } = useApi<StreamState>('/stream-state');
+  const { data: milestones, refetch: refetchMilestones } = useApi<Milestone[]>('/milestones');
   const [liveSeconds, setLiveSeconds] = useState(0);
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
@@ -34,6 +41,7 @@ export default function ProgressPanel() {
   const tourComplete = useFirstTouch('progress.tour_completed');
   const [tourActive, setTourActive] = useState(false);
   const [tourEvent, setTourEvent] = useState<string | null>(null);
+  const [milestonePickerTodo, setMilestonePickerTodo] = useState<number | null>(null);
 
   const tourSteps: TourStep[] = [
     { targetSelector: '.kanban-board', title: t('tour.progress.step1_title'), text: t('tour.progress.step1_text'), waitFor: 'tour-acknowledged', tooltipPosition: 'bottom' },
@@ -45,6 +53,7 @@ export default function ProgressPanel() {
 
   useWebSocket((event) => {
     if (event.startsWith('progress-')) refetch();
+    if (event.startsWith('milestone-')) refetchMilestones();
   });
 
   // Auto-seed 3 example items on first ever panel-mount when board is empty
@@ -185,6 +194,14 @@ export default function ProgressPanel() {
     refetch();
   };
 
+  const linkTodoToMilestone = async (todoId: number, milestoneId: number | null) => {
+    const result = await apiPatch(`/progress/todos/${todoId}`, { milestone_id: milestoneId });
+    if (!result) { toast.error(t('error.action_failed')); return; }
+    setMilestonePickerTodo(null);
+    refetch();
+    refetchMilestones();
+  };
+
   const saveProjectName = async () => {
     const result = await apiPatch('/progress/project', { project_name: projectName });
     if (!result) { toast.error(t('error.action_failed')); return; }
@@ -301,18 +318,63 @@ export default function ProgressPanel() {
             {isActive && todos.length === 0 && (
               <div className="sub-todos-hint">📺 {t('progress.subtodo_hint')}</div>
             )}
-            {todos.map(td => (
-              <div key={td.id} className={`sub-todo ${td.done ? 'done' : ''}`}>
-                <button
-                  className="sub-todo-check"
-                  onClick={e => toggleTodo(td.id, td.done, e.currentTarget)}
-                >
-                  {td.done ? '☑' : '☐'}
-                </button>
-                <span className="sub-todo-title">{td.title}</span>
-                <button className="btn-delete-small" onClick={() => deleteTodo(td.id)} title={t('tooltip.delete')}>✕</button>
-              </div>
-            ))}
+            {todos.map(td => {
+              const projectMilestones = (milestones || []).filter(
+                ms => ms.project_id === item.id && ms.status === 'pending'
+              );
+              const linkedMs = td.milestone_id
+                ? (milestones || []).find(ms => ms.id === td.milestone_id)
+                : null;
+              const showIcon = linkedMs || projectMilestones.length > 0;
+
+              return (
+                <div key={td.id} className={`sub-todo ${td.done ? 'done' : ''}`}>
+                  <button
+                    className="sub-todo-check"
+                    onClick={e => toggleTodo(td.id, td.done, e.currentTarget)}
+                  >
+                    {td.done ? '☑' : '☐'}
+                  </button>
+                  <span className="sub-todo-title">{td.title}</span>
+                  {showIcon && (
+                    <span className="sub-todo-milestone-wrapper">
+                      <button
+                        className={`sub-todo-milestone ${linkedMs ? 'linked' : 'unlinked'}`}
+                        onClick={() => setMilestonePickerTodo(milestonePickerTodo === td.id ? null : td.id)}
+                        title={linkedMs ? linkedMs.title : 'Mit Milestone verknüpfen'}
+                      >
+                        🏆
+                      </button>
+                      {milestonePickerTodo === td.id && (
+                        <div className="milestone-picker">
+                          {linkedMs && (
+                            <button
+                              className="milestone-picker-item unlink"
+                              onClick={() => linkTodoToMilestone(td.id, null)}
+                            >
+                              ✕ Trennen
+                            </button>
+                          )}
+                          {projectMilestones.map(ms => (
+                            <button
+                              key={ms.id}
+                              className={`milestone-picker-item ${td.milestone_id === ms.id ? 'active' : ''}`}
+                              onClick={() => linkTodoToMilestone(td.id, ms.id)}
+                            >
+                              {LEVEL_CONFIG_PROGRESS[ms.level]?.emoji} {ms.title}
+                            </button>
+                          ))}
+                          {projectMilestones.length === 0 && !linkedMs && (
+                            <span className="milestone-picker-empty">Keine Milestones für dieses Projekt</span>
+                          )}
+                        </div>
+                      )}
+                    </span>
+                  )}
+                  <button className="btn-delete-small" onClick={() => deleteTodo(td.id)} title={t('tooltip.delete')}>✕</button>
+                </div>
+              );
+            })}
             <TryThisBadge hint={t('try_this.add_subtodo')} done={!isActive || todos.length > 0}>
               <div className="sub-todo-add">
                 <input

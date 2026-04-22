@@ -14,6 +14,7 @@ export function initDatabase(dbPath?: string): Database.Database {
 
   db = new Database(resolvedPath);
   db.pragma('journal_mode = WAL');
+  db.pragma('foreign_keys = ON');
   db.exec(SCHEMA);
 
   // Migration: project_name Spalte zu stream_state (v2)
@@ -117,6 +118,12 @@ function runMigrations(from: number, to: number) {
       created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
     console.log('[DB] Migrated: added song_requests table');
+  }
+
+  if (from < 14) {
+    try { db.exec('ALTER TABLE todos ADD COLUMN milestone_id INTEGER REFERENCES milestones(id) ON DELETE SET NULL'); } catch {}
+    try { db.exec('ALTER TABLE milestones ADD COLUMN project_id INTEGER REFERENCES project_items(id) ON DELETE CASCADE'); } catch {}
+    console.log('[DB] Migrated: added milestone_id to todos, project_id to milestones');
   }
 
   db.prepare('INSERT OR REPLACE INTO schema_version (version) VALUES (?)').run(to);
