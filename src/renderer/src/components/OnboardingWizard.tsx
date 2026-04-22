@@ -8,10 +8,11 @@ import OverlaysStep from './onboarding/OverlaysStep';
 import StreamDeckStep from './onboarding/StreamDeckStep';
 import DoneStep from './onboarding/DoneStep';
 import LanguageStep from './onboarding/LanguageStep';
+import ProfileStep from './onboarding/ProfileStep';
 import { useTranslation } from '../i18n/LanguageContext';
 
-const STEPS = ['Language', 'Welcome', 'Twitch', 'OBS', 'Notion', 'Overlays', 'Stream Deck', 'Fertig'];
-const SKIPPABLE = new Set([4, 6]); // Notion, Stream Deck (shifted +1)
+const STEPS = ['Language', 'Profil', 'Welcome', 'Twitch', 'OBS', 'Notion', 'Overlays', 'Stream Deck', 'Fertig'];
+const SKIPPABLE = new Set([5, 7]); // Notion, Stream Deck (shifted +1 by Profile step)
 
 export default function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
   const [step, setStep] = useState(0);
@@ -44,13 +45,14 @@ export default function OnboardingWizard({ onComplete }: { onComplete: () => voi
         {/* Step content */}
         <div className="step-content">
           {step === 0 && <LanguageStep onNext={next} />}
-          {step === 1 && <WelcomeStep onNext={next} />}
-          {step === 2 && <TwitchStep />}
-          {step === 3 && <ObsStep />}
-          {step === 4 && <NotionStep />}
-          {step === 5 && <OverlaysStep />}
-          {step === 6 && <StreamDeckStep />}
-          {step === 7 && <DoneStep onFinish={finish} />}
+          {step === 1 && <ProfileStep onNext={next} />}
+          {step === 2 && <WelcomeStep onNext={next} />}
+          {step === 3 && <TwitchStep />}
+          {step === 4 && <ObsStep />}
+          {step === 5 && <NotionStep />}
+          {step === 6 && <OverlaysStep />}
+          {step === 7 && <StreamDeckStep />}
+          {step === 8 && <DoneStep onFinish={finish} />}
         </div>
 
         {/* Navigation */}
