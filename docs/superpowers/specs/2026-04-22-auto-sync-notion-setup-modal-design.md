@@ -25,6 +25,7 @@ New component: thin modal wrapper around the existing `NotionStep`.
 - ESC key closes
 - Embeds `NotionStep` as content
 - `NotionStep` already handles its own step navigation (token input, DB picker)
+- `NotionStep` currently has no `onComplete` prop — add one that forwards to `NotionDatabasePicker`'s existing `onConfigured` callback
 - When `NotionStep` calls `onComplete` (DB selected) -> modal calls its own `onComplete`
 
 ## Completion Flow
@@ -32,7 +33,7 @@ New component: thin modal wrapper around the existing `NotionStep`.
 1. User selects DB in NotionStep picker -> `onComplete` fires
 2. Modal closes
 3. ClipsPanel sets `notion_auto_sync` to `"true"` via `POST /settings/set`
-4. `celebrate('success', null)` fires
+4. Celebration animation on the auto-sync toggle button (pass via ref to `celebrate('success', toggleRef.current)`)
 5. Toast: "Notion verbunden — Auto-Sync aktiv"
 6. ClipsPanel refetches `notionConfigured` and `autoSync` -> toggle shows "An"
 
@@ -48,5 +49,11 @@ New component: thin modal wrapper around the existing `NotionStep`.
 ## Files to Change
 
 - Create: `src/renderer/src/components/NotionSetupModal.tsx` — modal wrapper
-- Modify: `src/renderer/src/panels/ClipsPanel.tsx` — always show toggle, open modal when unconfigured
-- Modify: `src/renderer/src/index.css` — modal overlay styles (if not already existing)
+- Modify: `src/renderer/src/components/onboarding/NotionStep.tsx` — add `onComplete` prop, forward to `NotionDatabasePicker`'s `onConfigured`
+- Modify: `src/renderer/src/panels/ClipsPanel.tsx` — always show toggle, open modal when unconfigured, add ref for celebrate target
+- Modify: `src/renderer/src/index.css` — modal overlay styles (reuse existing `ov2-modal` pattern or extract shared `.modal-backdrop`/`.modal` classes)
+
+## Notes
+
+- `notionConfigured` in ClipsPanel means "token + DB both set" (derived from `dbInfo?.configured`)
+- Guard against double-open: check `open` state before setting it in toggle handler
