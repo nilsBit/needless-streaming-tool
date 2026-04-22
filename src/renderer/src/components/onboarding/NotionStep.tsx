@@ -3,7 +3,11 @@ import { useApi, apiPost } from '../../hooks/useApi';
 import { useTranslation } from '../../i18n/LanguageContext';
 import NotionDatabasePicker from '../NotionDatabasePicker';
 
-export default function NotionStep() {
+interface Props {
+  onComplete?: () => void;
+}
+
+export default function NotionStep({ onComplete }: Props) {
   const { t } = useTranslation();
   const { data: notionInfo, refetch: refetchNotion } = useApi<{ configured: boolean }>('/settings/notion');
   const [token, setToken] = useState('');
@@ -61,7 +65,7 @@ export default function NotionStep() {
       ) : (
         <>
           <div className="onboarding-check">{t('notion.token_saved')}</div>
-          <NotionDatabasePicker />
+          <NotionDatabasePicker onConfigured={onComplete} />
         </>
       )}
     </div>
