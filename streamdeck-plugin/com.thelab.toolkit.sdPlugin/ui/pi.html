@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>The Lab Toolkit</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #2d2d2d;
+      color: #ccc;
+      padding: 12px;
+      font-size: 12px;
+      margin: 0;
+    }
+    .section {
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #444;
+    }
+    .section:last-child { border-bottom: none; }
+    h3 {
+      color: #e67e22;
+      font-size: 12px;
+      margin: 0 0 10px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .field { margin-bottom: 10px; }
+    .field label {
+      display: block;
+      margin-bottom: 3px;
+      color: #999;
+      font-size: 11px;
+    }
+    .field input, .field select {
+      width: 100%;
+      padding: 5px 8px;
+      background: #1a1a1a;
+      border: 1px solid #444;
+      border-radius: 3px;
+      color: #eee;
+      font-size: 12px;
+      box-sizing: border-box;
+    }
+    .field input:focus, .field select:focus {
+      outline: none;
+      border-color: #e67e22;
+    }
+    .row { display: flex; gap: 6px; }
+    .row input { flex: 1; }
+    .hint {
+      color: #555;
+      font-size: 10px;
+      margin-top: 3px;
+    }
+    .status {
+      padding: 6px 8px;
+      border-radius: 3px;
+      font-size: 11px;
+      margin-top: 6px;
+    }
+    .status.ok { background: rgba(46,204,113,0.15); color: #2ecc71; }
+    .status.err { background: rgba(231,76,60,0.15); color: #e74c3c; }
+    .action-settings { display: none; }
+  </style>
+</head>
+<body>
+
+  <!-- Global connection settings -->
+  <div class="section">
+    <h3>Verbindung</h3>
+    <div class="field">
+      <label>API Token</label>
+      <input type="text" id="apiToken" placeholder="Aus Toolkit: Settings → API Token" />
+    </div>
+    <div class="field">
+      <label>Host / Port</label>
+      <div class="row">
+        <input type="text" id="host" placeholder="localhost" />
+        <input type="text" id="port" placeholder="4000" style="max-width:70px;" />
+      </div>
+    </div>
+    <div id="statusMsg" class="status" style="display:none;"></div>
+  </div>
+
+  <!-- Action-specific settings (shown based on action UUID) -->
+  <div class="section action-settings" id="settings-scene">
+    <h3>Scene Switch</h3>
+    <div class="field">
+      <label>Scene Name</label>
+      <input type="text" id="sceneName" placeholder="z.B. Gameplay" />
+    </div>
+  </div>
+
+  <div class="section action-settings" id="settings-clip">
+    <h3>Clip Marker</h3>
+    <div class="field">
+      <label>Clip Tag</label>
+      <input type="text" id="tag" placeholder="highlight" />
+    </div>
+  </div>
+
+  <div class="section action-settings" id="settings-bug">
+    <h3>Bug Report</h3>
+    <div class="field">
+      <label>Bug Title</label>
+      <input type="text" id="bugTitle" placeholder="Stream Bug" />
+    </div>
+  </div>
+
+  <div class="section action-settings" id="settings-experiment">
+    <h3>Experiment</h3>
+    <div class="field">
+      <label>Aktion</label>
+      <select id="action">
+        <option value="in_progress">Starten</option>
+        <option value="done">Fertig</option>
+        <option value="failed">Fehlgeschlagen</option>
+        <option value="idle">Zuruecksetzen</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="section action-settings" id="settings-todo">
+    <h3>Todo</h3>
+    <div class="field">
+      <label>Todo ID</label>
+      <input type="text" id="todoId" placeholder="next (oder ID)" />
+      <div class="hint">"next" hakt das naechste offene Todo ab</div>
+    </div>
+  </div>
+
+  <div class="section action-settings" id="settings-milestone">
+    <h3>Milestone</h3>
+    <div class="field">
+      <label>Milestone ID</label>
+      <input type="text" id="milestoneId" placeholder="next (oder ID)" />
+      <div class="hint">"next" completed den naechsten offenen Milestone</div>
+    </div>
+  </div>
+
+  <script>
+    let websocket = null;
+    let uuid = null;
+    let currentAction = null;
+    let globalSettings = {};
+    let actionSettings = {};
+
+    // Map action UUIDs to settings section IDs and field names
+    const ACTION_MAP = {
+      'com.thelab.toolkit.scene': { section: 'settings-scene', fields: ['sceneName'] },
+      'com.thelab.toolkit.clip': { section: 'settings-clip', fields: ['tag'] },
+      'com.thelab.toolkit.bug': { section: 'settings-bug', fields: ['bugTitle'] },
+      'com.thelab.toolkit.experiment': { section: 'settings-experiment', fields: ['action'] },
+      'com.thelab.toolkit.todo': { section: 'settings-todo', fields: ['todoId'] },
+      'com.thelab.toolkit.milestone': { section: 'settings-milestone', fields: ['milestoneId'] },
+    };
+
+    function connectElgatoStreamDeckSocket(inPort, inPropertyInspectorUUID, inRegisterEvent, inInfo, inActionInfo) {
+      uuid = inPropertyInspectorUUID;
+      const info = JSON.parse(inActionInfo);
+      currentAction = info.action;
+      actionSettings = info.payload?.settings || {};
+
+      // Show the right action settings section
+      const mapping = ACTION_MAP[currentAction];
+      if (mapping) {
+        document.getElementById(mapping.section).style.display = 'block';
+        // Load action settings into fields
+        mapping.fields.forEach(function(f) {
+          var el = document.getElementById(f);
+          if (el && actionSettings[f] !== undefined) el.value = actionSettings[f];
+        });
+      }
+
+      websocket = new WebSocket('ws://127.0.0.1:' + inPort);
+
+      websocket.onopen = function() {
+        websocket.send(JSON.stringify({ event: inRegisterEvent, uuid: uuid }));
+        websocket.send(JSON.stringify({ event: 'getGlobalSettings', context: uuid }));
+      };
+
+      websocket.onmessage = function(evt) {
+        var msg = JSON.parse(evt.data);
+        if (msg.event === 'didReceiveGlobalSettings') {
+          globalSettings = msg.payload.settings || {};
+          document.getElementById('apiToken').value = globalSettings.apiToken || '';
+          document.getElementById('host').value = globalSettings.host || 'localhost';
+          document.getElementById('port').value = globalSettings.port || '4000';
+        }
+      };
+    }
+
+    function saveGlobalSettings() {
+      if (!websocket) return;
+      globalSettings = {
+        apiToken: document.getElementById('apiToken').value.trim(),
+        host: document.getElementById('host').value.trim() || 'localhost',
+        port: parseInt(document.getElementById('port').value) || 4000,
+      };
+      websocket.send(JSON.stringify({
+        event: 'setGlobalSettings',
+        context: uuid,
+        payload: globalSettings,
+      }));
+
+      // Test connection
+      var statusEl = document.getElementById('statusMsg');
+      fetch('http://' + globalSettings.host + ':' + globalSettings.port + '/api/health', {
+        headers: { 'Authorization': 'Bearer ' + globalSettings.apiToken }
+      })
+        .then(function(r) { return r.json(); })
+        .then(function() {
+          statusEl.textContent = 'Verbunden!';
+          statusEl.className = 'status ok';
+          statusEl.style.display = 'block';
+        })
+        .catch(function() {
+          statusEl.textContent = 'Verbindung fehlgeschlagen.';
+          statusEl.className = 'status err';
+          statusEl.style.display = 'block';
+        });
+    }
+
+    function saveActionSettings() {
+      if (!websocket || !currentAction) return;
+      var mapping = ACTION_MAP[currentAction];
+      if (!mapping) return;
+
+      var settings = {};
+      mapping.fields.forEach(function(f) {
+        var el = document.getElementById(f);
+        if (el) settings[f] = el.value;
+      });
+
+      websocket.send(JSON.stringify({
+        event: 'setSettings',
+        context: uuid,
+        payload: settings,
+      }));
+    }
+
+    // Auto-save on change
+    var saveTimer = null;
+    document.addEventListener('input', function(e) {
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(function() {
+        var id = e.target.id;
+        if (id === 'apiToken' || id === 'host' || id === 'port') {
+          saveGlobalSettings();
+        } else {
+          saveActionSettings();
+        }
+      }, 400);
+    });
+
+    document.addEventListener('change', function(e) {
+      var id = e.target.id;
+      if (id === 'apiToken' || id === 'host' || id === 'port') {
+        saveGlobalSettings();
+      } else {
+        saveActionSettings();
+      }
+    });
+  </script>
+</body>
+</html>

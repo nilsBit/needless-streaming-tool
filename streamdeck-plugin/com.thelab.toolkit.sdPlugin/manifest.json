@@ -1,0 +1,167 @@
+{
+  "$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
+  "UUID": "com.thelab.toolkit",
+  "Name": "The Lab Toolkit",
+  "Author": "nilsBit",
+  "Description": "Stream Toolkit for GameDev Streaming — Scene Switch, Clips, Bugs, Experiments, Todos, Milestones and more.",
+  "Version": "1.0.1.0",
+  "CodePath": "bin/plugin.js",
+  "Icon": "imgs/plugin-icon",
+  "SDKVersion": 2,
+  "Software": {
+    "MinimumVersion": "6.6"
+  },
+  "OS": [
+    {
+      "Platform": "mac",
+      "MinimumVersion": "13"
+    },
+    {
+      "Platform": "windows",
+      "MinimumVersion": "10"
+    }
+  ],
+  "Nodejs": {
+    "Version": "20"
+  },
+  "Category": "The Lab",
+  "CategoryIcon": "imgs/plugin-icon",
+  "Actions": [
+    {
+      "UUID": "com.thelab.toolkit.scene",
+      "Name": "Scene Switch",
+      "Icon": "imgs/actions/scene",
+      "Tooltip": "Switch OBS scene via stream-toolkit",
+      "PropertyInspectorPath": "ui/pi.html",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/scene",
+          "ShowTitle": true,
+          "TitleAlignment": "bottom"
+        }
+      ]
+    },
+    {
+      "UUID": "com.thelab.toolkit.clip",
+      "Name": "Clip Marker",
+      "Icon": "imgs/actions/clip",
+      "Tooltip": "Mark a clip moment",
+      "PropertyInspectorPath": "ui/pi.html",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/clip",
+          "ShowTitle": true,
+          "TitleAlignment": "bottom"
+        }
+      ]
+    },
+    {
+      "UUID": "com.thelab.toolkit.bug",
+      "Name": "Bug Report",
+      "Icon": "imgs/actions/bug",
+      "Tooltip": "Create a bug report",
+      "PropertyInspectorPath": "ui/pi.html",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/bug",
+          "ShowTitle": true,
+          "TitleAlignment": "bottom"
+        }
+      ]
+    },
+    {
+      "UUID": "com.thelab.toolkit.experiment",
+      "Name": "Experiment",
+      "Icon": "imgs/actions/experiment",
+      "Tooltip": "Control experiment status",
+      "PropertyInspectorPath": "ui/pi.html",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/experiment",
+          "ShowTitle": true,
+          "TitleAlignment": "bottom"
+        }
+      ]
+    },
+    {
+      "UUID": "com.thelab.toolkit.todo",
+      "Name": "Todo Check",
+      "Icon": "imgs/actions/todo",
+      "Tooltip": "Mark a todo as done",
+      "PropertyInspectorPath": "ui/pi.html",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/todo",
+          "ShowTitle": true,
+          "TitleAlignment": "bottom"
+        }
+      ]
+    },
+    {
+      "UUID": "com.thelab.toolkit.compile-pray",
+      "Name": "Compile Prayer",
+      "Icon": "imgs/actions/compile-pray",
+      "Tooltip": "Trigger a compile prayer",
+      "PropertyInspectorPath": "ui/pi.html",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/compile-pray",
+          "ShowTitle": true,
+          "TitleAlignment": "bottom"
+        }
+      ]
+    },
+    {
+      "UUID": "com.thelab.toolkit.roulette",
+      "Name": "Bug Roulette",
+      "Icon": "imgs/actions/roulette",
+      "Tooltip": "Spin the bug roulette",
+      "PropertyInspectorPath": "ui/pi.html",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/roulette",
+          "ShowTitle": true,
+          "TitleAlignment": "bottom"
+        }
+      ]
+    },
+    {
+      "UUID": "com.thelab.toolkit.milestone",
+      "Name": "Milestone",
+      "Icon": "imgs/actions/milestone",
+      "Tooltip": "Complete a milestone",
+      "PropertyInspectorPath": "ui/pi.html",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/milestone",
+          "ShowTitle": true,
+          "TitleAlignment": "bottom"
+        }
+      ]
+    }
+  ]
+}

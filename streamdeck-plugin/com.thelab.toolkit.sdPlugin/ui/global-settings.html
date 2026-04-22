@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>The Lab Toolkit — Settings</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #2d2d2d;
+      color: #ccc;
+      padding: 12px;
+      font-size: 12px;
+    }
+    .field { margin-bottom: 12px; }
+    .field label {
+      display: block;
+      margin-bottom: 4px;
+      color: #999;
+      font-size: 11px;
+    }
+    .field input {
+      width: 100%;
+      padding: 6px 8px;
+      background: #1a1a1a;
+      border: 1px solid #444;
+      border-radius: 4px;
+      color: #eee;
+      font-size: 12px;
+      box-sizing: border-box;
+    }
+    .field input:focus {
+      outline: none;
+      border-color: #e67e22;
+    }
+    .row { display: flex; gap: 8px; }
+    .row input { flex: 1; }
+    .hint {
+      color: #666;
+      font-size: 10px;
+      margin-top: 4px;
+    }
+    h3 {
+      color: #e67e22;
+      font-size: 13px;
+      margin: 0 0 12px 0;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #444;
+    }
+    .status {
+      padding: 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      margin-top: 8px;
+    }
+    .status.ok { background: rgba(46,204,113,0.15); color: #2ecc71; }
+    .status.err { background: rgba(231,76,60,0.15); color: #e74c3c; }
+  </style>
+</head>
+<body>
+  <h3>The Lab — Verbindung</h3>
+
+  <div class="field">
+    <label>API Token</label>
+    <input type="text" id="apiToken" placeholder="Token aus dem Toolkit (Settings → Stream Deck API Token)" />
+    <div class="hint">Findest du im Stream Toolkit unter Settings → Stream Deck API Token</div>
+  </div>
+
+  <div class="field">
+    <label>Host &amp; Port</label>
+    <div class="row">
+      <input type="text" id="host" placeholder="localhost" />
+      <input type="text" id="port" placeholder="4000" style="max-width: 80px;" />
+    </div>
+  </div>
+
+  <div id="statusMsg" class="status" style="display:none;"></div>
+
+  <script>
+    // Stream Deck PI SDK
+    const sdpiScript = document.createElement('script');
+    sdpiScript.src = 'sdpi-components.js';
+    document.head.appendChild(sdpiScript);
+
+    let websocket = null;
+    let uuid = null;
+    let actionInfo = null;
+
+    function connectElgatoStreamDeckSocket(inPort, inPropertyInspectorUUID, inRegisterEvent, inInfo, inActionInfo) {
+      uuid = inPropertyInspectorUUID;
+      actionInfo = JSON.parse(inActionInfo);
+
+      websocket = new WebSocket('ws://127.0.0.1:' + inPort);
+
+      websocket.onopen = function() {
+        websocket.send(JSON.stringify({ event: inRegisterEvent, uuid: uuid }));
+        // Request global settings
+        websocket.send(JSON.stringify({ event: 'getGlobalSettings', context: uuid }));
+      };
+
+      websocket.onmessage = function(evt) {
+        const msg = JSON.parse(evt.data);
+        if (msg.event === 'didReceiveGlobalSettings') {
+          const s = msg.payload.settings || {};
+          document.getElementById('apiToken').value = s.apiToken || '';
+          document.getElementById('host').value = s.host || 'localhost';
+          document.getElementById('port').value = s.port || '4000';
+        }
+      };
+    }
+
+    function saveSettings() {
+      if (!websocket) return;
+      const settings = {
+        apiToken: document.getElementById('apiToken').value.trim(),
+        host: document.getElementById('host').value.trim() || 'localhost',
+        port: parseInt(document.getElementById('port').value) || 4000,
+      };
+      websocket.send(JSON.stringify({
+        event: 'setGlobalSettings',
+        context: uuid,
+        payload: settings,
+      }));
+
+      // Test connection
+      const statusEl = document.getElementById('statusMsg');
+      fetch('http://' + settings.host + ':' + settings.port + '/api/health', {
+        headers: { 'Authorization': 'Bearer ' + settings.apiToken }
+      })
+        .then(r => r.json())
+        .then(() => {
+          statusEl.textContent = 'Verbunden!';
+          statusEl.className = 'status ok';
+          statusEl.style.display = 'block';
+        })
+        .catch(() => {
+          statusEl.textContent = 'Verbindung fehlgeschlagen. Token oder Host/Port pruefen.';
+          statusEl.className = 'status err';
+          statusEl.style.display = 'block';
+        });
+    }
+
+    // Auto-save on change
+    document.addEventListener('change', saveSettings);
+    document.addEventListener('input', function() {
+      clearTimeout(window._saveTimeout);
+      window._saveTimeout = setTimeout(saveSettings, 500);
+    });
+  </script>
+</body>
+</html>
