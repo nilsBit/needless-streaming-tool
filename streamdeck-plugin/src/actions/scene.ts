@@ -1,29 +1,21 @@
-import streamDeck, { action, KeyDownEvent, SingletonAction, WillAppearEvent } from '@elgato/streamdeck';
+import { action, KeyDownEvent, SingletonAction, WillAppearEvent } from '@elgato/streamdeck';
+import type { JsonObject } from '@elgato/streamdeck';
 import { apiPost } from '../api.js';
-import { onEvent } from '../ws.js';
-
-type JsonValue = string | number | boolean | null | undefined | JsonObject | JsonValue[];
-type JsonObject = { [key: string]: JsonValue };
+import { connectionManager } from '../connection.js';
 
 interface SceneSettings extends JsonObject {
   sceneName?: string;
 }
 
 let currentScene: string | null = null;
-let connected = false;
 
 @action({ UUID: 'com.thelab.toolkit.scene' })
 export class SceneAction extends SingletonAction<SceneSettings> {
   constructor() {
     super();
-    onEvent((event, data) => {
-      if (event === '_connected') {
-        connected = true;
-        this.updateAll();
-      } else if (event === '_disconnected') {
-        connected = false;
-        this.updateAll();
-      } else if (event === 'obs-scene-changed') {
+    connectionManager.on('stateChange', () => this.updateAll());
+    connectionManager.on('message', (event: string, data: unknown) => {
+      if (event === 'obs-scene-changed') {
         const payload = data as { scene?: string } | undefined;
         if (payload?.scene) {
           currentScene = payload.scene;
@@ -38,6 +30,10 @@ export class SceneAction extends SingletonAction<SceneSettings> {
   }
 
   override async onKeyDown(ev: KeyDownEvent<SceneSettings>): Promise<void> {
+    if (!connectionManager.isConnected()) {
+      await ev.action.showAlert();
+      return;
+    }
     const scene = ev.payload.settings.sceneName?.trim();
     if (!scene) {
       await ev.action.showAlert();
@@ -52,7 +48,7 @@ export class SceneAction extends SingletonAction<SceneSettings> {
   }
 
   private updateAll(): void {
-    const title = !connected ? 'OFFLINE' : (currentScene ?? 'Scene');
+    const title = !connectionManager.isConnected() ? 'OFFLINE' : (currentScene ?? 'Scene');
     for (const a of this.actions) {
       a.setTitle(title).catch(() => { /* ignore */ });
     }
