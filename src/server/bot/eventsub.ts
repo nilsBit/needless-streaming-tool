@@ -84,18 +84,19 @@ async function handleRedemption(event: Record<string, unknown>) {
   const reward = getDb().prepare('SELECT * FROM rewards WHERE id = ?').get(result.lastInsertRowid);
   broadcast('reward-redeemed', reward);
 
-  // Track all-time stats (normalize username to lowercase for consistent grouping)
   const normalizedName = userName.toLowerCase();
-  getDb().prepare(
-    'INSERT INTO reward_log (user_name, reward_type, reward_title, user_input) VALUES (?, ?, ?, ?)'
-  ).run(normalizedName, rewardType, rewardTitle, userInput);
+  getDb().transaction(() => {
+    getDb().prepare(
+      'INSERT INTO reward_log (user_name, reward_type, reward_title, user_input) VALUES (?, ?, ?, ?)'
+    ).run(normalizedName, rewardType, rewardTitle, userInput);
 
-  getDb().prepare(`
-    INSERT INTO reward_stats (user_name, reward_type, count, last_redeemed_at)
-    VALUES (?, ?, 1, CURRENT_TIMESTAMP)
-    ON CONFLICT(user_name, reward_type)
-    DO UPDATE SET count = count + 1, last_redeemed_at = CURRENT_TIMESTAMP
-  `).run(normalizedName, rewardType);
+    getDb().prepare(`
+      INSERT INTO reward_stats (user_name, reward_type, count, last_redeemed_at)
+      VALUES (?, ?, 1, CURRENT_TIMESTAMP)
+      ON CONFLICT(user_name, reward_type)
+      DO UPDATE SET count = count + 1, last_redeemed_at = CURRENT_TIMESTAMP
+    `).run(normalizedName, rewardType);
+  })();
 
   // Auto-trigger roulette when someone redeems roulette
   if (rewardType === 'roulette') {

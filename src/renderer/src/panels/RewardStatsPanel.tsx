@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useApi, apiGet } from '../hooks/useApi';
 import { useWebSocket } from '../hooks/useWebSocket';
 
@@ -43,30 +43,14 @@ export default function RewardStatsPanel() {
     : '/reward-stats?limit=50';
   const { data: leaderboard, loading, refetch } = useApi<StatRow[]>(leaderboardUrl);
 
-  // Debounced refetch on reward events
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useWebSocket((event) => {
-    if (event === 'reward-redeemed') {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => {
-        refetch();
-        if (view === 'log') fetchLog();
-      }, DEBOUNCE_MS);
-    }
-  });
-
-  useEffect(() => () => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-  }, []);
-
-  // Fetch available reward types for the filter dropdown
-  useEffect(() => {
+  const fetchTypes = useCallback(() => {
     apiGet<string[]>('/reward-stats/types').then((res) => {
       if (res) setTypes(res);
     });
   }, []);
 
-  // Fetch log data
+  useEffect(() => { fetchTypes(); }, [fetchTypes]);
+
   const fetchLog = useCallback(() => {
     const params = new URLSearchParams();
     if (userFilter) params.set('user', userFilter);
@@ -78,15 +62,56 @@ export default function RewardStatsPanel() {
     });
   }, [userFilter, typeFilter, logOffset]);
 
+  const viewRef = useRef(view);
+  viewRef.current = view;
+  const fetchLogRef = useRef(fetchLog);
+  fetchLogRef.current = fetchLog;
+
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useWebSocket((event) => {
+    if (event === 'reward-redeemed') {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
+        refetch();
+        fetchTypes();
+        if (viewRef.current === 'log') fetchLogRef.current();
+      }, DEBOUNCE_MS);
+    }
+  });
+
+  useEffect(() => () => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+  }, []);
+
   useEffect(() => {
     if (view === 'log') fetchLog();
   }, [view, fetchLog]);
+
+  const sorted = useMemo(() => {
+    if (!leaderboard) return null;
+    return [...leaderboard].sort((a, b) => {
+      let cmp = 0;
+      if (sortField === 'count') cmp = a.count - b.count;
+      else if (sortField === 'user_name') cmp = a.user_name.localeCompare(b.user_name);
+      else if (sortField === 'last_redeemed_at') cmp = new Date(a.last_redeemed_at).getTime() - new Date(b.last_redeemed_at).getTime();
+      return sortAsc ? cmp : -cmp;
+    });
+  }, [leaderboard, sortField, sortAsc]);
+
+  const toggleSort = useCallback((field: typeof sortField) => {
+    if (sortField === field) setSortAsc(!sortAsc);
+    else { setSortField(field); setSortAsc(false); }
+  }, [sortField, sortAsc]);
+
+  const sortIcon = (field: 'count' | 'last_redeemed_at' | 'user_name') => sortField === field ? (sortAsc ? ' ▲' : ' ▼') : '';
 
   const showUserLog = (username: string) => {
     setUserFilter(username);
     setLogOffset(0);
     setView('log');
   };
+
+  const thStyle = { padding: '6px 8px', cursor: 'pointer', userSelect: 'none' as const };
 
   return (
     <div className="panel reward-stats-panel">
@@ -131,24 +156,7 @@ export default function RewardStatsPanel() {
         )}
       </div>
 
-      {view === 'leaderboard' && (() => {
-        const sorted = leaderboard ? [...leaderboard].sort((a, b) => {
-          let cmp = 0;
-          if (sortField === 'count') cmp = a.count - b.count;
-          else if (sortField === 'user_name') cmp = a.user_name.localeCompare(b.user_name);
-          else if (sortField === 'last_redeemed_at') cmp = new Date(a.last_redeemed_at).getTime() - new Date(b.last_redeemed_at).getTime();
-          return sortAsc ? cmp : -cmp;
-        }) : null;
-
-        const toggleSort = (field: typeof sortField) => {
-          if (sortField === field) setSortAsc(!sortAsc);
-          else { setSortField(field); setSortAsc(false); }
-        };
-
-        const sortIcon = (field: typeof sortField) => sortField === field ? (sortAsc ? ' ▲' : ' ▼') : '';
-        const thStyle = { padding: '6px 8px', cursor: 'pointer', userSelect: 'none' as const };
-
-        return (
+      {view === 'leaderboard' && (
         <div>
           {loading ? (
             <p style={{ color: '#666' }}>Laden...</p>
@@ -188,8 +196,7 @@ export default function RewardStatsPanel() {
             </table>
           )}
         </div>
-        );
-      })()}
+      )}
 
       {view === 'log' && (
         <div>
