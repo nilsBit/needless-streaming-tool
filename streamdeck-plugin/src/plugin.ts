@@ -35,7 +35,7 @@ streamDeck.ui.onSendToPlugin((ev) => {
   const payload = ev.payload as { type?: string } | undefined;
   if (payload?.type === 'checkConnection') {
     const info = connectionManager.getConnectionInfo();
-    ev.action.sendToPropertyInspector({
+    streamDeck.ui.current?.sendToPropertyInspector({
       type: 'connectionStatus',
       connected: info.connected,
       port: info.port,
