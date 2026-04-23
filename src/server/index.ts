@@ -20,6 +20,7 @@ import milestonesRouter from './api/milestones';
 import obsRouter from './api/obs';
 import customOverlaysRouter from './api/custom-overlays';
 import statsRouter from './api/stats';
+import rewardStatsRouter from './api/reward-stats';
 import backupRouter from './api/backup';
 import overlayConfigRouter, { getOverlayConfig } from './api/overlay-config';
 import songRequestsRouter, { getActiveQueue } from './api/song-requests';
@@ -104,6 +105,7 @@ export async function startServer(): Promise<string> {
   app.use('/api/clips', clipsRouter);
   app.use('/api/clip-tags', clipTagsRouter);
   app.use('/api/milestones', milestonesRouter);
+  app.use('/api/reward-stats', rewardStatsRouter);
   app.use('/api/obs', obsRouter);
   app.use('/api/overlays', customOverlaysRouter);
   app.use('/api/stats', statsRouter);
