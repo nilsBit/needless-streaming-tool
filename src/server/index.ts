@@ -27,6 +27,7 @@ import songRequestsRouter, { getActiveQueue } from './api/song-requests';
 import { connectBot } from './bot/index';
 import { connectObs } from './obs/index';
 import { initAutoClips } from './auto-clips';
+import { checkDatabase, healDatabase } from './api/notion-sync';
 import { startSMTC, getAutoDetectSetting } from './integrations/smtc';
 import { getDb } from './db/index';
 import { rateLimit } from './middleware/rate-limit';
@@ -195,6 +196,22 @@ export async function startServer(): Promise<string> {
       setTimeout(() => initAutoClips(), 3000);
 
       if (getAutoDetectSetting()) startSMTC();
+
+      // Auto-heal Notion schema: existing users get new rich_text columns added
+      // silently on startup so sync keeps working after property additions.
+      (async () => {
+        const dbId = (getDb().prepare('SELECT value FROM settings WHERE key = ?').get('notion_clips_db') as { value: string } | undefined)?.value;
+        if (!dbId) return;
+        const check = await checkDatabase();
+        if (check.ok) return;
+        if (!('missing_properties' in check) || !check.missing_properties?.length) return;
+        try {
+          const result = await healDatabase(dbId);
+          if (result.added.length > 0) console.log(`[Notion] Auto-healed schema: added ${result.added.join(', ')}`);
+        } catch (err) {
+          console.warn('[Notion] Auto-heal failed:', err instanceof Error ? err.message : err);
+        }
+      })();
 
       resolve(token);
     });

@@ -9,7 +9,7 @@ function isAutoSyncEnabled(): boolean {
   return row?.value === 'true';
 }
 
-function maybeAutoSync(clip: { id: number; tag: string; note: string | null; session_date: string; created_at: string }): void {
+function maybeAutoSync(clip: { id: number; tag: string; note: string | null; session_date: string; created_at: string; stream_timecode: string | null; recording_timecode: string | null }): void {
   if (!isAutoSyncEnabled()) return;
   if (clip.tag.startsWith('auto-')) return;
   syncClipToNotion(clip).then((ok) => {
@@ -121,7 +121,7 @@ router.post('/sync', async (req, res) => {
 
   const clips = getDb().prepare(
     'SELECT * FROM clips WHERE session_date = ? AND notion_page_id IS NULL ORDER BY created_at ASC'
-  ).all(sessionDate) as Array<{ id: number; tag: string; note: string | null; session_date: string; created_at: string }>;
+  ).all(sessionDate) as Array<{ id: number; tag: string; note: string | null; session_date: string; created_at: string; stream_timecode: string | null; recording_timecode: string | null }>;
 
   if (clips.length === 0) { res.json({ session_date: sessionDate, total: 0, synced: 0, failed: 0 }); return; }
 
@@ -158,7 +158,7 @@ router.patch('/:id', (req, res) => {
   const db = getDb();
 
   const existing = db.prepare('SELECT * FROM clips WHERE id = ?').get(req.params.id) as
-    | { id: number; tag: string; note: string | null; session_date: string; created_at: string; notion_page_id: string | null }
+    | { id: number; tag: string; note: string | null; session_date: string; created_at: string; notion_page_id: string | null; stream_timecode: string | null; recording_timecode: string | null }
     | undefined;
   if (!existing) { res.status(404).json({ error: 'Clip not found' }); return; }
 
@@ -174,6 +174,7 @@ router.patch('/:id', (req, res) => {
   db.prepare(`UPDATE clips SET ${fields.join(', ')} WHERE id = ?`).run(...values);
   const clip = db.prepare('SELECT * FROM clips WHERE id = ?').get(req.params.id) as {
     id: number; tag: string; note: string | null; session_date: string; created_at: string; notion_page_id: string | null;
+    stream_timecode: string | null; recording_timecode: string | null;
   };
 
   broadcast('clip-updated', clip);

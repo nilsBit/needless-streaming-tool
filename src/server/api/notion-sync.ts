@@ -58,6 +58,8 @@ export const REQUIRED_PROPERTIES: Record<string, Record<string, unknown>> = {
   'Tag': { select: { options: [] } },
   'Session': { date: {} },
   'Zeitstempel': { rich_text: {} },
+  'Stream-Timecode': { rich_text: {} },
+  'Aufnahme-Timecode': { rich_text: {} },
   'Notiz': { rich_text: {} },
   'Synced': { checkbox: {} },
 };
@@ -210,6 +212,8 @@ interface ClipRow {
   note: string | null;
   session_date: string;
   created_at: string;
+  stream_timecode?: string | null;
+  recording_timecode?: string | null;
 }
 
 export async function archiveNotionPage(pageId: string): Promise<boolean> {
@@ -241,6 +245,10 @@ export async function syncClipToNotion(clip: ClipRow): Promise<boolean> {
   const time = new Date(clip.created_at + 'Z').toLocaleTimeString('de-DE', {
     hour: '2-digit', minute: '2-digit', second: '2-digit',
   });
+  const titleTimecode = clip.recording_timecode || clip.stream_timecode || null;
+  const clipTitle = titleTimecode
+    ? `${clip.tag} — ${time}  ${titleTimecode}`
+    : `${clip.tag} — ${time}`;
 
   try {
     const res = await notionFetch('/v1/pages', {
@@ -248,10 +256,16 @@ export async function syncClipToNotion(clip: ClipRow): Promise<boolean> {
       body: JSON.stringify({
         parent: { database_id: dbId },
         properties: {
-          'Clip': { title: [{ text: { content: `${clip.tag} — ${time}` } }] },
+          'Clip': { title: [{ text: { content: clipTitle } }] },
           'Tag': { select: { name: clip.tag } },
           'Session': { date: { start: clip.session_date } },
           'Zeitstempel': { rich_text: [{ text: { content: time } }] },
+          'Stream-Timecode': clip.stream_timecode
+            ? { rich_text: [{ text: { content: clip.stream_timecode } }] }
+            : { rich_text: [] },
+          'Aufnahme-Timecode': clip.recording_timecode
+            ? { rich_text: [{ text: { content: clip.recording_timecode } }] }
+            : { rich_text: [] },
           'Notiz': clip.note
             ? { rich_text: [{ text: { content: clip.note } }] }
             : { rich_text: [] },
