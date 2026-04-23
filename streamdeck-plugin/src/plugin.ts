@@ -1,5 +1,5 @@
 import streamDeck, { LogLevel } from '@elgato/streamdeck';
-import { updateSettings, type Settings } from './api.js';
+import { apiGet, updateSettings, type Settings } from './api.js';
 import { connectionManager } from './connection.js';
 
 import { SceneAction } from './actions/scene.js';
@@ -30,8 +30,8 @@ streamDeck.settings.onDidReceiveGlobalSettings<Partial<Settings>>((ev) => {
   connectionManager.start();
 });
 
-// Handle PI messages for onboarding wizard
-streamDeck.ui.onSendToPlugin((ev) => {
+// Handle PI messages for onboarding wizard and dynamic data
+streamDeck.ui.onSendToPlugin(async (ev) => {
   const payload = ev.payload as { type?: string } | undefined;
   if (payload?.type === 'checkConnection') {
     const info = connectionManager.getConnectionInfo();
@@ -40,6 +40,15 @@ streamDeck.ui.onSendToPlugin((ev) => {
       connected: info.connected,
       port: info.port,
     });
+    return;
+  }
+  if (payload?.type === 'getClipTags') {
+    try {
+      const tags = await apiGet<{ tag: string; emoji: string; preset: boolean }[]>('/api/clip-tags');
+      streamDeck.ui.current?.sendToPropertyInspector({ type: 'clipTags', tags });
+    } catch {
+      streamDeck.ui.current?.sendToPropertyInspector({ type: 'clipTags', tags: [], error: true });
+    }
   }
 });
 
@@ -47,10 +56,14 @@ streamDeck.ui.onSendToPlugin((ev) => {
   // Try reading connection file before connecting
   connectionManager.readConnectionFile();
 
-  // Also try loading persisted global settings
+  // Connect to Stream Deck FIRST — settings.getGlobalSettings requires an open
+  // connection, otherwise connection.send() awaits the connection promise
+  // forever and the Node event loop exits before Stream Deck registers us.
+  await streamDeck.connect();
+
+  // Now safe to read persisted global settings
   try {
     const initial = await streamDeck.settings.getGlobalSettings<Partial<Settings>>();
-    // Only apply global settings if they have a token and connection file didn't already set one
     if (initial.apiToken) {
       updateSettings(initial);
     }
@@ -58,8 +71,5 @@ streamDeck.ui.onSendToPlugin((ev) => {
     /* first-run: no settings yet, defaults are fine */
   }
 
-  await streamDeck.connect();
-
-  // Start ConnectionManager AFTER streamDeck.connect() resolves
   connectionManager.start();
 })();

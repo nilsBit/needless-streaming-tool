@@ -185,7 +185,10 @@
     <h3>Clip Marker</h3>
     <div class="field">
       <label>Clip Tag</label>
-      <input type="text" id="tag" placeholder="highlight" />
+      <select id="tag">
+        <option value="highlight">⭐ highlight</option>
+      </select>
+      <div class="hint" id="tag-hint"></div>
     </div>
   </div>
 
@@ -303,27 +306,66 @@
     }
 
     function handlePluginMessage(payload) {
-      if (!payload || payload.type !== 'connectionStatus') return;
+      if (!payload) return;
 
-      if (payload.connected) {
-        isConnected = true;
-        stopPolling();
-        showConnected(payload.port);
-      } else {
-        isConnected = false;
-        // If we're on step 1 and user hasn't interacted, stay there
-        // If we're already polling (step 2), keep polling
-        if (!pollTimer) {
-          // First check — show step 1 if no connection
-          wizardGoTo(1);
+      if (payload.type === 'connectionStatus') {
+        if (payload.connected) {
+          isConnected = true;
+          stopPolling();
+          showConnected(payload.port);
+        } else {
+          isConnected = false;
+          if (!pollTimer) {
+            wizardGoTo(1);
+          }
         }
+        return;
       }
+
+      if (payload.type === 'clipTags') {
+        populateClipTags(payload.tags || [], payload.error);
+        return;
+      }
+    }
+
+    function populateClipTags(tags, error) {
+      var select = document.getElementById('tag');
+      var hint = document.getElementById('tag-hint');
+      if (!select) return;
+      var desired = (actionSettings.tag || 'highlight');
+      select.innerHTML = '';
+      if (!tags.length) {
+        hint.textContent = error ? 'Could not load tags — using default' : 'No tags available';
+        var opt = document.createElement('option');
+        opt.value = 'highlight';
+        opt.textContent = '⭐ highlight';
+        select.appendChild(opt);
+      } else {
+        hint.textContent = '';
+        tags.forEach(function(t) {
+          var opt = document.createElement('option');
+          opt.value = t.tag;
+          opt.textContent = (t.emoji ? t.emoji + ' ' : '') + t.tag + (t.preset ? '' : ' (custom)');
+          select.appendChild(opt);
+        });
+      }
+      // Restore selection; if not in list, add it as fallback option and select
+      if (desired && !Array.from(select.options).some(function(o) { return o.value === desired; })) {
+        var opt = document.createElement('option');
+        opt.value = desired;
+        opt.textContent = desired + ' (missing)';
+        select.appendChild(opt);
+      }
+      select.value = desired;
     }
 
     function showActionSettings() {
       var mapping = ACTION_MAP[currentAction];
       if (mapping) {
         document.getElementById(mapping.section).style.display = 'block';
+      }
+      if (currentAction === 'com.nst.deck.clip') {
+        sendToPlugin({ type: 'getClipTags' });
       }
     }
 
