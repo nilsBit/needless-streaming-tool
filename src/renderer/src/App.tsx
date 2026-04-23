@@ -15,6 +15,7 @@ import OverlaysPanel from './panels/OverlaysPanel';
 import HelpPanel from './panels/HelpPanel';
 import SongPanel from './panels/SongPanel';
 import StatsPanel from './panels/StatsPanel';
+import RewardStatsPanel from './panels/RewardStatsPanel';
 import HotkeysPanel from './panels/HotkeysPanel';
 import logoSvg from './assets/logo.svg';
 
@@ -40,6 +41,7 @@ const TABS = {
     label: '📊 Stats',
     panels: [
       { key: 'stats', label: 'Statistiken', component: StatsPanel },
+      { key: 'rewardstats', label: 'Reward Stats', component: RewardStatsPanel },
     ],
   },
   settings: {
