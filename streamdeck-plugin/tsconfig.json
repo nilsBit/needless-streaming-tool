@@ -8,6 +8,7 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "noEmit": true,
+    "experimentalDecorators": true,
     "types": ["node"]
   },
   "include": ["src/**/*.ts", "build.mjs"]
