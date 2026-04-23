@@ -34,6 +34,8 @@ export default function RewardStatsPanel() {
   const [logOffset, setLogOffset] = useState(0);
   const [logData, setLogData] = useState<LogResponse | null>(null);
   const [types, setTypes] = useState<string[]>([]);
+  const [sortField, setSortField] = useState<'count' | 'last_redeemed_at' | 'user_name'>('count');
+  const [sortAsc, setSortAsc] = useState(false);
 
   // Leaderboard data
   const leaderboardUrl = typeFilter
@@ -129,25 +131,42 @@ export default function RewardStatsPanel() {
         )}
       </div>
 
-      {view === 'leaderboard' && (
+      {view === 'leaderboard' && (() => {
+        const sorted = leaderboard ? [...leaderboard].sort((a, b) => {
+          let cmp = 0;
+          if (sortField === 'count') cmp = a.count - b.count;
+          else if (sortField === 'user_name') cmp = a.user_name.localeCompare(b.user_name);
+          else if (sortField === 'last_redeemed_at') cmp = new Date(a.last_redeemed_at).getTime() - new Date(b.last_redeemed_at).getTime();
+          return sortAsc ? cmp : -cmp;
+        }) : null;
+
+        const toggleSort = (field: typeof sortField) => {
+          if (sortField === field) setSortAsc(!sortAsc);
+          else { setSortField(field); setSortAsc(false); }
+        };
+
+        const sortIcon = (field: typeof sortField) => sortField === field ? (sortAsc ? ' ▲' : ' ▼') : '';
+        const thStyle = { padding: '6px 8px', cursor: 'pointer', userSelect: 'none' as const };
+
+        return (
         <div>
           {loading ? (
             <p style={{ color: '#666' }}>Laden...</p>
-          ) : !leaderboard || leaderboard.length === 0 ? (
+          ) : !sorted || sorted.length === 0 ? (
             <p style={{ color: '#666' }}>Noch keine Reward-Daten vorhanden.</p>
           ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #333', color: '#888' }}>
                   <th style={{ textAlign: 'left', padding: '6px 8px' }}>#</th>
-                  <th style={{ textAlign: 'left', padding: '6px 8px' }}>User</th>
+                  <th style={{ textAlign: 'left', ...thStyle }} onClick={() => toggleSort('user_name')}>User{sortIcon('user_name')}</th>
                   {typeFilter && <th style={{ textAlign: 'left', padding: '6px 8px' }}>Typ</th>}
-                  <th style={{ textAlign: 'right', padding: '6px 8px' }}>Anzahl</th>
-                  <th style={{ textAlign: 'right', padding: '6px 8px' }}>Letztes Mal</th>
+                  <th style={{ textAlign: 'right', ...thStyle }} onClick={() => toggleSort('count')}>Anzahl{sortIcon('count')}</th>
+                  <th style={{ textAlign: 'right', ...thStyle }} onClick={() => toggleSort('last_redeemed_at')}>Letztes Mal{sortIcon('last_redeemed_at')}</th>
                 </tr>
               </thead>
               <tbody>
-                {leaderboard.map((row, i) => (
+                {sorted.map((row, i) => (
                   <tr key={row.user_name + (row.reward_type || '')} style={{ borderBottom: '1px solid #222' }}>
                     <td style={{ padding: '6px 8px', color: '#666' }}>{i + 1}</td>
                     <td style={{ padding: '6px 8px' }}>
@@ -169,7 +188,8 @@ export default function RewardStatsPanel() {
             </table>
           )}
         </div>
-      )}
+        );
+      })()}
 
       {view === 'log' && (
         <div>
