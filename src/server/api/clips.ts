@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
-import { syncClipToNotion } from './notion-sync';
+import { syncClipToNotion, archiveNotionPage } from './notion-sync';
 import { getStreamTimecodes } from '../obs/index';
 
 function isAutoSyncEnabled(): boolean {
@@ -188,10 +188,16 @@ router.patch('/:id', (req, res) => {
   res.json(clip);
 });
 
-// DELETE clip
+// DELETE clip — archives the Notion page (best-effort) before local delete
 router.delete('/:id', (req, res) => {
-  getDb().prepare('DELETE FROM clips WHERE id = ?').run(req.params.id);
-  broadcast('clip-deleted', { id: Number(req.params.id) });
+  const id = Number(req.params.id);
+  const clip = getDb().prepare('SELECT notion_page_id FROM clips WHERE id = ?').get(id) as { notion_page_id: string | null } | undefined;
+  if (clip?.notion_page_id) {
+    // Fire-and-forget archive — local delete must not depend on Notion availability
+    archiveNotionPage(clip.notion_page_id).catch(() => { /* already logged */ });
+  }
+  getDb().prepare('DELETE FROM clips WHERE id = ?').run(id);
+  broadcast('clip-deleted', { id });
   res.status(204).send();
 });
 

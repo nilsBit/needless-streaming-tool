@@ -212,6 +212,26 @@ interface ClipRow {
   created_at: string;
 }
 
+export async function archiveNotionPage(pageId: string): Promise<boolean> {
+  const token = getNotionToken();
+  if (!token) return false;
+  try {
+    const res = await notionFetch(`/v1/pages/${pageId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ archived: true }),
+    });
+    if (res.ok) return true;
+    // 404 means page already gone — treat as success
+    if (res.status === 404) return true;
+    const body = await res.text().catch(() => '');
+    console.error(`[Notion] Archive failed for ${pageId}: ${res.status} ${body.slice(0, 200)}`);
+    return false;
+  } catch (err) {
+    console.error('[Notion] Archive error:', err);
+    return false;
+  }
+}
+
 export async function syncClipToNotion(clip: ClipRow): Promise<boolean> {
   const token = getNotionToken();
   if (!token) { console.log('[Notion] No token configured — skipping sync'); return false; }
