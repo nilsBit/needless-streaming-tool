@@ -62,6 +62,12 @@ function createWindow() {
 }
 
 app.whenReady().then(async () => {
+  // Set dock icon in dev mode (production uses .icns from electron-builder)
+  if (isDev && process.platform === 'darwin' && app.dock) {
+    const dockIcon = nativeImage.createFromPath(path.join(process.cwd(), 'assets', 'icon.png'));
+    app.dock.setIcon(dockIcon);
+  }
+
   apiToken = await startServer();
   createWindow();
   registerHotkeys();
