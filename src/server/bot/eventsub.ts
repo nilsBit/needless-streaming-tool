@@ -70,7 +70,7 @@ async function handleRedemption(event: Record<string, unknown>) {
   console.log(`[EventSub] Redemption: ${userName} redeemed "${rewardTitle}"`);
 
   // Map reward title to our reward types
-  let rewardType = rewardId;
+  let rewardType = rewardTitle;
   const titleLower = rewardTitle.toLowerCase();
   if (titleLower.includes('roulette')) rewardType = 'roulette';
   else if (titleLower.includes('feature')) rewardType = 'feature_request';
