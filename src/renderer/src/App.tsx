@@ -28,6 +28,7 @@ const TABS = {
       { key: 'clips', label: 'Clip Moments', component: ClipsPanel },
       { key: 'designs', label: 'Abstimmungen', component: DesignsPanel },
       { key: 'song', label: 'Now Playing', component: SongPanel },
+      { key: 'rewardstats', label: 'Reward Stats', component: RewardStatsPanel },
     ],
   },
   projekt: {
@@ -41,7 +42,6 @@ const TABS = {
     label: '📊 Stats',
     panels: [
       { key: 'stats', label: 'Statistiken', component: StatsPanel },
-      { key: 'rewardstats', label: 'Reward Stats', component: RewardStatsPanel },
     ],
   },
   settings: {
