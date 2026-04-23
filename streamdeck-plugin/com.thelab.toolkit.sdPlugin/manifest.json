@@ -3,6 +3,7 @@
   "UUID": "com.thelab.toolkit",
   "Name": "The Lab Toolkit",
   "Author": "nilsBit",
+  "URL": "https://github.com/nilsBit/thelab-streamdeck-plugin",
   "Description": "Stream Toolkit for GameDev Streaming — Scene Switch, Clips, Bugs, Experiments, Todos, Milestones and more.",
   "Version": "1.0.1.0",
   "CodePath": "bin/plugin.js",
