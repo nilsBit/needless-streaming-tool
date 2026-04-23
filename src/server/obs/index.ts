@@ -6,6 +6,16 @@ let obs: OBSWebSocket | null = null;
 let connected = false;
 let isStreaming = false;
 let isRecording = false;
+let reconnectTimer: NodeJS.Timeout | null = null;
+let userDisconnect = false;
+
+function scheduleReconnect(): void {
+  if (reconnectTimer || userDisconnect || connected) return;
+  reconnectTimer = setTimeout(() => {
+    reconnectTimer = null;
+    connectObs().catch(() => { scheduleReconnect(); });
+  }, 5000);
+}
 
 export interface ObsConfig {
   host: string;
@@ -47,6 +57,7 @@ export async function connectObs(): Promise<boolean> {
     return true;
   }
 
+  userDisconnect = false;
   obs = new OBSWebSocket();
 
   try {
@@ -89,6 +100,21 @@ export async function connectObs(): Promise<boolean> {
       console.log(`[OBS] Recording ${isRecording ? 'started' : 'stopped'}`);
     });
 
+    obs.on('ConnectionClosed', () => {
+      if (!connected) return;
+      console.log('[OBS] Connection closed — will auto-reconnect');
+      connected = false;
+      obs = null;
+      isStreaming = false;
+      isRecording = false;
+      try {
+        getDb().prepare('UPDATE stream_state SET is_live = 0, is_recording = 0 WHERE id = 1').run();
+        broadcast('stream-state', getDb().prepare('SELECT * FROM stream_state WHERE id = 1').get());
+      } catch { /* ignore */ }
+      broadcast('obs-status', { connected: false });
+      scheduleReconnect();
+    });
+
     console.log(`[OBS] Connected to ${url}`);
     broadcast('obs-status', { connected: true });
     return true;
@@ -97,11 +123,14 @@ export async function connectObs(): Promise<boolean> {
     connected = false;
     obs = null;
     broadcast('obs-status', { connected: false });
+    scheduleReconnect();
     return false;
   }
 }
 
 export async function disconnectObs(): Promise<void> {
+  userDisconnect = true;
+  if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
   if (obs && connected) {
     await obs.disconnect();
     connected = false;
