@@ -28,7 +28,7 @@
   },
   "build": {
     "appId": "com.nst.streaming-tool",
-    "productName": "Stream Toolkit",
+    "productName": "Needless Streaming Tool",
     "directories": {
       "output": "release"
     },
@@ -64,7 +64,7 @@
       "oneClick": true,
       "allowToChangeInstallationDirectory": false,
       "createDesktopShortcut": true,
-      "shortcutName": "Stream Toolkit"
+      "shortcutName": "Needless Streaming Tool"
     },
     "asar": true,
     "asarUnpack": [
