@@ -24,7 +24,7 @@ export class CompilePrayAction extends SingletonAction<CompilePraySettings> {
             /* ignore */
           });
           setTimeout(() => {
-            a.setTitle('Compile').catch(() => {
+            a.setTitle(connected ? 'Compile' : 'OFFLINE').catch(() => {
               /* ignore */
             });
           }, 2000);
