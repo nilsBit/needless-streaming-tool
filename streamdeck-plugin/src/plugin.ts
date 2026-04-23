@@ -1,6 +1,6 @@
 import streamDeck, { LogLevel } from '@elgato/streamdeck';
 import { updateSettings, type Settings } from './api.js';
-import { startWs, restartWs } from './ws.js';
+import { connectionManager } from './connection.js';
 
 import { SceneAction } from './actions/scene.js';
 import { ClipAction } from './actions/clip.js';
@@ -22,18 +22,44 @@ streamDeck.actions.registerAction(new MilestoneAction());
 streamDeck.actions.registerAction(new CompilePrayAction());
 streamDeck.actions.registerAction(new RouletteAction());
 
+// When user changes global settings manually (from PI advanced section)
 streamDeck.settings.onDidReceiveGlobalSettings<Partial<Settings>>((ev) => {
   updateSettings(ev.settings);
-  restartWs();
+  // Restart connection with new settings
+  connectionManager.stop();
+  connectionManager.start();
+});
+
+// Handle PI messages for onboarding wizard
+streamDeck.ui.onSendToPlugin((ev) => {
+  const payload = ev.payload as { type?: string } | undefined;
+  if (payload?.type === 'checkConnection') {
+    const info = connectionManager.getConnectionInfo();
+    ev.action.sendToPropertyInspector({
+      type: 'connectionStatus',
+      connected: info.connected,
+      port: info.port,
+    });
+  }
 });
 
 (async () => {
+  // Try reading connection file before connecting
+  connectionManager.readConnectionFile();
+
+  // Also try loading persisted global settings
   try {
     const initial = await streamDeck.settings.getGlobalSettings<Partial<Settings>>();
-    updateSettings(initial);
+    // Only apply global settings if they have a token and connection file didn't already set one
+    if (initial.apiToken) {
+      updateSettings(initial);
+    }
   } catch {
     /* first-run: no settings yet, defaults are fine */
   }
-  startWs();
+
   await streamDeck.connect();
+
+  // Start ConnectionManager AFTER streamDeck.connect() resolves
+  connectionManager.start();
 })();
