@@ -21,11 +21,6 @@ export function getBaseUrl(): string {
   return `http://${host || 'localhost'}:${port || 4000}`;
 }
 
-export function getWsUrl(): string {
-  const { host, port } = currentSettings;
-  return `ws://${host || 'localhost'}:${port || 4000}?overlay=1`;
-}
-
 export async function request<T = unknown>(method: string, path: string, body?: unknown): Promise<T> {
   const url = `${getBaseUrl()}${path}`;
   const res = await fetch(url, {

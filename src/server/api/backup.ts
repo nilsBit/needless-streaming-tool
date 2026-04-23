@@ -26,7 +26,7 @@ router.get('/export', (_req, res) => {
     backup[table] = db.prepare(`SELECT * FROM ${table}`).all();
   }
 
-  res.setHeader('Content-Disposition', 'attachment; filename=stream-toolkit-backup.json');
+  res.setHeader('Content-Disposition', 'attachment; filename=nst-backup.json');
   res.json(backup);
 });
 

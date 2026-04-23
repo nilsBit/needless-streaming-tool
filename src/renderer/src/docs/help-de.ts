@@ -138,14 +138,14 @@ Das Template unter /overlay/_template/index.html enthält:
   },
   {
     title: 'Stream Deck',
-    content: `Das "The Lab Toolkit" Stream Deck Plugin bietet 8 Buttons mit Live-Status.
+    content: `Das "NST Deck" Stream Deck Plugin bietet 8 Buttons mit Live-Status.
 
 **Installation:**
 - Im Toolkit: Onboarding → Stream Deck → "Plugin jetzt installieren"
 - Oder: .streamDeckPlugin Datei manuell öffnen
 
 **Einrichtung:**
-1. Beliebigen "The Lab" Button aufs Deck ziehen
+1. Beliebigen "NST" Button aufs Deck ziehen
 2. Button anklicken → Property Inspector unten
 3. API Token eintragen (einmalig, gilt für alle Buttons)
 4. Button-spezifische Settings konfigurieren

@@ -4,6 +4,7 @@ import path from 'path';
 import { initWebSocket } from './websocket/index';
 import { initDatabase } from './db/index';
 import { generateApiToken, validateApiToken, getApiToken } from './auth-token';
+import { writeConnectionFile, deleteConnectionFile } from './connection-file';
 import streamStateRouter from './api/stream-state';
 import issuesRouter from './api/issues';
 import rewardsRouter from './api/rewards';
@@ -19,6 +20,7 @@ import milestonesRouter from './api/milestones';
 import obsRouter from './api/obs';
 import customOverlaysRouter from './api/custom-overlays';
 import statsRouter from './api/stats';
+import rewardStatsRouter from './api/reward-stats';
 import backupRouter from './api/backup';
 import overlayConfigRouter, { getOverlayConfig } from './api/overlay-config';
 import songRequestsRouter, { getActiveQueue } from './api/song-requests';
@@ -103,6 +105,7 @@ export async function startServer(): Promise<string> {
   app.use('/api/clips', clipsRouter);
   app.use('/api/clip-tags', clipTagsRouter);
   app.use('/api/milestones', milestonesRouter);
+  app.use('/api/reward-stats', rewardStatsRouter);
   app.use('/api/obs', obsRouter);
   app.use('/api/overlays', customOverlaysRouter);
   app.use('/api/stats', statsRouter);
@@ -166,6 +169,7 @@ export async function startServer(): Promise<string> {
   // Graceful shutdown — close server so port is freed before process exits
   function shutdown() {
     console.log('[Server] Shutting down...');
+    deleteConnectionFile();
     server.close(() => {
       console.log('[Server] Closed');
       process.exit(0);
@@ -180,6 +184,9 @@ export async function startServer(): Promise<string> {
   return new Promise((resolve) => {
     server.listen(PORT, () => {
       console.log(`[Server] Running on http://localhost:${PORT}`);
+
+      // Write connection file for Stream Deck plugin auto-discovery
+      writeConnectionFile(PORT);
 
       connectBot().catch(() => {});
       connectObs().catch(() => {});

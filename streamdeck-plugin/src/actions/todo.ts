@@ -1,7 +1,7 @@
 import { action, KeyDownEvent, SingletonAction, WillAppearEvent } from '@elgato/streamdeck';
 import type { JsonObject } from '@elgato/streamdeck';
 import { apiGet, apiPatch } from '../api.js';
-import { onEvent } from '../ws.js';
+import { connectionManager } from '../connection.js';
 
 interface TodoSettings extends JsonObject {
   todoId?: string;
@@ -21,7 +21,6 @@ interface ProgressResponse {
 }
 
 let openCount = 0;
-let connected = false;
 
 function flattenTodos(p: ProgressResponse): ProgressTodo[] {
   const out: ProgressTodo[] = [];
@@ -35,24 +34,19 @@ async function fetchCount(): Promise<void> {
   try {
     const p = await apiGet<ProgressResponse>('/public/progress');
     openCount = flattenTodos(p).filter((t) => t.done === 0).length;
-  } catch {
-    /* leave openCount as-is; updateAll will still run */
-  }
+  } catch { /* leave as-is */ }
 }
 
-@action({ UUID: 'com.thelab.toolkit.todo' })
+@action({ UUID: 'com.nst.deck.todo' })
 export class TodoAction extends SingletonAction<TodoSettings> {
   constructor() {
     super();
-    onEvent(async (event) => {
-      if (event === '_connected') {
-        connected = true;
-        await fetchCount();
-        this.updateAll();
-      } else if (event === '_disconnected') {
-        connected = false;
-        this.updateAll();
-      } else if (event === 'progress-update') {
+    connectionManager.on('stateChange', async (state: string) => {
+      if (state === 'connected') await fetchCount();
+      this.updateAll();
+    });
+    connectionManager.on('message', async (event: string) => {
+      if (event === 'progress-update') {
         await fetchCount();
         this.updateAll();
       }
@@ -64,6 +58,10 @@ export class TodoAction extends SingletonAction<TodoSettings> {
   }
 
   override async onKeyDown(ev: KeyDownEvent<TodoSettings>): Promise<void> {
+    if (!connectionManager.isConnected()) {
+      await ev.action.showAlert();
+      return;
+    }
     const todoId = ev.payload.settings.todoId?.trim() || 'next';
     try {
       let targetId: number | string;
@@ -86,11 +84,9 @@ export class TodoAction extends SingletonAction<TodoSettings> {
   }
 
   private updateAll(): void {
-    const titleStr = !connected ? 'OFFLINE' : `${openCount} Todos`;
+    const titleStr = !connectionManager.isConnected() ? 'OFFLINE' : `${openCount} Todos`;
     for (const a of this.actions) {
-      a.setTitle(titleStr).catch(() => {
-        /* ignore */
-      });
+      a.setTitle(titleStr).catch(() => { /* ignore */ });
     }
   }
 }

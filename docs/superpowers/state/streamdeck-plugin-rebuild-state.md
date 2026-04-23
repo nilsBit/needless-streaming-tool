@@ -1,4 +1,4 @@
-# Stream Deck Plugin Rebuild — code complete, awaiting manual QA
+# Stream Deck Plugin Rebuild — store-ready, awaiting manual QA
 
 > Project-state document for cross-machine continuity. Mirrors
 > `~/.claude/projects/D--dev-stream-toolkit/memory/project_streamdeck_plugin_rebuild_in_progress.md`
@@ -77,6 +77,28 @@ cd streamdeck-plugin && npm install && npm run build:plugin
 # fresh ZIP now at ../assets/com.thelab.toolkit.streamDeckPlugin
 # proceed with Task 17 above
 ```
+
+## Store-Ready Changes (HEAD `623567d`)
+
+Applied on top of the rebuild (plan: `docs/superpowers/plans/2026-04-23-streamdeck-store-ready.md`):
+
+- **Auto-discovery:** Electron app writes `~/.thelab/connection.json` with fixed API token + port + PID on server start, deletes on shutdown. New file: `src/server/connection-file.ts`.
+- **ConnectionManager:** New `streamdeck-plugin/src/connection.ts` replaces `ws.ts`. Centralized WebSocket connection with exponential backoff (1s→30s), auto-reconnect, connection file reading, PID liveness check. All 8 actions migrated from per-action `let connected = false` to shared `connectionManager.isConnected()`.
+- **Onboarding wizard:** `pi.html` rewritten with 3-step wizard (App Required → Connecting → Connected). PI communicates with plugin via `sendToPlugin`/`sendToPropertyInspector` for connection status. Advanced manual setup (token/host/port) in collapsible section. Labels changed from German to English for Marketplace audience.
+- **Manifest:** Added `URL` field pointing to future public repo.
+- **Deleted:** `ws.ts`, `global-settings.html` (dead code, consolidated into pi.html).
+- **WebSocket auth:** Plugin now connects with `?token={apiToken}` instead of `?overlay=1`.
+
+### Remaining for Store submission (REQUIRES USER)
+
+1. **Elgato Developer Account** — register at developer.elgato.com
+2. **Manual QA** — same as Task 17 above, but also verify:
+   - Auto-discovery works (start app → plugin auto-connects without manual token entry)
+   - Onboarding wizard shows when app is not running
+   - Reconnect works after app restart
+3. **Store listing image** — 1024x500 recommended, created manually
+4. **Separate public repo** — `nilsBit/thelab-streamdeck-plugin`, copy plugin source, add README/LICENSE, GitHub Actions CI
+5. **Icon verification** — confirm plugin-icon@2x.png is 288x288 for Store
 
 ## Authoritative references
 

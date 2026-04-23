@@ -1,43 +1,30 @@
 import { action, KeyDownEvent, SingletonAction, WillAppearEvent } from '@elgato/streamdeck';
 import type { JsonObject } from '@elgato/streamdeck';
 import { apiPost } from '../api.js';
-import { onEvent } from '../ws.js';
+import { connectionManager } from '../connection.js';
 
 interface RouletteSettings extends JsonObject {}
 interface RouletteResult {
   title?: string;
 }
 
-let connected = false;
-
-@action({ UUID: 'com.thelab.toolkit.roulette' })
+@action({ UUID: 'com.nst.deck.roulette' })
 export class RouletteAction extends SingletonAction<RouletteSettings> {
   constructor() {
     super();
-    onEvent((event, data) => {
-      if (event === '_connected') {
-        connected = true;
-        this.updateAll();
-      } else if (event === '_disconnected') {
-        connected = false;
-        this.updateAll();
-      } else if (event === 'roulette-spin') {
+    connectionManager.on('stateChange', () => this.updateAll());
+    connectionManager.on('message', (event: string, data: unknown) => {
+      if (event === 'roulette-spin') {
         for (const a of this.actions) {
-          a.setTitle('🎰...').catch(() => {
-            /* ignore */
-          });
+          a.setTitle('🎰...').catch(() => { /* ignore */ });
         }
       } else if (event === 'roulette-result') {
         const result = (data as RouletteResult | undefined) ?? {};
         const text = (result.title ?? 'Done!').substring(0, 10);
         for (const a of this.actions) {
-          a.setTitle(text).catch(() => {
-            /* ignore */
-          });
+          a.setTitle(text).catch(() => { /* ignore */ });
           setTimeout(() => {
-            a.setTitle(connected ? 'Roulette' : 'OFFLINE').catch(() => {
-              /* ignore */
-            });
+            a.setTitle(connectionManager.isConnected() ? 'Roulette' : 'OFFLINE').catch(() => { /* ignore */ });
           }, 3000);
         }
       }
@@ -49,6 +36,10 @@ export class RouletteAction extends SingletonAction<RouletteSettings> {
   }
 
   override async onKeyDown(ev: KeyDownEvent<RouletteSettings>): Promise<void> {
+    if (!connectionManager.isConnected()) {
+      await ev.action.showAlert();
+      return;
+    }
     try {
       await apiPost('/api/actions/roulette', {});
       await ev.action.showOk();
@@ -58,11 +49,9 @@ export class RouletteAction extends SingletonAction<RouletteSettings> {
   }
 
   private updateAll(): void {
-    const titleStr = !connected ? 'OFFLINE' : 'Roulette';
+    const titleStr = !connectionManager.isConnected() ? 'OFFLINE' : 'Roulette';
     for (const a of this.actions) {
-      a.setTitle(titleStr).catch(() => {
-        /* ignore */
-      });
+      a.setTitle(titleStr).catch(() => { /* ignore */ });
     }
   }
 }

@@ -1,6 +1,6 @@
 {
-  "appId": "com.thelab.stream-toolkit",
-  "productName": "The Lab",
+  "appId": "com.nst.streaming-tool",
+  "productName": "Needless Streaming Tool",
   "directories": {
     "output": "release"
   },

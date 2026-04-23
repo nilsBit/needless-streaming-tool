@@ -22,6 +22,7 @@ const DEFAULT_COMMANDS: Record<string, string> = {
   vote: '!vote',
   sr: '!sr',
   queue: '!queue',
+  rewardstats: '!stats',
 };
 
 function getCommandNames(): Record<string, string> {
@@ -259,6 +260,25 @@ export function registerCommands(client: Client) {
           const list = pending.map((s, i) => `${i + 1}. "${s.title}" (@${s.requested_by})`).join(' | ');
           client.say(channel, `🎵 Queue: ${list}`);
         }
+        break;
+      }
+
+      case 'rewardstats': {
+        const args = message.trim().split(' ').slice(1);
+        const target = args[0] || tags['display-name'] || tags.username || 'Unknown';
+
+        const byType = getDb().prepare(
+          'SELECT reward_type, count FROM reward_stats WHERE user_name = ? ORDER BY count DESC'
+        ).all(target.toLowerCase()) as Array<{ reward_type: string; count: number }>;
+
+        if (byType.length === 0) {
+          client.say(channel, `@${target} hat noch keine Rewards eingelöst.`);
+          break;
+        }
+
+        const total = byType.reduce((sum, r) => sum + r.count, 0);
+        const breakdown = byType.map(r => `${r.reward_type}: ${r.count}`).join(', ');
+        client.say(channel, `@${target} — ${total} Rewards gesamt (${breakdown})`);
         break;
       }
     }

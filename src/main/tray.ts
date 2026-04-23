@@ -1,13 +1,17 @@
-import { Tray, Menu, BrowserWindow, nativeImage } from 'electron';
+import { Tray, Menu, BrowserWindow, nativeImage, app } from 'electron';
+import path from 'path';
 
 let tray: Tray | null = null;
 
 export function createTray(mainWindow: BrowserWindow) {
-  // Create a simple tray icon (16x16 transparent)
-  const icon = nativeImage.createEmpty();
+  const isDev = !app.isPackaged;
+  const iconPath = isDev
+    ? path.join(process.cwd(), 'assets', 'tray-iconTemplate.png')
+    : path.join(process.resourcesPath || app.getAppPath(), 'assets', 'tray-iconTemplate.png');
+  const icon = nativeImage.createFromPath(iconPath);
+  icon.setTemplateImage(true);
   tray = new Tray(icon);
-  tray.setTitle('🔬');
-  tray.setToolTip('The Lab — Stream Toolkit');
+  tray.setToolTip('NST — Needless Streaming Tool');
 
   const contextMenu = Menu.buildFromTemplate([
     {

@@ -70,7 +70,7 @@ async function handleRedemption(event: Record<string, unknown>) {
   console.log(`[EventSub] Redemption: ${userName} redeemed "${rewardTitle}"`);
 
   // Map reward title to our reward types
-  let rewardType = rewardId;
+  let rewardType = rewardTitle;
   const titleLower = rewardTitle.toLowerCase();
   if (titleLower.includes('roulette')) rewardType = 'roulette';
   else if (titleLower.includes('feature')) rewardType = 'feature_request';
@@ -83,6 +83,20 @@ async function handleRedemption(event: Record<string, unknown>) {
 
   const reward = getDb().prepare('SELECT * FROM rewards WHERE id = ?').get(result.lastInsertRowid);
   broadcast('reward-redeemed', reward);
+
+  const normalizedName = userName.toLowerCase();
+  getDb().transaction(() => {
+    getDb().prepare(
+      'INSERT INTO reward_log (user_name, reward_type, reward_title, user_input) VALUES (?, ?, ?, ?)'
+    ).run(normalizedName, rewardType, rewardTitle, userInput);
+
+    getDb().prepare(`
+      INSERT INTO reward_stats (user_name, reward_type, count, last_redeemed_at)
+      VALUES (?, ?, 1, CURRENT_TIMESTAMP)
+      ON CONFLICT(user_name, reward_type)
+      DO UPDATE SET count = count + 1, last_redeemed_at = CURRENT_TIMESTAMP
+    `).run(normalizedName, rewardType);
+  })();
 
   // Auto-trigger roulette when someone redeems roulette
   if (rewardType === 'roulette') {

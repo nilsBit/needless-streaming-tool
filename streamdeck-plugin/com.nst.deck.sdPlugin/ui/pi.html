@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>NST Deck</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #2d2d2d;
+      color: #ccc;
+      padding: 12px;
+      font-size: 12px;
+      margin: 0;
+    }
+    .section {
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #444;
+    }
+    .section:last-child { border-bottom: none; }
+    h3 {
+      color: #e67e22;
+      font-size: 12px;
+      margin: 0 0 10px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .field { margin-bottom: 10px; }
+    .field label {
+      display: block;
+      margin-bottom: 3px;
+      color: #999;
+      font-size: 11px;
+    }
+    .field input, .field select {
+      width: 100%;
+      padding: 5px 8px;
+      background: #1a1a1a;
+      border: 1px solid #444;
+      border-radius: 3px;
+      color: #eee;
+      font-size: 12px;
+      box-sizing: border-box;
+    }
+    .field input:focus, .field select:focus {
+      outline: none;
+      border-color: #e67e22;
+    }
+    .row { display: flex; gap: 6px; }
+    .row input { flex: 1; }
+    .hint {
+      color: #555;
+      font-size: 10px;
+      margin-top: 3px;
+    }
+    .status {
+      padding: 6px 8px;
+      border-radius: 3px;
+      font-size: 11px;
+      margin-top: 6px;
+    }
+    .status.ok { background: rgba(46,204,113,0.15); color: #2ecc71; }
+    .status.err { background: rgba(231,76,60,0.15); color: #e74c3c; }
+    .action-settings { display: none; }
+    .hidden { display: none !important; }
+
+    /* Wizard styles */
+    .wizard-step { display: none; }
+    .wizard-step.active { display: block; }
+    .wizard-step h3 { font-size: 13px; margin-bottom: 12px; }
+    .wizard-step p { margin: 8px 0; line-height: 1.5; }
+    .wizard-btn {
+      display: inline-block;
+      padding: 8px 16px;
+      background: #e67e22;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      text-decoration: none;
+      margin: 4px 4px 4px 0;
+    }
+    .wizard-btn:hover { background: #d35400; }
+    .wizard-btn.secondary {
+      background: transparent;
+      border: 1px solid #666;
+      color: #ccc;
+    }
+    .wizard-btn.secondary:hover { border-color: #e67e22; color: #e67e22; }
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid #555;
+      border-top-color: #e67e22;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .connected-badge {
+      color: #2ecc71;
+      font-weight: bold;
+    }
+    details { margin-top: 12px; }
+    details summary {
+      cursor: pointer;
+      color: #888;
+      font-size: 11px;
+    }
+    details summary:hover { color: #e67e22; }
+  </style>
+</head>
+<body>
+
+  <!-- ===== ONBOARDING WIZARD ===== -->
+  <div id="wizard">
+    <!-- Step 1: App required -->
+    <div class="wizard-step active" id="wizard-step1">
+      <div class="section">
+        <h3>NST Deck</h3>
+        <p>This plugin requires the <strong>NST Deck</strong> companion app running on your computer.</p>
+        <p>
+          <a class="wizard-btn" href="https://github.com/nilsBit/needless-streaming-tool/releases/latest" target="_blank">Download for macOS</a>
+          <a class="wizard-btn" href="https://github.com/nilsBit/needless-streaming-tool/releases/latest" target="_blank">Download for Windows</a>
+        </p>
+        <p style="margin-top: 12px;">
+          <button class="wizard-btn secondary" onclick="wizardGoTo(2)">Already installed — connect now</button>
+        </p>
+      </div>
+    </div>
+
+    <!-- Step 2: Waiting for connection -->
+    <div class="wizard-step" id="wizard-step2">
+      <div class="section">
+        <h3>Connecting...</h3>
+        <p><span class="spinner"></span> Looking for NST...</p>
+        <p class="hint">Start the app if it's not running. The connection will be detected automatically.</p>
+
+        <details>
+          <summary>Advanced: Manual Setup</summary>
+          <div style="margin-top: 8px;">
+            <div class="field">
+              <label>API Token</label>
+              <input type="text" id="adv-apiToken" placeholder="From Toolkit: Settings → API Token" />
+            </div>
+            <div class="field">
+              <label>Host / Port</label>
+              <div class="row">
+                <input type="text" id="adv-host" placeholder="localhost" />
+                <input type="text" id="adv-port" placeholder="4000" style="max-width:70px;" />
+              </div>
+            </div>
+            <button class="wizard-btn" onclick="saveManualSettings()">Connect</button>
+            <div id="adv-statusMsg" class="status" style="display:none;"></div>
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <!-- Step 3: Connected -->
+    <div class="wizard-step" id="wizard-step3">
+      <div class="section">
+        <h3>Connected</h3>
+        <p><span class="connected-badge">&#10003; Connected to NST</span></p>
+        <p class="hint" id="connected-port"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== NORMAL SETTINGS (shown after connection) ===== -->
+
+  <!-- Action-specific settings (shown based on action UUID) -->
+  <div class="section action-settings" id="settings-scene">
+    <h3>Scene Switch</h3>
+    <div class="field">
+      <label>Scene Name</label>
+      <input type="text" id="sceneName" placeholder="e.g. Gameplay" />
+    </div>
+  </div>
+
+  <div class="section action-settings" id="settings-clip">
+    <h3>Clip Marker</h3>
+    <div class="field">
+      <label>Clip Tag</label>
+      <input type="text" id="tag" placeholder="highlight" />
+    </div>
+  </div>
+
+  <div class="section action-settings" id="settings-bug">
+    <h3>Bug Report</h3>
+    <div class="field">
+      <label>Bug Title</label>
+      <input type="text" id="bugTitle" placeholder="Stream Bug" />
+    </div>
+  </div>
+
+  <div class="section action-settings" id="settings-experiment">
+    <h3>Experiment</h3>
+    <div class="field">
+      <label>Action</label>
+      <select id="action">
+        <option value="running">Start</option>
+        <option value="success">Done</option>
+        <option value="failed">Failed</option>
+        <option value="idle">Reset</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="section action-settings" id="settings-todo">
+    <h3>Todo</h3>
+    <div class="field">
+      <label>Todo ID</label>
+      <input type="text" id="todoId" placeholder="next (or ID)" />
+      <div class="hint">"next" completes the next open todo</div>
+    </div>
+  </div>
+
+  <div class="section action-settings" id="settings-milestone">
+    <h3>Milestone</h3>
+    <div class="field">
+      <label>Milestone ID</label>
+      <input type="text" id="milestoneId" placeholder="next (or ID)" />
+      <div class="hint">"next" completes the next pending milestone</div>
+    </div>
+  </div>
+
+  <script>
+    var websocket = null;
+    var uuid = null;
+    var currentAction = null;
+    var globalSettings = {};
+    var actionSettings = {};
+    var pollTimer = null;
+    var isConnected = false;
+
+    var ACTION_MAP = {
+      'com.nst.deck.scene': { section: 'settings-scene', fields: ['sceneName'] },
+      'com.nst.deck.clip': { section: 'settings-clip', fields: ['tag'] },
+      'com.nst.deck.bug': { section: 'settings-bug', fields: ['bugTitle'] },
+      'com.nst.deck.experiment': { section: 'settings-experiment', fields: ['action'] },
+      'com.nst.deck.todo': { section: 'settings-todo', fields: ['todoId'] },
+      'com.nst.deck.milestone': { section: 'settings-milestone', fields: ['milestoneId'] },
+    };
+
+    function connectElgatoStreamDeckSocket(inPort, inPropertyInspectorUUID, inRegisterEvent, inInfo, inActionInfo) {
+      uuid = inPropertyInspectorUUID;
+      var info = JSON.parse(inActionInfo);
+      currentAction = info.action;
+      actionSettings = info.payload?.settings || {};
+
+      // Load action settings into fields
+      var mapping = ACTION_MAP[currentAction];
+      if (mapping) {
+        mapping.fields.forEach(function(f) {
+          var el = document.getElementById(f);
+          if (el && actionSettings[f] !== undefined) el.value = actionSettings[f];
+        });
+      }
+
+      websocket = new WebSocket('ws://127.0.0.1:' + inPort);
+
+      websocket.onopen = function() {
+        websocket.send(JSON.stringify({ event: inRegisterEvent, uuid: uuid }));
+        websocket.send(JSON.stringify({ event: 'getGlobalSettings', context: uuid }));
+        // Ask plugin to check connection file
+        sendToPlugin({ type: 'checkConnection' });
+      };
+
+      websocket.onmessage = function(evt) {
+        var msg = JSON.parse(evt.data);
+
+        if (msg.event === 'didReceiveGlobalSettings') {
+          globalSettings = msg.payload.settings || {};
+          // Populate advanced fields
+          document.getElementById('adv-apiToken').value = globalSettings.apiToken || '';
+          document.getElementById('adv-host').value = globalSettings.host || 'localhost';
+          document.getElementById('adv-port').value = globalSettings.port || '4000';
+
+          // If we have a token in global settings, we might be connected
+          if (globalSettings.apiToken) {
+            sendToPlugin({ type: 'checkConnection' });
+          }
+        }
+
+        if (msg.event === 'sendToPropertyInspector') {
+          handlePluginMessage(msg.payload);
+        }
+      };
+    }
+
+    function sendToPlugin(payload) {
+      if (!websocket || websocket.readyState !== 1) return;
+      websocket.send(JSON.stringify({
+        event: 'sendToPlugin',
+        action: currentAction,
+        context: uuid,
+        payload: payload,
+      }));
+    }
+
+    function handlePluginMessage(payload) {
+      if (!payload || payload.type !== 'connectionStatus') return;
+
+      if (payload.connected) {
+        isConnected = true;
+        stopPolling();
+        showConnected(payload.port);
+      } else {
+        isConnected = false;
+        // If we're on step 1 and user hasn't interacted, stay there
+        // If we're already polling (step 2), keep polling
+        if (!pollTimer) {
+          // First check — show step 1 if no connection
+          wizardGoTo(1);
+        }
+      }
+    }
+
+    function showActionSettings() {
+      var mapping = ACTION_MAP[currentAction];
+      if (mapping) {
+        document.getElementById(mapping.section).style.display = 'block';
+      }
+    }
+
+    function showConnected(port) {
+      // Show step 3 briefly, then show action settings
+      wizardGoTo(3);
+      if (port) {
+        document.getElementById('connected-port').textContent = 'Port: ' + port;
+      }
+      showActionSettings();
+    }
+
+    function wizardGoTo(step) {
+      document.querySelectorAll('.wizard-step').forEach(function(el) {
+        el.classList.remove('active');
+      });
+      var stepEl = document.getElementById('wizard-step' + step);
+      if (stepEl) stepEl.classList.add('active');
+
+      if (step === 2) {
+        startPolling();
+      } else {
+        stopPolling();
+      }
+    }
+
+    function startPolling() {
+      if (pollTimer) return;
+      pollTimer = setInterval(function() {
+        sendToPlugin({ type: 'checkConnection' });
+      }, 2000);
+    }
+
+    function stopPolling() {
+      if (pollTimer) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+      }
+    }
+
+    function saveManualSettings() {
+      if (!websocket) return;
+      globalSettings = {
+        apiToken: document.getElementById('adv-apiToken').value.trim(),
+        host: document.getElementById('adv-host').value.trim() || 'localhost',
+        port: parseInt(document.getElementById('adv-port').value) || 4000,
+      };
+      websocket.send(JSON.stringify({
+        event: 'setGlobalSettings',
+        context: uuid,
+        payload: globalSettings,
+      }));
+
+      // Test connection
+      var statusEl = document.getElementById('adv-statusMsg');
+      fetch('http://' + globalSettings.host + ':' + globalSettings.port + '/api/health', {
+        headers: { 'Authorization': 'Bearer ' + globalSettings.apiToken }
+      })
+        .then(function(r) { return r.json(); })
+        .then(function() {
+          statusEl.textContent = 'Connected!';
+          statusEl.className = 'status ok';
+          statusEl.style.display = 'block';
+          // Delay checkConnection to allow onDidReceiveGlobalSettings to fire first
+          setTimeout(function() {
+            sendToPlugin({ type: 'checkConnection' });
+          }, 500);
+        })
+        .catch(function() {
+          statusEl.textContent = 'Connection failed. Check token and host/port.';
+          statusEl.className = 'status err';
+          statusEl.style.display = 'block';
+        });
+    }
+
+    function saveActionSettings() {
+      if (!websocket || !currentAction) return;
+      var mapping = ACTION_MAP[currentAction];
+      if (!mapping) return;
+
+      var settings = {};
+      mapping.fields.forEach(function(f) {
+        var el = document.getElementById(f);
+        if (el) settings[f] = el.value;
+      });
+
+      websocket.send(JSON.stringify({
+        event: 'setSettings',
+        context: uuid,
+        payload: settings,
+      }));
+    }
+
+    // Auto-save action settings on change
+    var saveTimer = null;
+    document.addEventListener('input', function(e) {
+      var id = e.target.id;
+      // Don't auto-save advanced settings (those use the Connect button)
+      if (id === 'adv-apiToken' || id === 'adv-host' || id === 'adv-port') return;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(function() {
+        saveActionSettings();
+      }, 400);
+    });
+
+    document.addEventListener('change', function(e) {
+      var id = e.target.id;
+      if (id === 'adv-apiToken' || id === 'adv-host' || id === 'adv-port') return;
+      saveActionSettings();
+    });
+  </script>
+</body>
+</html>

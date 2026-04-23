@@ -181,12 +181,12 @@ router.post('/streamdeck/install', async (_req, res) => {
   try {
     const { shell } = require('electron');
     // Check both dev and production paths
-    let pluginPath = path.join(process.cwd(), 'assets', 'com.thelab.toolkit.streamDeckPlugin');
+    let pluginPath = path.join(process.cwd(), 'assets', 'com.nst.deck.streamDeckPlugin');
     if (!fs.existsSync(pluginPath)) {
       // Production: check resources dir
       try {
         const { app } = require('electron');
-        pluginPath = path.join(process.resourcesPath || app.getAppPath(), 'assets', 'com.thelab.toolkit.streamDeckPlugin');
+        pluginPath = path.join(process.resourcesPath || app.getAppPath(), 'assets', 'com.nst.deck.streamDeckPlugin');
       } catch {}
     }
     if (!fs.existsSync(pluginPath)) {

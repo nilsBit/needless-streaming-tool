@@ -18,6 +18,7 @@ body {
 }
 
 .app-header h1 { font-size: 20px; font-weight: 600; }
+.app-logo { height: 24px; width: auto; }
 
 .column-toggle-btn {
   display: flex;

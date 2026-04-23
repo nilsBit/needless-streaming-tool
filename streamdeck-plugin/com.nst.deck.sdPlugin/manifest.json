@@ -1,9 +1,10 @@
 {
   "$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
-  "UUID": "com.thelab.toolkit",
-  "Name": "The Lab Toolkit",
+  "UUID": "com.nst.deck",
+  "Name": "NST Deck",
   "Author": "nilsBit",
-  "Description": "Stream Toolkit for GameDev Streaming — Scene Switch, Clips, Bugs, Experiments, Todos, Milestones and more.",
+  "URL": "https://github.com/nilsBit/nst-streamdeck-plugin",
+  "Description": "Needless Streaming Tool for GameDev Streaming — Scene Switch, Clips, Bugs, Experiments, Todos, Milestones and more.",
   "Version": "1.0.1.0",
   "CodePath": "bin/plugin.js",
   "Icon": "imgs/plugin-icon",
@@ -24,14 +25,14 @@
   "Nodejs": {
     "Version": "20"
   },
-  "Category": "The Lab",
+  "Category": "NST",
   "CategoryIcon": "imgs/plugin-icon",
   "Actions": [
     {
-      "UUID": "com.thelab.toolkit.scene",
+      "UUID": "com.nst.deck.scene",
       "Name": "Scene Switch",
       "Icon": "imgs/actions/scene",
-      "Tooltip": "Switch OBS scene via stream-toolkit",
+      "Tooltip": "Switch OBS scene via NST",
       "PropertyInspectorPath": "ui/pi.html",
       "Controllers": [
         "Keypad"
@@ -45,7 +46,7 @@
       ]
     },
     {
-      "UUID": "com.thelab.toolkit.clip",
+      "UUID": "com.nst.deck.clip",
       "Name": "Clip Marker",
       "Icon": "imgs/actions/clip",
       "Tooltip": "Mark a clip moment",
@@ -62,7 +63,7 @@
       ]
     },
     {
-      "UUID": "com.thelab.toolkit.bug",
+      "UUID": "com.nst.deck.bug",
       "Name": "Bug Report",
       "Icon": "imgs/actions/bug",
       "Tooltip": "Create a bug report",
@@ -79,7 +80,7 @@
       ]
     },
     {
-      "UUID": "com.thelab.toolkit.experiment",
+      "UUID": "com.nst.deck.experiment",
       "Name": "Experiment",
       "Icon": "imgs/actions/experiment",
       "Tooltip": "Control experiment status",
@@ -96,7 +97,7 @@
       ]
     },
     {
-      "UUID": "com.thelab.toolkit.todo",
+      "UUID": "com.nst.deck.todo",
       "Name": "Todo Check",
       "Icon": "imgs/actions/todo",
       "Tooltip": "Mark a todo as done",
@@ -113,7 +114,7 @@
       ]
     },
     {
-      "UUID": "com.thelab.toolkit.compile-pray",
+      "UUID": "com.nst.deck.compile-pray",
       "Name": "Compile Prayer",
       "Icon": "imgs/actions/compile-pray",
       "Tooltip": "Trigger a compile prayer",
@@ -130,7 +131,7 @@
       ]
     },
     {
-      "UUID": "com.thelab.toolkit.roulette",
+      "UUID": "com.nst.deck.roulette",
       "Name": "Bug Roulette",
       "Icon": "imgs/actions/roulette",
       "Tooltip": "Spin the bug roulette",
@@ -147,7 +148,7 @@
       ]
     },
     {
-      "UUID": "com.thelab.toolkit.milestone",
+      "UUID": "com.nst.deck.milestone",
       "Name": "Milestone",
       "Icon": "imgs/actions/milestone",
       "Tooltip": "Complete a milestone",

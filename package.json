@@ -1,7 +1,7 @@
 {
-  "name": "stream-toolkit",
+  "name": "needless-streaming-tool",
   "version": "0.1.0",
-  "description": "The Lab — Dein Stream Toolkit",
+  "description": "Needless Streaming Tool — Stream Management App",
   "author": "nilsBit",
   "main": "dist/main/main.js",
   "scripts": {
@@ -27,8 +27,8 @@
     "ws": "^8.18.0"
   },
   "build": {
-    "appId": "com.thelab.stream-toolkit",
-    "productName": "Stream Toolkit",
+    "appId": "com.nst.streaming-tool",
+    "productName": "Needless Streaming Tool",
     "directories": {
       "output": "release"
     },
@@ -64,7 +64,7 @@
       "oneClick": true,
       "allowToChangeInstallationDirectory": false,
       "createDesktopShortcut": true,
-      "shortcutName": "Stream Toolkit"
+      "shortcutName": "Needless Streaming Tool"
     },
     "asar": true,
     "asarUnpack": [

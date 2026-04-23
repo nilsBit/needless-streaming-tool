@@ -1,6 +1,6 @@
-# Stream Toolkit — "The Lab"
+# Needless Streaming Tool (NST)
 
-Electron Desktop App for Twitch streaming. Manages overlays, chat commands, stream data, and tooling for the "The Lab" stream brand.
+Electron Desktop App for Twitch streaming. Manages overlays, chat commands, stream data, and tooling for the "Needless Streaming Tool" (NST) stream brand.
 
 ## Tech Stack
 

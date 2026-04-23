@@ -5,9 +5,9 @@ import { fileURLToPath } from 'node:url';
 import { dirname, resolve, join } from 'node:path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const SD_DIR = resolve(__dirname, 'com.thelab.toolkit.sdPlugin');
+const SD_DIR = resolve(__dirname, 'com.nst.deck.sdPlugin');
 const BIN_DIR = join(SD_DIR, 'bin');
-const ZIP_OUT = resolve(__dirname, '..', 'assets', 'com.thelab.toolkit.streamDeckPlugin');
+const ZIP_OUT = resolve(__dirname, '..', 'assets', 'com.nst.deck.streamDeckPlugin');
 
 async function bundle() {
   mkdirSync(BIN_DIR, { recursive: true });
@@ -35,7 +35,7 @@ async function pack() {
     out.on('error', rej);
     zip.on('error', rej);
     zip.pipe(out);
-    zip.directory(SD_DIR, 'com.thelab.toolkit.sdPlugin');
+    zip.directory(SD_DIR, 'com.nst.deck.sdPlugin');
     zip.finalize();
   });
   console.log(`[plugin] packaged → ${ZIP_OUT}`);

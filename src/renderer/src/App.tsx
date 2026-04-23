@@ -15,7 +15,9 @@ import OverlaysPanel from './panels/OverlaysPanel';
 import HelpPanel from './panels/HelpPanel';
 import SongPanel from './panels/SongPanel';
 import StatsPanel from './panels/StatsPanel';
+import RewardStatsPanel from './panels/RewardStatsPanel';
 import HotkeysPanel from './panels/HotkeysPanel';
+import logoSvg from './assets/logo.svg';
 
 const TABS = {
   stream: {
@@ -26,6 +28,7 @@ const TABS = {
       { key: 'clips', label: 'Clip Moments', component: ClipsPanel },
       { key: 'designs', label: 'Abstimmungen', component: DesignsPanel },
       { key: 'song', label: 'Now Playing', component: SongPanel },
+      { key: 'rewardstats', label: 'Reward Stats', component: RewardStatsPanel },
     ],
   },
   projekt: {
@@ -152,7 +155,7 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>🔬 The Lab</h1>
+        <img src={logoSvg} alt="NST" className="app-logo" />
         <nav className="tab-nav">
           {(Object.entries(TABS) as Array<[TabKey, typeof TABS[TabKey]]>).map(([key, t]) => (
             <button

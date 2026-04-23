@@ -1,7 +1,7 @@
 import { action, KeyDownEvent, SingletonAction, WillAppearEvent } from '@elgato/streamdeck';
 import type { JsonObject } from '@elgato/streamdeck';
 import { apiGet, apiPatch } from '../api.js';
-import { onEvent } from '../ws.js';
+import { connectionManager } from '../connection.js';
 
 interface ExperimentSettings extends JsonObject {
   action?: 'running' | 'success' | 'failed' | 'idle';
@@ -26,36 +26,30 @@ const PI_TO_STATUS: Record<string, string> = {
   idle: 'idle',
 };
 
-let status = 'idle';
-let title = '';
-let connected = false;
+let challengeStatus = 'idle';
+let challengeTitle = '';
 
 async function fetchState(): Promise<void> {
   try {
     const s = await apiGet<StreamState>('/public/stream-state');
-    status = s?.challenge_status ?? 'idle';
-    title = s?.challenge_title ?? '';
-  } catch {
-    /* leave as-is */
-  }
+    challengeStatus = s?.challenge_status ?? 'idle';
+    challengeTitle = s?.challenge_title ?? '';
+  } catch { /* leave as-is */ }
 }
 
-@action({ UUID: 'com.thelab.toolkit.experiment' })
+@action({ UUID: 'com.nst.deck.experiment' })
 export class ExperimentAction extends SingletonAction<ExperimentSettings> {
   constructor() {
     super();
-    onEvent(async (event, data) => {
-      if (event === '_connected') {
-        connected = true;
-        await fetchState();
-        this.updateAll();
-      } else if (event === '_disconnected') {
-        connected = false;
-        this.updateAll();
-      } else if (event === 'stream-state') {
+    connectionManager.on('stateChange', async (state: string) => {
+      if (state === 'connected') await fetchState();
+      this.updateAll();
+    });
+    connectionManager.on('message', (event: string, data: unknown) => {
+      if (event === 'stream-state') {
         const s = data as StreamState | undefined;
-        status = s?.challenge_status ?? status;
-        title = s?.challenge_title ?? title;
+        challengeStatus = s?.challenge_status ?? challengeStatus;
+        challengeTitle = s?.challenge_title ?? challengeTitle;
         this.updateAll();
       }
     });
@@ -66,10 +60,14 @@ export class ExperimentAction extends SingletonAction<ExperimentSettings> {
   }
 
   override async onKeyDown(ev: KeyDownEvent<ExperimentSettings>): Promise<void> {
+    if (!connectionManager.isConnected()) {
+      await ev.action.showAlert();
+      return;
+    }
     const piValue = ev.payload.settings.action ?? 'running';
-    const challengeStatus = PI_TO_STATUS[piValue] ?? piValue;
+    const status = PI_TO_STATUS[piValue] ?? piValue;
     try {
-      await apiPatch('/api/stream-state', { challenge_status: challengeStatus });
+      await apiPatch('/api/stream-state', { challenge_status: status });
       await ev.action.showOk();
     } catch {
       await ev.action.showAlert();
@@ -78,16 +76,14 @@ export class ExperimentAction extends SingletonAction<ExperimentSettings> {
 
   private updateAll(): void {
     let display: string;
-    if (!connected) {
+    if (!connectionManager.isConnected()) {
       display = 'OFFLINE';
     } else {
-      const emoji = STATUS_EMOJI[status] ?? '⏸️';
-      display = title ? `${emoji} ${title.substring(0, 8)}` : `${emoji} Exp`;
+      const emoji = STATUS_EMOJI[challengeStatus] ?? '⏸️';
+      display = challengeTitle ? `${emoji} ${challengeTitle.substring(0, 8)}` : `${emoji} Exp`;
     }
     for (const a of this.actions) {
-      a.setTitle(display).catch(() => {
-        /* ignore */
-      });
+      a.setTitle(display).catch(() => { /* ignore */ });
     }
   }
 }

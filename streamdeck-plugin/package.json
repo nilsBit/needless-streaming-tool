@@ -1,8 +1,8 @@
 {
-  "name": "stream-toolkit-streamdeck-plugin",
+  "name": "nst-streamdeck-plugin",
   "version": "1.0.1",
   "private": true,
-  "description": "Elgato Stream Deck plugin for Stream Toolkit (The Lab)",
+  "description": "Elgato Stream Deck plugin for Needless Streaming Tool (NST)",
   "scripts": {
     "build": "node build.mjs bundle",
     "package": "node build.mjs package",

@@ -241,7 +241,7 @@ router.post('/import/github', async (req, res) => {
       headers: {
         'Authorization': `Bearer ${tokenRow.value}`,
         'Accept': 'application/vnd.github+json',
-        'User-Agent': 'stream-toolkit',
+        'User-Agent': 'needless-streaming-tool',
       },
     });
 
