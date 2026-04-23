@@ -1,6 +1,7 @@
 import { app, BrowserWindow } from 'electron';
 import path from 'path';
 import { startServer } from '../server/index';
+import { deleteConnectionFile } from '../server/connection-file';
 import { registerHotkeys, unregisterHotkeys } from './hotkeys';
 import { createTray } from './tray';
 
@@ -64,6 +65,7 @@ app.whenReady().then(async () => {
 app.on('before-quit', () => {
   isQuitting = true;
   unregisterHotkeys();
+  deleteConnectionFile();
 });
 
 app.on('window-all-closed', () => {
