@@ -73,3 +73,7 @@ SQLite via better-sqlite3. DB file lives at `data/stream.db`. Schema is defined 
 - Code is written in **English**
 - User communicates in **German**
 - Keep commits and PR descriptions in English
+
+## Active work
+
+Cross-machine state for in-progress projects lives in `docs/superpowers/state/`. Check there first when resuming work — files are committed to git, so they're available on any device after `git pull`. Per-machine memory under `~/.claude/projects/.../memory/` may be out of sync.
