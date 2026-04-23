@@ -325,7 +325,13 @@ export default function ClipsPanel() {
                   {dayClips.map((clip) => (
                     <div key={clip.id} className={`clip-row ${isAutoClip(clip) ? 'auto-clip' : ''}`}>
                       <span className="clip-row-time" title={buildTimecodeTooltip(clip)}>
-                        {clip.stream_timecode ? `🔴 ${clip.stream_timecode}` : new Date(clip.created_at + 'Z').toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                        {(() => {
+                          const wall = new Date(clip.created_at + 'Z').toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                          const parts: string[] = [];
+                          if (clip.stream_timecode) parts.push(`🔴 ${clip.stream_timecode}`);
+                          if (clip.recording_timecode) parts.push(`⏺ ${clip.recording_timecode}`);
+                          return parts.length === 0 ? wall : `${parts.join(' ')} | ${wall}`;
+                        })()}
                       </span>
                       <span className="clip-row-tag">
                         {isAutoClip(clip) && '🤖 '}
