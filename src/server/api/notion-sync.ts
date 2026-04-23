@@ -143,7 +143,7 @@ export async function createDatabase(parentPageId: string, title: string): Promi
   return { id: data.id, title: extractTitle(data.title), url: data.url };
 }
 
-export async function healDatabase(databaseId: string): Promise<{ added: string[] }> {
+export async function healDatabase(databaseId: string): Promise<{ added: string[]; renamed?: { from: string; to: string } }> {
   const getRes = await notionFetch(`/v1/databases/${databaseId}`, { method: 'GET' });
   if (!getRes.ok) {
     if (getRes.status === 404) throw new Error('db_gone');
@@ -151,16 +151,38 @@ export async function healDatabase(databaseId: string): Promise<{ added: string[
     throw new Error(`notion_error_${getRes.status}`);
   }
   const data = await getRes.json();
-  const missing = computeMissingProperties(data.properties || {});
+  const dbProps: Record<string, { type?: string }> = data.properties || {};
+  const missing = computeMissingProperties(dbProps);
   if (missing.length === 0) return { added: [] };
+
   const patchProps: Record<string, unknown> = {};
-  for (const name of missing) patchProps[name] = REQUIRED_PROPERTIES[name];
+  let renamed: { from: string; to: string } | undefined;
+
+  for (const name of missing) {
+    const spec = REQUIRED_PROPERTIES[name];
+    const expectedType = Object.keys(spec)[0];
+    // Notion allows only one title property per DB. If we need a title and one
+    // already exists under a different name, rename it instead of adding a new one.
+    if (expectedType === 'title') {
+      const existingTitle = Object.entries(dbProps).find(([, p]) => p.type === 'title');
+      if (existingTitle && existingTitle[0] !== name) {
+        patchProps[existingTitle[0]] = { name };
+        renamed = { from: existingTitle[0], to: name };
+        continue;
+      }
+    }
+    patchProps[name] = spec;
+  }
+
   const patchRes = await notionFetch(`/v1/databases/${databaseId}`, {
     method: 'PATCH',
     body: JSON.stringify({ properties: patchProps }),
   });
-  if (!patchRes.ok) throw new Error(`notion_error_${patchRes.status}`);
-  return { added: missing };
+  if (!patchRes.ok) {
+    const body = await patchRes.text().catch(() => '');
+    throw new Error(`notion_error_${patchRes.status}: ${body.slice(0, 300)}`);
+  }
+  return { added: missing, renamed };
 }
 
 export async function checkDatabase(): Promise<NotionDatabaseCheck> {
