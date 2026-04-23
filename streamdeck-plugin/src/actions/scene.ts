@@ -9,7 +9,7 @@ interface SceneSettings extends JsonObject {
 
 let currentScene: string | null = null;
 
-@action({ UUID: 'com.thelab.toolkit.scene' })
+@action({ UUID: 'com.nst.deck.scene' })
 export class SceneAction extends SingletonAction<SceneSettings> {
   constructor() {
     super();

@@ -152,7 +152,7 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>🔬 The Lab</h1>
+        <h1>NST</h1>
         <nav className="tab-nav">
           {(Object.entries(TABS) as Array<[TabKey, typeof TABS[TabKey]]>).map(([key, t]) => (
             <button

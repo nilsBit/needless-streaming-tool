@@ -1,7 +1,7 @@
 {
-  "name": "stream-toolkit",
+  "name": "needless-streaming-tool",
   "version": "0.1.0",
-  "description": "The Lab — Dein Stream Toolkit",
+  "description": "Needless Streaming Tool — Stream Management App",
   "author": "nilsBit",
   "main": "dist/main/main.js",
   "scripts": {
@@ -27,7 +27,7 @@
     "ws": "^8.18.0"
   },
   "build": {
-    "appId": "com.thelab.stream-toolkit",
+    "appId": "com.nst.streaming-tool",
     "productName": "Stream Toolkit",
     "directories": {
       "output": "release"

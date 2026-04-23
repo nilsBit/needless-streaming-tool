@@ -2,7 +2,7 @@ export type Lang = 'de' | 'en';
 
 const translations = {
   // App
-  'app.title': { de: 'The Lab', en: 'The Lab' },
+  'app.title': { de: 'NST', en: 'NST' },
   'tab.stream': { de: 'Stream', en: 'Stream' },
   'tab.project': { de: 'Projekt', en: 'Project' },
   'tab.settings': { de: 'Settings', en: 'Settings' },
@@ -53,7 +53,7 @@ const translations = {
   'settings.save': { de: 'Speichern', en: 'Save' },
 
   // Onboarding
-  'onboarding.welcome_title': { de: 'Willkommen im Lab!', en: 'Welcome to The Lab!' },
+  'onboarding.welcome_title': { de: 'Willkommen bei NST!', en: 'Welcome to NST!' },
   'onboarding.welcome_text': { de: 'Dein Stream Toolkit für Streaming. Hier steuerst du alles — Overlays, Challenges, Issues, Clips, Milestones und mehr.', en: 'Your Stream Toolkit for Streaming. Control everything here — overlays, challenges, issues, clips, milestones and more.' },
   'onboarding.welcome_sub': { de: 'Lass uns in ein paar Schritten alles einrichten.', en: 'Let\'s set everything up in a few steps.' },
   'onboarding.start_setup': { de: 'Setup starten', en: 'Start Setup' },
@@ -155,7 +155,7 @@ const translations = {
   'streamdeck.install_btn': { de: 'Plugin jetzt installieren', en: 'Install plugin now' },
   'streamdeck.installed': { de: 'Installiert!', en: 'Installed!' },
   'streamdeck.installing': { de: 'Wird installiert...', en: 'Installing...' },
-  'streamdeck.step2': { de: 'Ziehe einen "The Lab" Button auf dein Deck', en: 'Drag a "The Lab" button onto your deck' },
+  'streamdeck.step2': { de: 'Ziehe einen "NST" Button auf dein Deck', en: 'Drag an "NST" button onto your deck' },
   'streamdeck.step3': { de: 'Kopiere den Token und füge ihn im Button-Settings unter "API Token" ein (einmalig):', en: 'Copy the token and paste it in the button settings under "API Token" (one time only):' },
   'streamdeck.no_deck': { de: 'Kein Stream Deck? Kein Problem — du kannst alles auch direkt in der App steuern.', en: 'No Stream Deck? No problem — you can control everything directly in the app.' },
 

@@ -18,7 +18,7 @@ const CONNECTION_FILE = path.join(
   process.platform === 'win32'
     ? (process.env.APPDATA || os.homedir())
     : os.homedir(),
-  '.thelab',
+  '.nst',
   'connection.json'
 );
 

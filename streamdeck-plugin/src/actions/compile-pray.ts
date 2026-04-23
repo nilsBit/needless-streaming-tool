@@ -5,7 +5,7 @@ import { connectionManager } from '../connection.js';
 
 interface CompilePraySettings extends JsonObject {}
 
-@action({ UUID: 'com.thelab.toolkit.compile-pray' })
+@action({ UUID: 'com.nst.deck.compile-pray' })
 export class CompilePrayAction extends SingletonAction<CompilePraySettings> {
   constructor() {
     super();

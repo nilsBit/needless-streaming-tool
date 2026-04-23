@@ -15,7 +15,7 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
-    title: 'The Lab — Stream Toolkit',
+    title: 'NST — Needless Streaming Tool',
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,

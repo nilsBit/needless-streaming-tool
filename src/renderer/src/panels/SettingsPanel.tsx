@@ -121,7 +121,7 @@ export default function SettingsPanel() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'stream-toolkit-backup.json';
+      a.download = 'nst-backup.json';
       a.click();
       URL.revokeObjectURL(url);
       toast.success(t('settings.backup_exported'));

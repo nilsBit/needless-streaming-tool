@@ -7,7 +7,7 @@ export function createTray(mainWindow: BrowserWindow) {
   const icon = nativeImage.createEmpty();
   tray = new Tray(icon);
   tray.setTitle('🔬');
-  tray.setToolTip('The Lab — Stream Toolkit');
+  tray.setToolTip('NST — Needless Streaming Tool');
 
   const contextMenu = Menu.buildFromTemplate([
     {

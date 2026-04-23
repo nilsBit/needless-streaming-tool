@@ -7,7 +7,7 @@ const DIR = path.join(
   process.platform === 'win32'
     ? (process.env.APPDATA || os.homedir())
     : os.homedir(),
-  '.thelab'
+  '.nst'
 );
 const FILE = path.join(DIR, 'connection.json');
 

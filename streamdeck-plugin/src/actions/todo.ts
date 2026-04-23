@@ -37,7 +37,7 @@ async function fetchCount(): Promise<void> {
   } catch { /* leave as-is */ }
 }
 
-@action({ UUID: 'com.thelab.toolkit.todo' })
+@action({ UUID: 'com.nst.deck.todo' })
 export class TodoAction extends SingletonAction<TodoSettings> {
   constructor() {
     super();

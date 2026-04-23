@@ -8,7 +8,7 @@ interface RouletteResult {
   title?: string;
 }
 
-@action({ UUID: 'com.thelab.toolkit.roulette' })
+@action({ UUID: 'com.nst.deck.roulette' })
 export class RouletteAction extends SingletonAction<RouletteSettings> {
   constructor() {
     super();

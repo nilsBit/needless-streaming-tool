@@ -37,7 +37,7 @@ async function fetchState(): Promise<void> {
   } catch { /* leave as-is */ }
 }
 
-@action({ UUID: 'com.thelab.toolkit.experiment' })
+@action({ UUID: 'com.nst.deck.experiment' })
 export class ExperimentAction extends SingletonAction<ExperimentSettings> {
   constructor() {
     super();

@@ -23,7 +23,7 @@ async function fetchCount(): Promise<void> {
   } catch { /* leave as-is */ }
 }
 
-@action({ UUID: 'com.thelab.toolkit.milestone' })
+@action({ UUID: 'com.nst.deck.milestone' })
 export class MilestoneAction extends SingletonAction<MilestoneSettings> {
   constructor() {
     super();

@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>The Lab Toolkit</title>
+  <title>NST Deck</title>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -120,11 +120,11 @@
     <!-- Step 1: App required -->
     <div class="wizard-step active" id="wizard-step1">
       <div class="section">
-        <h3>The Lab Toolkit</h3>
-        <p>This plugin requires the <strong>The Lab Toolkit</strong> companion app running on your computer.</p>
+        <h3>NST Deck</h3>
+        <p>This plugin requires the <strong>NST Deck</strong> companion app running on your computer.</p>
         <p>
-          <a class="wizard-btn" href="https://github.com/nilsBit/stream-toolkit/releases/latest" target="_blank">Download for macOS</a>
-          <a class="wizard-btn" href="https://github.com/nilsBit/stream-toolkit/releases/latest" target="_blank">Download for Windows</a>
+          <a class="wizard-btn" href="https://github.com/nilsBit/needless-streaming-tool/releases/latest" target="_blank">Download for macOS</a>
+          <a class="wizard-btn" href="https://github.com/nilsBit/needless-streaming-tool/releases/latest" target="_blank">Download for Windows</a>
         </p>
         <p style="margin-top: 12px;">
           <button class="wizard-btn secondary" onclick="wizardGoTo(2)">Already installed — connect now</button>
@@ -136,7 +136,7 @@
     <div class="wizard-step" id="wizard-step2">
       <div class="section">
         <h3>Connecting...</h3>
-        <p><span class="spinner"></span> Looking for The Lab Toolkit...</p>
+        <p><span class="spinner"></span> Looking for NST...</p>
         <p class="hint">Start the app if it's not running. The connection will be detected automatically.</p>
 
         <details>
@@ -164,7 +164,7 @@
     <div class="wizard-step" id="wizard-step3">
       <div class="section">
         <h3>Connected</h3>
-        <p><span class="connected-badge">&#10003; Connected to The Lab Toolkit</span></p>
+        <p><span class="connected-badge">&#10003; Connected to NST</span></p>
         <p class="hint" id="connected-port"></p>
       </div>
     </div>
@@ -238,12 +238,12 @@
     var isConnected = false;
 
     var ACTION_MAP = {
-      'com.thelab.toolkit.scene': { section: 'settings-scene', fields: ['sceneName'] },
-      'com.thelab.toolkit.clip': { section: 'settings-clip', fields: ['tag'] },
-      'com.thelab.toolkit.bug': { section: 'settings-bug', fields: ['bugTitle'] },
-      'com.thelab.toolkit.experiment': { section: 'settings-experiment', fields: ['action'] },
-      'com.thelab.toolkit.todo': { section: 'settings-todo', fields: ['todoId'] },
-      'com.thelab.toolkit.milestone': { section: 'settings-milestone', fields: ['milestoneId'] },
+      'com.nst.deck.scene': { section: 'settings-scene', fields: ['sceneName'] },
+      'com.nst.deck.clip': { section: 'settings-clip', fields: ['tag'] },
+      'com.nst.deck.bug': { section: 'settings-bug', fields: ['bugTitle'] },
+      'com.nst.deck.experiment': { section: 'settings-experiment', fields: ['action'] },
+      'com.nst.deck.todo': { section: 'settings-todo', fields: ['todoId'] },
+      'com.nst.deck.milestone': { section: 'settings-milestone', fields: ['milestoneId'] },
     };
 
     function connectElgatoStreamDeckSocket(inPort, inPropertyInspectorUUID, inRegisterEvent, inInfo, inActionInfo) {

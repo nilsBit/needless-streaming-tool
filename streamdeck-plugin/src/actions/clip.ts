@@ -25,7 +25,7 @@ async function fetchCount(): Promise<void> {
   } catch { /* leave as-is */ }
 }
 
-@action({ UUID: 'com.thelab.toolkit.clip' })
+@action({ UUID: 'com.nst.deck.clip' })
 export class ClipAction extends SingletonAction<ClipSettings> {
   constructor() {
     super();

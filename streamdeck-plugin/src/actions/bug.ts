@@ -20,7 +20,7 @@ async function fetchCount(): Promise<void> {
   } catch { /* leave as-is */ }
 }
 
-@action({ UUID: 'com.thelab.toolkit.bug' })
+@action({ UUID: 'com.nst.deck.bug' })
 export class BugAction extends SingletonAction<BugSettings> {
   constructor() {
     super();
