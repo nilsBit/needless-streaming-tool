@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, nativeImage } from 'electron';
 import path from 'path';
 import { startServer } from '../server/index';
 import { deleteConnectionFile } from '../server/connection-file';
@@ -12,10 +12,15 @@ let apiToken: string = '';
 const isDev = !app.isPackaged;
 
 function createWindow() {
+  const iconPath = isDev
+    ? path.join(process.cwd(), 'assets', 'icon.png')
+    : path.join(process.resourcesPath || app.getAppPath(), 'assets', 'icon.png');
+
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
     title: 'NST — Needless Streaming Tool',
+    icon: nativeImage.createFromPath(iconPath),
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
