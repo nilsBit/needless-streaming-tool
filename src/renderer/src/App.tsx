@@ -16,6 +16,7 @@ import HelpPanel from './panels/HelpPanel';
 import SongPanel from './panels/SongPanel';
 import StatsPanel from './panels/StatsPanel';
 import HotkeysPanel from './panels/HotkeysPanel';
+import logoSvg from './assets/logo.svg';
 
 const TABS = {
   stream: {
@@ -152,7 +153,7 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>NST</h1>
+        <img src={logoSvg} alt="NST" className="app-logo" />
         <nav className="tab-nav">
           {(Object.entries(TABS) as Array<[TabKey, typeof TABS[TabKey]]>).map(([key, t]) => (
             <button
