@@ -1,4 +1,4 @@
-export const SCHEMA_VERSION = 14;
+export const SCHEMA_VERSION = 15;
 
 export const SCHEMA = `
 CREATE TABLE IF NOT EXISTS schema_version (
@@ -99,4 +99,25 @@ CREATE TABLE IF NOT EXISTS song_requests (
   status        TEXT NOT NULL DEFAULT 'pending',
   created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS reward_stats (
+  id               INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_name        TEXT NOT NULL,
+  reward_type      TEXT NOT NULL,
+  count            INTEGER DEFAULT 0,
+  last_redeemed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(user_name, reward_type)
+);
+
+CREATE TABLE IF NOT EXISTS reward_log (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_name     TEXT NOT NULL,
+  reward_type   TEXT NOT NULL,
+  reward_title  TEXT NOT NULL,
+  user_input    TEXT DEFAULT '',
+  created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_reward_log_user ON reward_log(user_name);
+CREATE INDEX IF NOT EXISTS idx_reward_log_type ON reward_log(reward_type);
 `;
