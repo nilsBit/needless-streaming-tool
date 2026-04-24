@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import ErrorBoundary from './components/ErrorBoundary';
 import OnboardingWizard from './components/OnboardingWizard';
-import { apiFetch, getApiToken } from './hooks/useApi';
+import { apiFetch, getApiToken, apiGet, apiPost } from './hooks/useApi';
 import { useDashboardLayout } from './hooks/useDashboardLayout';
 import { useTranslation } from './i18n/LanguageContext';
 import ChallengePanel from './panels/ChallengePanel';
@@ -67,7 +67,22 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<TabKey>('stream');
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
-  const [singleColumn, setSingleColumn] = useState(() => localStorage.getItem('dashboard-single-column') === 'true');
+  const [singleColumn, setSingleColumn] = useState(false);
+
+  useEffect(() => {
+    apiGet<{ value: string | null }>('/settings/get/ui.single_column').then((res) => {
+      if (res?.value) {
+        setSingleColumn(res.value === 'true');
+      } else {
+        const saved = localStorage.getItem('dashboard-single-column');
+        if (saved) {
+          setSingleColumn(saved === 'true');
+          apiPost('/settings/set', { key: 'ui.single_column', value: saved });
+          localStorage.removeItem('dashboard-single-column');
+        }
+      }
+    });
+  }, []);
 
   // Get default panel keys for active tab
   const defaultPanelKeys = useMemo(() =>
@@ -172,7 +187,7 @@ export default function App() {
           onClick={() => {
             const next = !singleColumn;
             setSingleColumn(next);
-            localStorage.setItem('dashboard-single-column', String(next));
+            apiPost('/settings/set', { key: 'ui.single_column', value: String(next) });
           }}
           title={singleColumn ? t('layout.half_width') : t('layout.full_width')}
         >

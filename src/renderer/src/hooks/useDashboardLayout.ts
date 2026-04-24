@@ -1,4 +1,5 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { apiGet, apiPost } from './useApi';
 
 interface TabLayout {
   order: string[];
@@ -23,10 +24,28 @@ function loadLayout(): DashboardLayout {
 
 function saveLayout(layout: DashboardLayout): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(layout));
+  apiPost('/settings/set', { key: 'ui.dashboard_layout', value: JSON.stringify(layout) });
 }
 
 export function useDashboardLayout(tabKey: string, defaultPanelKeys: string[]) {
   const [layout, setLayout] = useState<DashboardLayout>(loadLayout);
+
+  useEffect(() => {
+    apiGet<{ value: string | null }>('/settings/get/ui.dashboard_layout').then((res) => {
+      if (res?.value) {
+        try {
+          const dbLayout = JSON.parse(res.value) as DashboardLayout;
+          setLayout(dbLayout);
+          localStorage.setItem(STORAGE_KEY, res.value);
+        } catch { /* ignore parse errors */ }
+      } else {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          apiPost('/settings/set', { key: 'ui.dashboard_layout', value: stored });
+        }
+      }
+    });
+  }, []);
 
   const getTabLayout = useCallback((): TabLayout => {
     const saved = layout[tabKey];
