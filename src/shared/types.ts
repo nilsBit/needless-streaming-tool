@@ -28,6 +28,46 @@ export interface Reward {
   created_at: string;
 }
 
+export interface LeaderboardEntry {
+  rank: number;
+  userName: string;
+  count: number;
+}
+
+export interface LeaderboardUpdateEntry extends LeaderboardEntry {
+  previousRank: number | null;
+}
+
+export interface RankChange {
+  userName: string;
+  from: number;
+  to: number;
+  changeType: 'up' | 'down';
+}
+
+export interface RankEntry {
+  userName: string;
+  rank: number;
+}
+
+export interface RankExit {
+  userName: string;
+  previousRank: number;
+}
+
+export interface LeaderboardUpdate {
+  type: string;
+  leaderboard: LeaderboardUpdateEntry[];
+  changes: RankChange[];
+  entered: RankEntry[];
+  exited: RankExit[];
+}
+
+export interface LeaderboardResponse {
+  type: string;
+  leaderboard: LeaderboardEntry[];
+}
+
 export interface Design {
   id: number;
   title: string;
