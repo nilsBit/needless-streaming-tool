@@ -59,6 +59,32 @@ router.get('/', (req, res) => {
   }
 });
 
+// Manually add or update reward stats
+router.post('/', (req, res) => {
+  const { user_name, reward_type, count } = req.body;
+  if (!user_name || !reward_type || count == null) {
+    res.status(400).json({ error: 'user_name, reward_type, and count are required' });
+    return;
+  }
+  const normalizedName = user_name.trim().toLowerCase();
+  const db = getDb();
+  db.prepare(`
+    INSERT INTO reward_stats (user_name, reward_type, count, last_redeemed_at)
+    VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+    ON CONFLICT(user_name, reward_type)
+    DO UPDATE SET count = ?, last_redeemed_at = CURRENT_TIMESTAMP
+  `).run(normalizedName, reward_type.trim(), Number(count), Number(count));
+
+  res.json({ ok: true });
+});
+
+// Delete a reward stat entry
+router.delete('/:username/:type', (req, res) => {
+  const { username, type } = req.params;
+  getDb().prepare('DELETE FROM reward_stats WHERE user_name = ? AND reward_type = ?').run(username, type);
+  res.json({ ok: true });
+});
+
 // Stats for a specific user
 router.get('/:username', (req, res) => {
   const { username } = req.params;

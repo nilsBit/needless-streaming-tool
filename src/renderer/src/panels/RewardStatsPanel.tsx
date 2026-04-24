@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { useApi, apiGet } from '../hooks/useApi';
+import { useApi, apiGet, apiPost, apiDelete } from '../hooks/useApi';
 import { useWebSocket } from '../hooks/useWebSocket';
 
 interface StatRow {
@@ -36,6 +36,12 @@ export default function RewardStatsPanel() {
   const [types, setTypes] = useState<string[]>([]);
   const [sortField, setSortField] = useState<'count' | 'last_redeemed_at' | 'user_name'>('count');
   const [sortAsc, setSortAsc] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [addUser, setAddUser] = useState('');
+  const [addType, setAddType] = useState('');
+  const [addCount, setAddCount] = useState('');
+  const [editingRow, setEditingRow] = useState<{ user_name: string; reward_type: string } | null>(null);
+  const [editCount, setEditCount] = useState('');
 
   // Leaderboard data
   const leaderboardUrl = typeFilter
@@ -111,6 +117,26 @@ export default function RewardStatsPanel() {
     setView('log');
   };
 
+  const handleAdd = async () => {
+    if (!addUser.trim() || !addType.trim() || !addCount.trim()) return;
+    await apiPost('/reward-stats', { user_name: addUser.trim(), reward_type: addType.trim(), count: Number(addCount) });
+    setAddUser(''); setAddType(''); setAddCount('');
+    setShowAddForm(false);
+    refetch(); fetchTypes();
+  };
+
+  const handleEdit = async (userName: string, rewardType: string) => {
+    if (!editCount.trim()) return;
+    await apiPost('/reward-stats', { user_name: userName, reward_type: rewardType, count: Number(editCount) });
+    setEditingRow(null); setEditCount('');
+    refetch();
+  };
+
+  const handleDelete = async (userName: string, rewardType: string) => {
+    await apiDelete(`/reward-stats/${encodeURIComponent(userName)}/${encodeURIComponent(rewardType)}`);
+    refetch(); fetchTypes();
+  };
+
   const thStyle = { padding: '6px 8px', cursor: 'pointer', userSelect: 'none' as const };
 
   return (
@@ -129,6 +155,12 @@ export default function RewardStatsPanel() {
             onClick={() => { setView('log'); setLogOffset(0); }}
           >
             Log
+          </button>
+          <button
+            onClick={() => setShowAddForm(!showAddForm)}
+            style={{ padding: '4px 10px', background: showAddForm ? '#333' : '#1a1a1a', border: '1px solid #444', borderRadius: 4, color: '#ccc', cursor: 'pointer', fontSize: 12 }}
+          >
+            + Nachtragen
           </button>
         </div>
       </div>
@@ -156,6 +188,44 @@ export default function RewardStatsPanel() {
         )}
       </div>
 
+      {showAddForm && (
+        <div style={{ marginBottom: 12, padding: 10, background: '#1a1a1a', border: '1px solid #333', borderRadius: 6, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <input
+            type="text"
+            placeholder="Username"
+            value={addUser}
+            onChange={(e) => setAddUser(e.target.value)}
+            style={{ padding: '4px 8px', background: '#111', border: '1px solid #333', borderRadius: 4, color: '#ccc', fontSize: 12, width: 140 }}
+          />
+          <input
+            type="text"
+            placeholder="Reward-Typ"
+            value={addType}
+            onChange={(e) => setAddType(e.target.value)}
+            list="reward-types"
+            style={{ padding: '4px 8px', background: '#111', border: '1px solid #333', borderRadius: 4, color: '#ccc', fontSize: 12, width: 140 }}
+          />
+          <datalist id="reward-types">
+            {types.map((t) => <option key={t} value={t} />)}
+          </datalist>
+          <input
+            type="number"
+            placeholder="Anzahl"
+            value={addCount}
+            onChange={(e) => setAddCount(e.target.value)}
+            min="0"
+            style={{ padding: '4px 8px', background: '#111', border: '1px solid #333', borderRadius: 4, color: '#ccc', fontSize: 12, width: 80 }}
+          />
+          <button
+            onClick={handleAdd}
+            disabled={!addUser.trim() || !addType.trim() || !addCount.trim()}
+            style={{ padding: '4px 12px', background: '#2d5a27', border: '1px solid #3a7a33', borderRadius: 4, color: '#ccc', cursor: 'pointer', fontSize: 12 }}
+          >
+            Speichern
+          </button>
+        </div>
+      )}
+
       {view === 'leaderboard' && (
         <div>
           {loading ? (
@@ -171,10 +241,13 @@ export default function RewardStatsPanel() {
                   {typeFilter && <th style={{ textAlign: 'left', padding: '6px 8px' }}>Typ</th>}
                   <th style={{ textAlign: 'right', ...thStyle }} onClick={() => toggleSort('count')}>Anzahl{sortIcon('count')}</th>
                   <th style={{ textAlign: 'right', ...thStyle }} onClick={() => toggleSort('last_redeemed_at')}>Letztes Mal{sortIcon('last_redeemed_at')}</th>
+                  {typeFilter && <th style={{ textAlign: 'right', padding: '6px 8px' }}></th>}
                 </tr>
               </thead>
               <tbody>
-                {sorted.map((row, i) => (
+                {sorted.map((row, i) => {
+                  const isEditing = editingRow && editingRow.user_name === row.user_name && editingRow.reward_type === (row.reward_type || '');
+                  return (
                   <tr key={row.user_name + (row.reward_type || '')} style={{ borderBottom: '1px solid #222' }}>
                     <td style={{ padding: '6px 8px', color: '#666' }}>{i + 1}</td>
                     <td style={{ padding: '6px 8px' }}>
@@ -186,12 +259,42 @@ export default function RewardStatsPanel() {
                       </button>
                     </td>
                     {typeFilter && <td style={{ padding: '6px 8px', color: '#888' }}>{row.reward_type}</td>}
-                    <td style={{ textAlign: 'right', padding: '6px 8px', fontWeight: 600 }}>{row.count}</td>
+                    <td style={{ textAlign: 'right', padding: '6px 8px', fontWeight: 600 }}>
+                      {isEditing ? (
+                        <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
+                          <input
+                            type="number"
+                            value={editCount}
+                            onChange={(e) => setEditCount(e.target.value)}
+                            autoFocus
+                            onKeyDown={(e) => { if (e.key === 'Enter') handleEdit(row.user_name, row.reward_type || ''); if (e.key === 'Escape') setEditingRow(null); }}
+                            style={{ width: 60, padding: '2px 4px', background: '#111', border: '1px solid #444', borderRadius: 3, color: '#ccc', fontSize: 12, textAlign: 'right' }}
+                          />
+                          <button onClick={() => handleEdit(row.user_name, row.reward_type || '')} style={{ background: 'none', border: 'none', color: '#4caf50', cursor: 'pointer', fontSize: 12 }}>✓</button>
+                          <button onClick={() => setEditingRow(null)} style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: 12 }}>✕</button>
+                        </span>
+                      ) : row.count}
+                    </td>
                     <td style={{ textAlign: 'right', padding: '6px 8px', color: '#888' }}>
                       {new Date(row.last_redeemed_at).toLocaleDateString('de-DE')}
                     </td>
+                    {typeFilter && (
+                      <td style={{ textAlign: 'right', padding: '6px 8px', whiteSpace: 'nowrap' }}>
+                        <button
+                          onClick={() => { setEditingRow({ user_name: row.user_name, reward_type: row.reward_type || '' }); setEditCount(String(row.count)); }}
+                          style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: 11, marginRight: 4 }}
+                          title="Bearbeiten"
+                        >✎</button>
+                        <button
+                          onClick={() => { if (confirm(`"${row.user_name}" (${row.reward_type}) wirklich löschen?`)) handleDelete(row.user_name, row.reward_type || ''); }}
+                          style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', fontSize: 11 }}
+                          title="Löschen"
+                        >🗑</button>
+                      </td>
+                    )}
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           )}
