@@ -9,8 +9,6 @@ interface ElectronAPI {
   selectSyncFolder: () => Promise<string | null>;
 }
 
-declare global {
-  interface Window {
-    electronAPI?: ElectronAPI;
-  }
+interface Window {
+  electronAPI?: ElectronAPI;
 }

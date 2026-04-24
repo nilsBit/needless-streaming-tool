@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useApi, apiPost, apiFetch, getApiToken } from '../hooks/useApi';
+import { useApi, apiGet, apiPost, apiFetch, getApiToken } from '../hooks/useApi';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { TwitchConfigResponse, BotStatus } from '../../../shared/types';
 import { useTranslation } from '../i18n/LanguageContext';
@@ -23,6 +23,12 @@ export default function SettingsPanel() {
   const { data: githubInfo, refetch: refetchGithub } = useApi<{ configured: boolean; preview: string | null; repo: string | null }>('/progress/github');
   const { data: obsConfig, refetch: refetchObs } = useApi<{ configured: boolean; host?: string; port?: number; has_password?: boolean }>('/obs/config');
   const { data: obsStatus, refetch: refetchObsStatus } = useApi<{ connected: boolean }>('/obs/status');
+  const { data: syncStatus, refetch: refetchSync } = useApi<{
+    enabled: boolean; syncPath?: string; lastSync?: string; device?: string; error?: string;
+  }>('/settings/sync/status');
+  const [syncPath, setSyncPath] = useState('');
+  const [syncEnabled, setSyncEnabled] = useState(false);
+  const [syncing, setSyncing] = useState(false);
 
   const { toast } = useToast();
   const [notionToken, setNotionToken] = useState('');
@@ -89,6 +95,15 @@ export default function SettingsPanel() {
     if (!result) { toast.error(t('error.action_failed')); return; }
     toast.success(t('overlay_config.saved'));
   };
+
+  useEffect(() => {
+    apiGet<{ enabled: boolean; syncPath: string }>('/settings/sync/config').then((cfg) => {
+      if (cfg) {
+        setSyncPath(cfg.syncPath || '');
+        setSyncEnabled(cfg.enabled);
+      }
+    });
+  }, []);
 
   useWebSocket((event) => {
     if (event === 'bot-status') { refetchBot(); refetchConfig(); }
@@ -207,6 +222,33 @@ export default function SettingsPanel() {
       toast.error(t('error.action_failed'));
     }
     setImporting(false);
+  };
+
+  const handleSelectSyncFolder = async () => {
+    const folder = await window.electronAPI?.selectSyncFolder();
+    if (folder) {
+      setSyncPath(folder);
+      await apiPost('/settings/sync/config', { enabled: syncEnabled, syncPath: folder });
+      refetchSync();
+    }
+  };
+
+  const handleToggleSync = async (enabled: boolean) => {
+    setSyncEnabled(enabled);
+    await apiPost('/settings/sync/config', { enabled, syncPath });
+    refetchSync();
+  };
+
+  const handleManualSync = async () => {
+    setSyncing(true);
+    const result = await apiPost<{ success: boolean; error?: string }>('/settings/sync/trigger', {});
+    setSyncing(false);
+    refetchSync();
+    if (result?.success) {
+      toast.success('Sync abgeschlossen');
+    } else {
+      toast.error(result?.error || 'Sync fehlgeschlagen');
+    }
   };
 
   const saveNotionToken = async () => {
@@ -629,6 +671,56 @@ export default function SettingsPanel() {
                 style={{ display: 'none' }}
               />
             </label>
+          </div>
+        </div>
+
+        {/* Cloud Sync */}
+        <div className="config-section">
+          <h3>☁️ Cloud Sync</h3>
+          <div className="config-row">
+            <label>Sync aktiviert</label>
+            <input
+              type="checkbox"
+              checked={syncEnabled}
+              onChange={(e) => handleToggleSync(e.target.checked)}
+            />
+          </div>
+          <div className="config-row">
+            <label>Sync-Ordner</label>
+            <div style={{ display: 'flex', gap: 8, flex: 1 }}>
+              <input
+                type="text"
+                value={syncPath}
+                readOnly
+                placeholder="Kein Ordner ausgewählt"
+                style={{ flex: 1 }}
+              />
+              <button onClick={handleSelectSyncFolder}>Auswählen</button>
+            </div>
+          </div>
+          {syncStatus?.lastSync && (
+            <div className="config-row">
+              <label>Letzter Sync</label>
+              <span>
+                {new Date(syncStatus.lastSync).toLocaleString('de-DE')}
+                {syncStatus.device && ` (${syncStatus.device})`}
+              </span>
+            </div>
+          )}
+          {syncStatus?.error && (
+            <div className="config-row" style={{ color: '#e74c3c' }}>
+              <label>Fehler</label>
+              <span>{syncStatus.error}</span>
+            </div>
+          )}
+          <div className="config-row">
+            <label />
+            <button
+              onClick={handleManualSync}
+              disabled={!syncEnabled || !syncPath || syncing}
+            >
+              {syncing ? 'Synchronisiere...' : 'Jetzt synchronisieren'}
+            </button>
           </div>
         </div>
       </SettingsGroup>
