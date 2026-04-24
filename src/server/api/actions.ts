@@ -149,6 +149,26 @@ function getTestEvents(name: string): { event: string; data: unknown }[] {
     return [{ event: 'roulette-spin', data: { issues, winner_id: winner.id } }];
   }
 
+  if (name === 'reward-leaderboard' || name === 'reward-rankchange') {
+    return [{
+      event: 'reward-leaderboard-update',
+      data: {
+        type: 'all',
+        leaderboard: [
+          { rank: 1, userName: 'TestUser_A', count: 42, previousRank: 2 },
+          { rank: 2, userName: 'TestUser_B', count: 38, previousRank: 1 },
+          { rank: 3, userName: 'TestUser_C', count: 15, previousRank: null },
+        ],
+        changes: [
+          { userName: 'TestUser_A', from: 2, to: 1, changeType: 'up' },
+          { userName: 'TestUser_B', from: 1, to: 2, changeType: 'down' },
+        ],
+        entered: [{ userName: 'TestUser_C', rank: 3 }],
+        exited: [{ userName: 'OldUser', previousRank: 3 }],
+      },
+    }];
+  }
+
   if (name === 'todos') {
     return [{ event: 'todo-created', data: {} }];
   }

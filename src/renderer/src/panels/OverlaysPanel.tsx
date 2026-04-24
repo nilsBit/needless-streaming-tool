@@ -34,7 +34,7 @@ const OVERLAY_ICONS: Record<string, string> = {
   'reward-rankchange': '🔄',
 };
 
-const TESTABLE_OVERLAYS = new Set(['alerts', 'song', 'poll', 'milestone', 'roulette', 'experiment', 'todos', 'progress', 'song-queue']);
+const TESTABLE_OVERLAYS = new Set(['alerts', 'song', 'poll', 'milestone', 'roulette', 'experiment', 'todos', 'progress', 'song-queue', 'reward-leaderboard', 'reward-rankchange']);
 
 const THEME_PRESETS: { name: string; label: string; color: string; values: Record<string, string> }[] = [
   {
