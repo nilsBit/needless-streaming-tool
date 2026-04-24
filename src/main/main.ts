@@ -1,7 +1,8 @@
-import { app, BrowserWindow, nativeImage } from 'electron';
+import { app, BrowserWindow, nativeImage, ipcMain, dialog } from 'electron';
 import path from 'path';
 import { startServer } from '../server/index';
 import { deleteConnectionFile } from '../server/connection-file';
+import { syncFromRemote, syncToRemoteOnQuit } from '../server/sync';
 import { registerHotkeys, unregisterHotkeys } from './hotkeys';
 import { createTray } from './tray';
 
@@ -24,6 +25,7 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js'),
     },
   });
 
@@ -68,6 +70,23 @@ app.whenReady().then(async () => {
     app.dock.setIcon(dockIcon);
   }
 
+  // IPC: folder picker for sync config
+  ipcMain.handle('select-sync-folder', async () => {
+    const result = await dialog.showOpenDialog({
+      properties: ['openDirectory', 'createDirectory'],
+      title: 'Sync-Ordner auswählen',
+    });
+    return result.canceled ? null : result.filePaths[0];
+  });
+
+  // Sync from remote before starting server
+  const syncResult = syncFromRemote();
+  if (syncResult.error) {
+    console.warn(`[Sync] ${syncResult.error}`);
+  } else if (syncResult.synced) {
+    console.log('[Sync] Database updated from remote');
+  }
+
   apiToken = await startServer();
   createWindow();
   registerHotkeys();
@@ -76,6 +95,7 @@ app.whenReady().then(async () => {
 app.on('before-quit', () => {
   isQuitting = true;
   unregisterHotkeys();
+  syncToRemoteOnQuit();
   deleteConnectionFile();
 });
 
