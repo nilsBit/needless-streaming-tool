@@ -27,6 +27,7 @@ import songRequestsRouter, { getActiveQueue } from './api/song-requests';
 import { connectBot } from './bot/index';
 import { connectObs } from './obs/index';
 import { initAutoClips } from './auto-clips';
+import { initRewardLeaderboard, getTopRewards } from './reward-leaderboard';
 import { checkDatabase, healDatabase } from './api/notion-sync';
 import { startSMTC, getAutoDetectSetting } from './integrations/smtc';
 import { getDb } from './db/index';
@@ -145,6 +146,12 @@ export async function startServer(): Promise<string> {
     res.json({ project_name: state?.project_name || null, items });
   });
 
+  app.get('/public/reward-stats/top', (req, res) => {
+    const type = (req.query.type as string) || 'all';
+    const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 3, 1), 10);
+    res.json({ type, leaderboard: getTopRewards(type, limit) });
+  });
+
   // Overlay paths
   const builtinOverlayPath = path.join(process.cwd(), 'src', 'overlays');
   const overlayOverridePath = getUserDataPath('overlay-overrides');
@@ -189,6 +196,7 @@ export async function startServer(): Promise<string> {
       // Write connection file for Stream Deck plugin auto-discovery
       writeConnectionFile(PORT);
 
+      initRewardLeaderboard();
       connectBot().catch(() => {});
       connectObs().catch(() => {});
 

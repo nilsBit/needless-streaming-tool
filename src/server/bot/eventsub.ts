@@ -4,6 +4,7 @@ import { broadcast } from '../websocket/index';
 import { getBotConfig } from './config';
 import { triggerRoulette } from '../api/actions';
 import { changeScene, findSceneForReward } from '../obs/index';
+import { checkAndBroadcast } from '../reward-leaderboard';
 
 let ws: WebSocket | null = null;
 let sessionId: string | null = null;
@@ -97,6 +98,10 @@ async function handleRedemption(event: Record<string, unknown>) {
       DO UPDATE SET count = count + 1, last_redeemed_at = CURRENT_TIMESTAMP
     `).run(normalizedName, rewardType);
   })();
+
+  // Update leaderboard tracking
+  checkAndBroadcast('all');
+  checkAndBroadcast(rewardType);
 
   // Auto-trigger roulette when someone redeems roulette
   if (rewardType === 'roulette') {
