@@ -19,7 +19,7 @@ const FONT_OPTIONS = [
   { value: "'Fira Code', monospace", label: 'Fira Code' },
 ];
 
-const OVERLAY_NAMES = ['experiment', 'todos', 'progress', 'milestone', 'song', 'alerts', 'poll', 'roulette'];
+const OVERLAY_NAMES = ['experiment', 'todos', 'progress', 'milestone', 'song', 'alerts', 'poll', 'roulette', 'reward-leaderboard', 'reward-rankchange'];
 
 const OVERLAY_ICONS: Record<string, string> = {
   experiment: '🧪',
@@ -30,6 +30,8 @@ const OVERLAY_ICONS: Record<string, string> = {
   alerts: '🔔',
   poll: '📊',
   roulette: '🎰',
+  'reward-leaderboard': '🏅',
+  'reward-rankchange': '🔄',
 };
 
 const TESTABLE_OVERLAYS = new Set(['alerts', 'song', 'poll', 'milestone', 'roulette', 'experiment', 'todos', 'progress', 'song-queue']);
