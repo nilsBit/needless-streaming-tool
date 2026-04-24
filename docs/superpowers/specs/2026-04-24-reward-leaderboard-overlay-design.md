@@ -37,20 +37,21 @@ Response:
 }
 ```
 
-- `type=all`: runs `SELECT user_name, SUM(count) as count FROM reward_stats GROUP BY user_name ORDER BY count DESC LIMIT ?`
+- `type=all`: runs `SELECT user_name, SUM(count) as count FROM reward_stats GROUP BY user_name ORDER BY count DESC, user_name ASC LIMIT ?`
 - `type=<specific>`: filters `WHERE reward_type = ?`
 - No auth required (public endpoint for overlays)
 
 ### 2. Leaderboard Tracking Service
 
-**New file:** `src/server/services/reward-leaderboard.ts`
+**New file:** `src/server/reward-leaderboard.ts` (top-level in `src/server/`, matching existing modules like `auto-clips.ts`)
 
 Responsibilities:
 - Maintains current Top 3 in memory (per type key: `"all"` + each known reward type)
+- Exposes `init()` — loads initial Top 3 from DB. Must be called during server startup **before** `connectEventSub()` to avoid spurious broadcasts against an empty cache.
 - Exposes `checkAndBroadcast(type?: string)` — called after every reward redemption
-- Queries DB for current Top 3, compares with cached state
+- Queries DB for current Top 3, compares with cached state. If `init()` has not completed yet, no-ops silently.
 - If rankings changed: broadcasts `reward-leaderboard-update` via WebSocket
-- Initializes from DB on server startup
+- **Tiebreaker:** queries use `ORDER BY count DESC, user_name ASC` to ensure deterministic ordering and prevent rank flickering when users are tied.
 
 **WebSocket Event: `reward-leaderboard-update`**
 
@@ -75,12 +76,14 @@ Responsibilities:
 }
 ```
 
-- `previousRank`: the user's rank before this update, `null` if newly entered
+- `previousRank`: `number | null` — the user's rank before this update, `null` if newly entered
 - `changes`: only populated when actual rank swaps occurred (empty array = no alert needed)
 - `entered`: users who just entered the Top 3
 - `exited`: users who just fell out of the Top 3
 
-**Integration point:** Called in `handleRedemption()` in `src/server/bot/eventsub.ts` after the DB update (reward_stats + reward_log inserts).
+**Integration point:** Called in `handleRedemption()` in `src/server/bot/eventsub.ts` after the DB transaction completes (after reward_stats + reward_log inserts), before any scene change logic.
+
+**Overlay-side type filtering:** Both overlays are configured with a `?type=` URL parameter. When receiving a `reward-leaderboard-update` event, overlays must check that `data.type` matches their configured type and ignore non-matching events. This is necessary because each redemption triggers two broadcasts (`"all"` + the specific reward type).
 
 ### 3. Leaderboard Overlay
 
@@ -93,10 +96,10 @@ Single-file HTML overlay (HTML + CSS + JS inline), following the existing overla
 - URL param `?type=all` (default) or `?type=hydrate` to filter by reward type
 - WebSocket: on `reward-leaderboard-update`, update display with CSS transitions for count changes
 - Overlay config support via `/public/overlay-config` and `overlay-config` event
-- Fallback polling every 30s if WebSocket disconnects
+- Fallback polling every 10s if WebSocket disconnects (matching existing overlay pattern)
 
 **Visual design:**
-- Vertical list, 3 entries
+- Vertical list, up to 3 entries (shows fewer if not enough data, no empty state needed — overlay is simply shorter)
 - Each entry: rank number, username, count
 - Rank 1 visually highlighted (gold accent)
 - Transparent background (OBS Browser Source)
@@ -116,13 +119,15 @@ Single-file HTML overlay (HTML + CSS + JS inline).
 - Queue system: if multiple changes arrive rapidly, queue and play sequentially
 - Overlay config support
 
-**Animation sequence:**
-1. **Slide-in:** Top 3 list slides into view
-2. **Rank animation:** entries that changed position animate to their new spots (rows visually swap places, sport-table style)
-3. **New entries:** slide in from the side; exited users slide out
-4. **Highlight:** changed positions get a glow/color highlight effect
-5. **Hold:** display for ~5 seconds
-6. **Slide-out:** list slides back out
+**Animation sequence** (total ~7s):
+1. **Slide-in** (~0.5s): Top 3 list slides into view
+2. **Rank animation** (~1s): entries that changed position animate to their new spots (rows visually swap places, sport-table style)
+3. **New entries** (~0.5s): slide in from the side; exited users slide out
+4. **Highlight** (~0.5s): changed positions get a glow/color highlight effect
+5. **Hold** (~4s): display holds
+6. **Slide-out** (~0.5s): list slides back out
+
+**Queue:** Simple FIFO — if a new event arrives mid-animation, it waits until the current animation finishes, then plays. No merging of consecutive events. No max queue depth (events are rare enough).
 
 **Visual design:**
 - Similar style to the leaderboard overlay
@@ -147,7 +152,7 @@ Twitch EventSub → handleRedemption()
 ## Files to Create/Modify
 
 ### New files:
-- `src/server/services/reward-leaderboard.ts` — leaderboard tracking service
+- `src/server/reward-leaderboard.ts` — leaderboard tracking service
 - `src/overlays/reward-leaderboard/index.html` — persistent Top 3 overlay
 - `src/overlays/reward-rankchange/index.html` — rank-change alert overlay
 
