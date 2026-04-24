@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reward Leaderboard</title>
+<style>
+:root {
+  --color-primary: #ff2d7b;
+  --color-secondary: #00d4ff;
+  --color-accent: #ffd700;
+  --color-bg: #0a0a0a;
+  --font-display: 'Rajdhani', sans-serif;
+  --font-body: 'Inter', sans-serif;
+}
+html { visibility: hidden; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: transparent;
+  font-family: var(--font-body);
+  overflow: hidden;
+}
+
+.leaderboard {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  width: 280px;
+}
+
+.header {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 4px;
+}
+
+.entry {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: rgba(10, 10, 10, 0.85);
+  border-radius: 6px;
+  border-left: 3px solid var(--color-primary);
+  transition: all 0.5s ease;
+}
+
+.entry.rank-1 {
+  border-left-color: var(--color-accent);
+  background: rgba(255, 215, 0, 0.08);
+}
+.entry.rank-2 {
+  border-left-color: #c0c0c0;
+}
+.entry.rank-3 {
+  border-left-color: #cd7f32;
+}
+
+.rank {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-accent);
+  min-width: 28px;
+  text-align: center;
+}
+.entry.rank-2 .rank { color: #c0c0c0; }
+.entry.rank-3 .rank { color: #cd7f32; }
+
+.name {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.count {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-secondary);
+  transition: transform 0.3s ease;
+}
+
+.count.updated {
+  transform: scale(1.3);
+}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="leaderboard" id="leaderboard">
+  <div class="header">Top Redeemer</div>
+</div>
+
+<!-- Overlay config loader -->
+<script>
+(function() {
+  var name = 'reward-leaderboard';
+  function hexToRgb(hex) {
+    hex = hex.replace('#','');
+    if (hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+    var n = parseInt(hex, 16);
+    return ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255);
+  }
+  fetch('http://localhost:4000/public/overlay-config')
+    .then(function(r) { return r.json(); })
+    .then(function(config) {
+      var vars = Object.assign({}, config.global || {}, (config.overrides || {})[name] || {});
+      var root = document.documentElement;
+      Object.keys(vars).forEach(function(k) { root.style.setProperty(k, vars[k]); });
+      ['--color-primary', '--color-secondary', '--color-accent', '--color-bg'].forEach(function(k) {
+        if (vars[k]) root.style.setProperty(k + '-rgb', hexToRgb(vars[k]));
+      });
+      var fonts = [vars['--font-display'], vars['--font-body']].filter(Boolean);
+      if (fonts.length > 0) {
+        var families = fonts.map(function(f) { return f.split(',')[0].replace(/'/g, '').trim(); });
+        var link = document.createElement('link');
+        link.href = 'https://fonts.googleapis.com/css2?family=' + families.map(function(f) { return encodeURIComponent(f) + ':wght@400;600;700'; }).join('&') + '&display=swap';
+        link.rel = 'stylesheet';
+        document.head.appendChild(link);
+      }
+    })
+    .catch(function() {})
+    .finally(function() { document.documentElement.style.visibility = 'visible'; });
+  window.__applyOverlayConfig = function(config) {
+    var vars = Object.assign({}, config.global || {}, (config.overrides || {})[name] || {});
+    var root = document.documentElement;
+    Object.keys(vars).forEach(function(k) { root.style.setProperty(k, vars[k]); });
+    ['--color-primary', '--color-secondary', '--color-accent', '--color-bg'].forEach(function(k) {
+      if (vars[k]) root.style.setProperty(k + '-rgb', hexToRgb(vars[k]));
+    });
+  };
+})();
+</script>
+
+<!-- Main logic -->
+<script>
+const params = new URLSearchParams(window.location.search);
+const configuredType = params.get('type') || 'all';
+
+let leaderboard = [];
+let wsConnected = false;
+let fallbackInterval = null;
+
+async function fetchLeaderboard() {
+  try {
+    const res = await fetch(`http://localhost:4000/public/reward-stats/top?type=${configuredType}&limit=3`);
+    const data = await res.json();
+    leaderboard = data.leaderboard || [];
+    render();
+  } catch (err) {
+    console.error('[Leaderboard] Fetch failed:', err);
+  }
+}
+
+function render() {
+  const container = document.getElementById('leaderboard');
+  // Keep header, remove entries
+  const header = container.querySelector('.header');
+  container.innerHTML = '';
+  container.appendChild(header);
+
+  for (const entry of leaderboard) {
+    const el = document.createElement('div');
+    el.className = `entry rank-${entry.rank}`;
+    el.dataset.user = entry.userName;
+    el.innerHTML = `
+      <span class="rank">#${entry.rank}</span>
+      <span class="name">${escapeHtml(entry.userName)}</span>
+      <span class="count">${entry.count}</span>
+    `;
+    container.appendChild(el);
+  }
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function handleLeaderboardUpdate(data) {
+  if (data.type !== configuredType) return;
+
+  // Animate count changes
+  const oldCounts = new Map(leaderboard.map(e => [e.userName, e.count]));
+  leaderboard = (data.leaderboard || []).map(e => ({
+    rank: e.rank,
+    userName: e.userName,
+    count: e.count,
+  }));
+  render();
+
+  // Flash updated counts
+  for (const entry of leaderboard) {
+    const old = oldCounts.get(entry.userName);
+    if (old !== undefined && old !== entry.count) {
+      const el = document.querySelector(`.entry[data-user="${CSS.escape(entry.userName)}"] .count`);
+      if (el) {
+        el.classList.add('updated');
+        setTimeout(() => el.classList.remove('updated'), 400);
+      }
+    }
+  }
+}
+
+// Fallback polling
+function startFallbackPolling() {
+  if (fallbackInterval) return;
+  fallbackInterval = setInterval(fetchLeaderboard, 10000);
+}
+
+function stopFallbackPolling() {
+  if (fallbackInterval) {
+    clearInterval(fallbackInterval);
+    fallbackInterval = null;
+  }
+}
+
+// WebSocket
+function connectWS() {
+  const ws = new WebSocket('ws://localhost:4000?overlay=1');
+
+  ws.onopen = () => {
+    console.log('[Leaderboard] WebSocket connected');
+    wsConnected = true;
+    stopFallbackPolling();
+    fetchLeaderboard();
+  };
+
+  ws.onmessage = (e) => {
+    try {
+      const msg = JSON.parse(e.data);
+      if (msg.event === 'reward-leaderboard-update') handleLeaderboardUpdate(msg.data);
+      if (msg.event === 'reward-redeemed') fetchLeaderboard();
+      if (msg.event === 'overlay-config' && window.__applyOverlayConfig) window.__applyOverlayConfig(msg.data);
+    } catch {}
+  };
+
+  ws.onclose = () => {
+    console.log('[Leaderboard] WebSocket closed, reconnecting...');
+    wsConnected = false;
+    startFallbackPolling();
+    setTimeout(connectWS, 2000);
+  };
+
+  ws.onerror = () => ws.close();
+}
+
+connectWS();
+startFallbackPolling();
+</script>
+</body>
+</html>
