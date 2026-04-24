@@ -8,6 +8,7 @@ import path from 'path';
 import fs from 'fs';
 import { DEFAULT_HOTKEYS } from '../../shared/types';
 import { listDatabases, listPages, createDatabase, healDatabase, checkDatabase } from './notion-sync';
+import { getSyncStatus, syncToRemoteManual, readSyncConfig, writeSyncConfig } from '../sync';
 
 const router = Router();
 
@@ -302,6 +303,27 @@ router.post('/commands', (req, res) => {
     }
   }
   getDb().prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('custom_commands', JSON.stringify(cleaned));
+  res.json({ success: true });
+});
+
+// Cloud Sync
+router.get('/sync/status', (_req, res) => {
+  res.json(getSyncStatus());
+});
+
+router.post('/sync/trigger', async (_req, res) => {
+  const result = await syncToRemoteManual();
+  res.json(result);
+});
+
+router.get('/sync/config', (_req, res) => {
+  const config = readSyncConfig();
+  res.json(config || { enabled: false, syncPath: '' });
+});
+
+router.post('/sync/config', (req, res) => {
+  const { enabled, syncPath } = req.body as { enabled?: boolean; syncPath?: string };
+  writeSyncConfig({ enabled: !!enabled, syncPath: syncPath || '' });
   res.json({ success: true });
 });
 
