@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rank Change Alert</title>
+<style>
+:root {
+  --color-primary: #ff2d7b;
+  --color-secondary: #00d4ff;
+  --color-accent: #ffd700;
+  --color-bg: #0a0a0a;
+  --font-display: 'Rajdhani', sans-serif;
+  --font-body: 'Inter', sans-serif;
+}
+html { visibility: hidden; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: transparent;
+  font-family: var(--font-body);
+  overflow: hidden;
+}
+
+.alert-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 320px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.alert-container.visible {
+  opacity: 1;
+}
+
+.alert-container.slide-in {
+  animation: slideIn 0.5s ease forwards;
+}
+.alert-container.slide-out {
+  animation: slideOut 0.5s ease forwards;
+}
+
+@keyframes slideIn {
+  from { transform: translate(-50%, -50%) translateX(-60px); opacity: 0; }
+  to   { transform: translate(-50%, -50%) translateX(0); opacity: 1; }
+}
+@keyframes slideOut {
+  from { transform: translate(-50%, -50%) translateX(0); opacity: 1; }
+  to   { transform: translate(-50%, -50%) translateX(60px); opacity: 0; }
+}
+
+.alert-header {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--color-primary);
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.alert-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+}
+
+.alert-entry {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: rgba(10, 10, 10, 0.9);
+  border-radius: 6px;
+  border-left: 3px solid var(--color-primary);
+  position: relative;
+  transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s ease;
+}
+
+.alert-entry.rank-1 {
+  border-left-color: var(--color-accent);
+  background: rgba(255, 215, 0, 0.1);
+}
+.alert-entry.rank-2 { border-left-color: #c0c0c0; }
+.alert-entry.rank-3 { border-left-color: #cd7f32; }
+
+.alert-entry.changed {
+  box-shadow: 0 0 12px rgba(255, 45, 123, 0.4);
+}
+
+.alert-entry.entered {
+  animation: enterSlide 0.5s ease 0.8s both;
+}
+
+@keyframes enterSlide {
+  from { transform: translateX(-40px); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+
+.alert-entry.exiting {
+  animation: exitSlide 0.5s ease both;
+}
+
+@keyframes exitSlide {
+  from { transform: translateX(0); opacity: 1; }
+  to   { transform: translateX(40px); opacity: 0; }
+}
+
+.rank {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-accent);
+  min-width: 28px;
+  text-align: center;
+}
+.alert-entry.rank-2 .rank { color: #c0c0c0; }
+.alert-entry.rank-3 .rank { color: #cd7f32; }
+
+.name {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.count {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-secondary);
+}
+
+.badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.badge.up {
+  background: rgba(0, 200, 83, 0.2);
+  color: #00c853;
+}
+.badge.down {
+  background: rgba(255, 82, 82, 0.2);
+  color: #ff5252;
+}
+.badge.new {
+  background: rgba(0, 212, 255, 0.2);
+  color: var(--color-secondary);
+}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="alert-container" id="alertContainer">
+  <div class="alert-header">Platzwechsel!</div>
+  <div class="alert-list" id="alertList"></div>
+</div>
+
+<!-- Overlay config loader -->
+<script>
+(function() {
+  var name = 'reward-rankchange';
+  function hexToRgb(hex) {
+    hex = hex.replace('#','');
+    if (hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+    var n = parseInt(hex, 16);
+    return ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255);
+  }
+  fetch('http://localhost:4000/public/overlay-config')
+    .then(function(r) { return r.json(); })
+    .then(function(config) {
+      var vars = Object.assign({}, config.global || {}, (config.overrides || {})[name] || {});
+      var root = document.documentElement;
+      Object.keys(vars).forEach(function(k) { root.style.setProperty(k, vars[k]); });
+      ['--color-primary', '--color-secondary', '--color-accent', '--color-bg'].forEach(function(k) {
+        if (vars[k]) root.style.setProperty(k + '-rgb', hexToRgb(vars[k]));
+      });
+      var fonts = [vars['--font-display'], vars['--font-body']].filter(Boolean);
+      if (fonts.length > 0) {
+        var families = fonts.map(function(f) { return f.split(',')[0].replace(/'/g, '').trim(); });
+        var link = document.createElement('link');
+        link.href = 'https://fonts.googleapis.com/css2?family=' + families.map(function(f) { return encodeURIComponent(f) + ':wght@400;600;700'; }).join('&') + '&display=swap';
+        link.rel = 'stylesheet';
+        document.head.appendChild(link);
+      }
+    })
+    .catch(function() {})
+    .finally(function() { document.documentElement.style.visibility = 'visible'; });
+  window.__applyOverlayConfig = function(config) {
+    var vars = Object.assign({}, config.global || {}, (config.overrides || {})[name] || {});
+    var root = document.documentElement;
+    Object.keys(vars).forEach(function(k) { root.style.setProperty(k, vars[k]); });
+    ['--color-primary', '--color-secondary', '--color-accent', '--color-bg'].forEach(function(k) {
+      if (vars[k]) root.style.setProperty(k + '-rgb', hexToRgb(vars[k]));
+    });
+  };
+})();
+</script>
+
+<!-- Main logic -->
+<script>
+const params = new URLSearchParams(window.location.search);
+const configuredType = params.get('type') || 'all';
+
+const queue = [];
+let animating = false;
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function handleLeaderboardUpdate(data) {
+  if (data.type !== configuredType) return;
+  if ((!data.changes || data.changes.length === 0) && (!data.entered || data.entered.length === 0)) return;
+  queue.push(data);
+  processQueue();
+}
+
+async function processQueue() {
+  if (animating || queue.length === 0) return;
+  animating = true;
+
+  const data = queue.shift();
+  await playAnimation(data);
+
+  animating = false;
+  processQueue();
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function playAnimation(data) {
+  const container = document.getElementById('alertContainer');
+  const list = document.getElementById('alertList');
+  list.innerHTML = '';
+
+  const changedUsers = new Set((data.changes || []).map(c => c.userName));
+  const enteredUsers = new Set((data.entered || []).map(e => e.userName));
+
+  for (const entry of data.leaderboard) {
+    const el = document.createElement('div');
+    const isChanged = changedUsers.has(entry.userName);
+    const isEntered = enteredUsers.has(entry.userName);
+
+    let classes = `alert-entry rank-${entry.rank}`;
+    if (isChanged) classes += ' changed';
+    if (isEntered) classes += ' entered';
+    el.className = classes;
+
+    let badge = '';
+    if (isEntered) {
+      badge = '<span class="badge new">Neu</span>';
+    } else if (isChanged) {
+      const change = data.changes.find(c => c.userName === entry.userName);
+      if (change) {
+        const arrow = change.changeType === 'up' ? '\u25B2' : '\u25BC';
+        badge = `<span class="badge ${change.changeType}">${arrow}</span>`;
+      }
+    }
+
+    el.innerHTML = `
+      <span class="rank">#${entry.rank}</span>
+      <span class="name">${escapeHtml(entry.userName)}</span>
+      ${badge}
+      <span class="count">${entry.count}</span>
+    `;
+    list.appendChild(el);
+  }
+
+  // Slide in
+  container.classList.remove('slide-out');
+  container.classList.add('visible', 'slide-in');
+
+  // Hold
+  await sleep(5500);
+
+  // Slide out
+  container.classList.remove('slide-in');
+  container.classList.add('slide-out');
+  await sleep(500);
+
+  // Reset
+  container.classList.remove('visible', 'slide-out');
+  list.innerHTML = '';
+}
+
+// WebSocket
+function connectWS() {
+  const ws = new WebSocket('ws://localhost:4000?overlay=1');
+
+  ws.onopen = () => {
+    console.log('[RankChange] WebSocket connected');
+  };
+
+  ws.onmessage = (e) => {
+    try {
+      const msg = JSON.parse(e.data);
+      if (msg.event === 'reward-leaderboard-update') handleLeaderboardUpdate(msg.data);
+      if (msg.event === 'overlay-config' && window.__applyOverlayConfig) window.__applyOverlayConfig(msg.data);
+    } catch {}
+  };
+
+  ws.onclose = () => {
+    console.log('[RankChange] WebSocket closed, reconnecting...');
+    setTimeout(connectWS, 2000);
+  };
+
+  ws.onerror = () => ws.close();
+}
+
+connectWS();
+</script>
+</body>
+</html>
