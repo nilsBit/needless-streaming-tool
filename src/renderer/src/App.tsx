@@ -165,7 +165,7 @@ export default function App() {
   };
 
   if (showOnboarding === null) return null; // Loading
-  if (showOnboarding) return <OnboardingWizard onComplete={() => setShowOnboarding(false)} />;
+  if (showOnboarding) return <ErrorBoundary><OnboardingWizard onComplete={() => setShowOnboarding(false)} /></ErrorBoundary>;
 
   return (
     <div className="app">
