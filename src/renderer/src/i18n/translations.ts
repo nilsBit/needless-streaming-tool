@@ -588,6 +588,10 @@ const translations = {
   'reward_stats.deleted': { de: 'Gelöscht', en: 'Deleted' },
   'reward_stats.save_failed': { de: 'Speichern fehlgeschlagen', en: 'Save failed' },
   'reward_stats.delete_failed': { de: 'Löschen fehlgeschlagen', en: 'Delete failed' },
+
+  // Update check
+  'update.available': { de: 'Neues Update verfügbar', en: 'New update available' },
+  'update.download': { de: 'Herunterladen', en: 'Download' },
 } as const;
 
 export type TranslationKey = keyof typeof translations;

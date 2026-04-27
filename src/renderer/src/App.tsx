@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import ErrorBoundary from './components/ErrorBoundary';
 import OnboardingWizard from './components/OnboardingWizard';
 import { apiFetch, getApiToken, apiGet, apiPost } from './hooks/useApi';
+import { useToast } from './i18n/ToastContext';
 import { useDashboardLayout } from './hooks/useDashboardLayout';
 import { useTranslation } from './i18n/LanguageContext';
 import ChallengePanel from './panels/ChallengePanel';
@@ -64,6 +65,7 @@ type TabKey = keyof typeof TABS;
 
 export default function App() {
   const { t } = useTranslation();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<TabKey>('stream');
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
@@ -113,6 +115,22 @@ export default function App() {
         .catch(() => setShowOnboarding(false));
     }
     checkOnboarding();
+  }, []);
+
+  // Listen for update notifications from main process
+  useEffect(() => {
+    const api = (window as any).electronAPI;
+    if (api?.onUpdateAvailable) {
+      api.onUpdateAvailable((data: { version: string; url: string; name: string }) => {
+        toast.errorAction({
+          message: `${t('update.available')}: v${data.version}`,
+          action: {
+            label: t('update.download'),
+            onClick: () => window.open(data.url, '_blank'),
+          },
+        });
+      });
+    }
   }, []);
 
   const toggleCollapse = (key: string) => {

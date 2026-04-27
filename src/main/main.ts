@@ -5,6 +5,7 @@ import { deleteConnectionFile } from '../server/connection-file';
 import { syncFromRemote, syncToRemoteOnQuit } from '../server/sync';
 import { registerHotkeys, unregisterHotkeys, setHotkeyPort } from './hotkeys';
 import { createTray } from './tray';
+import { checkForUpdates } from './update-check';
 
 let mainWindow: BrowserWindow | null = null;
 let isQuitting = false;
@@ -94,6 +95,11 @@ app.whenReady().then(async () => {
   setHotkeyPort(appPort);
   createWindow();
   registerHotkeys();
+
+  // Check for updates after a short delay (let UI render first)
+  setTimeout(() => {
+    if (mainWindow) checkForUpdates(mainWindow);
+  }, 5000);
 });
 
 app.on('before-quit', () => {
