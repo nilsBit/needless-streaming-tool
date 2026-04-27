@@ -1,8 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 
-const API_BASE = 'http://localhost:4000/api';
+// Extract config from URL hash (set by Electron main process)
+const _hash = window.location.hash.substring(1);
+const _hashParams = new URLSearchParams(_hash);
+const SERVER_PORT = parseInt(_hashParams.get('port') || '4000', 10);
+const API_BASE = `http://localhost:${SERVER_PORT}/api`;
 
-// Extract API token from URL hash (set by Electron main process)
+export function getApiBase(): string { return API_BASE; }
+export function getServerPort(): number { return SERVER_PORT; }
+
 function getToken(): string {
   const hash = window.location.hash.substring(1);
   const params = new URLSearchParams(hash);

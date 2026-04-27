@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { getApiToken } from './useApi';
+import { getApiToken, getServerPort } from './useApi';
 
 type MessageHandler = (event: string, data: unknown) => void;
 
@@ -17,7 +17,7 @@ export function useWebSocket(onMessage: MessageHandler) {
       if (disposed) return;
 
       const token = getApiToken();
-      ws = new WebSocket(`ws://localhost:4000?token=${token}`);
+      ws = new WebSocket(`ws://localhost:${getServerPort()}?token=${token}`);
 
       ws.onopen = () => {
         attempts = 0;
