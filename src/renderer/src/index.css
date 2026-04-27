@@ -1533,7 +1533,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   white-space: nowrap;
 }
 .input-row button:hover { border-color: #e67e22; color: #e67e22; }
-.input-row button:disabled { opacity: 0.5; cursor: not-allowed; }
+.input-row button:disabled { opacity: 0.4; cursor: not-allowed; }
 .input-row button:disabled:hover { border-color: #444; color: #ccc; }
 
 .onboarding-check {
@@ -1651,7 +1651,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   cursor: pointer;
 }
 .btn-primary:hover { background: #d35400; }
-.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn-primary:disabled:hover { background: #e67e22; }
 
 .btn-large { padding: 14px 32px; font-size: 16px; }

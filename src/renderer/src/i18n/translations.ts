@@ -76,8 +76,6 @@ const translations = {
   'onboarding.connect_failed': { de: 'Verbindung fehlgeschlagen', en: 'Connection failed' },
   'onboarding.install_failed': { de: 'Installation fehlgeschlagen', en: 'Installation failed' },
   'onboarding.loading': { de: 'Laden...', en: 'Loading...' },
-  'onboarding.connected': { de: 'Verbunden', en: 'Connected' },
-  'onboarding.not_connected': { de: 'Nicht verbunden', en: 'Not connected' },
 
   // Twitch Step
   'twitch.title': { de: 'Twitch verbinden', en: 'Connect Twitch' },

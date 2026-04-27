@@ -13,19 +13,23 @@ const PROFILES: { key: ProfileKey; emoji: string; titleKey: TranslationKey; desc
   { key: 'all', emoji: '⚙️', titleKey: 'profile.all', descKey: 'profile.all_desc' },
 ];
 
-export default function ProfileStep({ onNext }: { onNext: () => void }) {
+export default function ProfileStep() {
   const { t } = useTranslation();
   const { toast } = useToast();
   const [selected, setSelected] = useState<ProfileKey>('all');
+  const [saving, setSaving] = useState(false);
 
   const selectProfile = async (key: ProfileKey) => {
+    if (key === selected || saving) return;
     setSelected(key);
+    setSaving(true);
     try {
       await apiPost('/settings/set', { key: 'stream_profile', value: key });
       applyProfilePreset(key);
     } catch {
       toast.error(t('onboarding.save_failed'));
     }
+    setSaving(false);
   };
 
   return (

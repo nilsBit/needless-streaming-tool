@@ -55,7 +55,7 @@ export default function OnboardingWizard({ onComplete }: { onComplete: () => voi
         {/* Step content */}
         <div className="step-content">
           {step === 0 && <LanguageStep onNext={next} />}
-          {step === 1 && <ProfileStep onNext={next} />}
+          {step === 1 && <ProfileStep />}
           {step === 2 && <WelcomeStep />}
           {step === 3 && <TwitchStep />}
           {step === 4 && <ObsStep />}
