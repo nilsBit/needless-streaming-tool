@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useApi, apiFetch } from '../../hooks/useApi';
+import { useApi, apiFetch, getServerPort } from '../../hooks/useApi';
 import { useWebSocket } from '../../hooks/useWebSocket';
 import { BotStatus } from '../../../../shared/types';
 import { useTranslation } from '../../i18n/LanguageContext';
@@ -62,7 +62,7 @@ export default function TwitchStep() {
 
           <div className="onboarding-info-box">
             <div className="info-row"><span className="info-label">Name:</span><span>{t('twitch.name_hint')}</span></div>
-            <div className="info-row"><span className="info-label">OAuth Redirect URL:</span><span className="info-mono">http://localhost:4000/auth/twitch/callback</span></div>
+            <div className="info-row"><span className="info-label">OAuth Redirect URL:</span><span className="info-mono">http://localhost:{getServerPort()}/auth/twitch/callback</span></div>
             <div className="info-row"><span className="info-label">Category:</span><span>{t('twitch.category')}</span></div>
           </div>
 

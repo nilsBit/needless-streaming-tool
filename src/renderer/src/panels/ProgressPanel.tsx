@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useApi, apiGet, apiPost, apiPatch, apiDelete, apiFetch, getApiToken } from '../hooks/useApi';
+import { useApi, apiGet, apiPost, apiPatch, apiDelete, apiFetch, getApiToken, getApiBase } from '../hooks/useApi';
 import { ProjectItem, StreamState, Milestone } from '../../../shared/types';
 import { useWebSocket } from '../hooks/useWebSocket';
 import ChatCommands from '../components/ChatCommands';
@@ -211,7 +211,7 @@ export default function ProgressPanel() {
 
   const exportCsv = () => {
     const token = getApiToken();
-    window.open(`http://localhost:4000/api/progress/export?token=${token}`, '_blank');
+    window.open(`${getApiBase()}/progress/export?token=${token}`, '_blank');
   };
 
   // Drag-and-drop handlers

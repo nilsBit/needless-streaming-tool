@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useApi, apiGet, apiPost, apiFetch, getApiToken } from '../hooks/useApi';
+import { useApi, apiGet, apiPost, apiFetch, getApiToken, getServerPort } from '../hooks/useApi';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { TwitchConfigResponse, BotStatus } from '../../../shared/types';
 import { useTranslation } from '../i18n/LanguageContext';
@@ -651,7 +651,7 @@ export default function SettingsPanel() {
             <p className="empty">{t('settings.token_loading')}</p>
           )}
           <div className="api-endpoints mt-8">
-            <p className="setup-info">Base URL: <code>http://localhost:4000/api</code></p>
+            <p className="setup-info">Base URL: <code>http://localhost:{getServerPort()}/api</code></p>
             <p className="setup-info">Header: <code>Authorization: Bearer &lt;token&gt;</code></p>
           </div>
         </div>

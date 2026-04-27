@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { useApi, apiPost, apiDelete, apiPatch, getApiToken } from '../hooks/useApi';
+import { useApi, apiPost, apiDelete, apiPatch, getApiToken, getApiBase } from '../hooks/useApi';
 import { useTranslation } from '../i18n/LanguageContext';
 import { useToast } from '../i18n/ToastContext';
 import ClipSyncBadge, { SyncState } from '../components/ClipSyncBadge';
@@ -111,7 +111,7 @@ export default function ClipsPanel() {
 
   const exportDay = (sessionDate: string) => {
     const token = getApiToken();
-    window.open(`http://localhost:4000/api/clips/export?session_date=${sessionDate}&token=${token}`, '_blank');
+    window.open(`${getApiBase()}/clips/export?session_date=${sessionDate}&token=${token}`, '_blank');
   };
 
   const toggleDay = (date: string) => {
