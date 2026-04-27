@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { getDb } from '../db/index';
+import { checkAndBroadcast } from '../reward-leaderboard';
 
 const router = Router();
 
@@ -66,15 +67,23 @@ router.post('/', (req, res) => {
     res.status(400).json({ error: 'user_name, reward_type, and count are required' });
     return;
   }
-  const normalizedName = user_name.trim().toLowerCase();
+  const normalizedName = String(user_name).trim().toLowerCase().slice(0, 100);
+  const normalizedType = String(reward_type).trim().slice(0, 100);
+  const numCount = Math.max(0, Math.floor(Number(count)));
+  if (!normalizedName || !normalizedType || !Number.isFinite(numCount)) {
+    res.status(400).json({ error: 'Invalid input values' });
+    return;
+  }
   const db = getDb();
   db.prepare(`
     INSERT INTO reward_stats (user_name, reward_type, count, last_redeemed_at)
     VALUES (?, ?, ?, CURRENT_TIMESTAMP)
     ON CONFLICT(user_name, reward_type)
     DO UPDATE SET count = ?, last_redeemed_at = CURRENT_TIMESTAMP
-  `).run(normalizedName, reward_type.trim(), Number(count), Number(count));
+  `).run(normalizedName, normalizedType, numCount, numCount);
 
+  checkAndBroadcast('all');
+  checkAndBroadcast(normalizedType);
   res.json({ ok: true });
 });
 
@@ -82,6 +91,8 @@ router.post('/', (req, res) => {
 router.delete('/:username/:type', (req, res) => {
   const { username, type } = req.params;
   getDb().prepare('DELETE FROM reward_stats WHERE user_name = ? AND reward_type = ?').run(username, type);
+  checkAndBroadcast('all');
+  checkAndBroadcast(type);
   res.json({ ok: true });
 });
 

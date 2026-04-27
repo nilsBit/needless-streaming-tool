@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useApi, apiGet, apiPost, apiDelete } from '../hooks/useApi';
 import { useWebSocket } from '../hooks/useWebSocket';
+import { useTranslation } from '../i18n/LanguageContext';
+import { useToast } from '../i18n/ToastContext';
 
 interface StatRow {
   user_name: string;
@@ -28,6 +30,8 @@ type View = 'leaderboard' | 'log';
 const DEBOUNCE_MS = 2000;
 
 export default function RewardStatsPanel() {
+  const { t } = useTranslation();
+  const { toast } = useToast();
   const [view, setView] = useState<View>('leaderboard');
   const [typeFilter, setTypeFilter] = useState('');
   const [userFilter, setUserFilter] = useState('');
@@ -119,7 +123,9 @@ export default function RewardStatsPanel() {
 
   const handleAdd = async () => {
     if (!addUser.trim() || !addType.trim() || !addCount.trim()) return;
-    await apiPost('/reward-stats', { user_name: addUser.trim(), reward_type: addType.trim(), count: Number(addCount) });
+    const result = await apiPost('/reward-stats', { user_name: addUser.trim(), reward_type: addType.trim(), count: Number(addCount) });
+    if (!result) { toast.error(t('reward_stats.save_failed')); return; }
+    toast.info(t('reward_stats.saved'));
     setAddUser(''); setAddType(''); setAddCount('');
     setShowAddForm(false);
     refetch(); fetchTypes();
@@ -127,13 +133,17 @@ export default function RewardStatsPanel() {
 
   const handleEdit = async (userName: string, rewardType: string) => {
     if (!editCount.trim()) return;
-    await apiPost('/reward-stats', { user_name: userName, reward_type: rewardType, count: Number(editCount) });
+    const result = await apiPost('/reward-stats', { user_name: userName, reward_type: rewardType, count: Number(editCount) });
+    if (!result) { toast.error(t('reward_stats.save_failed')); return; }
+    toast.info(t('reward_stats.saved'));
     setEditingRow(null); setEditCount('');
     refetch();
   };
 
   const handleDelete = async (userName: string, rewardType: string) => {
-    await apiDelete(`/reward-stats/${encodeURIComponent(userName)}/${encodeURIComponent(rewardType)}`);
+    const ok = await apiDelete(`/reward-stats/${encodeURIComponent(userName)}/${encodeURIComponent(rewardType)}`);
+    if (!ok) { toast.error(t('reward_stats.delete_failed')); return; }
+    toast.info(t('reward_stats.deleted'));
     refetch(); fetchTypes();
   };
 
@@ -142,25 +152,25 @@ export default function RewardStatsPanel() {
   return (
     <div className="panel reward-stats-panel">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-        <h2>🏆 Reward Stats</h2>
+        <h2>🏆 {t('reward_stats.title')}</h2>
         <div style={{ display: 'flex', gap: 8 }}>
           <button
             className={`tab-btn ${view === 'leaderboard' ? 'active' : ''}`}
             onClick={() => setView('leaderboard')}
           >
-            Leaderboard
+            {t('reward_stats.leaderboard')}
           </button>
           <button
             className={`tab-btn ${view === 'log' ? 'active' : ''}`}
             onClick={() => { setView('log'); setLogOffset(0); }}
           >
-            Log
+            {t('reward_stats.log')}
           </button>
           <button
             onClick={() => setShowAddForm(!showAddForm)}
             style={{ padding: '4px 10px', background: showAddForm ? '#333' : '#1a1a1a', border: '1px solid #444', borderRadius: 4, color: '#ccc', cursor: 'pointer', fontSize: 12 }}
           >
-            + Nachtragen
+            {t('reward_stats.add_manual')}
           </button>
         </div>
       </div>
@@ -172,7 +182,7 @@ export default function RewardStatsPanel() {
           onChange={(e) => { setTypeFilter(e.target.value); setLogOffset(0); }}
           style={{ padding: '4px 8px', background: '#1a1a1a', border: '1px solid #333', borderRadius: 4, color: '#ccc', fontSize: 12 }}
         >
-          <option value="">Alle Typen</option>
+          <option value="">{t('reward_stats.all_types')}</option>
           {types.map((t) => (
             <option key={t} value={t}>{t}</option>
           ))}
@@ -180,7 +190,7 @@ export default function RewardStatsPanel() {
         {view === 'log' && (
           <input
             type="text"
-            placeholder="Username suchen..."
+            placeholder={t('reward_stats.search_user')}
             value={userFilter}
             onChange={(e) => { setUserFilter(e.target.value); setLogOffset(0); }}
             style={{ padding: '4px 8px', background: '#1a1a1a', border: '1px solid #333', borderRadius: 4, color: '#ccc', fontSize: 12, flex: 1 }}
@@ -192,14 +202,14 @@ export default function RewardStatsPanel() {
         <div style={{ marginBottom: 12, padding: 10, background: '#1a1a1a', border: '1px solid #333', borderRadius: 6, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           <input
             type="text"
-            placeholder="Username"
+            placeholder={t('reward_stats.username')}
             value={addUser}
             onChange={(e) => setAddUser(e.target.value)}
             style={{ padding: '4px 8px', background: '#111', border: '1px solid #333', borderRadius: 4, color: '#ccc', fontSize: 12, width: 140 }}
           />
           <input
             type="text"
-            placeholder="Reward-Typ"
+            placeholder={t('reward_stats.reward_type')}
             value={addType}
             onChange={(e) => setAddType(e.target.value)}
             list="reward-types"
@@ -210,7 +220,7 @@ export default function RewardStatsPanel() {
           </datalist>
           <input
             type="number"
-            placeholder="Anzahl"
+            placeholder={t('reward_stats.count')}
             value={addCount}
             onChange={(e) => setAddCount(e.target.value)}
             min="0"
@@ -221,7 +231,7 @@ export default function RewardStatsPanel() {
             disabled={!addUser.trim() || !addType.trim() || !addCount.trim()}
             style={{ padding: '4px 12px', background: '#2d5a27', border: '1px solid #3a7a33', borderRadius: 4, color: '#ccc', cursor: 'pointer', fontSize: 12 }}
           >
-            Speichern
+            {t('reward_stats.save')}
           </button>
         </div>
       )}
@@ -229,18 +239,18 @@ export default function RewardStatsPanel() {
       {view === 'leaderboard' && (
         <div>
           {loading ? (
-            <p style={{ color: '#666' }}>Laden...</p>
+            <p style={{ color: '#666' }}>{t('reward_stats.loading')}</p>
           ) : !sorted || sorted.length === 0 ? (
-            <p style={{ color: '#666' }}>Noch keine Reward-Daten vorhanden.</p>
+            <p style={{ color: '#666' }}>{t('reward_stats.no_data')}</p>
           ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #333', color: '#888' }}>
                   <th style={{ textAlign: 'left', padding: '6px 8px' }}>#</th>
-                  <th style={{ textAlign: 'left', ...thStyle }} onClick={() => toggleSort('user_name')}>User{sortIcon('user_name')}</th>
-                  {typeFilter && <th style={{ textAlign: 'left', padding: '6px 8px' }}>Typ</th>}
-                  <th style={{ textAlign: 'right', ...thStyle }} onClick={() => toggleSort('count')}>Anzahl{sortIcon('count')}</th>
-                  <th style={{ textAlign: 'right', ...thStyle }} onClick={() => toggleSort('last_redeemed_at')}>Letztes Mal{sortIcon('last_redeemed_at')}</th>
+                  <th style={{ textAlign: 'left', ...thStyle }} onClick={() => toggleSort('user_name')}>{t('reward_stats.user')}{sortIcon('user_name')}</th>
+                  {typeFilter && <th style={{ textAlign: 'left', padding: '6px 8px' }}>{t('reward_stats.type')}</th>}
+                  <th style={{ textAlign: 'right', ...thStyle }} onClick={() => toggleSort('count')}>{t('reward_stats.count')}{sortIcon('count')}</th>
+                  <th style={{ textAlign: 'right', ...thStyle }} onClick={() => toggleSort('last_redeemed_at')}>{t('reward_stats.last_redeemed')}{sortIcon('last_redeemed_at')}</th>
                   {typeFilter && <th style={{ textAlign: 'right', padding: '6px 8px' }}></th>}
                 </tr>
               </thead>
@@ -283,12 +293,12 @@ export default function RewardStatsPanel() {
                         <button
                           onClick={() => { setEditingRow({ user_name: row.user_name, reward_type: row.reward_type || '' }); setEditCount(String(row.count)); }}
                           style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: 11, marginRight: 4 }}
-                          title="Bearbeiten"
+                          title={t('reward_stats.edit')}
                         >✎</button>
                         <button
-                          onClick={() => { if (confirm(`"${row.user_name}" (${row.reward_type}) wirklich löschen?`)) handleDelete(row.user_name, row.reward_type || ''); }}
+                          onClick={() => { if (confirm(`"${row.user_name}" (${row.reward_type}) ${t('reward_stats.confirm_delete')}`)) handleDelete(row.user_name, row.reward_type || ''); }}
                           style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', fontSize: 11 }}
-                          title="Löschen"
+                          title={t('reward_stats.delete')}
                         >🗑</button>
                       </td>
                     )}
@@ -304,18 +314,18 @@ export default function RewardStatsPanel() {
       {view === 'log' && (
         <div>
           {!logData ? (
-            <p style={{ color: '#666' }}>Laden...</p>
+            <p style={{ color: '#666' }}>{t('reward_stats.loading')}</p>
           ) : logData.items.length === 0 ? (
-            <p style={{ color: '#666' }}>Keine Einträge gefunden.</p>
+            <p style={{ color: '#666' }}>{t('reward_stats.no_entries')}</p>
           ) : (
             <>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid #333', color: '#888' }}>
-                    <th style={{ textAlign: 'left', padding: '6px 8px' }}>Zeit</th>
-                    <th style={{ textAlign: 'left', padding: '6px 8px' }}>User</th>
-                    <th style={{ textAlign: 'left', padding: '6px 8px' }}>Reward</th>
-                    <th style={{ textAlign: 'left', padding: '6px 8px' }}>Input</th>
+                    <th style={{ textAlign: 'left', padding: '6px 8px' }}>{t('reward_stats.time')}</th>
+                    <th style={{ textAlign: 'left', padding: '6px 8px' }}>{t('reward_stats.user')}</th>
+                    <th style={{ textAlign: 'left', padding: '6px 8px' }}>{t('reward_stats.reward')}</th>
+                    <th style={{ textAlign: 'left', padding: '6px 8px' }}>{t('reward_stats.input')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -334,21 +344,21 @@ export default function RewardStatsPanel() {
                 </tbody>
               </table>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, fontSize: 11, color: '#666' }}>
-                <span>{logData.total} Einträge</span>
+                <span>{logData.total} {t('reward_stats.entries')}</span>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button
                     disabled={logOffset === 0}
                     onClick={() => setLogOffset(Math.max(0, logOffset - 50))}
                     style={{ padding: '2px 8px', background: '#1a1a1a', border: '1px solid #333', borderRadius: 4, color: '#ccc', cursor: 'pointer', fontSize: 11 }}
                   >
-                    ← Zurück
+                    {t('reward_stats.back')}
                   </button>
                   <button
                     disabled={logOffset + 50 >= logData.total}
                     onClick={() => setLogOffset(logOffset + 50)}
                     style={{ padding: '2px 8px', background: '#1a1a1a', border: '1px solid #333', borderRadius: 4, color: '#ccc', cursor: 'pointer', fontSize: 11 }}
                   >
-                    Weiter →
+                    {t('reward_stats.next')}
                   </button>
                 </div>
               </div>

@@ -18,36 +18,41 @@ let initialized = false;
  * type="all" aggregates across all reward types.
  */
 function queryTop(type: string, limit = 3): LeaderboardEntry[] {
-  const db = getDb();
-  let rows: Array<{ user_name: string; count: number }>;
+  try {
+    const db = getDb();
+    let rows: Array<{ user_name: string; count: number }>;
 
-  if (type === 'all') {
-    rows = db
-      .prepare(
-        `SELECT user_name, SUM(count) as count
-         FROM reward_stats
-         GROUP BY user_name
-         ORDER BY count DESC, user_name ASC
-         LIMIT ?`
-      )
-      .all(limit) as Array<{ user_name: string; count: number }>;
-  } else {
-    rows = db
-      .prepare(
-        `SELECT user_name, count
-         FROM reward_stats
-         WHERE reward_type = ?
-         ORDER BY count DESC, user_name ASC
-         LIMIT ?`
-      )
-      .all(type, limit) as Array<{ user_name: string; count: number }>;
+    if (type === 'all') {
+      rows = db
+        .prepare(
+          `SELECT user_name, SUM(count) as count
+           FROM reward_stats
+           GROUP BY user_name
+           ORDER BY count DESC, user_name ASC
+           LIMIT ?`
+        )
+        .all(limit) as Array<{ user_name: string; count: number }>;
+    } else {
+      rows = db
+        .prepare(
+          `SELECT user_name, count
+           FROM reward_stats
+           WHERE reward_type = ?
+           ORDER BY count DESC, user_name ASC
+           LIMIT ?`
+        )
+        .all(type, limit) as Array<{ user_name: string; count: number }>;
+    }
+
+    return rows.map((row, i) => ({
+      rank: i + 1,
+      userName: row.user_name,
+      count: Number(row.count),
+    }));
+  } catch (err) {
+    console.error('[Leaderboard] queryTop failed:', err);
+    return [];
   }
-
-  return rows.map((row, i) => ({
-    rank: i + 1,
-    userName: row.user_name,
-    count: Number(row.count),
-  }));
 }
 
 /**
@@ -93,20 +98,25 @@ function detectChanges(
  * Initialize cache from DB. Must be called before connectEventSub().
  */
 export function initRewardLeaderboard(): void {
-  // Load "all" type
-  cache.set('all', queryTop('all'));
+  try {
+    // Load "all" type
+    cache.set('all', queryTop('all'));
 
-  // Load each known reward type
-  const types = getDb()
-    .prepare('SELECT DISTINCT reward_type FROM reward_stats')
-    .all() as Array<{ reward_type: string }>;
+    // Load each known reward type
+    const types = getDb()
+      .prepare('SELECT DISTINCT reward_type FROM reward_stats')
+      .all() as Array<{ reward_type: string }>;
 
-  for (const { reward_type } of types) {
-    cache.set(reward_type, queryTop(reward_type));
+    for (const { reward_type } of types) {
+      cache.set(reward_type, queryTop(reward_type));
+    }
+
+    initialized = true;
+    console.log('[Leaderboard] Initialized with', cache.size, 'type(s)');
+  } catch (err) {
+    console.error('[Leaderboard] Init failed:', err);
+    initialized = true; // still mark as initialized to not block broadcasts
   }
-
-  initialized = true;
-  console.log('[Leaderboard] Initialized with', cache.size, 'type(s)');
 }
 
 /**

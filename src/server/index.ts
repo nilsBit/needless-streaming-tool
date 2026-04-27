@@ -57,9 +57,10 @@ export async function startServer(): Promise<string> {
   app.use(express.json({ limit: '100kb' }));
   app.use(rateLimit);
 
-  // CSP für Overlays
-  app.use('/overlay', (_req, res, next) => {
-    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src ws://localhost:4000 http://localhost:4000");
+  // CSP für Overlays — dynamic based on request host
+  app.use('/overlay', (req, res, next) => {
+    const host = req.headers.host || 'localhost:4000';
+    res.setHeader('Content-Security-Policy', `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src ws://${host} http://${host} wss://${host} https://${host}`);
     next();
   });
 

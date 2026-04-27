@@ -106,13 +106,16 @@ body {
 <script>
 (function() {
   var name = 'reward-leaderboard';
+  var origin = window.location.origin || '' + origin + '';
+  window.__overlayOrigin = origin;
+  window.__overlayWs = origin.replace(/^http/, 'ws');
   function hexToRgb(hex) {
     hex = hex.replace('#','');
     if (hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
     var n = parseInt(hex, 16);
     return ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255);
   }
-  fetch('http://localhost:4000/public/overlay-config')
+  fetch('' + origin + '/public/overlay-config')
     .then(function(r) { return r.json(); })
     .then(function(config) {
       var vars = Object.assign({}, config.global || {}, (config.overrides || {})[name] || {});
@@ -154,7 +157,7 @@ let fallbackInterval = null;
 
 async function fetchLeaderboard() {
   try {
-    const res = await fetch(`http://localhost:4000/public/reward-stats/top?type=${configuredType}&limit=3`);
+    const res = await fetch(`${window.__overlayOrigin}/public/reward-stats/top?type=${configuredType}&limit=3`);
     const data = await res.json();
     leaderboard = data.leaderboard || [];
     render();
@@ -229,7 +232,7 @@ function stopFallbackPolling() {
 
 // WebSocket
 function connectWS() {
-  const ws = new WebSocket('ws://localhost:4000?overlay=1');
+  const ws = new WebSocket(`${window.__overlayWs}?overlay=1`);
 
   ws.onopen = () => {
     console.log('[Leaderboard] WebSocket connected');
