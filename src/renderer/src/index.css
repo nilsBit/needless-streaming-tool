@@ -1533,6 +1533,8 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   white-space: nowrap;
 }
 .input-row button:hover { border-color: #e67e22; color: #e67e22; }
+.input-row button:disabled { opacity: 0.5; cursor: not-allowed; }
+.input-row button:disabled:hover { border-color: #444; color: #ccc; }
 
 .onboarding-check {
   padding: 10px 14px;
@@ -1649,6 +1651,8 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   cursor: pointer;
 }
 .btn-primary:hover { background: #d35400; }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-primary:disabled:hover { background: #e67e22; }
 
 .btn-large { padding: 14px 32px; font-size: 16px; }
 
@@ -1951,6 +1955,9 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 [data-theme="light"] .setup-instruction { background: var(--bg-panel); border-color: var(--border); color: var(--text); }
 [data-theme="light"] .lang-btn { background: var(--bg-panel); border-color: var(--border); color: var(--text-secondary); }
 [data-theme="light"] .lang-btn:hover { border-color: #999; }
+[data-theme="light"] .onboarding-check { background: rgba(46, 204, 113, 0.15); border-color: #27ae60; color: #27ae60; }
+[data-theme="light"] .done-item-missing { border-color: rgba(231, 76, 60, 0.4); background: rgba(231, 76, 60, 0.08); }
+[data-theme="light"] .step-warning { color: #c0392b; background: rgba(231, 76, 60, 0.08); border-color: rgba(231, 76, 60, 0.3); }
 [data-theme="light"] .lang-btn.active { background: rgba(230,126,34,0.1); border-color: var(--accent); color: var(--accent); }
 
 /* Scrollbar */

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from '../../i18n/LanguageContext';
 
-export default function WelcomeStep({ onNext }: { onNext: () => void }) {
+export default function WelcomeStep() {
   const { t } = useTranslation();
   return (
     <div className="onboarding-step welcome-step">
@@ -13,7 +13,6 @@ export default function WelcomeStep({ onNext }: { onNext: () => void }) {
       <p className="welcome-sub">
         {t('onboarding.welcome_sub')}
       </p>
-      <button className="btn-primary" onClick={onNext}>{t('onboarding.start_setup')}</button>
     </div>
   );
 }

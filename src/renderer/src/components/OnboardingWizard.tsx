@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { apiPost } from '../hooks/useApi';
+import { useToast } from '../i18n/ToastContext';
 import WelcomeStep from './onboarding/WelcomeStep';
 import TwitchStep from './onboarding/TwitchStep';
 import ObsStep from './onboarding/ObsStep';
@@ -21,13 +22,18 @@ const SKIPPABLE = new Set([5, 7]); // Notion, Stream Deck
 export default function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
   const [step, setStep] = useState(0);
   const { t } = useTranslation();
+  const { toast } = useToast();
 
   const next = () => setStep((s) => Math.min(s + 1, STEP_KEYS.length - 1));
   const back = () => setStep((s) => Math.max(s - 1, 0));
 
   const finish = async () => {
-    await apiPost('/settings/onboarding', { completed: true });
-    onComplete();
+    try {
+      await apiPost('/settings/onboarding', { completed: true });
+      onComplete();
+    } catch {
+      toast.error(t('onboarding.save_failed'));
+    }
   };
 
   return (
@@ -50,10 +56,10 @@ export default function OnboardingWizard({ onComplete }: { onComplete: () => voi
         <div className="step-content">
           {step === 0 && <LanguageStep onNext={next} />}
           {step === 1 && <ProfileStep onNext={next} />}
-          {step === 2 && <WelcomeStep onNext={next} />}
+          {step === 2 && <WelcomeStep />}
           {step === 3 && <TwitchStep />}
           {step === 4 && <ObsStep />}
-          {step === 5 && <NotionStep />}
+          {step === 5 && <NotionStep onComplete={next} />}
           {step === 6 && <OverlaysStep />}
           {step === 7 && <StreamDeckStep />}
           {step === 8 && <DoneStep onFinish={finish} />}

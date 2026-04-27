@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useTranslation } from '../../i18n/LanguageContext';
 import { apiPost } from '../../hooks/useApi';
+import { useToast } from '../../i18n/ToastContext';
 import { applyProfilePreset, ProfileKey } from '../../hooks/useDashboardLayout';
+import type { TranslationKey } from '../../i18n/translations';
 
-const PROFILES: { key: ProfileKey; emoji: string; titleKey: string; descKey: string }[] = [
+const PROFILES: { key: ProfileKey; emoji: string; titleKey: TranslationKey; descKey: TranslationKey }[] = [
   { key: 'creative', emoji: '🎨', titleKey: 'profile.creative', descKey: 'profile.creative_desc' },
   { key: 'gaming', emoji: '🎮', titleKey: 'profile.gaming', descKey: 'profile.gaming_desc' },
   { key: 'coding', emoji: '💻', titleKey: 'profile.coding', descKey: 'profile.coding_desc' },
@@ -13,12 +15,17 @@ const PROFILES: { key: ProfileKey; emoji: string; titleKey: string; descKey: str
 
 export default function ProfileStep({ onNext }: { onNext: () => void }) {
   const { t } = useTranslation();
+  const { toast } = useToast();
   const [selected, setSelected] = useState<ProfileKey>('all');
 
-  const confirm = async () => {
-    await apiPost('/settings/set', { key: 'stream_profile', value: selected });
-    applyProfilePreset(selected);
-    onNext();
+  const selectProfile = async (key: ProfileKey) => {
+    setSelected(key);
+    try {
+      await apiPost('/settings/set', { key: 'stream_profile', value: key });
+      applyProfilePreset(key);
+    } catch {
+      toast.error(t('onboarding.save_failed'));
+    }
   };
 
   return (
@@ -30,17 +37,14 @@ export default function ProfileStep({ onNext }: { onNext: () => void }) {
           <button
             key={p.key}
             className={`profile-card ${selected === p.key ? 'active' : ''}`}
-            onClick={() => setSelected(p.key)}
+            onClick={() => selectProfile(p.key)}
           >
             <span className="profile-card-emoji">{p.emoji}</span>
-            <span className="profile-card-title">{t(p.titleKey as any)}</span>
-            <span className="profile-card-desc">{t(p.descKey as any)}</span>
+            <span className="profile-card-title">{t(p.titleKey)}</span>
+            <span className="profile-card-desc">{t(p.descKey)}</span>
           </button>
         ))}
       </div>
-      <button className="btn-primary" onClick={confirm} style={{ marginTop: '20px' }}>
-        {t('onboarding.next')}
-      </button>
     </div>
   );
 }
