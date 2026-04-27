@@ -41,7 +41,7 @@ export default function ObsStep() {
       <p className="step-desc">{t('obs.desc')}</p>
 
       <div className="onboarding-status">
-        <span className="status-dot" style={{ background: obsStatus?.connected ? '#2ecc71' : '#e74c3c' }} />
+        <span className="status-dot" style={{ background: obsStatus?.connected ? '#2ecc71' : '#e74c3c' }} aria-hidden="true" />
         <span>{obsStatus?.connected ? t('settings.obs_connected') : t('settings.obs_not_connected')}</span>
       </div>
 

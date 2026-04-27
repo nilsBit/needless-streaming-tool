@@ -52,7 +52,7 @@ export default function TwitchStep() {
       <p className="step-desc">{t('twitch.desc')}</p>
 
       <div className="onboarding-status">
-        <span className="status-dot" style={{ background: botStatus?.connected ? '#2ecc71' : '#e74c3c' }} />
+        <span className="status-dot" style={{ background: botStatus?.connected ? '#2ecc71' : '#e74c3c' }} aria-hidden="true" />
         <span>{botStatus?.connected ? `${t('settings.connected_to')} #${botStatus.channel}` : t('settings.not_connected')}</span>
       </div>
 

@@ -11,7 +11,7 @@ export default function LanguageStep({ onNext }: { onNext: () => void }) {
 
   return (
     <div className="onboarding-step welcome-step">
-      <div className="welcome-icon">🌐</div>
+      <div className="welcome-icon" role="img" aria-label="Language">🌐</div>
       <h1>Sprache / Language</h1>
       <p className="welcome-text">Wähle deine Sprache. / Choose your language.</p>
       <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginTop: '24px' }}>

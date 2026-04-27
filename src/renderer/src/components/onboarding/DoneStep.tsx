@@ -28,7 +28,7 @@ export default function DoneStep({ onFinish }: { onFinish: () => void }) {
 
   return (
     <div className="onboarding-step done-step">
-      <div className="welcome-icon">{canFinish ? '🎉' : '⚠️'}</div>
+      <div className="welcome-icon" role="img" aria-label={canFinish ? 'Ready' : 'Warning'}>{canFinish ? '🎉' : '⚠️'}</div>
       <h2>{canFinish ? t('done.title_ready') : t('done.title_almost')}</h2>
 
       <div className="done-checklist">
