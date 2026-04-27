@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useApi, apiPost, getApiToken } from '../../hooks/useApi';
 import { useTranslation } from '../../i18n/LanguageContext';
+import { useToast } from '../../i18n/ToastContext';
 import CopyButton from '../CopyButton';
 
 export default function StreamDeckStep() {
   const { t } = useTranslation();
+  const { toast } = useToast();
   const { data: fixedTokenData } = useApi<{ token: string | null }>('/settings/api-token');
   const sessionToken = getApiToken();
   const token = fixedTokenData?.token || sessionToken || null;
@@ -17,7 +19,9 @@ export default function StreamDeckStep() {
     try {
       await apiPost('/settings/streamdeck/install', {});
       setInstalled(true);
-    } catch {}
+    } catch {
+      toast.error(t('onboarding.install_failed'));
+    }
     setInstalling(false);
   };
 

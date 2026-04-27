@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApi, apiPost } from '../../hooks/useApi';
 import { useTranslation } from '../../i18n/LanguageContext';
+import { useToast } from '../../i18n/ToastContext';
 import NotionDatabasePicker from '../NotionDatabasePicker';
 
 interface Props {
@@ -9,14 +10,22 @@ interface Props {
 
 export default function NotionStep({ onComplete }: Props) {
   const { t } = useTranslation();
+  const { toast } = useToast();
   const { data: notionInfo, refetch: refetchNotion } = useApi<{ configured: boolean }>('/settings/notion');
   const [token, setToken] = useState('');
+  const [saving, setSaving] = useState(false);
 
   const saveToken = async () => {
     if (!token.trim()) return;
-    await apiPost('/settings/notion', { token: token.trim() });
-    setToken('');
-    refetchNotion();
+    setSaving(true);
+    try {
+      await apiPost('/settings/notion', { token: token.trim() });
+      setToken('');
+      refetchNotion();
+    } catch {
+      toast.error(t('onboarding.save_failed'));
+    }
+    setSaving(false);
   };
 
   return (
@@ -57,8 +66,11 @@ export default function NotionStep({ onComplete }: Props) {
               onChange={(e) => setToken(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && saveToken()}
             />
-            <button onClick={saveToken}>{t('settings.save')}</button>
+            <button onClick={saveToken} disabled={!token.trim() || saving}>
+              {saving ? t('onboarding.loading') : t('settings.save')}
+            </button>
           </div>
+          <p className="step-hint" style={{ fontSize: '11px', marginTop: '4px' }}>{t('notion.token_format_hint')}</p>
 
           <p className="step-hint">{t('notion.share_hint')}</p>
         </>

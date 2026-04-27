@@ -3,6 +3,7 @@ import { useApi, apiFetch, getServerPort } from '../../hooks/useApi';
 import { useWebSocket } from '../../hooks/useWebSocket';
 import { BotStatus } from '../../../../shared/types';
 import { useTranslation } from '../../i18n/LanguageContext';
+import { useToast } from '../../i18n/ToastContext';
 
 interface ClientIdResponse {
   configured: boolean;
@@ -11,9 +12,11 @@ interface ClientIdResponse {
 
 export default function TwitchStep() {
   const { t } = useTranslation();
+  const { toast } = useToast();
   const { data: botStatus, refetch: refetchBot } = useApi<BotStatus>('/settings/bot-status');
   const { data: clientIdInfo, refetch: refetchClientId } = useApi<ClientIdResponse>('/auth/twitch/client-id');
   const [clientId, setClientId] = useState('');
+  const [saving, setSaving] = useState(false);
 
   useWebSocket((event) => {
     if (event === 'bot-status') { refetchBot(); refetchClientId(); }
@@ -21,16 +24,26 @@ export default function TwitchStep() {
 
   const saveClientId = async () => {
     if (!clientId.trim()) return;
-    await apiFetch('/auth/twitch/client-id', {
-      method: 'POST',
-      body: JSON.stringify({ client_id: clientId.trim() }),
-    });
-    setClientId('');
-    refetchClientId();
+    setSaving(true);
+    try {
+      await apiFetch('/auth/twitch/client-id', {
+        method: 'POST',
+        body: JSON.stringify({ client_id: clientId.trim() }),
+      });
+      setClientId('');
+      refetchClientId();
+    } catch {
+      toast.error(t('onboarding.save_failed'));
+    }
+    setSaving(false);
   };
 
   const connectTwitch = async () => {
-    await apiFetch('/auth/twitch/open', { method: 'POST' });
+    try {
+      await apiFetch('/auth/twitch/open', { method: 'POST' });
+    } catch {
+      toast.error(t('onboarding.connect_failed'));
+    }
   };
 
   return (
@@ -85,7 +98,9 @@ export default function TwitchStep() {
               onChange={(e) => setClientId(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && saveClientId()}
             />
-            <button onClick={saveClientId}>{t('settings.save')}</button>
+            <button onClick={saveClientId} disabled={!clientId.trim() || saving}>
+              {saving ? t('onboarding.loading') : t('settings.save')}
+            </button>
           </div>
         </>
       ) : (

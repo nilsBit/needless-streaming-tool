@@ -10,7 +10,7 @@ interface OverlayInfo {
 
 export default function OverlaysStep() {
   const { t } = useTranslation();
-  const { data: overlays } = useApi<OverlayInfo[]>('/overlays/builtin');
+  const { data: overlays, loading } = useApi<OverlayInfo[]>('/overlays/builtin');
 
   return (
     <div className="onboarding-step">
@@ -38,14 +38,18 @@ export default function OverlaysStep() {
 
       <p className="step-desc" style={{ marginTop: '12px' }}>{t('overlays.available')}</p>
 
-      <div className="overlay-list-onboarding">
-        {overlays?.map((o) => (
-          <div key={o.name} className="overlay-item-onboarding">
-            <span>{o.name}</span>
-            <CopyButton text={o.url} />
-          </div>
-        ))}
-      </div>
+      {loading ? (
+        <p className="step-hint">{t('onboarding.loading')}</p>
+      ) : (
+        <div className="overlay-list-onboarding">
+          {overlays?.map((o) => (
+            <div key={o.name} className="overlay-item-onboarding">
+              <span>{o.name}</span>
+              <CopyButton text={o.url} />
+            </div>
+          ))}
+        </div>
+      )}
 
       <p className="step-hint">{t('overlays.hint')}</p>
     </div>

@@ -11,14 +11,18 @@ import LanguageStep from './onboarding/LanguageStep';
 import ProfileStep from './onboarding/ProfileStep';
 import { useTranslation } from '../i18n/LanguageContext';
 
-const STEPS = ['Language', 'Profil', 'Welcome', 'Twitch', 'OBS', 'Notion', 'Overlays', 'Stream Deck', 'Fertig'];
-const SKIPPABLE = new Set([5, 7]); // Notion, Stream Deck (shifted +1 by Profile step)
+const STEP_KEYS = [
+  'onboarding.step.language', 'onboarding.step.profile', 'onboarding.step.welcome',
+  'onboarding.step.twitch', 'onboarding.step.obs', 'onboarding.step.notion',
+  'onboarding.step.overlays', 'onboarding.step.streamdeck', 'onboarding.step.done',
+] as const;
+const SKIPPABLE = new Set([5, 7]); // Notion, Stream Deck
 
 export default function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
   const [step, setStep] = useState(0);
   const { t } = useTranslation();
 
-  const next = () => setStep((s) => Math.min(s + 1, STEPS.length - 1));
+  const next = () => setStep((s) => Math.min(s + 1, STEP_KEYS.length - 1));
   const back = () => setStep((s) => Math.max(s - 1, 0));
 
   const finish = async () => {
@@ -32,11 +36,11 @@ export default function OnboardingWizard({ onComplete }: { onComplete: () => voi
         {/* Step indicator */}
         {step > 0 && (
           <div className="step-indicators">
-            {STEPS.map((label, i) => (
+            {STEP_KEYS.map((key, i) => (
               <div
-                key={label}
+                key={key}
                 className={`step-dot ${i === step ? 'active' : ''} ${i < step ? 'done' : ''}`}
-                title={label}
+                title={t(key)}
               />
             ))}
           </div>
@@ -59,7 +63,7 @@ export default function OnboardingWizard({ onComplete }: { onComplete: () => voi
         {step > 0 && (
           <div className="step-nav">
             <button className="btn-back" onClick={back}>{t('onboarding.back')}</button>
-            {step < STEPS.length - 1 && (
+            {step < STEP_KEYS.length - 1 && (
               <div className="step-nav-right">
                 {SKIPPABLE.has(step) && (
                   <button className="btn-skip" onClick={next}>{t('onboarding.skip')}</button>
