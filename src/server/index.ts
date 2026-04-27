@@ -34,9 +34,14 @@ import { getDb } from './db/index';
 import { rateLimit } from './middleware/rate-limit';
 import { getUserDataPath } from './paths';
 
-const PORT = 4000;
+const parsedPort = parseInt(process.env.NST_PORT || '4000', 10);
+if (isNaN(parsedPort) || parsedPort < 1 || parsedPort > 65535) {
+  throw new Error(`Invalid NST_PORT: ${process.env.NST_PORT}`);
+}
+export const PORT = parsedPort;
+const HOST = process.env.NST_HOST || '127.0.0.1';
 
-export async function startServer(): Promise<string> {
+export async function startServer(): Promise<{ token: string; port: number }> {
   initDatabase();
   const token = generateApiToken();
 
@@ -45,7 +50,9 @@ export async function startServer(): Promise<string> {
   // CORS — muss VOR allen anderen Middleware kommen
   app.use((req, res, next) => {
     const origin = req.headers.origin || '';
-    if (!origin || origin.startsWith('http://localhost:') || origin.startsWith('file://')) {
+    const allowed = !origin || origin.startsWith('http://localhost:') || origin.startsWith('file://') ||
+      (HOST === '0.0.0.0' && /^https?:\/\/\d+\.\d+\.\d+\.\d+/.test(origin));
+    if (allowed) {
       res.header('Access-Control-Allow-Origin', origin || '*');
       res.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
       res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -59,7 +66,7 @@ export async function startServer(): Promise<string> {
 
   // CSP für Overlays — dynamic based on request host
   app.use('/overlay', (req, res, next) => {
-    const host = req.headers.host || 'localhost:4000';
+    const host = req.headers.host || `localhost:${PORT}`;
     res.setHeader('Content-Security-Policy', `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src ws://${host} http://${host} wss://${host} https://${host}`);
     next();
   });
@@ -171,7 +178,7 @@ export async function startServer(): Promise<string> {
 
   server.on('error', (err: NodeJS.ErrnoException) => {
     if (err.code === 'EADDRINUSE') {
-      console.error(`[Server] Port ${PORT} already in use. Close the other instance first.`);
+      console.error(`[Server] ${HOST}:${PORT} already in use. Close the other instance first.`);
     }
   });
 
@@ -191,7 +198,7 @@ export async function startServer(): Promise<string> {
   process.on('SIGINT', shutdown);
 
   return new Promise((resolve) => {
-    server.listen(PORT, () => {
+    server.listen(PORT, HOST, () => {
       console.log(`[Server] Running on http://localhost:${PORT}`);
 
       // Write connection file for Stream Deck plugin auto-discovery
@@ -222,7 +229,7 @@ export async function startServer(): Promise<string> {
         }
       })();
 
-      resolve(token);
+      resolve({ token, port: PORT });
     });
   });
 }
