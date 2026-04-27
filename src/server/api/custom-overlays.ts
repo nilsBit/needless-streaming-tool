@@ -2,6 +2,7 @@ import { Router } from 'express';
 import fs from 'fs';
 import path from 'path';
 import { getUserDataPath } from '../paths';
+import { PORT } from '../index';
 
 const router = Router();
 
@@ -27,7 +28,7 @@ function ensureDir() {
 
 // List all custom overlays
 router.get('/', (req, res) => {
-  const host = req.headers.host || 'localhost:4000';
+  const host = req.headers.host || `localhost:${PORT}`;
   const dir = ensureDir();
   try {
     const entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -50,7 +51,7 @@ router.get('/', (req, res) => {
 
 // Get builtin overlays list (with override status)
 router.get('/builtin', (req, res) => {
-  const host = req.headers.host || 'localhost:4000';
+  const host = req.headers.host || `localhost:${PORT}`;
   const builtinPath = getBuiltinDir();
   const overrideDir = getOverrideDir();
   try {
