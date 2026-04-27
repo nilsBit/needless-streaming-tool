@@ -26,7 +26,8 @@ function ensureDir() {
 }
 
 // List all custom overlays
-router.get('/', (_req, res) => {
+router.get('/', (req, res) => {
+  const host = req.headers.host || 'localhost:4000';
   const dir = ensureDir();
   try {
     const entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -38,7 +39,7 @@ router.get('/', (_req, res) => {
         return {
           name: e.name,
           hasIndex: exists,
-          url: `http://localhost:4000/overlay/custom/${e.name}/index.html`,
+          url: `http://${host}/overlay/custom/${e.name}/index.html`,
         };
       });
     res.json(overlays);
@@ -48,7 +49,8 @@ router.get('/', (_req, res) => {
 });
 
 // Get builtin overlays list (with override status)
-router.get('/builtin', (_req, res) => {
+router.get('/builtin', (req, res) => {
+  const host = req.headers.host || 'localhost:4000';
   const builtinPath = getBuiltinDir();
   const overrideDir = getOverrideDir();
   try {
@@ -59,7 +61,7 @@ router.get('/builtin', (_req, res) => {
         const overridePath = path.join(overrideDir, e.name, 'index.html');
         return {
           name: e.name,
-          url: `http://localhost:4000/overlay/${e.name}/index.html`,
+          url: `http://${host}/overlay/${e.name}/index.html`,
           builtin: true,
           customized: fs.existsSync(overridePath),
         };
@@ -165,7 +167,7 @@ router.post('/', (req, res) => {
   res.json({
     success: true,
     name: safeName,
-    url: `http://localhost:4000/overlay/custom/${safeName}/index.html`,
+    url: `http://${req.headers.host}/overlay/custom/${safeName}/index.html`,
   });
 });
 

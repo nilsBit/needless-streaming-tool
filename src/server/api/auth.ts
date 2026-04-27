@@ -20,28 +20,28 @@ function getClientId(): string | null {
 }
 
 // GET — generate Twitch OAuth URL
-router.get('/twitch/url', (_req, res) => {
+router.get('/twitch/url', (req, res) => {
   const clientId = getClientId();
   if (!clientId) {
     res.status(400).json({ error: 'Client ID not configured. Set it in Settings first.' });
     return;
   }
 
-  const redirectUri = 'http://localhost:4000/auth/twitch/callback';
+  const redirectUri = `http://${req.headers.host}/auth/twitch/callback`;
   const url = `https://id.twitch.tv/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${TWITCH_SCOPES}`;
 
   res.json({ url });
 });
 
 // POST — open Twitch auth in system browser
-router.post('/twitch/open', (_req, res) => {
+router.post('/twitch/open', (req, res) => {
   const clientId = getClientId();
   if (!clientId) {
     res.status(400).json({ success: false, error: 'Client ID not configured' });
     return;
   }
 
-  const redirectUri = 'http://localhost:4000/auth/twitch/callback';
+  const redirectUri = `http://${req.headers.host}/auth/twitch/callback`;
   const url = `https://id.twitch.tv/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${TWITCH_SCOPES}`;
 
   shell.openExternal(url);
