@@ -1,4 +1,4 @@
-export const SCHEMA_VERSION = 15;
+export const SCHEMA_VERSION = 16;
 
 export const SCHEMA = `
 CREATE TABLE IF NOT EXISTS schema_version (
@@ -120,4 +120,8 @@ CREATE TABLE IF NOT EXISTS reward_log (
 
 CREATE INDEX IF NOT EXISTS idx_reward_log_user ON reward_log(user_name);
 CREATE INDEX IF NOT EXISTS idx_reward_log_type ON reward_log(reward_type);
+CREATE INDEX IF NOT EXISTS idx_clips_session_date ON clips(session_date);
+CREATE INDEX IF NOT EXISTS idx_project_items_status ON project_items(status);
+CREATE INDEX IF NOT EXISTS idx_song_requests_status ON song_requests(status);
+CREATE INDEX IF NOT EXISTS idx_todos_parent_id ON todos(parent_id);
 `;

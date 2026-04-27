@@ -31,7 +31,7 @@ import { initRewardLeaderboard, getTopRewards } from './reward-leaderboard';
 import { checkDatabase, healDatabase } from './api/notion-sync';
 import { startSMTC, getAutoDetectSetting } from './integrations/smtc';
 import { getDb } from './db/index';
-import { rateLimit } from './middleware/rate-limit';
+import { rateLimit, publicRateLimit } from './middleware/rate-limit';
 import { getUserDataPath } from './paths';
 
 const parsedPort = parseInt(process.env.NST_PORT || '4000', 10);
@@ -126,7 +126,8 @@ export async function startServer(): Promise<{ token: string; port: number }> {
   // Twitch OAuth callback redirect (no auth needed)
   app.get('/auth/twitch/callback', (req, res) => res.redirect('/api/auth/twitch/callback'));
 
-  // Public read-only endpoints for overlays (no auth needed)
+  // Public read-only endpoints for overlays (no auth needed, stricter rate limit)
+  app.use('/public', publicRateLimit);
   app.get('/public/stream-state', (_req, res) => {
     const state = getDb().prepare('SELECT * FROM stream_state WHERE id = 1').get();
     res.json(state);

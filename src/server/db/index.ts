@@ -126,6 +126,14 @@ function runMigrations(from: number, to: number) {
     console.log('[DB] Migrated: added milestone_id to todos, project_id to milestones');
   }
 
+  if (from < 16) {
+    try { db.exec('CREATE INDEX IF NOT EXISTS idx_clips_session_date ON clips(session_date)'); } catch {}
+    try { db.exec('CREATE INDEX IF NOT EXISTS idx_project_items_status ON project_items(status)'); } catch {}
+    try { db.exec('CREATE INDEX IF NOT EXISTS idx_song_requests_status ON song_requests(status)'); } catch {}
+    try { db.exec('CREATE INDEX IF NOT EXISTS idx_todos_parent_id ON todos(parent_id)'); } catch {}
+    console.log('[DB] Migrated: added performance indexes');
+  }
+
   db.prepare('INSERT OR REPLACE INTO schema_version (version) VALUES (?)').run(to);
   console.log(`[DB] Migrated from v${from} to v${to}`);
 }
