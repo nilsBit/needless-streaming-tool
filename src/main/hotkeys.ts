@@ -3,11 +3,17 @@ import http from 'http';
 import { getApiToken } from '../server/auth-token';
 import { HotkeyConfig, DEFAULT_HOTKEYS } from '../shared/types';
 
+let serverPort = 4000;
+
+export function setHotkeyPort(port: number) {
+  serverPort = port;
+}
+
 function apiCall(method: string, path: string, body?: unknown) {
   const data = body ? JSON.stringify(body) : undefined;
   const options: http.RequestOptions = {
     hostname: 'localhost',
-    port: 4000,
+    port: serverPort,
     path,
     method,
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getApiToken()}` },
@@ -21,7 +27,7 @@ function apiCall(method: string, path: string, body?: unknown) {
 
 function apiGet(path: string): Promise<unknown> {
   return new Promise((resolve, reject) => {
-    http.get(`http://localhost:4000${path}`, { headers: { 'Authorization': `Bearer ${getApiToken()}` } }, (res) => {
+    http.get(`http://localhost:${serverPort}${path}`, { headers: { 'Authorization': `Bearer ${getApiToken()}` } }, (res) => {
       let data = '';
       res.on('data', (c) => data += c);
       res.on('end', () => {

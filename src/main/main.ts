@@ -3,12 +3,13 @@ import path from 'path';
 import { startServer } from '../server/index';
 import { deleteConnectionFile } from '../server/connection-file';
 import { syncFromRemote, syncToRemoteOnQuit } from '../server/sync';
-import { registerHotkeys, unregisterHotkeys } from './hotkeys';
+import { registerHotkeys, unregisterHotkeys, setHotkeyPort } from './hotkeys';
 import { createTray } from './tray';
 
 let mainWindow: BrowserWindow | null = null;
 let isQuitting = false;
 let apiToken: string = '';
+let appPort: number = 4000;
 
 const isDev = !app.isPackaged;
 
@@ -41,10 +42,10 @@ function createWindow() {
 
   // Pass API token to renderer via URL hash (not visible in server logs)
   if (isDev) {
-    mainWindow.loadURL(`http://localhost:5173#token=${apiToken}`);
+    mainWindow.loadURL(`http://localhost:5173#token=${apiToken}&port=${appPort}`);
   } else {
     mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'), {
-      hash: `token=${apiToken}`,
+      hash: `token=${apiToken}&port=${appPort}`,
     });
   }
 
@@ -87,7 +88,10 @@ app.whenReady().then(async () => {
     console.log('[Sync] Database updated from remote');
   }
 
-  apiToken = await startServer();
+  const serverResult = await startServer();
+  apiToken = serverResult.token;
+  appPort = serverResult.port;
+  setHotkeyPort(appPort);
   createWindow();
   registerHotkeys();
 });
