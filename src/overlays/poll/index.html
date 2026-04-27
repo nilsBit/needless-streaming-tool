@@ -190,6 +190,9 @@
   <script>
 (function() {
   var name = 'poll';
+  var origin = window.location.origin || 'http://localhost:4000';
+  window.__overlayOrigin = origin;
+  window.__overlayWs = origin.replace(/^http/, 'ws');
   document.documentElement.style.visibility = 'hidden';
   function hexToRgb(hex) {
     var r = parseInt(hex.slice(1,3), 16);
@@ -197,7 +200,7 @@
     var b = parseInt(hex.slice(5,7), 16);
     return r + ' ' + g + ' ' + b;
   }
-  fetch('http://localhost:4000/public/overlay-config')
+  fetch(origin + '/public/overlay-config')
     .then(function(r) { return r.json(); })
     .then(function(config) {
       var vars = Object.assign({}, config.global || {}, (config.overrides || {})[name] || {});
@@ -228,7 +231,7 @@
 })();
 </script>
   <script>
-    const ws = new WebSocket('ws://localhost:4000?overlay=1');
+    const ws = new WebSocket(`${window.__overlayWs}?overlay=1`);
     const poll = document.getElementById('poll');
     const pollTitle = document.getElementById('poll-title');
     const optionsEl = document.getElementById('options');

@@ -172,7 +172,7 @@ body {
 <script>
 (function() {
   var name = 'reward-rankchange';
-  var origin = window.location.origin || 'http://localhost:4000';
+  var origin = window.location.origin;
   window.__overlayOrigin = origin;
   window.__overlayWs = origin.replace(/^http/, 'ws');
   function hexToRgb(hex) {

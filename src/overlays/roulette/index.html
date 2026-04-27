@@ -269,6 +269,9 @@
 <script>
 (function() {
   var name = 'roulette';
+  var origin = window.location.origin || 'http://localhost:4000';
+  window.__overlayOrigin = origin;
+  window.__overlayWs = origin.replace(/^http/, 'ws');
   document.documentElement.style.visibility = 'hidden';
   function hexToRgb(hex) {
     var r = parseInt(hex.slice(1,3), 16);
@@ -276,7 +279,7 @@
     var b = parseInt(hex.slice(5,7), 16);
     return r + ' ' + g + ' ' + b;
   }
-  fetch('http://localhost:4000/public/overlay-config')
+  fetch(origin + '/public/overlay-config')
     .then(function(r) { return r.json(); })
     .then(function(config) {
       var vars = Object.assign({}, config.global || {}, (config.overrides || {})[name] || {});
@@ -348,7 +351,7 @@ function hideOverlay() {
 // Fetch issues from API and build segments
 async function loadIssues() {
   try {
-    const res = await fetch('http://localhost:4000/public/issues');
+    const res = await fetch(`${window.__overlayOrigin}/public/issues`);
     const issues = await res.json();
     const openIssues = issues.filter(b => b.status === 'open');
 
@@ -373,7 +376,7 @@ async function loadIssues() {
 }
 
 // WebSocket for live updates
-const ws = new WebSocket('ws://localhost:4000?overlay=1');
+const ws = new WebSocket(`${window.__overlayWs}?overlay=1`);
 
 ws.onmessage = (e) => {
   try {

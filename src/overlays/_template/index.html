@@ -17,8 +17,8 @@
        Ordner "mein-overlay" → http://localhost:4000/overlay/mein-overlay/index.html
     2. Alles in EINER Datei (HTML + CSS + JS). Keine externen Dateien nötig.
     3. Background MUSS transparent sein (fuer OBS Browser Source).
-    4. WebSocket verbindet sich IMMER mit: ws://localhost:4000?overlay=1
-    5. Daten holen über: http://localhost:4000/public/<endpoint>
+    4. WebSocket verbindet sich IMMER mit: ws://<host>?overlay=1  (via window.__overlayWs)
+    5. Daten holen über: <origin>/public/<endpoint>  (via window.__overlayOrigin)
 
     VERFÜGBARE WEBSOCKET-EVENTS:
     ┌──────────────────────────────┬─────────────────────────────────────┐
@@ -51,6 +51,7 @@
     - GET /public/issues         → [ { id, title, status, ... }, ... ]
     - GET /public/todos          → [ { id, title, done, ... }, ... ]
     - GET /public/progress       → { project_name, items: [...] }
+    Fetch via: fetch(`${window.__overlayOrigin}/public/<endpoint>`)
 
     DESIGN-STYLES:
     Es gibt zwei Styles im Toolkit — verwende welchen du willst:
@@ -191,6 +192,15 @@
 
   <script>
     // =============================================
+    // ORIGIN (nicht ändern!)
+    // window.__overlayOrigin → für fetch()-Aufrufe
+    // window.__overlayWs     → für WebSocket-Verbindung
+    // =============================================
+    const _origin = window.location.origin || 'http://localhost:4000';
+    window.__overlayOrigin = _origin;
+    window.__overlayWs = _origin.replace(/^http/, 'ws');
+
+    // =============================================
     // KONFIGURATION
     // Passe diese Werte an dein Overlay an.
     // =============================================
@@ -216,7 +226,7 @@
     // =============================================
     async function fetchData() {
       try {
-        const res = await fetch('http://localhost:4000' + API_ENDPOINT);
+        const res = await fetch(`${window.__overlayOrigin}` + API_ENDPOINT);
         data = await res.json();
         render();
       } catch (err) {
@@ -256,7 +266,7 @@
     let ws;
 
     function connectWS() {
-      ws = new WebSocket('ws://localhost:4000?overlay=1');
+      ws = new WebSocket(`${window.__overlayWs}?overlay=1`);
 
       ws.onopen = function() {
         console.log('[' + OVERLAY_NAME + '] WebSocket connected');
