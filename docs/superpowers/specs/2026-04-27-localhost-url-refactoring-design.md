@@ -29,7 +29,7 @@ Replace all hardcoded `localhost:4000` and `localhost:5173` URLs throughout the 
 
 **Custom Overlays API** (`src/server/api/custom-overlays.ts`):
 - Builds overlay URLs using `req.headers.host` instead of hardcoded `localhost:4000`
-- Uses `req.protocol` to determine `http://` vs `https://`
+- Hardcodes `http://` protocol (no HTTPS support needed for local desktop app)
 
 **OAuth** (`src/server/api/auth.ts`):
 - Builds redirect URI dynamically from the request
@@ -41,7 +41,11 @@ Replace all hardcoded `localhost:4000` and `localhost:5173` URLs throughout the 
 **File:** `src/server/index.ts`
 
 ```typescript
-export const PORT = parseInt(process.env.NST_PORT || '4000', 10);
+const parsedPort = parseInt(process.env.NST_PORT || '4000', 10);
+if (isNaN(parsedPort) || parsedPort < 1 || parsedPort > 65535) {
+  throw new Error(`Invalid NST_PORT: ${process.env.NST_PORT}`);
+}
+export const PORT = parsedPort;
 const HOST = process.env.NST_HOST || '127.0.0.1';
 ```
 
@@ -64,36 +68,40 @@ if (!origin || origin.startsWith('http://localhost:') || origin.startsWith('file
 - Destructure `startServer()` result: `const { token, port } = await startServer()`
 - Dev URL: `http://localhost:5173#token=${token}&port=${port}`
 - Prod URL: `file://...#token=${token}&port=${port}`
-- Pass port to hotkeys: `registerHotkeys(port)`
+- Set port for hotkeys module before calling: `setHotkeyPort(port); registerHotkeys()`
+- Update CSP in `webRequest.onHeadersReceived` to include dynamic port: `http://localhost:${port} ws://localhost:${port}`
 
 **File:** `src/main/hotkeys.ts`
 
-- `registerHotkeys(port: number)` — receives port as parameter
-- `apiCall()` and `apiGet()` use the passed port instead of hardcoded `4000`
+- Add module-level `let serverPort = 4000` variable
+- Export `setHotkeyPort(port: number)` — sets the module-level port variable
+- `registerHotkeys(config?: Partial<HotkeyConfig>)` signature remains unchanged
+- `apiCall()` and `apiGet()` use `serverPort` instead of hardcoded `4000`
 
 ### 3. Renderer: Dynamic URL Construction
 
 **File:** `src/renderer/src/hooks/useApi.ts`
 
 Extract port from hash alongside token:
+Compute port once at module load time (hash does not change during app lifetime):
 ```typescript
-function getPort(): number {
-  const hash = window.location.hash.substring(1);
-  const params = new URLSearchParams(hash);
-  return parseInt(params.get('port') || '4000', 10);
-}
+const hash = window.location.hash.substring(1);
+const hashParams = new URLSearchParams(hash);
+const SERVER_PORT = parseInt(hashParams.get('port') || '4000', 10);
+const API_BASE = `http://localhost:${SERVER_PORT}/api`;
 
-function getApiBase(): string {
-  return `http://localhost:${getPort()}/api`;
-}
+export function getApiBase(): string { return API_BASE; }
+export function getServerPort(): number { return SERVER_PORT; }
 ```
 
-All functions use `getApiBase()` instead of `API_BASE` constant.
+All functions continue using `API_BASE` (now dynamically computed at load).
+`getApiBase()` and `getServerPort()` are exported for use by panels and WebSocket hook.
 
 **File:** `src/renderer/src/hooks/useWebSocket.ts`
 
 ```typescript
-const port = getPort(); // imported from useApi
+import { getServerPort } from './useApi';
+const port = getServerPort();
 ws = new WebSocket(`ws://localhost:${port}?token=${token}`);
 ```
 
@@ -102,10 +110,10 @@ ws = new WebSocket(`ws://localhost:${port}?token=${token}`);
 - `src/renderer/src/panels/ClipsPanel.tsx` — use `getApiBase()`
 
 **Files with hardcoded API URLs in text:**
-- `src/renderer/src/panels/SettingsPanel.tsx` — display text, use `getPort()`
-- `src/renderer/src/docs/help-en.ts` — help text references, use dynamic port
-- `src/renderer/src/docs/help-de.ts` — help text references, use dynamic port
-- `src/renderer/src/components/onboarding/TwitchStep.tsx` — display text
+- `src/renderer/src/panels/SettingsPanel.tsx` — display text, use `getServerPort()`
+- `src/renderer/src/docs/help-en.ts` — keep `localhost:4000` as documentation default (static text, not executable)
+- `src/renderer/src/docs/help-de.ts` — keep `localhost:4000` as documentation default (static text, not executable)
+- `src/renderer/src/components/onboarding/TwitchStep.tsx` — display text, use `getServerPort()`
 
 ### 4. Overlays: window.location.origin
 
@@ -136,9 +144,9 @@ const ws = new WebSocket(window.__overlayWs + '?overlay=1');
 - `src/overlays/milestone/index.html`
 - `src/overlays/todos/index.html`
 - `src/overlays/experiment/index.html`
-- `src/overlays/_template/index.html` (documentation/comments)
+- `src/overlays/_template/index.html` (code + documentation/comments — template has functional JS with hardcoded URLs that users copy)
 
-Note: `reward-leaderboard` and `reward-rankchange` are already fixed.
+Note: `reward-leaderboard` and `reward-rankchange` are already fixed (including their `localhost:4000` fallback values in the origin detection).
 
 ### 5. Server APIs: Dynamic URL Construction
 
@@ -146,19 +154,20 @@ Note: `reward-leaderboard` and `reward-rankchange` are already fixed.
 
 Replace hardcoded URLs with dynamic construction:
 ```typescript
-const baseUrl = `${req.protocol}://${req.headers.host}`;
+const baseUrl = `http://${req.headers.host}`;
 // ...
 url: `${baseUrl}/overlay/${e.name}/index.html`,
 ```
 
 **File:** `src/server/api/auth.ts`
 
-Build redirect URI dynamically:
+Build redirect URI dynamically using the PORT constant:
 ```typescript
-const redirectUri = `${req.protocol}://${req.headers.host}/auth/twitch/callback`;
+import { PORT } from '../index';
+const redirectUri = `http://localhost:${PORT}/auth/twitch/callback`;
 ```
 
-Note: Twitch OAuth requires the redirect URI to be registered in the Twitch Developer Console. For localhost usage, `http://localhost` with any port is allowed by Twitch. For LAN access, users would need to register additional redirect URIs.
+**Important:** Twitch OAuth requires **exact** redirect URI matches registered in the Developer Console. The redirect URI is always built with `localhost` and the current port. Users must register `http://localhost:<port>/auth/twitch/callback` in their Twitch app settings. For the default port 4000, `http://localhost:4000/auth/twitch/callback` must be registered. If users change the port via `NST_PORT`, they must also update the redirect URI in the Twitch Developer Console.
 
 ### 6. Connection File
 
@@ -171,15 +180,15 @@ Already receives `port` as parameter — no change needed. The connection file a
 | File | Change |
 |------|--------|
 | `src/server/index.ts` | Export PORT, add HOST, change listen(), update CORS, change return type |
-| `src/main/main.ts` | Destructure server result, pass port in hash and to hotkeys |
-| `src/main/hotkeys.ts` | Accept port parameter, use it in API calls |
+| `src/main/main.ts` | Destructure server result, pass port in hash, set hotkey port, update CSP in webRequest to use dynamic port |
+| `src/main/hotkeys.ts` | Add setHotkeyPort(), use module-level port in API calls |
 | `src/renderer/src/hooks/useApi.ts` | Extract port from hash, dynamic API_BASE |
 | `src/renderer/src/hooks/useWebSocket.ts` | Import getPort, dynamic WS URL |
 | `src/renderer/src/panels/ProgressPanel.tsx` | Dynamic export URL |
 | `src/renderer/src/panels/ClipsPanel.tsx` | Dynamic export URL |
 | `src/renderer/src/panels/SettingsPanel.tsx` | Dynamic API URL in display text |
-| `src/renderer/src/docs/help-en.ts` | Dynamic port in help text |
-| `src/renderer/src/docs/help-de.ts` | Dynamic port in help text |
+| `src/renderer/src/docs/help-en.ts` | No change — keep as documentation defaults |
+| `src/renderer/src/docs/help-de.ts` | No change — keep as documentation defaults |
 | `src/renderer/src/components/onboarding/TwitchStep.tsx` | Dynamic display URL |
 | `src/server/api/auth.ts` | Dynamic redirect URI |
 | `src/server/api/custom-overlays.ts` | Dynamic overlay URLs via req.headers.host |
@@ -192,11 +201,12 @@ Already receives `port` as parameter — no change needed. The connection file a
 | `src/overlays/milestone/index.html` | window.location.origin |
 | `src/overlays/todos/index.html` | window.location.origin |
 | `src/overlays/experiment/index.html` | window.location.origin |
-| `src/overlays/_template/index.html` | Update docs/comments |
+| `src/overlays/_template/index.html` | Update code + docs/comments |
 
 ## Out of Scope
 
 - HTTPS support (not needed for local desktop app)
 - Service discovery / mDNS for LAN (manual IP entry is fine)
 - UI toggle for LAN mode in Settings panel (env variable is sufficient for now)
-- Fixing help docs to be fully dynamic (acceptable to show "default: 4000" in docs)
+- Help docs (`help-en.ts`, `help-de.ts`) keep `localhost:4000` as static documentation defaults — not worth making dynamic for reference text
+- Making Vite dev server port (5173) configurable — only affects development
