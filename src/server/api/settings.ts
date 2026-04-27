@@ -173,6 +173,10 @@ router.get('/onboarding', (_req, res) => {
 
 router.post('/onboarding', (req, res) => {
   const { completed } = req.body;
+  if (completed === undefined) {
+    res.status(400).json({ error: 'completed field is required' });
+    return;
+  }
   getDb().prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('onboarding_completed', completed ? 'true' : 'false');
   res.json({ success: true });
 });

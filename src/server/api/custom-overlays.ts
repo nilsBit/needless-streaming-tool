@@ -175,6 +175,10 @@ router.post('/', (req, res) => {
 // Update existing overlay
 router.put('/:name', (req, res) => {
   const { html } = req.body;
+  if (!html || typeof html !== 'string') {
+    res.status(400).json({ error: 'html field is required and must be a string' });
+    return;
+  }
   const safeName = req.params.name.replace(/[^a-zA-Z0-9_-]/g, '-').toLowerCase();
 
   const dir = getCustomOverlayDir();

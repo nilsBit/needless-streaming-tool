@@ -40,9 +40,11 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}): Pro
 export function useApi<T>(endpoint: string) {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const refetch = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch(`${API_BASE}${endpoint}`, {
         headers: authHeaders(),
@@ -52,6 +54,7 @@ export function useApi<T>(endpoint: string) {
       setData(json);
     } catch (err) {
       console.error(`[useApi] ${endpoint}:`, err);
+      setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
     }
@@ -59,7 +62,7 @@ export function useApi<T>(endpoint: string) {
 
   useEffect(() => { refetch(); }, [refetch]);
 
-  return { data, loading, refetch };
+  return { data, loading, error, refetch };
 }
 
 export async function apiPost<T>(endpoint: string, body: unknown): Promise<T | null> {

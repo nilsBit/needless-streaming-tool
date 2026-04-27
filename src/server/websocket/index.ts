@@ -32,6 +32,10 @@ export function initWebSocket(server: HttpServer) {
       authenticatedClients.delete(ws);
       console.log('[WS] Client disconnected');
     });
+
+    ws.on('error', () => {
+      authenticatedClients.delete(ws);
+    });
   });
 }
 

@@ -88,6 +88,10 @@ router.patch('/items/:id', (req, res) => {
   const db = getDb();
 
   if (status !== undefined && !validateEnum(status, VALID_PROJECT_ITEM_STATUS, 'status', res)) return;
+  if (current_timer_seconds !== undefined && (typeof current_timer_seconds !== 'number' || !Number.isFinite(current_timer_seconds))) {
+    res.status(400).json({ error: 'current_timer_seconds must be a number' });
+    return;
+  }
 
   const existing = db.prepare('SELECT * FROM project_items WHERE id = ?').get(req.params.id) as { id: number; title: string; status: string; time_spent: number; sort_order: number } | undefined;
   if (!existing) { res.status(404).json({ error: 'Item not found' }); return; }

@@ -64,9 +64,13 @@ router.post('/disconnect', async (_req, res) => {
 
 // Scene management
 router.get('/scenes', async (_req, res) => {
-  const scenes = await getScenes();
-  const current = await getCurrentScene();
-  res.json({ scenes, current });
+  try {
+    const scenes = await getScenes();
+    const current = await getCurrentScene();
+    res.json({ scenes, current });
+  } catch {
+    res.status(503).json({ error: 'OBS not connected or unreachable' });
+  }
 });
 
 router.post('/scene', async (req, res) => {
@@ -75,11 +79,15 @@ router.post('/scene', async (req, res) => {
     res.status(400).json({ error: 'scene name required' });
     return;
   }
-  const result = await changeScene(scene);
-  if (result.success) {
-    res.json({ success: true, scene });
-  } else {
-    res.status(400).json({ error: result.error });
+  try {
+    const result = await changeScene(scene);
+    if (result.success) {
+      res.json({ success: true, scene });
+    } else {
+      res.status(400).json({ error: result.error });
+    }
+  } catch {
+    res.status(503).json({ error: 'OBS not connected or unreachable' });
   }
 });
 
