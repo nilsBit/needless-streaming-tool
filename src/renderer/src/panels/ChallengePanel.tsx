@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApi, apiPatch } from '../hooks/useApi';
+import { useWebSocket } from '../hooks/useWebSocket';
 import { StreamState, ProjectItem } from '../../../shared/types';
 import ChatCommands from '../components/ChatCommands';
 import { useTranslation } from '../i18n/LanguageContext';
@@ -8,11 +9,18 @@ import { useToast } from '../i18n/ToastContext';
 export default function ChallengePanel() {
   const { t } = useTranslation();
   const { toast } = useToast();
-  const { data: state, loading, refetch } = useApi<StreamState>('/stream-state');
+  const { data: initialState, loading, refetch } = useApi<StreamState>('/stream-state');
   const { data: progressData } = useApi<{ items: ProjectItem[] }>('/progress');
+  const [liveState, setLiveState] = useState<StreamState | null>(null);
   const [title, setTitle] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const state = liveState || initialState;
+
+  useWebSocket((event, data) => {
+    if (event === 'stream-state') setLiveState(data as StreamState);
+  });
 
   useEffect(() => {
     if (state && !isEditing) {
