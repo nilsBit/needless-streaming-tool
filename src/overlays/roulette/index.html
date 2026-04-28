@@ -6,16 +6,16 @@
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --color-primary: #ff2d7b;
-    --color-secondary: #00d4ff;
-    --color-accent: #ffd700;
+    --color-primary: #ffffff;
+    --color-secondary: #cccccc;
+    --color-accent: #ffffff;
     --color-bg: #0a0a0a;
     --font-display: 'Rajdhani', sans-serif;
     --font-body: 'Inter', sans-serif;
     --color-text: #ffffff;
-    --color-primary-rgb: 255 45 123;
-    --color-secondary-rgb: 0 212 255;
-    --color-accent-rgb: 255 215 0;
+    --color-primary-rgb: 255 255 255;
+    --color-secondary-rgb: 204 204 204;
+    --color-accent-rgb: 255 255 255;
     --color-bg-rgb: 10 10 10;
   }
 
@@ -73,7 +73,7 @@
   }
 
   .counter .diamond {
-    color: var(--color-primary);
+    color: rgba(255,255,255,0.5);
     font-size: 14px;
     animation: orbFloat 2s ease-in-out infinite;
   }
@@ -105,7 +105,7 @@
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: var(--color-primary);
+    background: rgba(255,255,255,0.3);
   }
 
   .pointer-wrap {
@@ -123,7 +123,7 @@
   }
 
   .result-label {
-    color: var(--color-accent);
+    color: rgba(255,255,255,0.5);
     font-family: var(--font-display);
     font-size: 12px;
     letter-spacing: 4px;
@@ -174,8 +174,8 @@
 
     <div class="pointer-wrap" id="pointer">
       <svg width="28" height="40" viewBox="0 0 14 20">
-        <polygon points="7,0 14,18 0,18" fill="#00d4ff" stroke="#0a0a0a" stroke-width="1"/>
-        <polygon points="7,3 11,16 3,16" fill="rgba(0,212,255,0.4)"/>
+        <polygon points="7,0 14,18 0,18" fill="#ffffff" stroke="#0a0a0a" stroke-width="1"/>
+        <polygon points="7,3 11,16 3,16" fill="rgba(255,255,255,0.4)"/>
       </svg>
     </div>
 
@@ -379,11 +379,9 @@ function buildWheel(){
 
 function buildOrbs(){
   let h='';
-  const neonColors = ['#ff2d7b','#00d4ff','#39ff14','#ff6b35'];
   for(let i=0;i<8;i++){
     const a=(i*45+22.5)*Math.PI/180,r=178;
-    const c = neonColors[i%4];
-    h+=`<div class="orb" style="left:calc(50% + ${Math.cos(a)*r}px - 3px);top:calc(50% + ${Math.sin(a)*r}px - 3px);background:${c};box-shadow:0 0 8px ${c}, 0 0 16px ${c}40;animation:orbFloat ${2+i*0.3}s ease-in-out infinite;animation-delay:${i*0.25}s"></div>`;
+    h+=`<div class="orb" style="left:calc(50% + ${Math.cos(a)*r}px - 3px);top:calc(50% + ${Math.sin(a)*r}px - 3px);background:rgba(255,255,255,0.3);box-shadow:0 0 8px rgba(255,255,255,0.1);animation:orbFloat ${2+i*0.3}s ease-in-out infinite;animation-delay:${i*0.25}s"></div>`;
   }
   document.getElementById('orbs').innerHTML=h;
 }

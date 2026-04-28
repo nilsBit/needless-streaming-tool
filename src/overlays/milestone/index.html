@@ -6,16 +6,16 @@
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --color-primary: #ff2d7b;
-    --color-secondary: #00d4ff;
-    --color-accent: #ffd700;
+    --color-primary: #ffffff;
+    --color-secondary: #cccccc;
+    --color-accent: #ffffff;
     --color-bg: #0a0a0a;
     --font-display: 'Rajdhani', sans-serif;
     --font-body: 'Inter', sans-serif;
     --color-text: #ffffff;
-    --color-primary-rgb: 255 45 123;
-    --color-secondary-rgb: 0 212 255;
-    --color-accent-rgb: 255 215 0;
+    --color-primary-rgb: 255 255 255;
+    --color-secondary-rgb: 204 204 204;
+    --color-accent-rgb: 255 255 255;
     --color-bg-rgb: 10 10 10;
   }
 
@@ -63,25 +63,25 @@
     transition: opacity 0.6s ease, transform 0.6s ease;
   }
 
-  /* Level: minor = electric blue accent border */
+  /* Level: minor = subtle white border */
   .achievement.minor {
-    border-color: rgba(0, 212, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.15);
   }
 
-  /* Level: major = magenta accent border */
+  /* Level: major = slightly brighter white border */
   .achievement.major {
-    border-color: rgba(255, 45, 123, 0.3);
+    border-color: rgba(255, 255, 255, 0.2);
   }
 
-  /* Level: epic = gold accent border with subtle pulse */
+  /* Level: epic = white border with subtle pulse */
   .achievement.epic {
-    border-color: rgba(255, 215, 0, 0.4);
+    border-color: rgba(255, 255, 255, 0.25);
     animation: epicPulse 2s ease-in-out infinite;
   }
 
   @keyframes epicPulse {
     0%, 100% { box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
-    50% { box-shadow: 0 2px 16px rgba(255,215,0,0.15); }
+    50% { box-shadow: 0 2px 16px rgba(255,255,255,0.08); }
   }
 
   /* Icon box */
@@ -99,9 +99,9 @@
     z-index: 1;
   }
 
-  .achievement.minor .icon-box { border-color: rgba(0, 212, 255, 0.25); }
-  .achievement.major .icon-box { border-color: rgba(255, 45, 123, 0.25); }
-  .achievement.epic .icon-box { border-color: rgba(255, 215, 0, 0.3); }
+  .achievement.minor .icon-box { border-color: rgba(255, 255, 255, 0.12); }
+  .achievement.major .icon-box { border-color: rgba(255, 255, 255, 0.16); }
+  .achievement.epic .icon-box { border-color: rgba(255, 255, 255, 0.2); }
 
   .icon-box svg { image-rendering: pixelated; }
 
@@ -122,9 +122,9 @@
     text-transform: uppercase;
   }
 
-  .achievement.minor .achievement-label { color: var(--color-secondary); }
-  .achievement.major .achievement-label { color: var(--color-primary); }
-  .achievement.epic .achievement-label { color: var(--color-accent); }
+  .achievement.minor .achievement-label { color: rgba(255,255,255,0.5); }
+  .achievement.major .achievement-label { color: rgba(255,255,255,0.6); }
+  .achievement.epic .achievement-label { color: rgba(255,255,255,0.7); }
 
   .achievement-title {
     font-family: var(--font-display);
@@ -136,8 +136,8 @@
     text-transform: uppercase;
   }
 
-  .achievement.major .achievement-title { color: var(--color-primary); }
-  .achievement.epic .achievement-title { color: var(--color-accent); }
+  .achievement.major .achievement-title { color: #ffffff; }
+  .achievement.epic .achievement-title { color: #ffffff; }
 
   .achievement-sub {
     font-family: var(--font-body);
@@ -147,8 +147,8 @@
     text-transform: uppercase;
   }
 
-  .achievement.major .achievement-sub { color: #993366; }
-  .achievement.epic .achievement-sub { color: #aa8800; }
+  .achievement.major .achievement-sub { color: rgba(255,255,255,0.4); }
+  .achievement.epic .achievement-sub { color: rgba(255,255,255,0.5); }
 
   /* Shine effect for epic */
   .shine {
@@ -184,7 +184,7 @@
     position: absolute;
     width: 3px;
     height: 3px;
-    background: var(--color-accent);
+    background: rgba(255,255,255,0.6);
     border-radius: 50%;
     animation: sparkleFloat 2s ease-in-out infinite;
   }

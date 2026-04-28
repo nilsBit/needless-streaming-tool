@@ -6,9 +6,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --color-primary: #ff2d7b;
-    --color-secondary: #00d4ff;
-    --color-accent: #ffd700;
+    --color-primary: #ffffff;
+    --color-secondary: #cccccc;
+    --color-accent: #ffffff;
     --color-bg: #0a0a0a;
     --font-display: 'Rajdhani', sans-serif;
     --font-body: 'Inter', sans-serif;
@@ -57,7 +57,7 @@
   .header h1 {
     font-family: var(--font-display);
     font-size: 36px;
-    color: var(--color-secondary);
+    color: #ffffff;
     letter-spacing: 8px;
     margin: 0;
     text-transform: uppercase;
@@ -66,7 +66,7 @@
   .header-sub {
     font-family: var(--font-display);
     font-size: 12px;
-    color: var(--color-primary);
+    color: rgba(255,255,255,0.5);
     letter-spacing: 6px;
     margin-top: 6px;
   }
@@ -75,7 +75,7 @@
   .project-name {
     font-family: var(--font-display);
     font-size: 22px;
-    color: #ff6b35;
+    color: rgba(255,255,255,0.7);
     letter-spacing: 4px;
     text-align: center;
     text-transform: uppercase;
@@ -104,7 +104,7 @@
   .progress-label {
     font-family: var(--font-display);
     font-size: 14px;
-    color: var(--color-secondary);
+    color: rgba(255,255,255,0.7);
     letter-spacing: 3px;
     text-transform: uppercase;
   }
@@ -112,7 +112,7 @@
   .progress-count {
     font-family: var(--font-display);
     font-size: 18px;
-    color: var(--color-accent);
+    color: #ffffff;
   }
 
   .bar-outer {
@@ -126,9 +126,7 @@
 
   .bar-fill {
     height: 100%;
-    background: linear-gradient(90deg, var(--color-secondary), #0099cc, var(--color-secondary));
-    background-size: 200% 100%;
-    animation: barSlide 2s ease-in-out infinite;
+    background: rgba(255,255,255,0.3);
     transition: width 0.5s ease;
   }
 
@@ -148,7 +146,7 @@
     text-align: right;
     font-family: var(--font-display);
     font-size: 14px;
-    color: var(--color-secondary);
+    color: rgba(255,255,255,0.7);
     margin-top: 4px;
   }
 
@@ -186,13 +184,13 @@
   }
 
   .checkbox.done {
-    background: rgba(57, 255, 20, 0.15);
-    border-color: var(--color-accent);
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.5);
   }
 
   .checkbox.in-progress {
-    background: rgba(255,107,53,0.15);
-    border-color: #ff6b35;
+    background: rgba(255,255,255,0.07);
+    border-color: rgba(255,255,255,0.35);
   }
 
   .item-text {
@@ -207,11 +205,11 @@
   .item-text.done {
     color: #444;
     text-decoration: line-through;
-    text-decoration-color: var(--color-accent);
+    text-decoration-color: rgba(255,255,255,0.3);
   }
 
   .item-text.in-progress {
-    color: #ff6b35;
+    color: rgba(255,255,255,0.7);
   }
 
   .item-time {
@@ -222,7 +220,7 @@
     padding-right: 4px;
   }
   .item-time.active {
-    color: var(--color-primary);
+    color: rgba(255,255,255,0.7);
   }
 
   /* Footer */
@@ -262,7 +260,7 @@
 
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: rgba(10, 10, 10, 0.5); }
-  ::-webkit-scrollbar-thumb { background: var(--color-secondary); border: 1px solid #333; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border: 1px solid #333; }
 </style>
 </head>
 <body>
@@ -416,9 +414,9 @@ function render() {
 
     let checkmark = '';
     if (isDone) {
-      checkmark = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#39ff14" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+      checkmark = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
     } else if (isInProgress) {
-      checkmark = '<span style="font-size:10px;color:#ff6b35;font-weight:bold">\u25B6</span>';
+      checkmark = '<span style="font-size:10px;color:rgba(255,255,255,0.7);font-weight:bold">\u25B6</span>';
     }
 
     var timeSpent = item.time_spent || 0;

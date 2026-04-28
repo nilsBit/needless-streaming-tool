@@ -5,9 +5,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --color-primary: #ff2d7b;
-      --color-secondary: #00d4ff;
-      --color-accent: #ffd700;
+      --color-primary: #ffffff;
+      --color-secondary: #cccccc;
+      --color-accent: #ffffff;
       --color-bg: #0a0a0a;
       --font-display: 'Rajdhani', sans-serif;
       --font-body: 'Inter', sans-serif;
@@ -34,11 +34,11 @@
       font-family: var(--font-display);
       font-size: 22px;
       font-weight: 700;
-      color: var(--color-primary);
+      color: #ffffff;
       letter-spacing: 2px;
       text-transform: uppercase;
       padding: 6px 12px;
-      background: rgba(255,45,123,0.08);
+      background: rgba(255,255,255,0.05);
       border: 1px solid rgba(255,255,255,0.08);
       border-radius: 6px;
     }
@@ -79,7 +79,7 @@
     .poll-count {
       font-family: var(--font-display);
       font-size: 20px;
-      color: var(--color-secondary);
+      color: rgba(255,255,255,0.7);
       font-weight: 700;
       letter-spacing: 1px;
     }
@@ -94,7 +94,7 @@
 
     .poll-bar {
       height: 4px;
-      background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+      background: rgba(255,255,255,0.3);
       transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
@@ -103,11 +103,11 @@
     }
 
     .poll-option.winner .poll-label {
-      color: var(--color-accent);
+      color: #ffffff;
     }
 
     .poll-option.winner .poll-count {
-      color: var(--color-accent);
+      color: #ffffff;
     }
   </style>
 </head>
