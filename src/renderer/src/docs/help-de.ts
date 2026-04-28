@@ -94,7 +94,7 @@ Konfiguriere Mappings über die API:
 | Todos | /overlay/todos/index.html | Todo-Liste |
 | Poll | /overlay/poll/index.html | Abstimmungen |
 | Roulette | /overlay/roulette/index.html | Glücksrad |
-| Challenge | /overlay/experiment/index.html | Challenge-Status |
+| Challenge | /overlay/challenge/index.html | Challenge-Status |
 
 **In OBS einbinden:**
 1. Quellen → + → Browser

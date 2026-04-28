@@ -127,7 +127,7 @@ const STATIC_TEST_EVENTS: Record<string, { event: string; data: unknown }[]> = {
   milestone: [
     { event: 'milestone-trigger', data: { level: 'major', title: 'Test Milestone!', message: 'Das ist ein Test-Event.' } },
   ],
-  experiment: [
+  challenge: [
     { event: 'stream-state', data: { challenge_title: 'Test Challenge: UI Redesign', challenge_status: 'in_progress', timer_seconds: 3723, timer_running: true, is_live: true } },
   ],
 };
