@@ -7,12 +7,13 @@ function createRateLimiter(windowMs: number, maxRequests: number) {
   const store = new Map<string, { count: number; resetAt: number }>();
 
   // Cleanup old entries every 5 minutes
-  setInterval(() => {
+  const cleanup = setInterval(() => {
     const now = Date.now();
     for (const [ip, entry] of store.entries()) {
       if (now > entry.resetAt) store.delete(ip);
     }
   }, 300_000);
+  cleanup.unref();
 
   return (req: Request, res: Response, next: NextFunction) => {
     const ip = req.ip || 'unknown';

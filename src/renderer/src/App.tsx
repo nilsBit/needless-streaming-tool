@@ -117,20 +117,19 @@ export default function App() {
     checkOnboarding();
   }, []);
 
-  // Listen for update notifications from main process
   useEffect(() => {
-    const api = (window as any).electronAPI;
-    if (api?.onUpdateAvailable) {
-      api.onUpdateAvailable((data: { version: string; url: string; name: string }) => {
-        toast.errorAction({
-          message: `${t('update.available')}: v${data.version}`,
-          action: {
-            label: t('update.download'),
-            onClick: () => window.open(data.url, '_blank'),
-          },
-        });
+    const api = window.electronAPI;
+    if (!api?.onUpdateAvailable) return;
+    const handler = (data: UpdateInfo) => {
+      toast.errorAction({
+        message: `${t('update.available')}: v${data.version}`,
+        action: {
+          label: t('update.download'),
+          onClick: () => window.open(data.url, '_blank'),
+        },
       });
-    }
+    };
+    api.onUpdateAvailable(handler);
   }, []);
 
   const toggleCollapse = (key: string) => {

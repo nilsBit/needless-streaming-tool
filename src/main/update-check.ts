@@ -42,10 +42,13 @@ export function checkForUpdates(mainWindow: BrowserWindow): void {
         } else {
           console.log(`[Update] Up to date (${currentVersion})`);
         }
-      } catch {}
+      } catch (err) {
+        console.warn('[Update] Failed to parse release data:', err);
+      }
     });
   });
 
-  req.on('error', () => {}); // Silent fail — no internet is fine
+  // Silent fail — no internet is fine
+  req.on('error', () => {});
   req.end();
 }

@@ -21,12 +21,14 @@ export default function ProfileStep() {
 
   const selectProfile = async (key: ProfileKey) => {
     if (key === selected || saving) return;
+    const prev = selected;
     setSelected(key);
     setSaving(true);
     try {
       await apiPost('/settings/set', { key: 'stream_profile', value: key });
       applyProfilePreset(key);
     } catch {
+      setSelected(prev);
       toast.error(t('onboarding.save_failed'));
     }
     setSaving(false);
@@ -42,6 +44,7 @@ export default function ProfileStep() {
             key={p.key}
             className={`profile-card ${selected === p.key ? 'active' : ''}`}
             onClick={() => selectProfile(p.key)}
+            disabled={saving}
           >
             <span className="profile-card-emoji">{p.emoji}</span>
             <span className="profile-card-title">{t(p.titleKey)}</span>
