@@ -27,24 +27,14 @@ export default function ChallengePanel() {
 
   useEffect(() => {
     if (!state?.timer_running) return;
-    let syncCounter = 0;
     const interval = setInterval(() => {
       setSeconds((s) => {
         const next = s + 1;
-        syncCounter++;
-        if (syncCounter % 10 === 0) {
-          apiPatch('/stream-state', { timer_seconds: next });
-        }
+        apiPatch('/stream-state', { timer_seconds: next });
         return next;
       });
     }, 1000);
-    return () => {
-      clearInterval(interval);
-      setSeconds((s) => {
-        apiPatch('/stream-state', { timer_seconds: s });
-        return s;
-      });
-    };
+    return () => clearInterval(interval);
   }, [state?.timer_running]);
 
   useEffect(() => {
