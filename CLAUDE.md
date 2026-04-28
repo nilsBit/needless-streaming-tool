@@ -74,6 +74,13 @@ SQLite via better-sqlite3. DB file lives at `data/stream.db`. Schema is defined 
 - User communicates in **German**
 - Keep commits and PR descriptions in English
 
+## IMPORTANT: Do NOT start processes
+
+- **NEVER** run `npm run dev`, `npm run build`, `npm start`, or any command that starts a server or builds the app
+- **NEVER** run commands that bind to ports (4000, 5173, etc.)
+- The user manages the dev server and builds separately
+- Only run `npm run typecheck` and `npm run lint` for verification
+
 ## Active work
 
 Cross-machine state for in-progress projects lives in `docs/superpowers/state/`. Check there first when resuming work — files are committed to git, so they're available on any device after `git pull`. Per-machine memory under `~/.claude/projects/.../memory/` may be out of sync.
