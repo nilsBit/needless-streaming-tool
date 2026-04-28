@@ -26,9 +26,9 @@ jobs:
           cd streamdeck-plugin && npm ci
 
       - name: Build app
-        run: npm run build
+        run: npm run build:plugin && npx tsc -p tsconfig.node.json && npx vite build && npx electron-builder --publish never
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_IDENTITY_AUTO_DISCOVERY: false
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
