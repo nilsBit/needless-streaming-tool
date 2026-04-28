@@ -33,11 +33,14 @@ function poll(): void {
 
     setPollingRate(true);
 
-    const data = {
+    const data: Record<string, string | undefined> = {
       title: String(session.media.title),
       artist: String(session.media.artist || ''),
       source: String(session.sourceAppId || ''),
     };
+    if (session.media.thumbnail) {
+      data.artworkUrl = `data:image/png;base64,${Buffer.from(session.media.thumbnail).toString('base64')}`;
+    }
     const key = `${data.title}|${data.artist}`;
     if (key === lastKey) return;
     lastKey = key;

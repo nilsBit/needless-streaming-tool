@@ -27,6 +27,16 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
 
+    .song-artwork {
+      width: 48px;
+      height: 48px;
+      border-radius: 4px;
+      object-fit: cover;
+      flex-shrink: 0;
+      display: none;
+    }
+    .song-artwork.visible { display: block; }
+
     .song.visible { display: flex; animation: songSlideIn 0.5s ease-out; }
 
     @keyframes songSlideIn {
@@ -104,6 +114,7 @@
 </head>
 <body>
   <div class="song" id="song">
+    <img class="song-artwork" id="song-artwork" alt="" />
     <div class="equalizer">
       <div class="eq-bar"></div>
       <div class="eq-bar"></div>
@@ -166,6 +177,7 @@
     const song = document.getElementById('song');
     const songTitle = document.getElementById('song-title');
     const songRequester = document.getElementById('song-requester');
+    const songArtwork = document.getElementById('song-artwork');
 
     ws.onmessage = (msg) => {
       const { event, data } = JSON.parse(msg.data);
@@ -176,10 +188,17 @@
         song.classList.add('visible');
         songTitle.textContent = data.title || 'Unknown';
         songRequester.textContent = data.artist || '';
+        if (data.artworkUrl) {
+          songArtwork.src = data.artworkUrl;
+          songArtwork.classList.add('visible');
+        } else {
+          songArtwork.classList.remove('visible');
+        }
       }
 
       if (event === 'song-clear') {
         song.classList.remove('visible');
+        songArtwork.classList.remove('visible');
       }
     };
   </script>

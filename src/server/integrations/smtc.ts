@@ -8,6 +8,7 @@ export interface SongData {
   title: string;
   artist: string;
   source: string;
+  artworkUrl?: string;
 }
 
 let worker: Worker | null = null;

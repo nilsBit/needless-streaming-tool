@@ -6,6 +6,7 @@ export interface SongData {
   title: string;
   artist: string;
   source: string;
+  artworkUrl?: string;
 }
 
 let pollInterval: ReturnType<typeof setInterval> | null = null;
@@ -17,14 +18,20 @@ let isActive = false;
 
 function tryPlayer(appName: string, sourceId: string): SongData | null {
   try {
+    const script = appName === 'Spotify'
+      ? `tell application "Spotify" to if player state is playing then return name of current track & "|||" & artist of current track & "|||" & artwork url of current track`
+      : `tell application "${appName}" to if player state is playing then return name of current track & "|||" & artist of current track`;
     const result = execSync(
-      `osascript -e 'tell application "${appName}" to if player state is playing then return name of current track & "|||" & artist of current track'`,
+      `osascript -e '${script}'`,
       { timeout: 2000, encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] }
     ).trim();
     if (!result) return null;
-    const [title, artist] = result.split('|||');
+    const parts = result.split('|||');
+    const title = parts[0]?.trim();
     if (!title) return null;
-    return { title: title.trim(), artist: (artist || '').trim(), source: sourceId };
+    const song: SongData = { title, artist: (parts[1] || '').trim(), source: sourceId };
+    if (parts[2]?.trim()) song.artworkUrl = parts[2].trim();
+    return song;
   } catch {
     return null;
   }
