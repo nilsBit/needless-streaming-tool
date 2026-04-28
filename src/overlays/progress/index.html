@@ -3,23 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <title>NFS Progress - OBS Overlay</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --color-primary: #ff2d7b;
     --color-secondary: #00d4ff;
-    --color-accent: #39ff14;
-    --color-text: #ffffff;
+    --color-accent: #ffd700;
     --color-bg: #0a0a0a;
-    --color-bg-opacity: 0.92;
-    --color-bg-secondary: #0d0d0d;
-    --color-primary-rgb: 255 45 123;
-    --color-secondary-rgb: 0 212 255;
-    --color-accent-rgb: 57 255 20;
-    --color-bg-rgb: 10 10 10;
-    --font-display: 'Bebas Neue', sans-serif;
+    --font-display: 'Rajdhani', sans-serif;
     --font-body: 'Inter', sans-serif;
-    --font-size-base: 14px;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -54,28 +46,12 @@
   }
 
   .header-bar {
-    background: rgb(var(--color-bg-rgb) / 0.95);
-    border: 3px solid var(--color-secondary);
+    background: rgba(10, 10, 10, 0.95);
+    border: 1px solid rgba(255,255,255,0.08);
     padding: 10px 24px;
     position: relative;
-    overflow: hidden;
-    transform: skewX(-3deg);
-    box-shadow: 0 0 15px rgb(var(--color-secondary-rgb) / 0.5), inset 0 0 30px rgb(var(--color-secondary-rgb) / 0.05);
-    animation: borderPulseBlue 2s ease-in-out infinite;
-  }
-
-  .header-bar::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: repeating-linear-gradient(
-      45deg,
-      transparent,
-      transparent 8px,
-      rgb(var(--color-secondary-rgb) / 0.06) 8px,
-      rgb(var(--color-secondary-rgb) / 0.06) 16px
-    );
-    pointer-events: none;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
   }
 
   .header h1 {
@@ -83,10 +59,8 @@
     font-size: 36px;
     color: var(--color-secondary);
     letter-spacing: 8px;
-    text-shadow: 0 0 10px rgb(var(--color-secondary-rgb) / 0.8), 0 0 30px rgb(var(--color-secondary-rgb) / 0.3), 3px 3px 0 rgba(0,0,0,0.8);
     margin: 0;
     text-transform: uppercase;
-    transform: skewX(3deg);
   }
 
   .header-sub {
@@ -95,8 +69,6 @@
     color: var(--color-primary);
     letter-spacing: 6px;
     margin-top: 6px;
-    text-shadow: 0 0 8px rgb(var(--color-primary-rgb) / 0.5);
-    transform: skewX(3deg);
   }
 
   /* Project name */
@@ -107,26 +79,16 @@
     letter-spacing: 4px;
     text-align: center;
     text-transform: uppercase;
-    text-shadow: 0 0 10px rgba(255,107,53,0.5), 2px 2px 0 rgba(0,0,0,0.6);
-    transform: skewX(-3deg);
     padding: 4px 0;
   }
 
-  /* NFS styled box */
+  /* Card box */
   .nfs-box {
-    background: rgb(var(--color-bg-rgb) / 0.9);
-    border: 3px solid var(--color-secondary);
-    box-shadow: 0 0 10px rgb(var(--color-secondary-rgb) / 0.3);
+    background: rgba(10, 10, 10, 0.85);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     position: relative;
-  }
-
-  .nfs-box::after {
-    content: '';
-    position: absolute;
-    top: 0; left: 0;
-    width: 40px; height: 3px;
-    background: var(--color-primary);
-    box-shadow: 0 0 8px rgb(var(--color-primary-rgb) / 0.5);
   }
 
   /* Progress bar */
@@ -145,20 +107,19 @@
     color: var(--color-secondary);
     letter-spacing: 3px;
     text-transform: uppercase;
-    text-shadow: 0 0 6px rgb(var(--color-secondary-rgb) / 0.4);
   }
 
   .progress-count {
     font-family: var(--font-display);
     font-size: 18px;
     color: var(--color-accent);
-    text-shadow: 0 0 6px rgb(var(--color-accent-rgb) / 0.5);
   }
 
   .bar-outer {
     height: 14px;
     background: rgba(20,20,20,0.9);
     border: 1px solid #333;
+    border-radius: 3px;
     position: relative;
     overflow: hidden;
   }
@@ -167,12 +128,11 @@
     height: 100%;
     background: linear-gradient(90deg, var(--color-secondary), #0099cc, var(--color-secondary));
     background-size: 200% 100%;
-    animation: barGlow 2s ease-in-out infinite;
+    animation: barSlide 2s ease-in-out infinite;
     transition: width 0.5s ease;
-    box-shadow: 0 0 10px rgb(var(--color-secondary-rgb) / 0.6);
   }
 
-  @keyframes barGlow {
+  @keyframes barSlide {
     0%, 100% { background-position: 0% 0%; }
     50% { background-position: 100% 0%; }
   }
@@ -190,7 +150,6 @@
     font-size: 14px;
     color: var(--color-secondary);
     margin-top: 4px;
-    text-shadow: 0 0 6px rgb(var(--color-secondary-rgb) / 0.4);
   }
 
   /* Item list */
@@ -205,7 +164,7 @@
     align-items: center;
     gap: 12px;
     padding: 10px;
-    border-bottom: 1px solid rgb(var(--color-secondary-rgb) / 0.1);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
     animation: slideIn 0.3s ease-out forwards;
     opacity: 0;
     transform: translateX(-20px);
@@ -217,31 +176,23 @@
     width: 22px;
     height: 22px;
     min-width: 22px;
-    background: rgb(var(--color-bg-rgb) / 0.9);
+    background: rgba(10, 10, 10, 0.9);
     border: 2px solid #555;
+    border-radius: 3px;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.2s ease;
-    transform: skewX(-3deg);
   }
 
   .checkbox.done {
-    background: rgb(var(--color-accent-rgb) / 0.15);
+    background: rgba(57, 255, 20, 0.15);
     border-color: var(--color-accent);
-    box-shadow: 0 0 8px rgb(var(--color-accent-rgb) / 0.4);
   }
 
   .checkbox.in-progress {
     background: rgba(255,107,53,0.15);
     border-color: #ff6b35;
-    box-shadow: 0 0 8px rgba(255,107,53,0.4);
-    animation: progressPulse 1.5s ease-in-out infinite;
-  }
-
-  @keyframes progressPulse {
-    0%, 100% { box-shadow: 0 0 8px rgba(255,107,53,0.4); }
-    50% { box-shadow: 0 0 15px rgba(255,107,53,0.7); }
   }
 
   .item-text {
@@ -261,7 +212,6 @@
 
   .item-text.in-progress {
     color: #ff6b35;
-    text-shadow: 0 0 4px rgba(255,107,53,0.3);
   }
 
   .item-time {
@@ -303,7 +253,6 @@
     font-family: var(--font-display);
     font-size: 16px;
     letter-spacing: 4px;
-    text-shadow: 0 0 6px rgb(var(--color-secondary-rgb) / 0.3);
   }
 
   @keyframes slideIn {
@@ -311,13 +260,8 @@
     100% { opacity: 1; transform: translateX(0); }
   }
 
-  @keyframes borderPulseBlue {
-    0%, 100% { box-shadow: 0 0 15px rgb(var(--color-secondary-rgb) / 0.5), inset 0 0 30px rgb(var(--color-secondary-rgb) / 0.05); }
-    50% { box-shadow: 0 0 25px rgb(var(--color-secondary-rgb) / 0.7), inset 0 0 30px rgb(var(--color-secondary-rgb) / 0.1); }
-  }
-
   ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: rgb(var(--color-bg-rgb) / 0.5); }
+  ::-webkit-scrollbar-track { background: rgba(10, 10, 10, 0.5); }
   ::-webkit-scrollbar-thumb { background: var(--color-secondary); border: 1px solid #333; }
 </style>
 </head>
