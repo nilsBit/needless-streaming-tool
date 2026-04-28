@@ -32,6 +32,16 @@
 
     .song.visible { display: flex; animation: songSlideIn 0.5s ease-out; }
 
+    .song-artwork {
+      width: 48px;
+      height: 48px;
+      border-radius: 4px;
+      object-fit: cover;
+      flex-shrink: 0;
+      display: none;
+    }
+    .song-artwork.visible { display: block; }
+
     @keyframes songSlideIn {
       0% { opacity: 0; transform: translateX(-40px); }
       100% { opacity: 1; transform: translateX(0); }
@@ -150,6 +160,7 @@
   <div id="container">
     <!-- Now Playing — shows current song (manual/auto-detect OR song request) -->
     <div class="song" id="song">
+      <img class="song-artwork" id="song-artwork" alt="" />
       <div class="equalizer">
         <div class="eq-bar"></div>
         <div class="eq-bar"></div>
@@ -219,21 +230,28 @@
     const songTitle = document.getElementById('song-title');
     const songArtist = document.getElementById('song-artist');
     const songRequester = document.getElementById('song-requester');
+    const songArtwork = document.getElementById('song-artwork');
     const nextEl = document.getElementById('next');
 
     // --- Now Playing state (can come from song-update OR sr playing) ---
-    function showSong(title, artist, requester) {
+    function showSong(title, artist, requester, artworkUrl) {
       songTitle.textContent = title || 'Unknown';
       songArtist.textContent = artist || '';
       songRequester.textContent = requester || '';
+      if (artworkUrl) {
+        songArtwork.src = artworkUrl;
+        songArtwork.classList.add('visible');
+      } else {
+        songArtwork.classList.remove('visible');
+      }
       songEl.classList.remove('visible');
-      // Force reflow for re-animation
       void songEl.offsetWidth;
       songEl.classList.add('visible');
     }
 
     function hideSong() {
       songEl.classList.remove('visible');
+      songArtwork.classList.remove('visible');
     }
 
     // --- Queue rendering ---
@@ -243,7 +261,7 @@
 
       // Show playing song request in the Now Playing section
       if (playing) {
-        showSong(playing.title, playing.artist, '@' + playing.requested_by);
+        showSong(playing.title, playing.artist, '@' + playing.requested_by, null);
       }
 
       // Render upcoming queue
@@ -283,7 +301,7 @@
 
       // Manual/auto-detect song update (from SongPanel or SMTC)
       if (event === 'song-update') {
-        showSong(data.title, data.artist, '');
+        showSong(data.title, data.artist, '', data.artworkUrl || null);
       }
 
       if (event === 'song-clear') {
