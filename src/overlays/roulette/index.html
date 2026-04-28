@@ -3,23 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <title>Lucky Spin - OBS Overlay</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --color-primary: #ff2d7b;
     --color-secondary: #00d4ff;
-    --color-accent: #39ff14;
-    --color-text: #ffffff;
+    --color-accent: #ffd700;
     --color-bg: #0a0a0a;
-    --color-bg-opacity: 0.92;
-    --color-bg-secondary: #0d0d0d;
+    --font-display: 'Rajdhani', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --color-text: #ffffff;
     --color-primary-rgb: 255 45 123;
     --color-secondary-rgb: 0 212 255;
-    --color-accent-rgb: 57 255 20;
+    --color-accent-rgb: 255 215 0;
     --color-bg-rgb: 10 10 10;
-    --font-display: 'Bebas Neue', sans-serif;
-    --font-body: 'Inter', sans-serif;
-    --font-size-base: 14px;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -60,25 +57,12 @@
   }
 
   .neon-box {
-    background: rgb(var(--color-bg-rgb) / 0.93);
-    border: 3px solid var(--color-primary);
+    background: rgba(10,10,10,0.85);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 6px;
     position: relative;
     overflow: hidden;
-  }
-
-  /* Spray texture on neon boxes */
-  .neon-box::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: repeating-linear-gradient(
-      45deg,
-      transparent,
-      transparent 3px,
-      rgba(255, 255, 255, 0.012) 3px,
-      rgba(255, 255, 255, 0.012) 6px
-    );
-    pointer-events: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
   }
 
   .counter {
@@ -86,13 +70,11 @@
     align-items: center;
     gap: 10px;
     padding: 8px 18px;
-    box-shadow: 0 0 15px rgb(var(--color-primary-rgb) / 0.3);
   }
 
   .counter .diamond {
     color: var(--color-primary);
     font-size: 14px;
-    text-shadow: 0 0 8px rgb(var(--color-primary-rgb) / 0.5);
     animation: orbFloat 2s ease-in-out infinite;
   }
 
@@ -101,7 +83,6 @@
     font-family: var(--font-display);
     font-size: 16px;
     letter-spacing: 2px;
-    text-shadow: 0 0 6px rgb(var(--color-secondary-rgb) / 0.4);
   }
 
   .counter .label {
@@ -115,7 +96,6 @@
     position: relative;
     width: 320px;
     height: 320px;
-    filter: drop-shadow(0 0 20px rgb(var(--color-primary-rgb) / 0.3));
   }
 
   .wheel-rotate { width: 320px; height: 320px; }
@@ -126,7 +106,6 @@
     height: 6px;
     border-radius: 50%;
     background: var(--color-primary);
-    box-shadow: 0 0 8px var(--color-primary), 0 0 16px rgb(var(--color-primary-rgb) / 0.4);
   }
 
   .pointer-wrap {
@@ -135,50 +114,12 @@
     left: 50%;
     transform: translateX(-50%);
     z-index: 20;
-    animation: pointerPulse 2.5s ease-in-out infinite;
-    filter: drop-shadow(0 0 10px rgb(var(--color-secondary-rgb) / 0.6));
-  }
-  .pointer-wrap.active {
-    animation: pointerPulse 0.15s ease-in-out infinite;
-    filter: drop-shadow(0 0 15px rgb(var(--color-accent-rgb) / 0.8));
-  }
-
-  .spin-btn {
-    font-family: var(--font-display);
-    font-size: 18px;
-    color: var(--color-text);
-    padding: 10px 32px;
-    cursor: pointer;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    transition: all 0.2s;
-    background: rgb(var(--color-bg-rgb) / 0.9);
-    border: 3px solid var(--color-secondary);
-    box-shadow: 0 0 15px rgb(var(--color-secondary-rgb) / 0.3);
-    transform: skewX(-3deg);
-    text-shadow: 0 0 8px rgb(var(--color-secondary-rgb) / 0.4);
-  }
-  .spin-btn:hover {
-    border-color: var(--color-accent);
-    box-shadow: 0 0 25px rgb(var(--color-accent-rgb) / 0.5);
-    text-shadow: 0 0 10px rgb(var(--color-accent-rgb) / 0.5);
-    color: var(--color-accent);
-  }
-  .spin-btn:disabled {
-    color: #333;
-    background: rgb(var(--color-bg-rgb) / 0.9);
-    border-color: #222;
-    box-shadow: none;
-    text-shadow: none;
-    cursor: not-allowed;
   }
 
   .result {
     padding: 14px 28px;
     text-align: center;
     animation: fadeIn 0.4s ease-out forwards;
-    box-shadow: 0 0 25px rgb(var(--color-accent-rgb) / 0.4);
-    border-color: var(--color-accent);
   }
 
   .result-label {
@@ -187,14 +128,12 @@
     font-size: 12px;
     letter-spacing: 4px;
     margin-bottom: 6px;
-    text-shadow: 0 0 8px rgb(var(--color-accent-rgb) / 0.4);
     text-transform: uppercase;
   }
 
   .result-value {
     font-family: var(--font-display);
     font-size: 22px;
-    text-shadow: 2px 2px 0 #000, 0 0 15px rgb(var(--color-primary-rgb) / 0.5);
     letter-spacing: 1px;
     text-transform: uppercase;
   }
@@ -207,27 +146,11 @@
     text-transform: uppercase;
   }
 
-  /* Explosion effect on result show */
-  @keyframes resultExplosion {
-    0% { box-shadow: 0 0 80px rgb(var(--color-accent-rgb) / 1), 0 0 120px rgb(var(--color-primary-rgb) / 0.6); border-color: #fff; }
-    50% { box-shadow: 0 0 40px rgb(var(--color-accent-rgb) / 0.6), 0 0 60px rgb(var(--color-primary-rgb) / 0.3); }
-    100% { box-shadow: 0 0 25px rgb(var(--color-accent-rgb) / 0.4); border-color: var(--color-accent); }
-  }
-
-  .result.explosion {
-    animation: fadeIn 0.4s ease-out forwards, resultExplosion 1s ease-out;
-  }
-
   .hidden { display: none; }
 
   @keyframes fadeIn {
-    0% { opacity: 0; transform: translateY(8px) skewX(-3deg); }
-    100% { opacity: 1; transform: translateY(0) skewX(-3deg); }
-  }
-
-  @keyframes pointerPulse {
-    0%, 100% { filter: drop-shadow(0 0 6px rgb(var(--color-secondary-rgb) / 0.3)); }
-    50% { filter: drop-shadow(0 0 14px rgb(var(--color-secondary-rgb) / 0.8)); }
+    0% { opacity: 0; transform: translateY(8px); }
+    100% { opacity: 1; transform: translateY(0); }
   }
 
   @keyframes orbFloat {

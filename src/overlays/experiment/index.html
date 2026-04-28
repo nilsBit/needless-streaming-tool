@@ -2,23 +2,20 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --color-primary: #ff2d7b;
       --color-secondary: #00d4ff;
-      --color-accent: #39ff14;
-      --color-text: #ffffff;
+      --color-accent: #ffd700;
       --color-bg: #0a0a0a;
-      --color-bg-opacity: 0.92;
-      --color-bg-secondary: #0d0d0d;
+      --font-display: 'Rajdhani', sans-serif;
+      --font-body: 'Inter', sans-serif;
+      --color-text: #ffffff;
       --color-primary-rgb: 255 45 123;
       --color-secondary-rgb: 0 212 255;
-      --color-accent-rgb: 57 255 20;
+      --color-accent-rgb: 255 215 0;
       --color-bg-rgb: 10 10 10;
-      --font-display: 'Bebas Neue', sans-serif;
-      --font-body: 'Inter', sans-serif;
-      --font-size-base: 14px;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -29,49 +26,15 @@
       align-items: center;
       gap: 14px;
       padding: 12px 22px;
-      background: rgb(var(--color-bg-rgb) / 0.95);
-      border: 3px solid var(--color-primary);
+      background: rgba(10,10,10,0.85);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 6px;
       position: relative;
       overflow: hidden;
-      box-shadow: 0 0 15px rgb(var(--color-primary-rgb) / 0.5);
-      animation: bannerPulse 2s ease-in-out infinite;
-    }
-
-    .banner::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: repeating-linear-gradient(
-        45deg,
-        transparent,
-        transparent 10px,
-        rgb(var(--color-primary-rgb) / 0.04) 10px,
-        rgb(var(--color-primary-rgb) / 0.04) 20px
-      );
-      pointer-events: none;
-    }
-
-    .banner::after {
-      content: 'CHALLENGE';
-      position: absolute;
-      top: 0; right: 0;
-      background: var(--color-primary);
-      color: #000;
-      font-family: var(--font-display);
-      font-size: 10px;
-      letter-spacing: 3px;
-      padding: 2px 10px;
-      transform: skewX(-3deg);
-      transform-origin: top right;
-      box-shadow: 0 0 8px rgb(var(--color-primary-rgb) / 0.5);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
 
     .banner.visible { display: flex; }
-
-    @keyframes bannerPulse {
-      0%, 100% { box-shadow: 0 0 15px rgb(var(--color-primary-rgb) / 0.5); }
-      50% { box-shadow: 0 0 25px rgb(var(--color-primary-rgb) / 0.7); }
-    }
 
     .status-dot {
       width: 12px;
@@ -82,28 +45,24 @@
 
     .status-dot.in_progress {
       background: var(--color-primary);
-      box-shadow: 0 0 10px rgb(var(--color-primary-rgb) / 0.8), 0 0 20px rgb(var(--color-primary-rgb) / 0.4);
       animation: dotPulse 1.2s ease-in-out infinite;
     }
 
     .status-dot.done {
       background: var(--color-accent);
-      box-shadow: 0 0 10px rgb(var(--color-accent-rgb) / 0.6);
     }
 
     .status-dot.failed {
       background: var(--color-primary);
-      box-shadow: 0 0 10px rgb(var(--color-primary-rgb) / 0.6);
     }
 
     .status-dot.idle {
       background: #555;
-      box-shadow: 0 0 5px rgba(85,85,85,0.3);
     }
 
     @keyframes dotPulse {
-      0%, 100% { opacity: 1; box-shadow: 0 0 10px rgb(var(--color-primary-rgb) / 0.8), 0 0 20px rgb(var(--color-primary-rgb) / 0.4); }
-      50% { opacity: 0.5; box-shadow: 0 0 20px rgb(var(--color-primary-rgb) / 1), 0 0 40px rgb(var(--color-primary-rgb) / 0.6); }
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
     }
 
     .title {
@@ -112,7 +71,6 @@
       font-weight: 700;
       color: var(--color-text);
       letter-spacing: 2px;
-      text-shadow: 0 0 8px rgb(var(--color-secondary-rgb) / 0.4), 3px 3px 0 rgba(0,0,0,0.6);
       text-transform: uppercase;
     }
 
@@ -123,7 +81,6 @@
       color: #ff6b35;
       margin-left: auto;
       letter-spacing: 3px;
-      text-shadow: 0 0 10px rgba(255,107,53,0.6), 0 0 20px rgba(255,107,53,0.3);
     }
 
     .timer.paused {
@@ -136,7 +93,6 @@
       text-transform: uppercase;
       color: var(--color-secondary);
       letter-spacing: 2px;
-      text-shadow: 0 0 6px rgb(var(--color-secondary-rgb) / 0.4);
     }
   </style>
 </head>

@@ -3,23 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <title>Achievement - OBS Overlay</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --color-primary: #ff2d7b;
     --color-secondary: #00d4ff;
-    --color-accent: #39ff14;
-    --color-text: #ffffff;
+    --color-accent: #ffd700;
     --color-bg: #0a0a0a;
-    --color-bg-opacity: 0.92;
-    --color-bg-secondary: #0d0d0d;
+    --font-display: 'Rajdhani', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --color-text: #ffffff;
     --color-primary-rgb: 255 45 123;
     --color-secondary-rgb: 0 212 255;
-    --color-accent-rgb: 57 255 20;
+    --color-accent-rgb: 255 215 0;
     --color-bg-rgb: 10 10 10;
-    --font-display: 'Bebas Neue', sans-serif;
-    --font-body: 'Inter', sans-serif;
-    --font-size-base: 14px;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -44,98 +41,47 @@
     align-items: center;
     gap: 18px;
     padding: 18px 28px 18px 20px;
-    background: rgb(var(--color-bg-rgb) / 0.93);
-    border: 3px solid #444;
+    background: rgba(10,10,10,0.85);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 6px;
     min-width: 380px;
     max-width: 580px;
     position: relative;
     overflow: hidden;
-  }
-
-  /* Spray paint texture */
-  .achievement::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: repeating-linear-gradient(
-      45deg,
-      transparent,
-      transparent 3px,
-      rgba(255, 255, 255, 0.012) 3px,
-      rgba(255, 255, 255, 0.012) 6px
-    );
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  /* Diagonal stripe accent top */
-  .achievement::after {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; height: 4px;
-    background: repeating-linear-gradient(
-      45deg,
-      #444,
-      #444 3px,
-      transparent 3px,
-      transparent 7px
-    );
-    z-index: 1;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
   }
 
   .achievement.visible {
     opacity: 1;
-    transform: translateY(0) scale(1) skewX(-2deg);
+    transform: translateY(0) scale(1);
     transition: opacity 0.4s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
   .achievement.hiding {
     opacity: 0;
-    transform: translateY(-20px) scale(0.95) skewX(-2deg);
+    transform: translateY(-20px) scale(0.95);
     transition: opacity 0.6s ease, transform 0.6s ease;
   }
 
-  /* Level: minor = electric blue */
+  /* Level: minor = electric blue accent border */
   .achievement.minor {
-    border-color: var(--color-secondary);
-    box-shadow: 0 0 15px rgb(var(--color-secondary-rgb) / 0.3);
-  }
-  .achievement.minor::after {
-    background: repeating-linear-gradient(45deg, var(--color-secondary), var(--color-secondary) 3px, transparent 3px, transparent 7px);
+    border-color: rgba(0, 212, 255, 0.3);
   }
 
-  /* Level: major = magenta */
+  /* Level: major = magenta accent border */
   .achievement.major {
-    border-color: var(--color-primary);
-    box-shadow: 0 0 25px rgb(var(--color-primary-rgb) / 0.4), 0 0 60px rgb(var(--color-primary-rgb) / 0.15);
-  }
-  .achievement.major::after {
-    background: repeating-linear-gradient(45deg, var(--color-primary), var(--color-primary) 3px, transparent 3px, transparent 7px);
+    border-color: rgba(255, 45, 123, 0.3);
   }
 
-  /* Level: epic = neon green with intense glow */
+  /* Level: epic = gold accent border with subtle pulse */
   .achievement.epic {
-    border-color: var(--color-accent);
-    box-shadow: 0 0 30px rgb(var(--color-accent-rgb) / 0.5), 0 0 80px rgb(var(--color-accent-rgb) / 0.2), inset 0 0 40px rgb(var(--color-accent-rgb) / 0.05);
+    border-color: rgba(255, 215, 0, 0.4);
     animation: epicPulse 2s ease-in-out infinite;
-  }
-  .achievement.epic::after {
-    background: repeating-linear-gradient(45deg, var(--color-accent), var(--color-accent) 3px, var(--color-primary) 3px, var(--color-primary) 5px, transparent 5px, transparent 9px);
   }
 
   @keyframes epicPulse {
-    0%, 100% { box-shadow: 0 0 30px rgb(var(--color-accent-rgb) / 0.5), 0 0 80px rgb(var(--color-accent-rgb) / 0.2); }
-    50% { box-shadow: 0 0 50px rgb(var(--color-accent-rgb) / 0.8), 0 0 120px rgb(var(--color-accent-rgb) / 0.35); }
-  }
-
-  /* Glow burst on entrance for epic */
-  @keyframes glowBurst {
-    0% { box-shadow: 0 0 100px rgb(var(--color-accent-rgb) / 1), 0 0 200px rgb(var(--color-accent-rgb) / 0.6); border-color: #fff; }
-    100% { box-shadow: 0 0 30px rgb(var(--color-accent-rgb) / 0.5), 0 0 80px rgb(var(--color-accent-rgb) / 0.2); border-color: var(--color-accent); }
-  }
-
-  .achievement.epic.visible {
-    animation: glowBurst 0.8s ease-out, epicPulse 2s ease-in-out 0.8s infinite;
+    0%, 100% { box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+    50% { box-shadow: 0 2px 16px rgba(255,215,0,0.15); }
   }
 
   /* Icon box */
@@ -143,19 +89,19 @@
     width: 56px;
     height: 56px;
     min-width: 56px;
-    background: rgb(var(--color-bg-rgb) / 0.9);
-    border: 2px solid #444;
+    background: rgba(10,10,10,0.6);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
     z-index: 1;
-    transform: skewX(-3deg);
   }
 
-  .achievement.minor .icon-box { border-color: var(--color-secondary); box-shadow: 0 0 10px rgb(var(--color-secondary-rgb) / 0.3); }
-  .achievement.major .icon-box { border-color: var(--color-primary); box-shadow: 0 0 10px rgb(var(--color-primary-rgb) / 0.3); }
-  .achievement.epic .icon-box { border-color: var(--color-accent); box-shadow: 0 0 15px rgb(var(--color-accent-rgb) / 0.4); }
+  .achievement.minor .icon-box { border-color: rgba(0, 212, 255, 0.25); }
+  .achievement.major .icon-box { border-color: rgba(255, 45, 123, 0.25); }
+  .achievement.epic .icon-box { border-color: rgba(255, 215, 0, 0.3); }
 
   .icon-box svg { image-rendering: pixelated; }
 
@@ -176,29 +122,22 @@
     text-transform: uppercase;
   }
 
-  .achievement.minor .achievement-label { color: var(--color-secondary); text-shadow: 0 0 8px rgb(var(--color-secondary-rgb) / 0.4); }
-  .achievement.major .achievement-label { color: var(--color-primary); text-shadow: 0 0 8px rgb(var(--color-primary-rgb) / 0.4); }
-  .achievement.epic .achievement-label { color: var(--color-accent); text-shadow: 0 0 10px rgb(var(--color-accent-rgb) / 0.5); }
+  .achievement.minor .achievement-label { color: var(--color-secondary); }
+  .achievement.major .achievement-label { color: var(--color-primary); }
+  .achievement.epic .achievement-label { color: var(--color-accent); }
 
   .achievement-title {
     font-family: var(--font-display);
     font-size: 22px;
     color: var(--color-text);
-    text-shadow: 2px 2px 0 #000, 4px 4px 0 rgba(0,0,0,0.3);
     line-height: 1.3;
     word-break: break-word;
     letter-spacing: 1px;
     text-transform: uppercase;
   }
 
-  .achievement.major .achievement-title {
-    color: var(--color-primary);
-    text-shadow: 2px 2px 0 #000, 0 0 15px rgb(var(--color-primary-rgb) / 0.4);
-  }
-  .achievement.epic .achievement-title {
-    color: var(--color-accent);
-    text-shadow: 2px 2px 0 #000, 0 0 20px rgb(var(--color-accent-rgb) / 0.5), 0 0 40px rgb(var(--color-accent-rgb) / 0.2);
-  }
+  .achievement.major .achievement-title { color: var(--color-primary); }
+  .achievement.epic .achievement-title { color: var(--color-accent); }
 
   .achievement-sub {
     font-family: var(--font-body);
@@ -209,14 +148,14 @@
   }
 
   .achievement.major .achievement-sub { color: #993366; }
-  .achievement.epic .achievement-sub { color: #228811; }
+  .achievement.epic .achievement-sub { color: #aa8800; }
 
   /* Shine effect for epic */
   .shine {
     display: none;
     position: absolute;
     top: 0; left: -100%; width: 60%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgb(var(--color-accent-rgb) / 0.1), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255,215,0,0.06), transparent);
     animation: shineAnim 3s ease-in-out infinite;
     z-index: 0;
   }
@@ -246,7 +185,7 @@
     width: 3px;
     height: 3px;
     background: var(--color-accent);
-    box-shadow: 0 0 6px var(--color-accent);
+    border-radius: 50%;
     animation: sparkleFloat 2s ease-in-out infinite;
   }
 

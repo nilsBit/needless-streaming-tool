@@ -60,8 +60,8 @@
     Oder mach dein eigenes Design. Alles erlaubt.
   -->
 
-  <!-- Optional: Pixel-Art Font (entfernen wenn nicht gebraucht) -->
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <!-- NST Modern: Rajdhani + Inter fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
   <style>
     /* =============================================
@@ -78,57 +78,49 @@
     }
 
     /* =============================================
-       AB HIER: DEIN DESIGN
+       NST MODERN STYLE
        Ändere alles was du willst!
        ============================================= */
 
-    /* --- VARIANTE A: Pixel Art Style --- */
+    :root {
+      --color-primary: #ff2d7b;
+      --color-secondary: #00d4ff;
+      --color-accent: #ffd700;
+      --color-bg: #0a0a0a;
+      --font-display: 'Rajdhani', sans-serif;
+      --font-body: 'Inter', sans-serif;
+    }
+
     .overlay {
-      font-family: 'Press Start 2P', monospace;
-      image-rendering: pixelated;
-      padding: 16px;
-      color: #ccc;
-      font-size: 10px;
-    }
-
-    .pixel-box {
-      background: rgba(10, 10, 10, 0.85);
-      border: 2px solid #333;
-      box-shadow:
-        inset -2px -2px 0 #000,
-        inset 2px 2px 0 #1a1a1a,
-        4px 4px 0 rgba(0, 0, 0, 0.8);
-      padding: 12px;
-    }
-
-    .title {
-      color: #e67e22;
-      font-size: 11px;
-      margin-bottom: 10px;
-      text-shadow: 2px 2px 0 #000;
-    }
-
-    /* --- VARIANTE B: Modern Style (auskommentiert) ---
-    .overlay {
-      font-family: -apple-system, 'Segoe UI', sans-serif;
+      font-family: var(--font-body);
       padding: 16px;
       color: #eee;
       font-size: 14px;
     }
 
-    .modern-box {
-      background: rgba(13, 13, 13, 0.9);
-      border: 2px solid #e67e22;
-      border-radius: 8px;
-      backdrop-filter: blur(8px);
+    /* Standard card: dark background, subtle border, soft shadow */
+    .card {
+      background: rgba(10, 10, 10, 0.85);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
       padding: 16px;
     }
-    */
+
+    .title {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--color-primary);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
 
     /* Items */
     .item {
       padding: 6px 0;
-      border-bottom: 1px solid #222;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
       animation: fadeIn 0.3s ease forwards;
       opacity: 0;
     }
@@ -182,7 +174,7 @@
        Passe die Struktur an dein Overlay an.
        ============================================= -->
   <div class="overlay">
-    <div class="pixel-box">
+    <div class="card">
       <div class="title">MEIN OVERLAY</div>
       <div id="content">
         <div class="empty-msg">LADE DATEN...</div>
