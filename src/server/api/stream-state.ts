@@ -6,6 +6,39 @@ import { validateEnum } from './validate';
 
 const router = Router();
 
+// Server-side timer — ticks every second while timer_running is true
+let timerInterval: ReturnType<typeof setInterval> | null = null;
+
+function startServerTimer() {
+  if (timerInterval) return;
+  timerInterval = setInterval(() => {
+    const db = getDb();
+    const state = db.prepare('SELECT timer_running, timer_seconds FROM stream_state WHERE id = 1').get() as { timer_running: number; timer_seconds: number } | undefined;
+    if (!state || !state.timer_running) {
+      stopServerTimer();
+      return;
+    }
+    const next = state.timer_seconds + 1;
+    db.prepare('UPDATE stream_state SET timer_seconds = ? WHERE id = 1').run(next);
+    broadcast('stream-state', db.prepare('SELECT * FROM stream_state WHERE id = 1').get());
+  }, 1000);
+}
+
+function stopServerTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+}
+
+// Check on startup if timer should be running
+{
+  try {
+    const state = getDb().prepare('SELECT timer_running FROM stream_state WHERE id = 1').get() as { timer_running: number } | undefined;
+    if (state?.timer_running) startServerTimer();
+  } catch {}
+}
+
 router.get('/', (_req, res) => {
   const state = getDb().prepare('SELECT * FROM stream_state WHERE id = 1').get();
   res.json(state);
@@ -33,6 +66,12 @@ router.patch('/', (req, res) => {
   }
 
   db.prepare(`UPDATE stream_state SET ${fields.join(', ')} WHERE id = 1`).run(...values);
+
+  // Start/stop server-side timer based on timer_running changes
+  if (timer_running !== undefined) {
+    if (timer_running) startServerTimer();
+    else stopServerTimer();
+  }
 
   // If challenge is being completed/failed, check for linked project item and save its time
   if (challenge_status === 'done' || challenge_status === 'failed') {

@@ -12,43 +12,22 @@ export default function ChallengePanel() {
   const { data: progressData } = useApi<{ items: ProjectItem[] }>('/progress');
   const [title, setTitle] = useState('');
   const [isEditing, setIsEditing] = useState(false);
-  const [timerDisplay, setTimerDisplay] = useState('00:00');
-  const [seconds, setSeconds] = useState(0);
   const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (state) {
-      if (!isEditing) {
-        setTitle(state.challenge_title || '');
-      }
-      setSeconds(state.timer_seconds);
+    if (state && !isEditing) {
+      setTitle(state.challenge_title || '');
     }
   }, [state, isEditing]);
 
-  useEffect(() => {
-    if (!state?.timer_running) return;
-    const interval = setInterval(() => {
-      setSeconds((s) => {
-        const next = s + 1;
-        apiPatch('/stream-state', { timer_seconds: next });
-        return next;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [state?.timer_running]);
-
-  useEffect(() => {
-    const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
-    const secs = (seconds % 60).toString().padStart(2, '0');
-    setTimerDisplay(`${mins}:${secs}`);
-  }, [seconds]);
+  const seconds = state?.timer_seconds || 0;
+  const timerDisplay = `${Math.floor(seconds / 60).toString().padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
 
   const startChallenge = async () => {
     if (!title.trim()) return;
     setIsEditing(false);
     const result = await apiPatch('/stream-state', { challenge_title: title.trim(), challenge_status: 'in_progress', timer_seconds: 0, timer_running: 1 });
     if (!result) { toast.error(t('error.action_failed')); return; }
-    setSeconds(0);
     refetch();
   };
 
@@ -61,7 +40,6 @@ export default function ChallengePanel() {
       const reset = await apiPatch('/stream-state', { challenge_title: null, challenge_status: 'idle', timer_seconds: 0, timer_running: 0 });
       if (!reset) { toast.error(t('error.action_failed')); resetTimerRef.current = null; return; }
       setTitle('');
-      setSeconds(0);
       refetch();
       resetTimerRef.current = null;
     }, 3000);
@@ -77,7 +55,6 @@ export default function ChallengePanel() {
     const result = await apiPatch('/stream-state', { challenge_title: null, challenge_status: 'idle', timer_seconds: 0, timer_running: 0 });
     if (!result) { toast.error(t('error.action_failed')); return; }
     setTitle('');
-    setSeconds(0);
     refetch();
   };
 
