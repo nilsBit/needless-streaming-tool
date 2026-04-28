@@ -28,11 +28,10 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 100vh;
+    width: 100%;
+    height: 100vh;
     font-family: var(--font-body);
     overflow: hidden;
-    max-width: 100vw;
-    overflow-x: hidden;
   }
 
   .container {
@@ -96,11 +95,18 @@
 
   .wheel-wrapper {
     position: relative;
-    width: min(320px, 90vw);
-    height: min(320px, 90vw);
+    width: min(280px, 80vw, 80vh);
+    height: min(280px, 80vw, 80vh);
   }
 
-  .wheel-rotate { width: min(320px, 90vw); height: min(320px, 90vw); }
+  .wheel-rotate {
+    width: 100%;
+    height: 100%;
+  }
+  .wheel-rotate svg {
+    width: 100%;
+    height: 100%;
+  }
 
   .orb {
     position: absolute;
@@ -235,16 +241,16 @@
 })();
 </script>
 <script>
-// Dynamic segments from issues API — NFS Unbound neon palette
+// Monochrome palette — alternating dark grays
 const PALETTE = [
-  { bg: "#1a0a1e", txt: "#ff2d7b" },
-  { bg: "#0a1520", txt: "#00d4ff" },
-  { bg: "#0a1a0a", txt: "#39ff14" },
-  { bg: "#1a1005", txt: "#ff6b35" },
-  { bg: "#150a1e", txt: "#ff2d7b" },
-  { bg: "#051520", txt: "#00d4ff" },
-  { bg: "#0f1a05", txt: "#39ff14" },
-  { bg: "#1a0f05", txt: "#ff6b35" },
+  { bg: "#1a1a1a", txt: "#cccccc" },
+  { bg: "#111111", txt: "#ffffff" },
+  { bg: "#1e1e1e", txt: "#cccccc" },
+  { bg: "#141414", txt: "#ffffff" },
+  { bg: "#1a1a1a", txt: "#cccccc" },
+  { bg: "#111111", txt: "#ffffff" },
+  { bg: "#1e1e1e", txt: "#cccccc" },
+  { bg: "#141414", txt: "#ffffff" },
 ];
 
 let SEGMENTS = [];
@@ -281,7 +287,7 @@ async function loadIssues() {
     const openIssues = issues.filter(b => b.status === 'open');
 
     if (openIssues.length === 0) {
-      SEGMENTS = [{ id: 0, label: "KEINE ISSUES", bg: "#1a1a1a", txt: "#444", title: "Keine offenen Issues" }];
+      SEGMENTS = [{ id: 0, label: "KEINE ISSUES", bg: "#1a1a1a", txt: "#666", title: "Keine offenen Issues" }];
     } else {
       SEGMENTS = openIssues.map((issue, i) => {
         const style = PALETTE[i % PALETTE.length];
@@ -338,13 +344,12 @@ function buildWheel(){
   });
   defs+=`<pattern id="pg" width="4" height="4" patternUnits="userSpaceOnUse"><rect width="4" height="4" fill="transparent"/><rect x="0" y="0" width="4" height="1" fill="rgba(0,0,0,0.06)"/><rect x="0" y="0" width="1" height="4" fill="rgba(0,0,0,0.06)"/></pattern><clipPath id="wc"><circle cx="${CX}" cy="${CY}" r="${R}"/></clipPath>`;
 
-  // Neon outer ring
+  // Outer ring — subtle white dots
   let outer='';
   for(let i=0;i<72;i++){
     const a=i*5*Math.PI/180,x=Math.round((CX+(R+6)*Math.cos(a))/2)*2-2,y=Math.round((CY+(R+6)*Math.sin(a))/2)*2-2;
-    const neonColors = ['#ff2d7b','#00d4ff','#39ff14','#ff6b35'];
-    const c = i%3===0 ? neonColors[i%4] : '#1a1a1a';
-    outer+=`<rect x="${x}" y="${y}" width="4" height="4" fill="${c}" opacity="${i%3===0?'0.8':'0.3'}"/>`;
+    const c = i%3===0 ? '#ffffff' : '#1a1a1a';
+    outer+=`<rect x="${x}" y="${y}" width="4" height="4" fill="${c}" opacity="${i%3===0?'0.3':'0.1'}"/>`;
   }
 
   // Adjust font size based on segment count
@@ -356,25 +361,21 @@ function buildWheel(){
     const sd=i*ANG,ed=(i+1)*ANG,md=sd+ANG/2,lp=p2c(CX,CY,labelRadius,md),sp=p2c(CX,CY,24,sd),ep=p2c(CX,CY,R,sd);
     // Segment fill
     segs+=`<path d="${ap(CX,CY,R,sd,ed)}" fill="url(#d${i})"/>`;
-    // Neon border between segments
-    segs+=`<path d="${ap(CX,CY,R,sd,ed)}" fill="none" stroke="${s.txt}" stroke-width="1" opacity="0.3"/>`;
-    segs+=`<line x1="${sp.x}" y1="${sp.y}" x2="${ep.x}" y2="${ep.y}" stroke="${s.txt}" stroke-width="1" opacity="0.4"/>`;
-    // Decorative dots
-    [0.2,0.4,0.6,0.8].forEach(t=>{const dp=p2c(CX,CY,R-10,sd+ANG*t);segs+=`<rect x="${Math.round(dp.x/2)*2-1}" y="${Math.round(dp.y/2)*2-1}" width="2" height="2" fill="${s.txt}" opacity="0.3"/>`;});
-    const dp2=p2c(CX,CY,R-4,md);segs+=`<rect x="${Math.round(dp2.x/2)*2-1}" y="${Math.round(dp2.y/2)*2-1}" width="3" height="3" fill="${s.txt}" opacity="0.4"/>`;
-    // Labels with neon glow
-    segs+=`<g transform="translate(${lp.x},${lp.y}) rotate(${md})"><text text-anchor="middle" dominant-baseline="central" fill="${s.txt}" font-size="${fontSize}" font-family="'Bebas Neue',sans-serif" letter-spacing="1" opacity="0.3" dx="1" dy="1">${s.label}</text><text text-anchor="middle" dominant-baseline="central" fill="${s.txt}" font-size="${fontSize}" font-family="'Bebas Neue',sans-serif" letter-spacing="1">${s.label}</text></g>`;
+    // Segment border
+    segs+=`<path d="${ap(CX,CY,R,sd,ed)}" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>`;
+    segs+=`<line x1="${sp.x}" y1="${sp.y}" x2="${ep.x}" y2="${ep.y}" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>`;
+    // Labels
+    segs+=`<g transform="translate(${lp.x},${lp.y}) rotate(${md})"><text text-anchor="middle" dominant-baseline="central" fill="${s.txt}" font-size="${fontSize}" font-family="'Rajdhani',sans-serif" letter-spacing="1">${s.label}</text></g>`;
   });
 
-  // Inner ring with neon
+  // Inner ring — subtle white dots
   let inner='';
   for(let i=0;i<48;i++){
     const a=i*7.5*Math.PI/180,x=Math.round((CX+26*Math.cos(a))/2)*2-1,y=Math.round((CY+26*Math.sin(a))/2)*2-1;
-    const neonColors = ['#ff2d7b','#00d4ff','#39ff14','#ff6b35'];
-    inner+=`<rect x="${x}" y="${y}" width="2" height="2" fill="${i%2===0?neonColors[i%4]:'#222'}" opacity="${i%2===0?'0.6':'0.3'}"/>`;
+    inner+=`<rect x="${x}" y="${y}" width="2" height="2" fill="${i%2===0?'#ffffff':'#222'}" opacity="${i%2===0?'0.2':'0.1'}"/>`;
   }
 
-  document.getElementById('wheel').innerHTML=`<svg width="320" height="320" viewBox="0 0 320 320"><defs>${defs}</defs>${outer}${segs}<circle cx="${CX}" cy="${CY}" r="${R}" fill="url(#pg)" clip-path="url(#wc)"/><circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="#ff2d7b" stroke-width="2" opacity="0.5"/>${inner}<circle cx="${CX}" cy="${CY}" r="20" fill="#0a0a0a" stroke="#ff2d7b" stroke-width="2" opacity="0.8"/><circle cx="${CX}" cy="${CY}" r="14" fill="#050505" stroke="#00d4ff" stroke-width="1" opacity="0.6"/><rect x="${CX-1}" y="${CY-8}" width="2" height="16" fill="#00d4ff" opacity="0.5"/><rect x="${CX-8}" y="${CY-1}" width="16" height="2" fill="#00d4ff" opacity="0.5"/><rect x="${CX-3}" y="${CY-3}" width="6" height="6" fill="#ff2d7b" rx="1"/><rect x="${CX-1}" y="${CY-1}" width="2" height="2" fill="#fff"/></svg>`;
+  document.getElementById('wheel').innerHTML=`<svg width="320" height="320" viewBox="0 0 320 320"><defs>${defs}</defs>${outer}${segs}<circle cx="${CX}" cy="${CY}" r="${R}" fill="url(#pg)" clip-path="url(#wc)"/><circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>${inner}<circle cx="${CX}" cy="${CY}" r="20" fill="#0a0a0a" stroke="rgba(255,255,255,0.2)" stroke-width="1"/><circle cx="${CX}" cy="${CY}" r="14" fill="#050505" stroke="rgba(255,255,255,0.15)" stroke-width="1"/><rect x="${CX-1}" y="${CY-8}" width="2" height="16" fill="rgba(255,255,255,0.3)"/><rect x="${CX-8}" y="${CY-1}" width="16" height="2" fill="rgba(255,255,255,0.3)"/><rect x="${CX-3}" y="${CY-3}" width="6" height="6" fill="#ffffff" rx="1" opacity="0.5"/><rect x="${CX-1}" y="${CY-1}" width="2" height="2" fill="#fff"/></svg>`;
 
   document.getElementById('totalPts').textContent = N + ' ISSUES';
 }
@@ -383,7 +384,7 @@ function buildOrbs(){
   let h='';
   for(let i=0;i<8;i++){
     const a=(i*45+22.5)*Math.PI/180,r=178;
-    h+=`<div class="orb" style="left:calc(50% + ${Math.cos(a)*r}px - 3px);top:calc(50% + ${Math.sin(a)*r}px - 3px);background:rgba(255,255,255,0.3);box-shadow:0 0 8px rgba(255,255,255,0.1);animation:orbFloat ${2+i*0.3}s ease-in-out infinite;animation-delay:${i*0.25}s"></div>`;
+    h+=`<div class="orb" style="left:calc(50% + ${Math.cos(a)*r}px - 3px);top:calc(50% + ${Math.sin(a)*r}px - 3px);animation:orbFloat ${2+i*0.3}s ease-in-out infinite;animation-delay:${i*0.25}s"></div>`;
   }
   document.getElementById('orbs').innerHTML=h;
 }
@@ -424,10 +425,10 @@ function spin(){
       const norm=((360-(endRot%360))+360)%360,idx=Math.floor(norm/ANG)%N,won=SEGMENTS[idx];
 
       const box=document.getElementById('resultBox'),val=document.getElementById('resultValue'),sub=document.getElementById('resultSub');
-      box.classList.remove('hidden');box.className='result neon-box explosion';
-      val.style.color=won.txt;
-      val.style.textShadow=`2px 2px 0 #000, 0 0 15px ${won.txt}`;
-      sub.style.color='#666';
+      box.classList.remove('hidden');box.className='result neon-box';
+      val.style.color='#ffffff';
+      val.style.textShadow='none';
+      sub.style.color='rgba(255,255,255,0.5)';
       val.textContent = '\u25BA ' + (won.title || won.label);
       sub.textContent = 'ALS N\u00C4CHSTES DRAN';
 
