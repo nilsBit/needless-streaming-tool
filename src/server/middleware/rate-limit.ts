@@ -36,5 +36,5 @@ function createRateLimiter(windowMs: number, maxRequests: number) {
 }
 
 export const rateLimit = createRateLimiter(WINDOW_MS, MAX_REQUESTS);
-export const publicRateLimit = createRateLimiter(WINDOW_MS, 60); // 60 req/min for public endpoints
+export const publicRateLimit = createRateLimiter(WINDOW_MS, 300); // 300 req/min for public endpoints (overlays poll frequently)
 
