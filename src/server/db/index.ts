@@ -134,6 +134,15 @@ function runMigrations(from: number, to: number) {
     console.log('[DB] Migrated: added performance indexes');
   }
 
+  // Safety check: ensure experiment_* columns were renamed to challenge_*
+  // (can be missed if DB was copied from an older version after migration ran)
+  try {
+    db.prepare('SELECT experiment_title FROM stream_state LIMIT 1').get();
+    db.exec('ALTER TABLE stream_state RENAME COLUMN experiment_title TO challenge_title');
+    db.exec('ALTER TABLE stream_state RENAME COLUMN experiment_status TO challenge_status');
+    console.log('[DB] Fixed: renamed experiment_* → challenge_* in stream_state');
+  } catch {}
+
   db.prepare('INSERT OR REPLACE INTO schema_version (version) VALUES (?)').run(to);
   console.log(`[DB] Migrated from v${from} to v${to}`);
 }
