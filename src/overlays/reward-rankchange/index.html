@@ -19,6 +19,8 @@ body {
   background: transparent;
   font-family: var(--font-body);
   overflow: hidden;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 .alert-container {
@@ -26,7 +28,8 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 320px;
+  max-width: 320px;
+  width: 90%;
   opacity: 0;
   pointer-events: none;
 }
