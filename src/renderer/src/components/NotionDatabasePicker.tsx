@@ -44,8 +44,10 @@ export default function NotionDatabasePicker({ onConfigured, compact }: Props) {
   };
 
   useEffect(() => {
-    if (!tokenInfo?.configured) { setPhase('token_missing'); return; }
-    if (dbInfo?.configured) {
+    // Wait for initial data to load before deciding phase
+    if (tokenInfo === null || dbInfo === null) return;
+    if (!tokenInfo.configured) { setPhase('token_missing'); return; }
+    if (dbInfo.configured) {
       setPhase('configured');
       loadCheck();
     } else {
