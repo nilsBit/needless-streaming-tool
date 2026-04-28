@@ -2,6 +2,7 @@ import { Worker } from 'worker_threads';
 import path from 'path';
 import { broadcast } from '../websocket/index';
 import { getDb } from '../db/index';
+import { startNowPlaying, stopNowPlaying, isNowPlayingRunning } from './nowplaying-macos';
 
 export interface SongData {
   title: string;
@@ -12,10 +13,11 @@ export interface SongData {
 let worker: Worker | null = null;
 
 export function isSMTCSupported(): boolean {
-  return process.platform === 'win32';
+  return process.platform === 'win32' || process.platform === 'darwin';
 }
 
 export function isSMTCRunning(): boolean {
+  if (process.platform === 'darwin') return isNowPlayingRunning();
   return worker !== null;
 }
 
@@ -38,6 +40,7 @@ type WorkerMessage =
 
 export function startSMTC(): void {
   if (!isSMTCSupported()) return;
+  if (process.platform === 'darwin') { startNowPlaying(); return; }
   if (worker) return;
   try {
     const workerPath = path.join(__dirname, 'smtc-worker.js');
@@ -69,6 +72,7 @@ export function startSMTC(): void {
 }
 
 export function stopSMTC(): void {
+  if (process.platform === 'darwin') { stopNowPlaying(); return; }
   if (!worker) return;
   worker.terminate().catch(() => {});
   worker = null;
