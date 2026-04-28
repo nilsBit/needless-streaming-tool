@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 
 const WINDOW_MS = 60_000; // 1 minute
-const MAX_REQUESTS = 200; // 200 requests per minute
+const MAX_REQUESTS = 600; // 600 requests per minute (local app, not a public API)
 
 function createRateLimiter(windowMs: number, maxRequests: number) {
   const store = new Map<string, { count: number; resetAt: number }>();
