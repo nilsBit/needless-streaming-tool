@@ -40,11 +40,13 @@ Modernize all 11 overlay HTML files to a clean, unified visual style. Remove agg
 - Keep slide-in/out animation, just without glow
 
 ### roulette/index.html
-- SVG wheel stays as-is (colors, segments, animation)
-- Remove glow effects on surrounding UI elements
-- Remove decorative SVG patterns around the wheel (if excessive)
+- SVG wheel stays as-is (colors, segments, spin animation)
+- Remove all `::before`/`::after` decorative layers from non-SVG elements (noise textures, stripes)
+- Remove `skewX()` transforms from result display
+- Remove `text-shadow` glow effects
+- Remove `.neon-box` glow styling (keep the element, just clean the style)
 - Swap Bebas Neue → Rajdhani for result text
-- Clean up result display card
+- Result display card uses standard card style (border-radius, subtle border)
 
 ### poll/index.html
 - Remove skew, glow, decorative elements
@@ -104,6 +106,21 @@ Modernize all 11 overlay HTML files to a clean, unified visual style. Remove agg
   color: rgba(255, 255, 255, 0.5);
 }
 
+/* Card content text */
+.card-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.card-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+}
+
 /* Status text colors (no border, no glow) */
 .status-done { color: #2ecc71; }
 .status-active { color: #ff6b35; }
@@ -125,7 +142,7 @@ Modernize all 11 overlay HTML files to a clean, unified visual style. Remove agg
 | `src/overlays/experiment/index.html` | Full CSS rewrite |
 | `src/overlays/reward-leaderboard/index.html` | No changes |
 | `src/overlays/reward-rankchange/index.html` | No changes |
-| `src/overlays/_template/index.html` | Update to new style |
+| `src/overlays/_template/index.html` | Replace example styles with single "NST Modern" variant using new card reference CSS |
 
 ## Out of Scope
 
