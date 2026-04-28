@@ -10,6 +10,15 @@ const translations = {
 
   // Panels
   'panel.challenge': { de: 'Challenge', en: 'Challenge' },
+  'challenge.title': { de: 'Challenge', en: 'Challenge' },
+  'issues.title': { de: 'Glücksrad', en: 'Lucky Wheel' },
+  'clips.title': { de: 'Clip Moments', en: 'Clip Moments' },
+  'progress.title': { de: 'Progress Tracker', en: 'Progress Tracker' },
+  'milestones.title': { de: 'Milestones', en: 'Milestones' },
+  'song.panel_title': { de: 'Now Playing', en: 'Now Playing' },
+  'stats.title': { de: 'Statistiken', en: 'Statistics' },
+  'hotkeys.title': { de: 'Hotkeys', en: 'Hotkeys' },
+  'overlays.panel_title': { de: 'Overlays', en: 'Overlays' },
   'panel.issues': { de: 'Glücksrad', en: 'Lucky Wheel' },
   'panel.clips': { de: 'Clip Moments', en: 'Clip Moments' },
   'panel.designs': { de: 'Abstimmungen', en: 'Polls' },
@@ -265,6 +274,7 @@ const translations = {
   'clips.with_tag': { de: 'mit Tag', en: 'with tag' },
 
   // ---- Designs Panel ----
+  'designs.title': { de: 'Abstimmungen', en: 'Polls' },
   'designs.desc': { de: 'Sammle Vorschläge und lass den Chat abstimmen.', en: 'Collect ideas and let the chat vote.' },
   'designs.placeholder': { de: 'Neuer Vorschlag...', en: 'New suggestion...' },
   'designs.vote_running': { de: 'Abstimmung läuft', en: 'Vote running' },

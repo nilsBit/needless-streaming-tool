@@ -54,7 +54,7 @@ export default function DesignsPanel() {
   const startVoteFromDesigns = async () => {
     if (active.length < 2) return;
     const options = active.map(d => d.title);
-    const result = await apiPost('/voting/start', { title: '🎨 Chat Design', options, duration: voteDuration });
+    const result = await apiPost('/voting/start', { title: `🗳️ ${t('designs.title')}`, options, duration: voteDuration });
     if (!result) { toast.error(t('error.action_failed')); return; }
     refetchVote();
   };
@@ -81,7 +81,7 @@ export default function DesignsPanel() {
 
   return (
     <div className="panel designs-panel">
-      <h2>🎨 Chat Designs</h2>
+      <h2>🗳️ {t('designs.title')}</h2>
       <p className="panel-desc">{t('designs.desc')}</p>
 
       {/* Step 1: Collect design proposals */}

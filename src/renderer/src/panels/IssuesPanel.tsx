@@ -73,7 +73,7 @@ export default function IssuesPanel() {
 
   return (
     <div className="panel issues-panel">
-      <h2>🎯 Glücksrad</h2>
+      <h2>🎯 {t('issues.title')}</h2>
       <p className="panel-desc">{t('issues.desc')}</p>
 
       <div className="issue-input">

@@ -108,7 +108,7 @@ export default function SongPanel() {
 
   return (
     <div className="panel song-panel">
-      <h2>🎵 Now Playing</h2>
+      <h2>🎵 {t('song.panel_title')}</h2>
       <p className="panel-desc">{t('song.desc_auto')}</p>
 
       {autoSupported && (

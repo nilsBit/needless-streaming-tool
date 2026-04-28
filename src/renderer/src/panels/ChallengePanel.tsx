@@ -81,7 +81,7 @@ export default function ChallengePanel() {
 
   return (
     <div className="panel challenge-panel">
-      <h2>🔬 Challenge</h2>
+      <h2>🔬 {t('challenge.title')}</h2>
       <p className="panel-desc">{t('challenge.desc')}</p>
 
       {!isActive ? (

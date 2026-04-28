@@ -46,7 +46,7 @@ export default function StatsPanel() {
   if (loading || !stats) {
     return (
       <div className="panel stats-panel">
-        <h2>📊 Statistiken</h2>
+        <h2>📊 {t('stats.title')}</h2>
         <p className="panel-desc">{t('stats.loading')}</p>
       </div>
     );
@@ -54,7 +54,7 @@ export default function StatsPanel() {
 
   return (
     <div className="panel stats-panel">
-      <h2>📊 Statistiken</h2>
+      <h2>📊 {t('stats.title')}</h2>
       <p className="panel-desc">{t('stats.desc')}</p>
 
       <section className="stats-section">

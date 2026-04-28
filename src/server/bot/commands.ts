@@ -113,7 +113,7 @@ export function registerCommands(client: Client) {
             client.say(channel, '❌ Mindestens 2 Optionen: !design start 60 option1 option2 ...');
             break;
           }
-          const success = startVote('🎨 Chat Design', options, duration);
+          const success = startVote('🗳️ Abstimmung', options, duration);
           if (success) {
             client.say(channel, `🎨 ABSTIMMUNG! Schreibt !vote <option> — Optionen: ${options.join(', ')} — ${duration}s Zeit!`);
           } else {

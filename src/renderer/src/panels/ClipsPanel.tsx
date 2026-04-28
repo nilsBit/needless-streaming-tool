@@ -212,7 +212,7 @@ export default function ClipsPanel() {
   return (
     <div className="panel clips-panel">
       <div className="clips-panel-header">
-        <h2>🎬 Clip Moments</h2>
+        <h2>🎬 {t('clips.title')}</h2>
         {!tourComplete.seen && !tourComplete.loading && (
           <button className="btn-export-small" onClick={() => setTourActive(true)} title={t('tour.start')}>🎯 {t('tour.start')}</button>
         )}

@@ -405,7 +405,7 @@ export default function OverlaysPanel() {
 
   return (
     <div className="panel overlays-panel">
-      <h2>🎨 Overlays</h2>
+      <h2>🎨 {t('overlays.panel_title')}</h2>
       <p className="panel-desc">{t('overlays_panel.desc')}</p>
 
       <div className="ov2-tabs">

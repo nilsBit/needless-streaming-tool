@@ -46,7 +46,7 @@ export default function HotkeysPanel() {
 
   return (
     <div className="panel settings-panel">
-      <h2>⌨️ Hotkeys</h2>
+      <h2>⌨️ {t('hotkeys.title')}</h2>
       <p className="panel-desc">{t('hotkeys.desc')}</p>
 
       <div className="settings-section">

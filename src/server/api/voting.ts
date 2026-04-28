@@ -16,7 +16,7 @@ router.post('/start', (req, res) => {
     res.status(400).json({ error: 'At least 2 options required' });
     return;
   }
-  const success = startVote(title || '🎨 Chat Design', options, duration || 60, designId || null);
+  const success = startVote(title || '🗳️ Abstimmung', options, duration || 60, designId || null);
   if (!success) {
     res.status(409).json({ error: 'A vote is already active' });
     return;
