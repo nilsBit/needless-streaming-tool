@@ -3,10 +3,8 @@ import { useApi, apiPost, apiDelete } from '../hooks/useApi';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { useTranslation } from '../i18n/LanguageContext';
 import { useToast } from '../i18n/ToastContext';
-import { SongRequest } from '../../../shared/types';
+import { SongRequest, SongData } from '../../../shared/types';
 import ChatCommands from '../components/ChatCommands';
-
-interface SongData { title: string; artist: string; source: string }
 interface SongResponse {
   song: SongData | null;
   auto_detect: boolean;

@@ -3,13 +3,9 @@ import path from 'path';
 import { broadcast } from '../websocket/index';
 import { getDb } from '../db/index';
 import { startNowPlaying, stopNowPlaying, isNowPlayingRunning } from './nowplaying-macos';
+import type { SongData } from '../../shared/types';
 
-export interface SongData {
-  title: string;
-  artist: string;
-  source: string;
-  artworkUrl?: string;
-}
+export type { SongData };
 
 let worker: Worker | null = null;
 

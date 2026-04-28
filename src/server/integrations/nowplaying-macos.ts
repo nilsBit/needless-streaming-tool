@@ -1,13 +1,7 @@
 import { execSync } from 'child_process';
 import { broadcast } from '../websocket/index';
 import { getDb } from '../db/index';
-
-export interface SongData {
-  title: string;
-  artist: string;
-  source: string;
-  artworkUrl?: string;
-}
+import type { SongData } from '../../shared/types';
 
 let pollInterval: ReturnType<typeof setInterval> | null = null;
 let lastKey: string | null = null;

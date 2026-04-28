@@ -28,6 +28,13 @@ export interface Reward {
   created_at: string;
 }
 
+export interface SongData {
+  title: string;
+  artist: string;
+  source: string;
+  artworkUrl?: string;
+}
+
 export interface LeaderboardEntry {
   rank: number;
   userName: string;

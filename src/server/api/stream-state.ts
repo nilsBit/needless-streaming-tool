@@ -6,26 +6,33 @@ import { validateEnum } from './validate';
 
 const router = Router();
 
-// Server-side timer — ticks every second while timer_running is true
+// Server-side timer — ticks every second in memory, persists to DB every 10s
 let timerInterval: ReturnType<typeof setInterval> | null = null;
+let timerSeconds = 0;
+let tickCount = 0;
 
 function startServerTimer() {
   if (timerInterval) return;
+  // Load current value from DB
+  const row = getDb().prepare('SELECT timer_seconds FROM stream_state WHERE id = 1').get() as { timer_seconds: number } | undefined;
+  timerSeconds = row?.timer_seconds || 0;
+  tickCount = 0;
+
   timerInterval = setInterval(() => {
-    const db = getDb();
-    const state = db.prepare('SELECT timer_running, timer_seconds FROM stream_state WHERE id = 1').get() as { timer_running: number; timer_seconds: number } | undefined;
-    if (!state || !state.timer_running) {
-      stopServerTimer();
-      return;
+    timerSeconds++;
+    tickCount++;
+    // Persist to DB every 10 seconds
+    if (tickCount % 10 === 0) {
+      getDb().prepare('UPDATE stream_state SET timer_seconds = ? WHERE id = 1').run(timerSeconds);
     }
-    const next = state.timer_seconds + 1;
-    db.prepare('UPDATE stream_state SET timer_seconds = ? WHERE id = 1').run(next);
-    broadcast('stream-state', db.prepare('SELECT * FROM stream_state WHERE id = 1').get());
+    broadcast('stream-state', { ...getDb().prepare('SELECT * FROM stream_state WHERE id = 1').get() as Record<string, unknown>, timer_seconds: timerSeconds });
   }, 1000);
 }
 
 function stopServerTimer() {
   if (timerInterval) {
+    // Persist final value to DB
+    getDb().prepare('UPDATE stream_state SET timer_seconds = ? WHERE id = 1').run(timerSeconds);
     clearInterval(timerInterval);
     timerInterval = null;
   }
@@ -36,7 +43,9 @@ function stopServerTimer() {
   try {
     const state = getDb().prepare('SELECT timer_running FROM stream_state WHERE id = 1').get() as { timer_running: number } | undefined;
     if (state?.timer_running) startServerTimer();
-  } catch {}
+  } catch (err) {
+    console.warn('[stream-state] Could not restore timer state:', err);
+  }
 }
 
 router.get('/', (_req, res) => {

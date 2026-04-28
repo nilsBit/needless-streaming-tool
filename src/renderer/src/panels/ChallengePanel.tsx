@@ -24,9 +24,11 @@ export default function ChallengePanel() {
 
   useEffect(() => {
     if (state && !isEditing) {
-      setTitle(state.challenge_title || '');
+      const newTitle = state.challenge_title || '';
+      if (newTitle !== title) setTitle(newTitle);
     }
-  }, [state, isEditing]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps — deps intentionally narrow to avoid firing every WS tick
+  }, [state?.challenge_title, isEditing]);
 
   const seconds = state?.timer_seconds || 0;
   const timerDisplay = `${Math.floor(seconds / 60).toString().padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
