@@ -2,23 +2,15 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --color-primary: #ff2d7b;
       --color-secondary: #00d4ff;
-      --color-accent: #39ff14;
-      --color-text: #ffffff;
+      --color-accent: #ffd700;
       --color-bg: #0a0a0a;
-      --color-bg-opacity: 0.92;
-      --color-bg-secondary: #0d0d0d;
-      --color-primary-rgb: 255 45 123;
-      --color-secondary-rgb: 0 212 255;
-      --color-accent-rgb: 57 255 20;
-      --color-bg-rgb: 10 10 10;
-      --font-display: 'Bebas Neue', sans-serif;
+      --font-display: 'Rajdhani', sans-serif;
       --font-body: 'Inter', sans-serif;
-      --font-size-base: 14px;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -29,26 +21,10 @@
       align-items: center;
       gap: 14px;
       padding: 12px 20px;
-      background: rgb(var(--color-bg-rgb) / 0.95);
-      border: 3px solid var(--color-accent);
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 0 15px rgb(var(--color-accent-rgb) / 0.4);
-      animation: songSlideIn 0.5s ease-out;
-    }
-
-    .song::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: repeating-linear-gradient(
-        45deg,
-        transparent,
-        transparent 10px,
-        rgb(var(--color-accent-rgb) / 0.03) 10px,
-        rgb(var(--color-accent-rgb) / 0.03) 20px
-      );
-      pointer-events: none;
+      background: rgba(10, 10, 10, 0.85);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
 
     .song.visible { display: flex; animation: songSlideIn 0.5s ease-out; }
@@ -65,12 +41,11 @@
       letter-spacing: 4px;
       color: var(--color-accent);
       text-transform: uppercase;
-      text-shadow: 0 0 8px rgb(var(--color-accent-rgb) / 0.6);
-      transform: skewX(-3deg);
       display: inline-block;
       padding: 2px 8px;
-      background: rgb(var(--color-accent-rgb) / 0.1);
-      border-left: 2px solid var(--color-accent);
+      background: rgba(255,215,0,0.08);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 6px;
       margin-bottom: 2px;
     }
 
@@ -86,7 +61,6 @@
     .eq-bar {
       width: 4px;
       background: var(--color-accent);
-      box-shadow: 0 0 4px rgb(var(--color-accent-rgb) / 0.6);
       animation: eqBounce 0.8s ease-in-out infinite alternate;
     }
 
@@ -113,9 +87,8 @@
       font-family: var(--font-display);
       font-size: 20px;
       font-weight: 700;
-      color: var(--color-text);
+      color: #ffffff;
       letter-spacing: 2px;
-      text-shadow: 0 0 8px rgb(var(--color-secondary-rgb) / 0.4), 2px 2px 0 rgba(0,0,0,0.6);
       text-transform: uppercase;
       white-space: nowrap;
       overflow: hidden;
@@ -126,17 +99,6 @@
       font-size: 11px;
       font-weight: 600;
       color: #ff6b35;
-      text-shadow: 0 0 4px rgba(255,107,53,0.3);
-    }
-
-    /* Accent corner */
-    .song::after {
-      content: '';
-      position: absolute;
-      bottom: 0; right: 0;
-      width: 30px; height: 3px;
-      background: var(--color-primary);
-      box-shadow: 0 0 8px rgb(var(--color-primary-rgb) / 0.5);
     }
   </style>
 </head>
