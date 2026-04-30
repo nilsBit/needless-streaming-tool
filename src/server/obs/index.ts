@@ -176,6 +176,8 @@ export async function getScenes(): Promise<string[]> {
 export interface SceneMapping {
   reward_title: string;
   scene_name: string;
+  duration_seconds?: number;
+  revert_scene?: string;
 }
 
 export function getSceneMappings(): SceneMapping[] {
@@ -196,12 +198,12 @@ export function saveSceneMappings(mappings: SceneMapping[]): void {
     .run('obs_scene_mappings', JSON.stringify(mappings));
 }
 
-export function findSceneForReward(rewardTitle: string): string | null {
+export function findSceneForReward(rewardTitle: string): SceneMapping | null {
   const mappings = getSceneMappings();
   const titleLower = rewardTitle.toLowerCase();
-  const match = mappings.find((m) => titleLower.includes(m.reward_title.toLowerCase()));
-  return match?.scene_name || null;
+  return mappings.find((m) => titleLower.includes(m.reward_title.toLowerCase())) || null;
 }
+
 
 function parseObsTimecode(timecode: string): string {
   // OBS returns "HH:MM:SS.mmm" — strip milliseconds

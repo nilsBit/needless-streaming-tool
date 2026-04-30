@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApi, apiPost } from '../../hooks/useApi';
 import { useWebSocket } from '../../hooks/useWebSocket';
 import { useTranslation } from '../../i18n/LanguageContext';
 import { useToast } from '../../i18n/ToastContext';
 
-export default function ObsStep() {
+export default function ObsStep({ onReady }: { onReady: (ready: boolean) => void }) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const { data: obsStatus, refetch: refetchStatus } = useApi<{ connected: boolean }>('/obs/status');
@@ -17,6 +17,11 @@ export default function ObsStep() {
   useWebSocket((event) => {
     if (event === 'obs-status') refetchStatus();
   });
+
+  const connected = !!obsStatus?.connected;
+  useEffect(() => {
+    onReady(connected);
+  }, [connected, onReady]);
 
   const saveAndConnect = async () => {
     setConnecting(true);

@@ -18,6 +18,7 @@ import SongPanel from './panels/SongPanel';
 import StatsPanel from './panels/StatsPanel';
 import RewardStatsPanel from './panels/RewardStatsPanel';
 import HotkeysPanel from './panels/HotkeysPanel';
+import ObsPanel from './panels/ObsPanel';
 import logoSvg from './assets/logo.svg';
 
 const TABS = {
@@ -30,6 +31,7 @@ const TABS = {
       { key: 'designs', label: 'Abstimmungen', component: DesignsPanel },
       { key: 'song', label: 'Now Playing', component: SongPanel },
       { key: 'rewardstats', label: 'Reward Stats', component: RewardStatsPanel },
+      { key: 'obs', label: 'OBS Scenes', component: ObsPanel },
     ],
   },
   projekt: {

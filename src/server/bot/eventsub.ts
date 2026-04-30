@@ -3,12 +3,14 @@ import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
 import { getBotConfig } from './config';
 import { triggerRoulette } from '../api/actions';
-import { changeScene, findSceneForReward } from '../obs/index';
+import { changeScene, findSceneForReward, getCurrentScene } from '../obs/index';
 import { checkAndBroadcast } from '../reward-leaderboard';
+import { getClientId } from '../twitch-config';
 
 let ws: WebSocket | null = null;
 let sessionId: string | null = null;
 let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
+let sceneRevertTimer: ReturnType<typeof setTimeout> | null = null;
 
 const EVENTSUB_WS_URL = 'wss://eventsub.wss.twitch.tv/ws';
 
@@ -25,11 +27,6 @@ async function getTwitchUserId(token: string, clientId: string): Promise<string 
   } catch {
     return null;
   }
-}
-
-function getClientId(): string | null {
-  const row = getDb().prepare('SELECT value FROM settings WHERE key = ?').get('twitch_client_id') as { value: string } | undefined;
-  return row?.value || null;
 }
 
 async function subscribeToRedemptions(token: string, clientId: string, userId: string) {
@@ -109,13 +106,29 @@ async function handleRedemption(event: Record<string, unknown>) {
   }
 
   // Scene change: check mappings first (fixed reward → scene), then fallback to user input
-  const mappedScene = findSceneForReward(rewardTitle);
-  if (mappedScene) {
-    const sceneResult = await changeScene(mappedScene);
+  const mapping = findSceneForReward(rewardTitle);
+  if (mapping) {
+    // Capture current scene before switching so we can revert to it
+    const previousScene = await getCurrentScene();
+    const sceneResult = await changeScene(mapping.scene_name);
     if (sceneResult.success) {
-      console.log(`[EventSub] Scene changed to "${mappedScene}" via mapping by ${userName}`);
+      console.log(`[EventSub] Scene changed to "${mapping.scene_name}" via mapping by ${userName}`);
+      // Auto-revert after duration: use per-mapping revert_scene, fallback to previous scene
+      if (mapping.duration_seconds && mapping.duration_seconds > 0) {
+        const revertTo = mapping.revert_scene || previousScene;
+        if (revertTo) {
+          if (sceneRevertTimer) clearTimeout(sceneRevertTimer);
+          sceneRevertTimer = setTimeout(async () => {
+            sceneRevertTimer = null;
+            const revertResult = await changeScene(revertTo);
+            if (revertResult.success) {
+              console.log(`[EventSub] Reverted to "${revertTo}" after ${mapping.duration_seconds}s`);
+            }
+          }, mapping.duration_seconds * 1000);
+        }
+      }
     } else {
-      console.log(`[EventSub] Mapped scene change failed for "${mappedScene}": ${sceneResult.error}`);
+      console.log(`[EventSub] Mapped scene change failed for "${mapping.scene_name}": ${sceneResult.error}`);
     }
   } else if (rewardType === 'scene_change' && userInput) {
     const sceneResult = await changeScene(userInput.trim());

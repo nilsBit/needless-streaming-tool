@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import { shell } from 'electron';
-import { getDb } from '../db/index';
-import { saveBotConfig } from '../bot/config';
+import { getBotConfig, saveBotConfig } from '../bot/config';
 import { connectBot } from '../bot/index';
 import { broadcast } from '../websocket/index';
+import { getClientId } from '../twitch-config';
 
 const router = Router();
 
@@ -14,37 +14,20 @@ const TWITCH_SCOPES = [
   'bits:read',
 ].join('+');
 
-function getClientId(): string | null {
-  const row = getDb().prepare('SELECT value FROM settings WHERE key = ?').get('twitch_client_id') as { value: string } | undefined;
-  return row?.value || null;
+function buildAuthUrl(host: string): string {
+  const clientId = getClientId();
+  const redirectUri = `http://${host}/auth/twitch/callback`;
+  return `https://id.twitch.tv/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${TWITCH_SCOPES}`;
 }
 
 // GET — generate Twitch OAuth URL
 router.get('/twitch/url', (req, res) => {
-  const clientId = getClientId();
-  if (!clientId) {
-    res.status(400).json({ error: 'Client ID not configured. Set it in Settings first.' });
-    return;
-  }
-
-  const redirectUri = `http://${req.headers.host}/auth/twitch/callback`;
-  const url = `https://id.twitch.tv/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${TWITCH_SCOPES}`;
-
-  res.json({ url });
+  res.json({ url: buildAuthUrl(req.headers.host as string) });
 });
 
 // POST — open Twitch auth in system browser
 router.post('/twitch/open', (req, res) => {
-  const clientId = getClientId();
-  if (!clientId) {
-    res.status(400).json({ success: false, error: 'Client ID not configured' });
-    return;
-  }
-
-  const redirectUri = `http://${req.headers.host}/auth/twitch/callback`;
-  const url = `https://id.twitch.tv/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${TWITCH_SCOPES}`;
-
-  shell.openExternal(url);
+  shell.openExternal(buildAuthUrl(req.headers.host as string));
   res.json({ success: true });
 });
 
@@ -120,7 +103,7 @@ router.post('/twitch/save', async (req, res) => {
     const response = await fetch('https://api.twitch.tv/helix/users', {
       headers: {
         'Authorization': `Bearer ${access_token}`,
-        'Client-Id': clientId || '',
+        'Client-Id': clientId,
       },
     });
 
@@ -154,25 +137,45 @@ router.post('/twitch/save', async (req, res) => {
   }
 });
 
-// POST — save client ID
-router.post('/twitch/client-id', (req, res) => {
-  const { client_id } = req.body;
-  if (!client_id) {
-    res.status(400).json({ error: 'client_id required' });
+
+// GET — fetch custom Channel Point rewards from Twitch
+router.get('/twitch/rewards', async (_req, res) => {
+  const config = getBotConfig();
+  if (!config) {
+    res.json({ rewards: [] });
     return;
   }
 
-  getDb().prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('twitch_client_id', client_id);
-  res.json({ success: true });
-});
-
-// GET — get client ID (masked)
-router.get('/twitch/client-id', (_req, res) => {
+  const token = config.oauth_token.replace(/^oauth:/, '');
   const clientId = getClientId();
-  res.json({
-    configured: !!clientId,
-    client_id_preview: clientId ? clientId.substring(0, 6) + '...' : null,
-  });
+
+  try {
+    // Get broadcaster user ID
+    const userRes = await fetch('https://api.twitch.tv/helix/users', {
+      headers: { 'Authorization': `Bearer ${token}`, 'Client-Id': clientId },
+    });
+    if (!userRes.ok) throw new Error(`Users API: ${userRes.status}`);
+    const userData = await userRes.json();
+    const userId = userData.data?.[0]?.id;
+    if (!userId) throw new Error('No user ID');
+
+    // Get custom rewards
+    const rewardsRes = await fetch(`https://api.twitch.tv/helix/channel_points/custom_rewards?broadcaster_id=${userId}`, {
+      headers: { 'Authorization': `Bearer ${token}`, 'Client-Id': clientId },
+    });
+    if (!rewardsRes.ok) throw new Error(`Rewards API: ${rewardsRes.status}`);
+    const rewardsData = await rewardsRes.json();
+
+    const rewards = (rewardsData.data || []).map((r: { id: string; title: string }) => ({
+      id: r.id,
+      title: r.title,
+    }));
+
+    res.json({ rewards });
+  } catch (err) {
+    console.error('[Auth] Failed to fetch rewards:', err);
+    res.json({ rewards: [] });
+  }
 });
 
 export default router;

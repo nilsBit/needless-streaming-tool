@@ -9,15 +9,9 @@ import CopyButton from '../components/CopyButton';
 import NotionDatabasePicker from '../components/NotionDatabasePicker';
 import { applyProfilePreset, PROFILE_KEYS, ProfileKey } from '../hooks/useDashboardLayout';
 
-interface ClientIdResponse {
-  configured: boolean;
-  client_id_preview: string | null;
-}
-
 export default function SettingsPanel() {
   const { data: config, loading, refetch: refetchConfig } = useApi<TwitchConfigResponse>('/settings/twitch');
   const { data: botStatus, refetch: refetchBot } = useApi<BotStatus>('/settings/bot-status');
-  const { data: clientIdInfo, refetch: refetchClientId } = useApi<ClientIdResponse>('/auth/twitch/client-id');
   const { data: tokenInfo } = useApi<{ token: string | null }>('/settings/api-token');
   const { data: notionInfo, refetch: refetchNotion } = useApi<{ configured: boolean; preview: string | null }>('/settings/notion');
   const { data: githubInfo, refetch: refetchGithub } = useApi<{ configured: boolean; preview: string | null; repo: string | null }>('/progress/github');
@@ -43,7 +37,6 @@ export default function SettingsPanel() {
   const { data: autostartInfo, refetch: refetchAutostart } = useApi<{ enabled: boolean }>('/settings/autostart');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [clientId, setClientId] = useState('');
 
   // Custom commands
   const { data: commandsData, refetch: refetchCommands } = useApi<Record<string, string>>('/settings/commands');
@@ -169,21 +162,6 @@ export default function SettingsPanel() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const saveClientId = async () => {
-    if (!clientId.trim()) return;
-    try {
-      await apiFetch('/auth/twitch/client-id', {
-        method: 'POST',
-        body: JSON.stringify({ client_id: clientId.trim() }),
-      });
-      setClientId('');
-      refetchClientId();
-    } catch (err) {
-      console.error('[Settings] Save client ID failed:', err);
-      toast.error(t('error.action_failed'));
-    }
-  };
-
   const connectTwitch = async () => {
     try {
       const res = await apiFetch('/auth/twitch/open', { method: 'POST' });
@@ -299,26 +277,6 @@ export default function SettingsPanel() {
             <span>{botStatus?.connected ? `${t('settings.connected_to')} #${botStatus.channel}` : t('settings.not_connected')}</span>
           </div>
 
-          {!clientIdInfo?.configured ? (
-            <div className="setup-step">
-              <p className="setup-info">{t('settings.twitch_step1')}</p>
-              <div className="client-id-input">
-                <input
-                  type="text"
-                  placeholder={t('settings.twitch_placeholder')}
-                  value={clientId}
-                  onChange={(e) => setClientId(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && saveClientId()}
-                />
-                <button onClick={saveClientId}>💾</button>
-              </div>
-            </div>
-          ) : (
-            <div className="setup-step">
-              <p className="setup-info">Client-ID: {clientIdInfo.client_id_preview}</p>
-            </div>
-          )}
-
           <div className="bot-controls">
             {botStatus?.connected ? (
               <button className="btn-settings-danger" onClick={disconnectBot}>{t('settings.disconnect')}</button>
@@ -326,25 +284,11 @@ export default function SettingsPanel() {
               <button
                 className="btn-settings-primary"
                 onClick={connectTwitch}
-                disabled={!clientIdInfo?.configured}
               >
                 {t('settings.connect_twitch')}
               </button>
             )}
           </div>
-
-          {clientIdInfo?.configured && (
-            <div className="reset-section">
-              <button className="btn-settings-ghost" onClick={async () => {
-                setClientId('');
-                await apiFetch('/auth/twitch/client-id', {
-                  method: 'POST',
-                  body: JSON.stringify({ client_id: '' }),
-                });
-                refetchClientId();
-              }}>{t('settings.change_client_id')}</button>
-            </div>
-          )}
         </div>
 
         <div className="settings-section">

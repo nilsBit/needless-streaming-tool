@@ -117,6 +117,22 @@ const translations = {
   'obs.tip': { de: 'Tipp: Wenn du kein Passwort in OBS gesetzt hast, lass das Feld einfach leer.', en: 'Tip: If you didn\'t set a password in OBS, just leave the field empty.' },
   'obs.connected': { de: 'OBS ist verbunden! Szenen-Wechsel und mehr funktionieren jetzt.', en: 'OBS is connected! Scene switching and more are working now.' },
 
+  // OBS Panel
+  'obs.scene_mappings': { de: 'Scene Mappings', en: 'Scene Mappings' },
+  'obs.scene_mappings_desc': { de: 'Wenn ein Channel Point Reward eingelöst wird, wechselt OBS automatisch zur zugeordneten Szene.', en: 'When a Channel Point reward is redeemed, OBS automatically switches to the mapped scene.' },
+  'obs.add_mapping': { de: 'Mapping hinzufügen', en: 'Add mapping' },
+  'obs.reward_placeholder': { de: 'Reward wählen...', en: 'Select reward...' },
+  'obs.scene_placeholder': { de: 'Szene wählen...', en: 'Select scene...' },
+  'obs.no_obs_hint': { de: 'OBS ist nicht verbunden. Verbinde OBS in den Einstellungen.', en: 'OBS is not connected. Connect OBS in Settings.' },
+  'obs.no_twitch_hint': { de: 'Twitch ist nicht verbunden.', en: 'Twitch is not connected.' },
+  'obs.no_rewards': { de: 'Keine Rewards gefunden', en: 'No rewards found' },
+  'obs.no_scenes': { de: 'Keine Szenen gefunden', en: 'No scenes found' },
+  'obs.mapping_saved': { de: 'Mapping gespeichert', en: 'Mapping saved' },
+  'obs.duration_placeholder': { de: 'Sek.', en: 'Sec.' },
+  'obs.revert_after': { de: 'Zurück nach', en: 'Revert after' },
+  'obs.revert_to': { de: 'zu', en: 'to' },
+  'obs.use_previous': { de: 'Vorherige Szene', en: 'Previous scene' },
+
   // Notion Step
   'notion.title': { de: 'Notion (optional)', en: 'Notion (optional)' },
   'notion.desc': { de: 'Wenn du Notion nutzt, kannst du deine Clips automatisch dorthin syncen. Falls nicht, überspringe diesen Schritt.', en: 'If you use Notion, you can auto-sync your clips there. If not, skip this step.' },
