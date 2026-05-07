@@ -526,11 +526,10 @@ const translations = {
   // ---- Dashboard Layout ----
   'layout.hidden_panels': { de: 'Ausgeblendet', en: 'Hidden' },
   'layout.reset': { de: 'Layout zurücksetzen', en: 'Reset layout' },
-  'layout.full_width': { de: 'Volle Breite', en: 'Full width' },
-  'layout.half_width': { de: 'Halbe Breite', en: 'Half width' },
   'layout.hide': { de: 'Ausblenden', en: 'Hide' },
   'layout.show': { de: 'Einblenden', en: 'Show' },
   'layout.pin_as_focus': { de: 'Als Fokus setzen', en: 'Set as focus' },
+  'layout.focus': { de: 'Fokus', en: 'Focus' },
 
   // ---- Song Request Queue ----
   'sr.title': { de: 'Song Queue', en: 'Song Queue' },
