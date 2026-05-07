@@ -50,41 +50,49 @@ Stats tab is removed — its single panel moves into Settings.
 
 ### Stream Profile Configuration
 
-Each profile defines three properties:
+Each profile defines four properties:
 
 | Property | Description |
 |----------|-------------|
 | `hero` | Which panel is the hero (string, panel key) |
 | `open` | Which panels start open in the grid (string[]) |
-| `collapsed` | Remaining panels start collapsed (derived: all visible minus hero minus open) |
+| `hidden` | Which panels are fully hidden / not shown at all (string[]) |
+| `collapsed` | Derived: all visible panels minus hero minus open start collapsed |
+
+**Hidden vs. Collapsed:** Hidden panels don't appear at all (same as today's behavior). Collapsed panels are visible as single-line rows that can be expanded with a click. These are two distinct concepts.
 
 #### Profile Defaults
 
-| Profile | Hero | Open in Grid | Collapsed |
-|---------|------|-------------|-----------|
-| Creative | challenge | song | rest |
-| Gaming | challenge | issues, song | rest |
-| Coding | challenge | issues, song | rest |
-| Chatting | designs | challenge, song | rest |
-| All | challenge | all | none |
+| Profile | Hero | Open in Grid | Hidden | Collapsed |
+|---------|------|-------------|--------|-----------|
+| Creative | challenge | song | issues, clips, rewardstats, obs | rest (designs) |
+| Gaming | challenge | issues, song | designs, clips, rewardstats | rest (obs) |
+| Coding | challenge | issues | designs, clips, rewardstats | rest (song, obs) |
+| Chatting | designs | challenge, song | issues, clips, rewardstats, obs | rest (none) |
+| All | challenge | all | none | none |
+
+Note: These defaults align with the existing `PROFILE_VISIBLE` mapping. Panels that are currently hidden by a profile remain hidden. The new `collapsed` state only applies to panels that are visible but not hero or open.
 
 #### Override Behavior
 
-- Pinning a panel as hero → saved to layout, overrides profile default
-- Expanding/collapsing panels → saved to layout, overrides profile default
-- Switching profile → resets to profile defaults (user overrides lost)
-- Reset button → resets to profile defaults
+- Pinning a panel as hero → writes `hero` key to `TabLayout` in localStorage + server DB, overrides profile default
+- Expanding/collapsing panels → writes `collapsed` array to `TabLayout`, overrides profile default
+- Switching profile → clears `hero` and `collapsed` overrides from `TabLayout`, resets to profile defaults (user overrides lost)
+- Reset button → same as switching profile (resets to current profile defaults)
 
 ## Technical Changes
 
 ### `src/renderer/src/hooks/useDashboardLayout.ts`
 
 - Add `hero: string` field to `TabLayout` interface
-- Add `collapsed: string[]` field to `TabLayout` interface
+- Add `collapsed: string[]` field to `TabLayout` interface (panels visible but minimized)
+- Keep existing `hidden: string[]` field (panels not shown at all)
 - Update `PROFILE_VISIBLE` to `PROFILE_LAYOUT` with `hero`, `open`, `hidden` per profile per tab
 - Add `pinAsHero(key: string)` function that sets new hero and demotes old hero to first grid position
 - Remove `sidebar` / `moveToSidebar` / `moveToMain` logic (replaced by hero/grid)
+- Remove `fullWidth` / `toggleWidth` / `isFullWidth` logic (hero replaces full-width semantics)
 - Keep `reorder`, `hide`, `show`, `reset` functions
+- Replace React `useState` collapsed tracking in App.tsx with layout-driven `collapsed` array from this hook
 
 ### `src/renderer/src/App.tsx`
 
