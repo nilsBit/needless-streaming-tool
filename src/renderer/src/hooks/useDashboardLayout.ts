@@ -215,13 +215,13 @@ export function useDashboardLayout(tabKey: string, defaultPanelKeys: string[]) {
 
   const pinAsHero = useCallback((key: string) => {
     const current = getTabLayout();
-    // Demote old hero to first position in open grid (remove from collapsed)
     const newCollapsed = current.collapsed.filter(k => k !== key);
-    // If old hero was not already in collapsed, it stays in the open grid (not collapsed)
+    const newHidden = current.hidden.filter(k => k !== key); // unhide if hidden
     update({
       ...current,
       hero: key,
       collapsed: newCollapsed,
+      hidden: newHidden,
     });
   }, [getTabLayout, update]);
 
