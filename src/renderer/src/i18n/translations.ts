@@ -377,6 +377,9 @@ const translations = {
   'settings.autostart_desc': { de: 'App beim Systemstart automatisch öffnen.', en: 'Open app automatically on system startup.' },
   'settings.enabled': { de: 'Aktiviert', en: 'Enabled' },
   'settings.disabled': { de: 'Deaktiviert', en: 'Disabled' },
+  'settings.last_sync': { de: 'Letzter Sync', en: 'Last sync' },
+  'settings.select': { de: 'Auswählen', en: 'Select' },
+  'settings.sync_now': { de: 'Jetzt synchronisieren', en: 'Sync now' },
   'settings.backup': { de: 'Daten-Backup', en: 'Data Backup' },
   'settings.backup_desc': { de: 'Alle Daten als JSON exportieren oder ein Backup importieren.', en: 'Export all data as JSON or import a backup.' },
   'settings.backup_export': { de: '💾 Backup exportieren', en: '💾 Export backup' },
@@ -527,6 +530,9 @@ const translations = {
   'layout.half_width': { de: 'Halbe Breite', en: 'Half width' },
   'layout.hide': { de: 'Ausblenden', en: 'Hide' },
   'layout.show': { de: 'Einblenden', en: 'Show' },
+  'layout.move_to_main': { de: 'Nach links verschieben', en: 'Move to main' },
+  'layout.move_to_sidebar': { de: 'Nach rechts verschieben', en: 'Move to sidebar' },
+  'layout.pin_as_focus': { de: 'Als Fokus pinnen', en: 'Pin as focus' },
 
   // ---- Song Request Queue ----
   'sr.title': { de: 'Song Queue', en: 'Song Queue' },

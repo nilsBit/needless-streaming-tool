@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import ErrorBoundary from './components/ErrorBoundary';
 import OnboardingWizard from './components/OnboardingWizard';
-import { apiFetch, getApiToken, apiGet, apiPost } from './hooks/useApi';
+import { apiFetch, getApiToken } from './hooks/useApi';
 import { useToast } from './i18n/ToastContext';
 import { useDashboardLayout } from './hooks/useDashboardLayout';
 import { useTranslation } from './i18n/LanguageContext';
@@ -17,13 +17,14 @@ import HelpPanel from './panels/HelpPanel';
 import SongPanel from './panels/SongPanel';
 import StatsPanel from './panels/StatsPanel';
 import RewardStatsPanel from './panels/RewardStatsPanel';
-import HotkeysPanel from './panels/HotkeysPanel';
 import ObsPanel from './panels/ObsPanel';
 import logoSvg from './assets/logo.svg';
 
+interface UpdateInfo { version: string; url: string }
+
 const TABS = {
-  stream: {
-    label: '🎮 Stream',
+  dashboard: {
+    label: '🎮 Dashboard',
     panels: [
       { key: 'challenge', label: 'Challenge', component: ChallengePanel },
       { key: 'issues', label: 'Glücksrad', component: IssuesPanel },
@@ -41,18 +42,12 @@ const TABS = {
       { key: 'milestones', label: 'Milestones', component: MilestonesPanel },
     ],
   },
-  stats: {
-    label: '📊 Stats',
-    panels: [
-      { key: 'stats', label: 'Statistiken', component: StatsPanel },
-    ],
-  },
   settings: {
     label: '⚙️ Settings',
     panels: [
       { key: 'settings', label: 'Settings', component: SettingsPanel },
       { key: 'overlays', label: 'Overlays', component: OverlaysPanel },
-      { key: 'hotkeys', label: 'Hotkeys', component: HotkeysPanel },
+      { key: 'stats', label: 'Statistiken', component: StatsPanel },
     ],
   },
   help: {
@@ -68,25 +63,8 @@ type TabKey = keyof typeof TABS;
 export default function App() {
   const { t } = useTranslation();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<TabKey>('stream');
-  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  const [activeTab, setActiveTab] = useState<TabKey>('dashboard');
   const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
-  const [singleColumn, setSingleColumn] = useState(false);
-
-  useEffect(() => {
-    apiGet<{ value: string | null }>('/settings/get/ui.single_column').then((res) => {
-      if (res?.value) {
-        setSingleColumn(res.value === 'true');
-      } else {
-        const saved = localStorage.getItem('dashboard-single-column');
-        if (saved) {
-          setSingleColumn(saved === 'true');
-          apiPost('/settings/set', { key: 'ui.single_column', value: saved });
-          localStorage.removeItem('dashboard-single-column');
-        }
-      }
-    });
-  }, []);
 
   // Get default panel keys for active tab
   const defaultPanelKeys = useMemo(() =>
@@ -134,15 +112,6 @@ export default function App() {
     api.onUpdateAvailable(handler);
   }, []);
 
-  const toggleCollapse = (key: string) => {
-    setCollapsed((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
-  };
-
   const tab = TABS[activeTab];
 
   const panelMap = useMemo(() => {
@@ -176,15 +145,193 @@ export default function App() {
   const handleDrop = (targetKey: string, e: React.DragEvent) => {
     e.preventDefault();
     const fromKey = e.dataTransfer.getData('text/plain');
-    if (fromKey && fromKey !== targetKey) {
-      layout.reorder(fromKey, targetKey);
-    }
+    if (fromKey && fromKey !== targetKey) layout.reorder(fromKey, targetKey);
     setDragKey(null);
     setDragOverKey(null);
   };
 
   if (showOnboarding === null) return null; // Loading
   if (showOnboarding) return <ErrorBoundary><OnboardingWizard onComplete={() => setShowOnboarding(false)} /></ErrorBoundary>;
+
+  const renderHeroPanel = () => {
+    const p = panelMap.get(layout.hero);
+    if (!p) return null;
+    const Component = p.component;
+    return (
+      <div className="hero-panel" data-panel={layout.hero}>
+        <div className="panel-header-bar">
+          <span className="hero-badge">FOKUS</span>
+          <span className="collapse-label">{p.label}</span>
+          <div className="panel-header-controls">
+            <button
+              className="panel-header-btn"
+              onClick={() => layout.hide(layout.hero)}
+              title={t('layout.hide')}
+            >
+              👁
+            </button>
+          </div>
+        </div>
+        <ErrorBoundary
+          fallback={p.label}
+          errorTitle={t('error.title')}
+          errorMessage={t('error.message')}
+          retryLabel={t('error.retry')}
+        >
+          <Component />
+        </ErrorBoundary>
+      </div>
+    );
+  };
+
+  const renderGridPanel = (key: string) => {
+    const p = panelMap.get(key);
+    if (!p) return null;
+    const Component = p.component;
+    return (
+      <div
+        key={key}
+        data-panel={key}
+        className={`panel-wrapper ${dragKey === key ? 'dragging' : ''} ${dragOverKey === key ? 'drag-over' : ''}`}
+        onDragOver={handleDragOver}
+        onDragEnter={() => handleDragEnter(key)}
+        onDrop={(e) => handleDrop(key, e)}
+      >
+        <div className="panel-header-bar">
+          <span
+            className="drag-handle"
+            draggable
+            onDragStart={(e) => handleDragStart(e, key)}
+            onDragEnd={handleDragEnd}
+          >
+            ⠿
+          </span>
+          <button className="panel-collapse-btn" onClick={() => layout.toggleCollapsed(key)}>
+            <span className="collapse-icon">▼</span>
+            <span className="collapse-label">{p.label}</span>
+          </button>
+          <div className="panel-header-controls">
+            <button
+              className="pin-btn"
+              onClick={() => layout.pinAsHero(key)}
+              title={t('layout.pin_as_focus')}
+            >
+              📌
+            </button>
+            <button
+              className="panel-header-btn"
+              onClick={() => layout.hide(key)}
+              title={t('layout.hide')}
+            >
+              👁
+            </button>
+          </div>
+        </div>
+        <ErrorBoundary
+          fallback={p.label}
+          errorTitle={t('error.title')}
+          errorMessage={t('error.message')}
+          retryLabel={t('error.retry')}
+        >
+          <Component />
+        </ErrorBoundary>
+      </div>
+    );
+  };
+
+  const renderCollapsedPanel = (key: string) => {
+    const p = panelMap.get(key);
+    if (!p) return null;
+    return (
+      <div
+        key={key}
+        data-panel={key}
+        className={`panel-wrapper collapsed ${dragKey === key ? 'dragging' : ''} ${dragOverKey === key ? 'drag-over' : ''}`}
+        onDragOver={handleDragOver}
+        onDragEnter={() => handleDragEnter(key)}
+        onDrop={(e) => handleDrop(key, e)}
+      >
+        <div className="panel-header-bar">
+          <span
+            className="drag-handle"
+            draggable
+            onDragStart={(e) => handleDragStart(e, key)}
+            onDragEnd={handleDragEnd}
+          >
+            ⠿
+          </span>
+          <button className="panel-collapse-btn" onClick={() => layout.toggleCollapsed(key)}>
+            <span className="collapse-icon">▶</span>
+            <span className="collapse-label">{p.label}</span>
+          </button>
+          <div className="panel-header-controls">
+            <button
+              className="pin-btn"
+              onClick={() => layout.pinAsHero(key)}
+              title={t('layout.pin_as_focus')}
+            >
+              📌
+            </button>
+            <button
+              className="panel-header-btn"
+              onClick={() => layout.hide(key)}
+              title={t('layout.hide')}
+            >
+              👁
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderPanel = (key: string) => {
+    const p = panelMap.get(key);
+    if (!p) return null;
+    const Component = p.component;
+    return (
+      <div
+        key={key}
+        data-panel={key}
+        className={`panel-wrapper ${dragKey === key ? 'dragging' : ''} ${dragOverKey === key ? 'drag-over' : ''}`}
+        onDragOver={handleDragOver}
+        onDragEnter={() => handleDragEnter(key)}
+        onDrop={(e) => handleDrop(key, e)}
+      >
+        <div className="panel-header-bar">
+          <span
+            className="drag-handle"
+            draggable
+            onDragStart={(e) => handleDragStart(e, key)}
+            onDragEnd={handleDragEnd}
+          >
+            ⠿
+          </span>
+          <button className="panel-collapse-btn" onClick={() => layout.toggleCollapsed(key)}>
+            <span className="collapse-icon">▼</span>
+            <span className="collapse-label">{p.label}</span>
+          </button>
+          <div className="panel-header-controls">
+            <button
+              className="panel-header-btn"
+              onClick={() => layout.hide(key)}
+              title={t('layout.hide')}
+            >
+              👁
+            </button>
+          </div>
+        </div>
+        <ErrorBoundary
+          fallback={p.label}
+          errorTitle={t('error.title')}
+          errorMessage={t('error.message')}
+          retryLabel={t('error.retry')}
+        >
+          <Component />
+        </ErrorBoundary>
+      </div>
+    );
+  };
 
   return (
     <div className="app">
@@ -201,73 +348,27 @@ export default function App() {
             </button>
           ))}
         </nav>
-        <button
-          className={`column-toggle-btn ${singleColumn ? 'single' : ''}`}
-          onClick={() => {
-            const next = !singleColumn;
-            setSingleColumn(next);
-            apiPost('/settings/set', { key: 'ui.single_column', value: String(next) });
-          }}
-          title={singleColumn ? t('layout.half_width') : t('layout.full_width')}
-        >
-          <span className="column-toggle-icon">
-            <span className="col-block" />
-            {!singleColumn && <span className="col-block" />}
-          </span>
-          <span className="column-toggle-label">{singleColumn ? '1' : '2'}</span>
-        </button>
       </header>
-      <main className={`panels ${singleColumn || layout.order.length === 1 ? 'single-column' : ''}`}>
-        {layout.order.map((key) => {
-          const p = panelMap.get(key);
-          if (!p) return null;
-          const isCollapsed = collapsed.has(key);
-          const Component = p.component;
-          return (
-            <div
-              key={key}
-              className={`panel-wrapper ${isCollapsed ? 'collapsed' : ''} ${dragKey === key ? 'dragging' : ''} ${dragOverKey === key ? 'drag-over' : ''}`}
-              onDragOver={handleDragOver}
-              onDragEnter={() => handleDragEnter(key)}
-              onDrop={(e) => handleDrop(key, e)}
-            >
-              <div className="panel-header-bar">
-                <span
-                  className="drag-handle"
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, key)}
-                  onDragEnd={handleDragEnd}
-                >
-                  ⠿
-                </span>
-                <button className="panel-collapse-btn" onClick={() => toggleCollapse(key)}>
-                  <span className="collapse-icon">{isCollapsed ? '▶' : '▼'}</span>
-                  <span className="collapse-label">{p.label}</span>
-                </button>
-                <div className="panel-header-controls">
-                  <button
-                    className="panel-header-btn"
-                    onClick={() => layout.hide(key)}
-                    title={t('layout.hide')}
-                  >
-                    👁
-                  </button>
-                </div>
-              </div>
-              {!isCollapsed && (
-                <ErrorBoundary
-                  fallback={p.label}
-                  errorTitle={t('error.title')}
-                  errorMessage={t('error.message')}
-                  retryLabel={t('error.retry')}
-                >
-                  <Component />
-                </ErrorBoundary>
-              )}
+
+      {activeTab === 'dashboard' ? (
+        <div className="dashboard-hero-layout">
+          {renderHeroPanel()}
+          {layout.openOrder.length > 0 && (
+            <div className="panel-grid">
+              {layout.openOrder.map(renderGridPanel)}
             </div>
-          );
-        })}
-      </main>
+          )}
+          {layout.collapsedOrder.length > 0 && (
+            <div className="panel-collapsed-list">
+              {layout.collapsedOrder.map(renderCollapsedPanel)}
+            </div>
+          )}
+        </div>
+      ) : (
+        <main className="panels single-column">
+          {layout.order.map((key) => renderPanel(key))}
+        </main>
+      )}
 
       {/* Hidden panels bar */}
       {layout.hidden.length > 0 && (
