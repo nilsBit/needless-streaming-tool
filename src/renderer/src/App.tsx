@@ -184,7 +184,7 @@ export default function App() {
     );
   };
 
-  const renderGridPanel = (key: string) => {
+  const renderDashboardPanel = (key: string, isCollapsed: boolean) => {
     const p = panelMap.get(key);
     if (!p) return null;
     const Component = p.component;
@@ -192,7 +192,7 @@ export default function App() {
       <div
         key={key}
         data-panel={key}
-        className={`panel-wrapper ${dragKey === key ? 'dragging' : ''} ${dragOverKey === key ? 'drag-over' : ''}`}
+        className={`panel-wrapper ${isCollapsed ? 'collapsed' : ''} ${dragKey === key ? 'dragging' : ''} ${dragOverKey === key ? 'drag-over' : ''}`}
         onDragOver={handleDragOver}
         onDragEnter={() => handleDragEnter(key)}
         onDrop={(e) => handleDrop(key, e)}
@@ -207,7 +207,7 @@ export default function App() {
             ⠿
           </span>
           <button className="panel-collapse-btn" onClick={() => layout.toggleCollapsed(key)}>
-            <span className="collapse-icon">▼</span>
+            <span className="collapse-icon">{isCollapsed ? '▶' : '▼'}</span>
             <span className="collapse-label">{p.label}</span>
           </button>
           <div className="panel-header-controls">
@@ -227,60 +227,16 @@ export default function App() {
             </button>
           </div>
         </div>
-        <ErrorBoundary
-          fallback={p.label}
-          errorTitle={t('error.title')}
-          errorMessage={t('error.message')}
-          retryLabel={t('error.retry')}
-        >
-          <Component />
-        </ErrorBoundary>
-      </div>
-    );
-  };
-
-  const renderCollapsedPanel = (key: string) => {
-    const p = panelMap.get(key);
-    if (!p) return null;
-    return (
-      <div
-        key={key}
-        data-panel={key}
-        className={`panel-wrapper collapsed ${dragKey === key ? 'dragging' : ''} ${dragOverKey === key ? 'drag-over' : ''}`}
-        onDragOver={handleDragOver}
-        onDragEnter={() => handleDragEnter(key)}
-        onDrop={(e) => handleDrop(key, e)}
-      >
-        <div className="panel-header-bar">
-          <span
-            className="drag-handle"
-            draggable
-            onDragStart={(e) => handleDragStart(e, key)}
-            onDragEnd={handleDragEnd}
+        {!isCollapsed && (
+          <ErrorBoundary
+            fallback={p.label}
+            errorTitle={t('error.title')}
+            errorMessage={t('error.message')}
+            retryLabel={t('error.retry')}
           >
-            ⠿
-          </span>
-          <button className="panel-collapse-btn" onClick={() => layout.toggleCollapsed(key)}>
-            <span className="collapse-icon">▶</span>
-            <span className="collapse-label">{p.label}</span>
-          </button>
-          <div className="panel-header-controls">
-            <button
-              className="pin-btn"
-              onClick={() => layout.pinAsHero(key)}
-              title={t('layout.pin_as_focus')}
-            >
-              📌
-            </button>
-            <button
-              className="panel-header-btn"
-              onClick={() => layout.hide(key)}
-              title={t('layout.hide')}
-            >
-              👁
-            </button>
-          </div>
-        </div>
+            <Component />
+          </ErrorBoundary>
+        )}
       </div>
     );
   };
@@ -307,10 +263,7 @@ export default function App() {
           >
             ⠿
           </span>
-          <button className="panel-collapse-btn" onClick={() => layout.toggleCollapsed(key)}>
-            <span className="collapse-icon">▼</span>
-            <span className="collapse-label">{p.label}</span>
-          </button>
+          <span className="collapse-label">{p.label}</span>
           <div className="panel-header-controls">
             <button
               className="panel-header-btn"
@@ -355,12 +308,12 @@ export default function App() {
           {renderHeroPanel()}
           {layout.openOrder.length > 0 && (
             <div className="panel-grid">
-              {layout.openOrder.map(renderGridPanel)}
+              {layout.openOrder.map((key) => renderDashboardPanel(key, false))}
             </div>
           )}
           {layout.collapsedOrder.length > 0 && (
             <div className="panel-collapsed-list">
-              {layout.collapsedOrder.map(renderCollapsedPanel)}
+              {layout.collapsedOrder.map((key) => renderDashboardPanel(key, true))}
             </div>
           )}
         </div>
