@@ -71,7 +71,7 @@ Each profile defines four properties:
 | Chatting | designs | challenge, song | issues, clips, rewardstats, obs | rest (none) |
 | All | challenge | all | none | none |
 
-Note: These defaults align with the existing `PROFILE_VISIBLE` mapping. Panels that are currently hidden by a profile remain hidden. The new `collapsed` state only applies to panels that are visible but not hero or open.
+Note: These defaults intentionally differ from the existing `PROFILE_VISIBLE` mapping. Previously, profiles aggressively hid panels to reduce clutter. With the new Hero + Grid layout, collapsed panels take minimal space (single line), so most panels are now visible-but-collapsed instead of fully hidden. Only `clips` and `rewardstats` remain hidden in most profiles since they are niche features. This is a deliberate UX change — the hero/grid/collapsed hierarchy solves the clutter problem that hiding was originally meant to address.
 
 #### Override Behavior
 
@@ -92,6 +92,7 @@ Note: These defaults align with the existing `PROFILE_VISIBLE` mapping. Panels t
 - Remove `sidebar` / `moveToSidebar` / `moveToMain` logic (replaced by hero/grid)
 - Remove `fullWidth` / `toggleWidth` / `isFullWidth` logic (hero replaces full-width semantics)
 - Keep `reorder`, `hide`, `show`, `reset` functions
+- Reorder scope: users can reorder panels within the grid (open panels) and within the collapsed list. Hero is always first and not part of the reorder flow
 - Replace React `useState` collapsed tracking in App.tsx with layout-driven `collapsed` array from this hook
 
 ### `src/renderer/src/App.tsx`
