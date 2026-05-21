@@ -8,8 +8,6 @@ export default function DoneStep({ onFinish }: { onFinish: () => void }) {
   const { t } = useTranslation();
   const { data: botStatus, refetch: refetchBot } = useApi<BotStatus>('/settings/bot-status');
   const { data: obsStatus, refetch: refetchObs } = useApi<{ connected: boolean }>('/obs/status');
-  const { data: notionInfo } = useApi<{ configured: boolean }>('/settings/notion');
-
   const twitchDone = !!botStatus?.connected;
   const obsDone = !!obsStatus?.connected;
 
@@ -17,13 +15,11 @@ export default function DoneStep({ onFinish }: { onFinish: () => void }) {
     if (event === 'bot-status') refetchBot();
     if (event === 'obs-status') refetchObs();
   });
-  const notionDone = !!notionInfo?.configured;
   const canFinish = twitchDone && obsDone;
 
   const items = [
     { label: 'Twitch', done: twitchDone, required: true },
     { label: 'OBS', done: obsDone, required: true },
-    { label: `Notion (${t('done.optional')})`, done: notionDone, required: false },
   ];
 
   return (
