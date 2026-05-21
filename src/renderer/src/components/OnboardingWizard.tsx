@@ -1,10 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import { apiPost } from '../hooks/useApi';
 import { useToast } from '../i18n/ToastContext';
-import WelcomeStep from './onboarding/WelcomeStep';
 import TwitchStep from './onboarding/TwitchStep';
 import ObsStep from './onboarding/ObsStep';
-import NotionStep from './onboarding/NotionStep';
 import OverlaysStep from './onboarding/OverlaysStep';
 import StreamDeckStep from './onboarding/StreamDeckStep';
 import DoneStep from './onboarding/DoneStep';
@@ -13,12 +11,12 @@ import ProfileStep from './onboarding/ProfileStep';
 import { useTranslation } from '../i18n/LanguageContext';
 
 const STEP_KEYS = [
-  'onboarding.step.language', 'onboarding.step.profile', 'onboarding.step.welcome',
-  'onboarding.step.twitch', 'onboarding.step.obs', 'onboarding.step.notion',
+  'onboarding.step.language', 'onboarding.step.profile',
+  'onboarding.step.twitch', 'onboarding.step.obs',
   'onboarding.step.overlays', 'onboarding.step.streamdeck', 'onboarding.step.done',
 ] as const;
-const SKIPPABLE = new Set([5, 7]); // Notion, Stream Deck
-const READY_REQUIRED = new Set([3, 4]); // Twitch, OBS
+const SKIPPABLE = new Set([5]); // Stream Deck
+const READY_REQUIRED = new Set([2, 3]); // Twitch, OBS
 
 export default function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
   const [step, setStep] = useState(0);
@@ -62,13 +60,11 @@ export default function OnboardingWizard({ onComplete }: { onComplete: () => voi
         <div className="step-content">
           {step === 0 && <LanguageStep onNext={next} />}
           {step === 1 && <ProfileStep />}
-          {step === 2 && <WelcomeStep />}
-          {step === 3 && <TwitchStep onReady={onStepReady} />}
-          {step === 4 && <ObsStep onReady={onStepReady} />}
-          {step === 5 && <NotionStep onComplete={next} />}
-          {step === 6 && <OverlaysStep />}
-          {step === 7 && <StreamDeckStep />}
-          {step === 8 && <DoneStep onFinish={finish} />}
+          {step === 2 && <TwitchStep onReady={onStepReady} />}
+          {step === 3 && <ObsStep onReady={onStepReady} />}
+          {step === 4 && <OverlaysStep />}
+          {step === 5 && <StreamDeckStep />}
+          {step === 6 && <DoneStep onFinish={finish} />}
         </div>
 
         {/* Navigation */}
