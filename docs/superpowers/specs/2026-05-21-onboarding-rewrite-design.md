@@ -48,8 +48,11 @@ Wizard state changes in `OnboardingWizard.tsx`:
 
 ### Files removed
 
-- `src/renderer/src/components/onboarding/NotionStep.tsx` — deleted entirely
-- `src/renderer/src/components/onboarding/WelcomeStep.tsx` — deleted entirely
+- `src/renderer/src/components/onboarding/WelcomeStep.tsx` — deleted entirely (no other importers)
+
+### Files kept but unwired from onboarding
+
+- `src/renderer/src/components/onboarding/NotionStep.tsx` — **stays in place**. It is still imported by `NotionSetupModal.tsx` (which is used by `SettingsPanel.tsx` / `ClipsPanel.tsx` for the in-app Notion setup modal). After this change it is only used from the modal, no longer from the onboarding wizard.
 
 ### Files modified
 
