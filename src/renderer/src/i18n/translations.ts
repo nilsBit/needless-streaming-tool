@@ -64,7 +64,6 @@ const translations = {
   // Onboarding
   'onboarding.welcome_title': { de: 'Willkommen bei NST!', en: 'Welcome to NST!' },
   'onboarding.welcome_text': { de: 'Dein Stream Toolkit für Streaming. Hier steuerst du alles — Overlays, Challenges, Issues, Clips, Milestones und mehr.', en: 'Your Stream Toolkit for Streaming. Control everything here — overlays, challenges, issues, clips, milestones and more.' },
-  'onboarding.welcome_sub': { de: 'Lass uns in ein paar Schritten alles einrichten.', en: 'Let\'s set everything up in a few steps.' },
   'onboarding.start_setup': { de: 'Setup starten', en: 'Start Setup' },
   'onboarding.next': { de: 'Weiter', en: 'Next' },
   'onboarding.back': { de: 'Zurück', en: 'Back' },
@@ -74,10 +73,8 @@ const translations = {
   // Onboarding step labels
   'onboarding.step.language': { de: 'Sprache', en: 'Language' },
   'onboarding.step.profile': { de: 'Profil', en: 'Profile' },
-  'onboarding.step.welcome': { de: 'Willkommen', en: 'Welcome' },
   'onboarding.step.twitch': { de: 'Twitch', en: 'Twitch' },
   'onboarding.step.obs': { de: 'OBS', en: 'OBS' },
-  'onboarding.step.notion': { de: 'Notion', en: 'Notion' },
   'onboarding.step.overlays': { de: 'Overlays', en: 'Overlays' },
   'onboarding.step.streamdeck': { de: 'Stream Deck', en: 'Stream Deck' },
   'onboarding.step.done': { de: 'Fertig', en: 'Done' },
