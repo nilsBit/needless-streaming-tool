@@ -36,7 +36,10 @@ export default function ProfileStep() {
 
   return (
     <div className="onboarding-step">
-      <h1>{t('profile.title')}</h1>
+      <div className="welcome-icon" role="img" aria-label="Welcome">🔬</div>
+      <h1>{t('onboarding.welcome_title')}</h1>
+      <p className="welcome-text">{t('onboarding.welcome_text')}</p>
+      <h2>{t('profile.title')}</h2>
       <p className="welcome-text">{t('profile.subtitle')}</p>
       <div className="profile-grid">
         {PROFILES.map(p => (
