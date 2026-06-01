@@ -14,6 +14,26 @@ interface DashboardLayout {
 
 const STORAGE_KEY = 'dashboard-layout';
 
+const LIVE_PANEL_KEYS = ['challenge', 'issues', 'designs', 'rewardstats'] as const;
+const LIVE_DEFAULT_HERO = 'challenge';
+
+function migrateDashboardToLive(layout: DashboardLayout): boolean {
+  try {
+    if (!layout['dashboard'] || layout['live']) return false;
+    const old = layout['dashboard'];
+    const liveSet = new Set<string>(LIVE_PANEL_KEYS);
+    const order = (old.order || []).filter((k) => liveSet.has(k));
+    const hidden = (old.hidden || []).filter((k) => liveSet.has(k));
+    const collapsed = (old.collapsed || []).filter((k) => liveSet.has(k));
+    const hero = old.hero && liveSet.has(old.hero) ? old.hero : LIVE_DEFAULT_HERO;
+    layout['live'] = { order, hidden, hero, collapsed };
+    delete layout['dashboard'];
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function getCurrentProfile(): string {
   try {
     const stored = localStorage.getItem('stream_profile');
@@ -28,12 +48,16 @@ function loadLayout(): DashboardLayout {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (!stored) return {};
     const layout = JSON.parse(stored) as DashboardLayout;
+    let changed = false;
     // Migrate old 'stream' key to 'dashboard'
     if (layout['stream'] && !layout['dashboard']) {
       layout['dashboard'] = layout['stream'];
       delete layout['stream'];
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(layout));
+      changed = true;
     }
+    // Migrate old 'dashboard' key to 'live' (live/produktion split)
+    if (migrateDashboardToLive(layout)) changed = true;
+    if (changed) localStorage.setItem(STORAGE_KEY, JSON.stringify(layout));
     return layout;
   } catch {
     return {};
@@ -131,6 +155,8 @@ export function useDashboardLayout(tabKey: string, defaultPanelKeys: string[]) {
             dbLayout['dashboard'] = dbLayout['stream'];
             delete dbLayout['stream'];
           }
+          // Migrate old 'dashboard' key to 'live' (live/produktion split)
+          migrateDashboardToLive(dbLayout);
           setLayout(dbLayout);
           localStorage.setItem(STORAGE_KEY, JSON.stringify(dbLayout));
         } catch { /* ignore parse errors */ }
@@ -149,7 +175,12 @@ export function useDashboardLayout(tabKey: string, defaultPanelKeys: string[]) {
     const tabProfile = tabKey === 'projekt'
       ? PROFILE_LAYOUT[profileKey]?.projekt
       : PROFILE_LAYOUT[profileKey]?.dashboard;
-    const defaultHero = tabProfile?.hero || defaultPanelKeys[0];
+    // Profiles were built for the old dashboard shape — clamp them to the
+    // new tab's panel keys so live/produktion don't inherit foreign heroes.
+    const defaultsSet = new Set(defaultPanelKeys);
+    const defaultHero = tabProfile?.hero && defaultsSet.has(tabProfile.hero)
+      ? tabProfile.hero
+      : defaultPanelKeys[0];
 
     if (!saved) {
       const openSet = new Set(tabProfile?.open || []);
@@ -157,7 +188,7 @@ export function useDashboardLayout(tabKey: string, defaultPanelKeys: string[]) {
       const collapsed = defaultPanelKeys.filter(k => k !== defaultHero && !openSet.has(k) && !hiddenSet.has(k));
       return {
         order: [...defaultPanelKeys],
-        hidden: tabProfile?.hidden || [],
+        hidden: (tabProfile?.hidden || []).filter(k => defaultsSet.has(k)),
         hero: defaultHero,
         collapsed,
       };
@@ -241,13 +272,16 @@ export function useDashboardLayout(tabKey: string, defaultPanelKeys: string[]) {
     const tabProfile = tabKey === 'projekt'
       ? PROFILE_LAYOUT[profileKey]?.projekt
       : PROFILE_LAYOUT[profileKey]?.dashboard;
-    const defaultHero = tabProfile?.hero || defaultPanelKeys[0];
+    const defaultsSet = new Set(defaultPanelKeys);
+    const defaultHero = tabProfile?.hero && defaultsSet.has(tabProfile.hero)
+      ? tabProfile.hero
+      : defaultPanelKeys[0];
     const openSet = new Set(tabProfile?.open || []);
     const hiddenSet = new Set(tabProfile?.hidden || []);
     const collapsed = defaultPanelKeys.filter(k => k !== defaultHero && !openSet.has(k) && !hiddenSet.has(k));
     update({
       order: [...defaultPanelKeys],
-      hidden: tabProfile?.hidden || [],
+      hidden: (tabProfile?.hidden || []).filter(k => defaultsSet.has(k)),
       hero: defaultHero,
       collapsed,
     });
