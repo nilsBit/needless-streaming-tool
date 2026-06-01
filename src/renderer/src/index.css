@@ -36,6 +36,30 @@ body {
 .app-logo { height: 24px; width: auto; }
 
 
+/* Area Navigation (Live / Produktion) */
+.area-nav {
+  display: flex;
+  gap: 4px;
+  margin-right: 16px;
+  padding-right: 16px;
+  border-right: 1px solid var(--border);
+}
+
+.area-btn {
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+}
+
+.area-btn:hover { color: var(--text); background: var(--bg-hover); }
+.area-btn.active { color: #e67e22; background: #e67e2222; border-color: #e67e2266; }
+
 /* Tab Navigation */
 .tab-nav {
   display: flex;
@@ -173,6 +197,21 @@ body {
   }
 
   .app-header h1 { font-size: 17px; }
+
+  .area-nav {
+    width: 100%;
+    margin-right: 0;
+    padding-right: 0;
+    padding-bottom: 8px;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .area-btn {
+    padding: 6px 12px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
 
   .tab-nav {
     width: 100%;
@@ -2278,6 +2317,10 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 [data-theme="light"] .tab-btn { color: var(--text-secondary); }
 [data-theme="light"] .tab-btn:hover { background: #eee; color: var(--text); }
 [data-theme="light"] .tab-btn.active { color: var(--accent); background: rgba(230,126,34,0.1); }
+[data-theme="light"] .area-nav { border-right-color: var(--border); }
+[data-theme="light"] .area-btn { color: var(--text-secondary); }
+[data-theme="light"] .area-btn:hover { background: #eee; color: var(--text); }
+[data-theme="light"] .area-btn.active { color: var(--accent); background: rgba(230,126,34,0.15); border-color: rgba(230,126,34,0.4); }
 [data-theme="light"] .panel { background: var(--bg-panel); border-color: var(--border); }
 [data-theme="light"] .panel-collapse-btn { background: var(--bg-panel); border-color: var(--border); color: var(--text-secondary); }
 [data-theme="light"] .panel-collapse-btn:hover { background: #eee; color: var(--text); }

@@ -23,53 +23,105 @@ import logoSvg from './assets/logo.svg';
 
 interface UpdateInfo { version: string; url: string }
 
+type Area = 'live' | 'produktion' | 'shared';
+
+const AREAS = {
+  live: { icon: '🔴', labelKey: 'area.live' satisfies TranslationKey },
+  produktion: { icon: '🎬', labelKey: 'area.produktion' satisfies TranslationKey },
+} as const;
+type AreaKey = keyof typeof AREAS;
+
 const TABS = {
-  dashboard: {
-    icon: '🎮',
-    labelKey: 'tab.dashboard',
+  live: {
+    area: 'live',
+    icon: '🔴',
+    labelKey: 'tab.live',
     panels: [
       { key: 'challenge', labelKey: 'panel.challenge', component: ChallengePanel },
       { key: 'issues', labelKey: 'panel.issues', component: IssuesPanel },
-      { key: 'clips', labelKey: 'panel.clips', component: ClipsPanel },
       { key: 'designs', labelKey: 'panel.designs', component: DesignsPanel },
-      { key: 'song', labelKey: 'panel.song', component: SongPanel },
       { key: 'rewardstats', labelKey: 'panel.rewardstats', component: RewardStatsPanel },
+    ],
+  },
+  produktion: {
+    area: 'produktion',
+    icon: '🎬',
+    labelKey: 'tab.produktion',
+    panels: [
+      { key: 'song', labelKey: 'panel.song', component: SongPanel },
       { key: 'obs', labelKey: 'panel.obs', component: ObsPanel },
+      { key: 'clips', labelKey: 'panel.clips', component: ClipsPanel },
     ],
   },
   projekt: {
+    area: 'produktion',
     icon: '📋',
     labelKey: 'tab.project',
     panels: [
       { key: 'progress', labelKey: 'panel.progress', component: ProgressPanel },
-      { key: 'milestones', labelKey: 'panel.milestones', component: MilestonesPanel },
+      { key: 'stats', labelKey: 'panel.stats', component: StatsPanel },
     ],
   },
   settings: {
+    area: 'shared',
     icon: '⚙️',
     labelKey: 'tab.settings',
     panels: [
       { key: 'settings', labelKey: 'panel.settings', component: SettingsPanel },
       { key: 'overlays', labelKey: 'panel.overlays', component: OverlaysPanel },
-      { key: 'stats', labelKey: 'panel.stats', component: StatsPanel },
+      { key: 'milestones', labelKey: 'panel.milestones', component: MilestonesPanel },
     ],
   },
   help: {
+    area: 'shared',
     icon: '📖',
     labelKey: 'tab.help',
     panels: [
       { key: 'help', labelKey: 'panel.help', component: HelpPanel },
     ],
   },
-} as const;
+} as const satisfies Record<string, { area: Area; icon: string; labelKey: TranslationKey; panels: ReadonlyArray<{ key: string; labelKey: TranslationKey; component: React.ComponentType }> }>;
+
+const AREA_STORAGE_KEY = 'stream_area';
+
+function loadActiveArea(): AreaKey {
+  try {
+    const stored = localStorage.getItem(AREA_STORAGE_KEY);
+    if (stored === 'live' || stored === 'produktion') return stored;
+  } catch { /* ignore */ }
+  return 'live';
+}
+
+function firstTabInArea(area: AreaKey): TabKey {
+  const found = (Object.keys(TABS) as TabKey[]).find((k) => TABS[k].area === area);
+  return found ?? 'live';
+}
 
 type TabKey = keyof typeof TABS;
 
 export default function App() {
   const { t } = useTranslation();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<TabKey>('dashboard');
+  const [activeArea, setActiveArea] = useState<AreaKey>(loadActiveArea);
+  const [activeTab, setActiveTab] = useState<TabKey>(() => firstTabInArea(loadActiveArea()));
   const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
+
+  // Persist area + keep activeTab valid within current area.
+  useEffect(() => {
+    try { localStorage.setItem(AREA_STORAGE_KEY, activeArea); } catch { /* ignore */ }
+    const currentArea = TABS[activeTab].area;
+    if (currentArea !== 'shared' && currentArea !== activeArea) {
+      setActiveTab(firstTabInArea(activeArea));
+    }
+  }, [activeArea, activeTab]);
+
+  const visibleTabKeys = useMemo(
+    () => (Object.keys(TABS) as TabKey[]).filter((k) => {
+      const a = TABS[k].area;
+      return a === activeArea || a === 'shared';
+    }),
+    [activeArea]
+  );
 
   // Get default panel keys for active tab
   const defaultPanelKeys = useMemo(() =>
@@ -295,20 +347,34 @@ export default function App() {
     <div className="app">
       <header className="app-header">
         <img src={logoSvg} alt="NST" className="app-logo" />
-        <nav className="tab-nav">
-          {(Object.entries(TABS) as Array<[TabKey, typeof TABS[TabKey]]>).map(([key, tabDef]) => (
+        <nav className="area-nav">
+          {(Object.entries(AREAS) as Array<[AreaKey, typeof AREAS[AreaKey]]>).map(([key, areaDef]) => (
             <button
               key={key}
-              className={`tab-btn ${activeTab === key ? 'active' : ''}`}
-              onClick={() => setActiveTab(key)}
+              className={`area-btn ${activeArea === key ? 'active' : ''}`}
+              onClick={() => setActiveArea(key)}
             >
-              {tabDef.icon} {t(tabDef.labelKey)}
+              {areaDef.icon} {t(areaDef.labelKey)}
             </button>
           ))}
         </nav>
+        <nav className="tab-nav">
+          {visibleTabKeys.map((key) => {
+            const tabDef = TABS[key];
+            return (
+              <button
+                key={key}
+                className={`tab-btn ${activeTab === key ? 'active' : ''}`}
+                onClick={() => setActiveTab(key)}
+              >
+                {tabDef.icon} {t(tabDef.labelKey)}
+              </button>
+            );
+          })}
+        </nav>
       </header>
 
-      {activeTab === 'dashboard' ? (
+      {(activeTab === 'live' || activeTab === 'produktion') ? (
         <div className="dashboard-hero-layout">
           {renderHeroPanel()}
           {layout.openOrder.length > 0 && (

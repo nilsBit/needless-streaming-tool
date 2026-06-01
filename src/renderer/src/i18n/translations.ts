@@ -3,7 +3,10 @@ export type Lang = 'de' | 'en';
 const translations = {
   // App
   'app.title': { de: 'NST', en: 'NST' },
-  'tab.dashboard': { de: 'Dashboard', en: 'Dashboard' },
+  'area.live': { de: 'Live', en: 'Live' },
+  'area.produktion': { de: 'Produktion', en: 'Production' },
+  'tab.live': { de: 'Live', en: 'Live' },
+  'tab.produktion': { de: 'Produktion', en: 'Production' },
   'tab.project': { de: 'Projekt', en: 'Project' },
   'tab.settings': { de: 'Settings', en: 'Settings' },
   'tab.help': { de: 'Hilfe', en: 'Help' },
