@@ -5,6 +5,7 @@ import { apiFetch, getApiToken } from './hooks/useApi';
 import { useToast } from './i18n/ToastContext';
 import { useDashboardLayout } from './hooks/useDashboardLayout';
 import { useTranslation } from './i18n/LanguageContext';
+import type { TranslationKey } from './i18n/translations';
 import ChallengePanel from './panels/ChallengePanel';
 import IssuesPanel from './panels/IssuesPanel';
 import ProgressPanel from './panels/ProgressPanel';
@@ -24,36 +25,40 @@ interface UpdateInfo { version: string; url: string }
 
 const TABS = {
   dashboard: {
-    label: '🎮 Dashboard',
+    icon: '🎮',
+    labelKey: 'tab.dashboard',
     panels: [
-      { key: 'challenge', label: 'Challenge', component: ChallengePanel },
-      { key: 'issues', label: 'Glücksrad', component: IssuesPanel },
-      { key: 'clips', label: 'Clip Moments', component: ClipsPanel },
-      { key: 'designs', label: 'Abstimmungen', component: DesignsPanel },
-      { key: 'song', label: 'Now Playing', component: SongPanel },
-      { key: 'rewardstats', label: 'Reward Stats', component: RewardStatsPanel },
-      { key: 'obs', label: 'OBS Scenes', component: ObsPanel },
+      { key: 'challenge', labelKey: 'panel.challenge', component: ChallengePanel },
+      { key: 'issues', labelKey: 'panel.issues', component: IssuesPanel },
+      { key: 'clips', labelKey: 'panel.clips', component: ClipsPanel },
+      { key: 'designs', labelKey: 'panel.designs', component: DesignsPanel },
+      { key: 'song', labelKey: 'panel.song', component: SongPanel },
+      { key: 'rewardstats', labelKey: 'panel.rewardstats', component: RewardStatsPanel },
+      { key: 'obs', labelKey: 'panel.obs', component: ObsPanel },
     ],
   },
   projekt: {
-    label: '📋 Projekt',
+    icon: '📋',
+    labelKey: 'tab.project',
     panels: [
-      { key: 'progress', label: 'Progress Tracker', component: ProgressPanel },
-      { key: 'milestones', label: 'Milestones', component: MilestonesPanel },
+      { key: 'progress', labelKey: 'panel.progress', component: ProgressPanel },
+      { key: 'milestones', labelKey: 'panel.milestones', component: MilestonesPanel },
     ],
   },
   settings: {
-    label: '⚙️ Settings',
+    icon: '⚙️',
+    labelKey: 'tab.settings',
     panels: [
-      { key: 'settings', label: 'Settings', component: SettingsPanel },
-      { key: 'overlays', label: 'Overlays', component: OverlaysPanel },
-      { key: 'stats', label: 'Statistiken', component: StatsPanel },
+      { key: 'settings', labelKey: 'panel.settings', component: SettingsPanel },
+      { key: 'overlays', labelKey: 'panel.overlays', component: OverlaysPanel },
+      { key: 'stats', labelKey: 'panel.stats', component: StatsPanel },
     ],
   },
   help: {
-    label: '📖 Hilfe',
+    icon: '📖',
+    labelKey: 'tab.help',
     panels: [
-      { key: 'help', label: 'Hilfe & Dokumentation', component: HelpPanel },
+      { key: 'help', labelKey: 'panel.help', component: HelpPanel },
     ],
   },
 } as const;
@@ -115,7 +120,7 @@ export default function App() {
   const tab = TABS[activeTab];
 
   const panelMap = useMemo(() => {
-    const map = new Map<string, { key: string; label: string; component: React.ComponentType }>();
+    const map = new Map<string, { key: string; labelKey: TranslationKey; component: React.ComponentType }>();
     for (const p of tab.panels) {
       map.set(p.key, p);
     }
@@ -161,7 +166,7 @@ export default function App() {
       <div className="hero-panel" data-panel={layout.hero}>
         <div className="panel-header-bar">
           <span className="hero-badge">FOKUS</span>
-          <span className="collapse-label">{p.label}</span>
+          <span className="collapse-label">{t(p.labelKey)}</span>
           <div className="panel-header-controls">
             <button
               className="panel-header-btn"
@@ -173,7 +178,7 @@ export default function App() {
           </div>
         </div>
         <ErrorBoundary
-          fallback={p.label}
+          fallback={t(p.labelKey)}
           errorTitle={t('error.title')}
           errorMessage={t('error.message')}
           retryLabel={t('error.retry')}
@@ -208,7 +213,7 @@ export default function App() {
           </span>
           <button className="panel-collapse-btn" onClick={() => layout.toggleCollapsed(key)}>
             <span className="collapse-icon">{isCollapsed ? '▶' : '▼'}</span>
-            <span className="collapse-label">{p.label}</span>
+            <span className="collapse-label">{t(p.labelKey)}</span>
           </button>
           <div className="panel-header-controls">
             <button
@@ -229,7 +234,7 @@ export default function App() {
         </div>
         {!isCollapsed && (
           <ErrorBoundary
-            fallback={p.label}
+            fallback={t(p.labelKey)}
             errorTitle={t('error.title')}
             errorMessage={t('error.message')}
             retryLabel={t('error.retry')}
@@ -263,7 +268,7 @@ export default function App() {
           >
             ⠿
           </span>
-          <span className="collapse-label">{p.label}</span>
+          <span className="collapse-label">{t(p.labelKey)}</span>
           <div className="panel-header-controls">
             <button
               className="panel-header-btn"
@@ -275,7 +280,7 @@ export default function App() {
           </div>
         </div>
         <ErrorBoundary
-          fallback={p.label}
+          fallback={t(p.labelKey)}
           errorTitle={t('error.title')}
           errorMessage={t('error.message')}
           retryLabel={t('error.retry')}
@@ -291,13 +296,13 @@ export default function App() {
       <header className="app-header">
         <img src={logoSvg} alt="NST" className="app-logo" />
         <nav className="tab-nav">
-          {(Object.entries(TABS) as Array<[TabKey, typeof TABS[TabKey]]>).map(([key, t]) => (
+          {(Object.entries(TABS) as Array<[TabKey, typeof TABS[TabKey]]>).map(([key, tabDef]) => (
             <button
               key={key}
               className={`tab-btn ${activeTab === key ? 'active' : ''}`}
               onClick={() => setActiveTab(key)}
             >
-              {t.label}
+              {tabDef.icon} {t(tabDef.labelKey)}
             </button>
           ))}
         </nav>
@@ -331,7 +336,7 @@ export default function App() {
             const p = panelMap.get(key);
             return p ? (
               <button key={key} className="hidden-bar-btn" onClick={() => layout.show(key)}>
-                {p.label}
+                {t(p.labelKey)}
               </button>
             ) : null;
           })}

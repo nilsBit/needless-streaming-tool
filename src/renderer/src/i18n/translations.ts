@@ -3,13 +3,17 @@ export type Lang = 'de' | 'en';
 const translations = {
   // App
   'app.title': { de: 'NST', en: 'NST' },
-  'tab.stream': { de: 'Stream', en: 'Stream' },
+  'tab.dashboard': { de: 'Dashboard', en: 'Dashboard' },
   'tab.project': { de: 'Projekt', en: 'Project' },
   'tab.settings': { de: 'Settings', en: 'Settings' },
   'tab.help': { de: 'Hilfe', en: 'Help' },
 
   // Panels
   'panel.challenge': { de: 'Challenge', en: 'Challenge' },
+  'panel.song': { de: 'Now Playing', en: 'Now Playing' },
+  'panel.rewardstats': { de: 'Reward Stats', en: 'Reward Stats' },
+  'panel.obs': { de: 'OBS Scenes', en: 'OBS Scenes' },
+  'panel.stats': { de: 'Statistiken', en: 'Statistics' },
   'challenge.title': { de: 'Challenge', en: 'Challenge' },
   'issues.title': { de: 'Glücksrad', en: 'Lucky Wheel' },
   'clips.title': { de: 'Clip Moments', en: 'Clip Moments' },
