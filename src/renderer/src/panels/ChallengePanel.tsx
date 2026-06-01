@@ -27,7 +27,8 @@ export default function ChallengePanel() {
       const newTitle = state.challenge_title || '';
       if (newTitle !== title) setTitle(newTitle);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps — deps intentionally narrow to avoid firing every WS tick
+  // Deps intentionally narrow to avoid firing every WS tick.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state?.challenge_title, isEditing]);
 
   const seconds = state?.timer_seconds || 0;
