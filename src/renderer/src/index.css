@@ -30,7 +30,7 @@ body {
   justify-content: space-between;
   padding: 12px 20px;
   background: var(--bg-header);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1.5px solid var(--border);
 }
 
 .app-header h1 { font-size: 20px; font-weight: 600; }
@@ -58,8 +58,17 @@ body {
   transition: color 0.15s, background 0.15s, border-color 0.15s;
 }
 
-.area-btn:hover { color: var(--text); background: var(--bg-hover); }
-.area-btn.active { color: #e67e22; background: #e67e2222; border-color: #e67e2266; }
+.area-btn:hover {
+  color: var(--text);
+  background: var(--bg-hover);
+  border-color: var(--border-strong);
+}
+
+.area-btn.active {
+  color: var(--accent);
+  background: rgba(230, 126, 34, 0.18);
+  border-color: var(--accent);
+}
 
 /* Tab Navigation */
 .tab-nav {
@@ -75,11 +84,20 @@ body {
   border-radius: 4px;
   color: var(--muted);
   cursor: pointer;
-  transition: color 0.15s, background 0.15s;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
 }
 
-.tab-btn:hover { color: var(--text); background: var(--bg-hover); }
-.tab-btn.active { color: #e67e22; background: #e67e2215; border-color: #e67e2244; }
+.tab-btn:hover {
+  color: var(--text);
+  background: var(--bg-hover);
+  border-color: var(--border-strong);
+}
+
+.tab-btn.active {
+  color: var(--accent);
+  background: rgba(230, 126, 34, 0.15);
+  border-color: var(--accent);
+}
 
 /* Panels Grid */
 .panels {
