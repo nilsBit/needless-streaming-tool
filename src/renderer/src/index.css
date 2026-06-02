@@ -174,15 +174,15 @@ body {
 
 /* Pin button */
 .pin-btn {
-  background: none;
-  border: none;
+  background: transparent;
+  border: 1px solid transparent;
   cursor: pointer;
-  opacity: 0.4;
+  color: var(--muted);
   font-size: 12px;
   padding: 4px 6px;
-  transition: opacity 0.2s;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
 }
-.pin-btn:hover { opacity: 1; }
+.pin-btn:hover { color: var(--text); background: var(--bg-hover); border-color: var(--border-strong); }
 
 @media (max-width: 900px) {
   .dashboard-hero-layout {
@@ -421,10 +421,10 @@ body {
   color: var(--muted);
   font-size: 13px;
   cursor: pointer;
-  transition: color 0.15s;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
 }
 
-.panel-collapse-btn:hover { color: var(--text); background: #222; }
+.panel-collapse-btn:hover { color: var(--text); background: var(--bg-hover); border-color: var(--border-strong); }
 
 .collapse-icon { font-size: 10px; color: #555; }
 .collapse-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -721,19 +721,19 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   color: #e74c3c;
   transition: background 0.12s, border-color 0.12s;
 }
-.btn-settings-danger:hover { background: rgba(231,76,60,0.12); border-color: #e74c3c; }
+.btn-settings-danger:hover { background: rgba(231,76,60,0.12); border-color: var(--border-strong); }
 
 .btn-settings-ghost {
   padding: 6px 12px;
   font-size: 12px;
   border-radius: 6px;
   cursor: pointer;
-  border: 1px solid rgba(255,255,255,0.12);
+  border: 1px solid var(--border);
   background: transparent;
-  color: var(--muted, #aaa);
-  transition: background 0.12s, color 0.12s, border-color 0.12s;
+  color: var(--muted);
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
-.btn-settings-ghost:hover { background: rgba(255,255,255,0.05); color: var(--text, #e0e0e0); border-color: rgba(255,255,255,0.2); }
+.btn-settings-ghost:hover { background: var(--bg-hover); color: var(--text); border-color: var(--border-strong); }
 
 [data-theme="light"] .settings-section { border-left-color: rgba(0,0,0,0.1); }
 [data-theme="light"] .btn-settings-ghost { border-color: rgba(0,0,0,0.15); color: var(--text-secondary); }
@@ -1249,15 +1249,16 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   font-weight: 500;
   border-radius: 5px;
   cursor: pointer;
-  border: none;
+  border: 1px solid transparent;
   flex-shrink: 0;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 .s-card-action.primary { background: rgba(52,152,219,0.15); color: #3498db; }
 .s-card-action.primary:hover { background: rgba(52,152,219,0.25); }
 .s-card-action.danger { background: rgba(231,76,60,0.15); color: #e74c3c; }
 .s-card-action.danger:hover { background: rgba(231,76,60,0.25); }
-.s-card-action.ghost { background: rgba(255,255,255,0.05); color: var(--muted, #888); }
-.s-card-action.ghost:hover { background: rgba(255,255,255,0.1); color: var(--text, #e0e0e0); }
+.s-card-action.ghost { background: var(--bg-hover); color: var(--muted); }
+.s-card-action.ghost:hover { background: var(--bg-hover); color: var(--text); border-color: var(--border-strong); }
 .s-card-action:disabled { opacity: 0.4; cursor: not-allowed; }
 .s-card-body {
   padding: 8px 12px 12px;
@@ -1297,8 +1298,8 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   border-radius: 5px;
   cursor: pointer;
 }
-.s-toggle-btn.active { background: rgba(230,126,34,0.15); color: #e67e22; border-color: rgba(230,126,34,0.3); }
-.s-toggle-btn:hover:not(.active) { background: rgba(255,255,255,0.05); }
+.s-toggle-btn.active { background: rgba(230,126,34,0.15); color: var(--accent); border-color: var(--accent); }
+.s-toggle-btn:hover:not(.active) { background: var(--bg-hover); color: var(--text); border-color: var(--border-strong); }
 .s-checkbox {
   display: flex;
   align-items: center;
@@ -2324,8 +2325,8 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   cursor: pointer;
   font-size: 13px;
 }
-.lang-btn.active { border-color: #e67e22; color: #e67e22; background: rgba(230, 126, 34, 0.1); }
-.lang-btn:hover { border-color: #666; }
+.lang-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(230, 126, 34, 0.15); }
+.lang-btn:hover { color: var(--text); background: var(--bg-hover); border-color: var(--border-strong); }
 
 /* Overlay Preview (legacy) */
 .overlay-preview-frame { background: #000; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); }
@@ -2964,15 +2965,15 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 }
 
 .panel-header-btn {
-  background: none;
-  border: none;
+  background: transparent;
+  border: 1px solid transparent;
   cursor: pointer;
-  opacity: 0.4;
+  color: var(--muted);
   font-size: 12px;
   padding: 4px 6px;
-  transition: opacity 0.2s;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
 }
-.panel-header-btn:hover { opacity: 1; }
+.panel-header-btn:hover { color: var(--text); background: var(--bg-hover); border-color: var(--border-strong); }
 
 /* Hidden Panels Bar */
 .hidden-bar {
@@ -2996,10 +2997,10 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   border: 1px solid var(--border);
   border-radius: 4px;
   cursor: pointer;
-  color: #ccc;
-  transition: border-color 0.2s;
+  color: var(--muted);
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
 }
-.hidden-bar-btn:hover { border-color: var(--muted); }
+.hidden-bar-btn:hover { color: var(--text); background: var(--bg-hover); border-color: var(--border-strong); }
 
 
 /* Sub-Todos in Kanban */
