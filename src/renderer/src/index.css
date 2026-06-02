@@ -116,7 +116,7 @@ body {
 
 .hero-panel .panel-header-bar {
   padding: 10px 16px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .hero-panel .panel {
@@ -372,7 +372,9 @@ body {
 .panel-wrapper {
   display: flex;
   flex-direction: column;
-  border-left: 3px solid transparent;
+  background: var(--bg-panel);
+  border: 1.5px solid var(--border);
+  border-left-width: 3px;
   border-radius: 8px;
 }
 .panel-wrapper[data-panel="challenge"] { border-left-color: #e67e22; }
@@ -407,6 +409,11 @@ body {
 
 .collapse-icon { font-size: 10px; color: #555; }
 .collapse-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+
+.panel-wrapper.collapsed {
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+}
 
 .panel-wrapper.collapsed .panel-collapse-btn {
   border-radius: 6px;
@@ -2911,6 +2918,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   align-items: center;
   gap: 4px;
   padding: 0 4px;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .drag-handle {
