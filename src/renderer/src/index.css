@@ -1257,7 +1257,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .s-card-action.primary:hover { background: rgba(52,152,219,0.25); }
 .s-card-action.danger { background: rgba(231,76,60,0.15); color: #e74c3c; }
 .s-card-action.danger:hover { background: rgba(231,76,60,0.25); }
-.s-card-action.ghost { background: var(--bg-hover); color: var(--muted); }
+.s-card-action.ghost { background: transparent; border-color: var(--border); color: var(--muted); }
 .s-card-action.ghost:hover { background: var(--bg-hover); color: var(--text); border-color: var(--border-strong); }
 .s-card-action:disabled { opacity: 0.4; cursor: not-allowed; }
 .s-card-body {
