@@ -719,7 +719,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   border: 1px solid rgba(231,76,60,0.5);
   background: transparent;
   color: #e74c3c;
-  transition: background 0.12s, border-color 0.12s;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
 }
 .btn-settings-danger:hover { background: rgba(231,76,60,0.12); border-color: var(--border-strong); }
 
@@ -1254,9 +1254,9 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 .s-card-action.primary { background: rgba(52,152,219,0.15); color: #3498db; }
-.s-card-action.primary:hover { background: rgba(52,152,219,0.25); }
+.s-card-action.primary:hover { background: rgba(52,152,219,0.25); border-color: rgba(52,152,219,0.6); }
 .s-card-action.danger { background: rgba(231,76,60,0.15); color: #e74c3c; }
-.s-card-action.danger:hover { background: rgba(231,76,60,0.25); }
+.s-card-action.danger:hover  { background: rgba(231,76,60,0.25);  border-color: rgba(231,76,60,0.6);  }
 .s-card-action.ghost { background: transparent; border-color: var(--border); color: var(--muted); }
 .s-card-action.ghost:hover { background: var(--bg-hover); color: var(--text); border-color: var(--border-strong); }
 .s-card-action:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -1292,13 +1292,15 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .s-toggle-btn {
   padding: 5px 12px;
   font-size: 11px;
-  border: 1px solid var(--border, #333);
+  border: 1px solid var(--border);
   background: none;
-  color: var(--muted, #888);
+  color: var(--muted);
   border-radius: 5px;
   cursor: pointer;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
 }
 .s-toggle-btn.active { background: rgba(230,126,34,0.15); color: var(--accent); border-color: var(--accent); }
+/* :not(.active) intentional — hover must not override the committed active fill */
 .s-toggle-btn:hover:not(.active) { background: var(--bg-hover); color: var(--text); border-color: var(--border-strong); }
 .s-checkbox {
   display: flex;
@@ -2324,6 +2326,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   color: var(--muted);
   cursor: pointer;
   font-size: 13px;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
 }
 .lang-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(230, 126, 34, 0.15); }
 .lang-btn:hover { color: var(--text); background: var(--bg-hover); border-color: var(--border-strong); }
