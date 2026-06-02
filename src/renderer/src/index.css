@@ -483,7 +483,7 @@ input[type="file"] {
 /* Buttons */
 button {
   background: var(--bg-hover);
-  border: 1px solid #4a4a4a;
+  border: 1px solid var(--border-strong);
   border-radius: 6px;
   padding: 8px 14px;
   color: #fff;
@@ -492,14 +492,14 @@ button {
   transition: background 0.15s, border-color 0.15s;
 }
 
-button:hover { background: #3a3a3a; border-color: #5a5a5a; }
+button:hover { background: var(--border); border-color: var(--border-strong); }
 button:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .btn-done { border-color: #2ecc71; }
 .btn-done:hover { background: #2ecc7133; }
 .btn-failed { border-color: #e74c3c; }
 .btn-failed:hover { background: #e74c3c33; }
-.btn-reset { border-color: var(--muted); }
+.btn-reset { border-color: var(--border-strong); }
 .btn-connect { border-color: #2ecc71; }
 .btn-connect:hover { background: #2ecc7133; }
 .btn-disconnect { border-color: #e74c3c; }
@@ -2635,7 +2635,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .kanban-item:hover .btn-delete-small { opacity: 1; }
 
 .kanban-empty {
-  color: var(--border-strong);
+  color: var(--muted);
   font-size: 12px;
   text-align: center;
   padding: 20px 0;
@@ -2838,7 +2838,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .song-manual-form input:focus {
   outline: none;
-  border-color: var(--muted);
+  border-color: var(--accent);
 }
 
 .song-manual-form button {
