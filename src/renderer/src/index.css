@@ -1,17 +1,18 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  --bg-body: #0a0a0a;
-  --bg-header: #151515;
-  --bg-panel: #181818;
-  --bg-card: #1e1e1e;
-  --bg-input: #1a1a1a;
-  --bg-hover: #252525;
-  --border: #383838;
-  --border-light: #444;
+  --bg-body: #161616;
+  --bg-header: #1a1a1a;
+  --bg-panel: #161616;
+  --bg-card: #161616;
+  --bg-input: #0e0e0e;
+  --bg-hover: #1f1f1f;
+  --border-subtle: #262626;
+  --border: #3a3a3a;
+  --border-strong: #4a4a4a;
   --text: #fff;
   --text-secondary: #d0d0d0;
-  --muted: #bbb;
+  --muted: #999;
   --accent: #e67e22;
 }
 
