@@ -374,6 +374,7 @@ body {
   flex-direction: column;
   background: var(--bg-panel);
   border: 1.5px solid var(--border);
+  /* keep 3px left stripe for per-panel [data-panel] accent colors */
   border-left-width: 3px;
   border-radius: 8px;
 }
@@ -412,6 +413,7 @@ body {
 
 .panel-wrapper.collapsed {
   border: 1px solid var(--border-subtle);
+  border-left-width: 3px;
   border-radius: 4px;
 }
 
