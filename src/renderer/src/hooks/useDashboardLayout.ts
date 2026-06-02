@@ -14,7 +14,7 @@ interface DashboardLayout {
 
 const STORAGE_KEY = 'dashboard-layout';
 
-const LIVE_PANEL_KEYS = ['challenge', 'issues', 'designs', 'rewardstats'] as const;
+const LIVE_PANEL_KEYS = ['challenge', 'issues', 'designs', 'rewardstats', 'song', 'obs'] as const;
 const LIVE_DEFAULT_HERO = 'challenge';
 
 function migrateDashboardToLive(layout: DashboardLayout): boolean {

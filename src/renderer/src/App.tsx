@@ -41,6 +41,8 @@ const TABS = {
       { key: 'issues', labelKey: 'panel.issues', component: IssuesPanel },
       { key: 'designs', labelKey: 'panel.designs', component: DesignsPanel },
       { key: 'rewardstats', labelKey: 'panel.rewardstats', component: RewardStatsPanel },
+      { key: 'song', labelKey: 'panel.song', component: SongPanel },
+      { key: 'obs', labelKey: 'panel.obs', component: ObsPanel },
     ],
   },
   produktion: {
@@ -48,8 +50,6 @@ const TABS = {
     icon: '🎬',
     labelKey: 'tab.produktion',
     panels: [
-      { key: 'song', labelKey: 'panel.song', component: SongPanel },
-      { key: 'obs', labelKey: 'panel.obs', component: ObsPanel },
       { key: 'clips', labelKey: 'panel.clips', component: ClipsPanel },
     ],
   },
