@@ -46,6 +46,10 @@
       {
         "from": "src/overlays",
         "to": "overlays"
+      },
+      {
+        "from": "assets/com.nst.deck.streamDeckPlugin",
+        "to": "assets/com.nst.deck.streamDeckPlugin"
       }
     ],
     "mac": {
