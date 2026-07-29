@@ -1,6 +1,8 @@
 node_modules/
 dist/
 release/
+# Build artifact of `npm run build:plugin`, bundled via extraResources
+assets/com.nst.deck.streamDeckPlugin
 data/*.db
 data/*.db-shm
 data/*.db-wal
