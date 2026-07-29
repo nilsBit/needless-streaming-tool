@@ -36,7 +36,6 @@ body {
 .app-header h1 { font-size: 20px; font-weight: 600; }
 .app-logo { height: 24px; width: auto; }
 
-
 /* Area Navigation (Live / Produktion) */
 .area-nav {
   display: flex;
@@ -316,13 +315,6 @@ body {
   }
   .help-cell-key { min-width: unset; }
 
-  /* Onboarding */
-  .onboarding-card {
-    padding: 16px;
-    max-width: 100%;
-    margin: 16px 0;
-  }
-
   .welcome-icon { font-size: 48px; }
   .onboarding-step h1 { font-size: 20px; }
   .onboarding-step h2 { font-size: 16px; }
@@ -337,31 +329,13 @@ body {
     height: 20px;
     font-size: 10px;
   }
-
-  .onboarding-info-box { font-size: 11px; }
   .info-label { min-width: 100px; }
   .info-mono { font-size: 10px; }
 
   .input-row { flex-direction: column; }
   .input-row input { width: 100%; }
-
-  .step-nav { flex-direction: column; gap: 8px; }
-  .step-nav-right { width: 100%; justify-content: flex-end; }
   .btn-primary { width: 100%; text-align: center; }
   .btn-back { width: 100%; text-align: center; }
-
-  .token-display-onboarding {
-    flex-direction: column;
-    gap: 6px;
-  }
-  .token-display-onboarding code { font-size: 10px; word-break: break-all; }
-
-  .overlay-list-onboarding { max-height: 150px; }
-  .overlay-item-onboarding {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-  }
 
   .done-checklist { max-width: 100%; }
   .done-item { font-size: 13px; }
@@ -980,7 +954,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .clip-custom { display: flex; gap: 6px; flex-wrap: wrap; }
 .clip-custom input { flex: 1; min-width: 100px; }
-
 
 /* Milestones Panel */
 .milestone-list,
@@ -1856,53 +1829,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 }
 .btn-reset-small:hover { border-color: var(--muted); color: var(--text-secondary); }
 
-/* Onboarding Wizard */
-.onboarding-overlay {
-  position: fixed;
-  inset: 0;
-  background: var(--bg-body);
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  z-index: 1000;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.onboarding-card {
-  width: 100%;
-  max-width: 520px;
-  padding: 32px;
-  margin: auto 0;
-  min-height: min-content;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.step-indicators {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-}
-
-.step-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--border);
-  transition: all 0.2s;
-}
-.step-dot.active { background: #e67e22; transform: scale(1.3); }
-.step-dot.done { background: #2ecc71; }
-.step-dot.clickable { cursor: pointer; }
-.step-dot.clickable:hover { transform: scale(1.3); opacity: 0.8; }
-
-.step-content {
-  display: flex;
-  flex-direction: column;
-}
-
 .onboarding-step {
   display: flex;
   flex-direction: column;
@@ -1954,35 +1880,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   font-style: italic;
 }
 
-.onboarding-status {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  background: var(--bg-panel);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  color: var(--text-secondary);
-  font-size: 13px;
-}
-
-.onboarding-field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.onboarding-field label {
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.onboarding-fields {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
 .input-row {
   display: flex;
   gap: 6px;
@@ -2021,65 +1918,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   font-size: 13px;
 }
 
-.overlay-list-onboarding {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.overlay-item-onboarding {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 6px 10px;
-  background: var(--bg-panel);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  color: var(--text-secondary);
-  font-size: 12px;
-}
-
-.overlay-item-onboarding button {
-  padding: 3px 8px;
-  background: none;
-  border: 1px solid var(--border-strong);
-  border-radius: 3px;
-  color: var(--muted);
-  cursor: pointer;
-  font-size: 11px;
-}
-.overlay-item-onboarding button:hover { border-color: #e67e22; color: #e67e22; }
-
-.token-display-onboarding {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  background: var(--bg-panel);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-}
-
-.token-display-onboarding code {
-  flex: 1;
-  color: #e67e22;
-  font-size: 12px;
-  font-family: 'SF Mono', monospace;
-}
-
-.token-display-onboarding button {
-  padding: 4px 10px;
-  background: none;
-  border: 1px solid var(--border-strong);
-  border-radius: 3px;
-  color: var(--muted);
-  cursor: pointer;
-  font-size: 11px;
-}
-.token-display-onboarding button:hover { border-color: #e67e22; color: #e67e22; }
-
 .done-step { text-align: center; align-items: center; }
 
 .done-checklist {
@@ -2102,19 +1940,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 }
 
 .done-icon { font-size: 16px; }
-
-.step-nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 8px;
-  border-top: 1px solid var(--border-subtle);
-}
-
-.step-nav-right {
-  display: flex;
-  gap: 8px;
-}
 
 .btn-primary {
   padding: 10px 20px;
@@ -2158,16 +1983,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   display: flex;
   flex-direction: column;
   gap: 10px;
-}
-
-.onboarding-info-box {
-  background: var(--bg-panel);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 10px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
 }
 
 .info-row {
@@ -2220,15 +2035,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .done-item-missing {
   border: 1px solid rgba(231, 76, 60, 0.3);
   background: rgba(231, 76, 60, 0.05);
-}
-
-.step-warning {
-  color: #e74c3c;
-  font-size: 13px;
-  padding: 10px 14px;
-  background: rgba(231, 76, 60, 0.1);
-  border: 1px solid rgba(231, 76, 60, 0.3);
-  border-radius: 6px;
 }
 
 .btn-install-inline {
@@ -2413,31 +2219,19 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 [data-theme="light"] .ov2-test-btn { background: #f5f5f5; border-color: var(--text); }
 [data-theme="light"] .help-section-header { background: var(--bg-input); color: var(--text); }
 [data-theme="light"] .help-content { background: var(--bg-panel); color: var(--text-secondary); }
-[data-theme="light"] .onboarding-overlay { background: var(--bg); }
 [data-theme="light"] .onboarding-step h1 { color: var(--text); }
 [data-theme="light"] .welcome-text { color: var(--text); }
 [data-theme="light"] .welcome-sub { color: var(--text-secondary); }
 [data-theme="light"] .step-desc { color: var(--text-secondary); }
 [data-theme="light"] .step-hint { color: var(--text-secondary); }
-[data-theme="light"] .step-dot { background: #ccc; }
-[data-theme="light"] .onboarding-status { background: var(--bg-panel); border-color: var(--border); color: var(--text); }
-[data-theme="light"] .onboarding-field label { color: var(--text-secondary); }
 [data-theme="light"] .input-row input { background: var(--bg-input); border-color: var(--border); color: var(--text); }
 [data-theme="light"] .input-row button { background: var(--bg-input); border-color: var(--border); color: var(--text); }
 [data-theme="light"] .input-row button:hover { border-color: var(--accent); color: var(--accent); }
-[data-theme="light"] .overlay-item-onboarding { background: var(--bg-panel); border-color: var(--border); color: var(--text); }
-[data-theme="light"] .overlay-item-onboarding button { border-color: var(--border); color: var(--text-secondary); }
-[data-theme="light"] .overlay-item-onboarding button:hover { border-color: var(--accent); color: var(--accent); }
-[data-theme="light"] .token-display-onboarding { background: var(--bg-panel); border-color: var(--border); }
-[data-theme="light"] .token-display-onboarding button { border-color: var(--border); color: var(--text-secondary); }
-[data-theme="light"] .token-display-onboarding button:hover { border-color: var(--accent); color: var(--accent); }
 [data-theme="light"] .done-item { background: var(--bg-panel); color: var(--text); }
-[data-theme="light"] .step-nav { border-top-color: var(--border); }
 [data-theme="light"] .btn-back { border-color: var(--border); color: var(--text-secondary); }
 [data-theme="light"] .btn-back:hover { border-color: #999; color: var(--text); }
 [data-theme="light"] .btn-skip { color: var(--text-secondary); }
 [data-theme="light"] .btn-skip:hover { color: var(--text); }
-[data-theme="light"] .onboarding-info-box { background: var(--bg-panel); border-color: var(--border); }
 [data-theme="light"] .info-row { color: var(--text); }
 [data-theme="light"] .info-label { color: var(--text-secondary); }
 [data-theme="light"] .setup-instruction { background: var(--bg-panel); border-color: var(--border); color: var(--text); }
@@ -2445,7 +2239,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 [data-theme="light"] .lang-btn:hover { border-color: #999; }
 [data-theme="light"] .onboarding-check { background: rgba(46, 204, 113, 0.15); border-color: #27ae60; color: #27ae60; }
 [data-theme="light"] .done-item-missing { border-color: rgba(231, 76, 60, 0.4); background: rgba(231, 76, 60, 0.08); }
-[data-theme="light"] .step-warning { color: #c0392b; background: rgba(231, 76, 60, 0.08); border-color: rgba(231, 76, 60, 0.3); }
 [data-theme="light"] .lang-btn.active { background: rgba(230,126,34,0.1); border-color: var(--accent); color: var(--accent); }
 
 /* Scrollbar */
@@ -3029,7 +2822,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 }
 .hidden-bar-btn:hover { color: var(--text); background: var(--bg-hover); border-color: var(--border-strong); }
 
-
 /* Sub-Todos in Kanban */
 .kanban-item-header {
   display: flex;
@@ -3469,7 +3261,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   margin: 0;
 }
 
-
 /* Kanban-item progress bar on card face (Trello pattern) */
 .kanban-item-progress {
   height: 2px;
@@ -3491,126 +3282,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .sub-todo-add { width: 100%; }
 .ux-try-this-wrapper > .sub-todo-add { width: 100%; }
 .kanban-item-todos .ux-try-this-wrapper { width: 100%; }
-
-/* ---------- Guided Tour ---------- */
-.guided-tour-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9000;
-  pointer-events: none;
-}
-.guided-tour-highlight {
-  position: fixed;
-  border-radius: 8px;
-  box-shadow: 0 0 0 9999px rgba(0,0,0,0.6);
-  z-index: 9000;
-  pointer-events: none;
-  transition: top 0.3s ease, left 0.3s ease, width 0.3s ease, height 0.3s ease;
-}
-.guided-tour-tooltip {
-  position: fixed;
-  z-index: 9001;
-  background: var(--bg-card);
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 10px;
-  padding: 16px 20px;
-  max-width: 300px;
-  min-width: 220px;
-  pointer-events: auto;
-  filter: drop-shadow(0 4px 20px rgba(0,0,0,0.4));
-}
-.guided-tour-tooltip::after {
-  content: '';
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  background: var(--bg-card);
-  border: 1px solid rgba(255,255,255,0.15);
-  transform: rotate(45deg);
-}
-/* Arrow positions */
-.guided-tour-tooltip--bottom::after {
-  top: -6px;
-  left: 50%;
-  margin-left: -5px;
-  border-right: none;
-  border-bottom: none;
-}
-.guided-tour-tooltip--top::after {
-  bottom: -6px;
-  left: 50%;
-  margin-left: -5px;
-  border-left: none;
-  border-top: none;
-}
-.guided-tour-tooltip--left::after {
-  right: -6px;
-  top: 50%;
-  margin-top: -5px;
-  border-left: none;
-  border-top: none;
-}
-.guided-tour-tooltip--right::after {
-  left: -6px;
-  top: 50%;
-  margin-top: -5px;
-  border-right: none;
-  border-bottom: none;
-}
-.guided-tour-tooltip-title {
-  font-weight: 600;
-  font-size: 14px;
-}
-.guided-tour-tooltip-text {
-  font-size: 13px;
-  opacity: 0.8;
-  margin-top: 6px;
-  line-height: 1.45;
-}
-.guided-tour-tooltip-ack {
-  margin-top: 12px;
-  padding: 7px 16px;
-  border-radius: 8px;
-  background: var(--accent, #4a9eff);
-  color: white;
-  border: none;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 500;
-  width: 100%;
-}
-.guided-tour-tooltip-ack:hover { filter: brightness(1.1); }
-.guided-tour-tooltip-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 12px;
-}
-.guided-tour-tooltip-skip {
-  font-size: 12px;
-  opacity: 0.6;
-  cursor: pointer;
-}
-.guided-tour-tooltip-skip:hover { opacity: 1; }
-.guided-tour-tooltip-step {
-  font-size: 11px;
-  opacity: 0.5;
-}
-
-/* Light mode */
-[data-theme="light"] .guided-tour-tooltip {
-  background: var(--bg, #fff);
-  border-color: var(--border, #ddd);
-  color: var(--text, #333);
-}
-[data-theme="light"] .guided-tour-tooltip::after {
-  background: var(--bg, #fff);
-  border-color: var(--border, #ddd);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .guided-tour-highlight { transition: none; }
-}
 
 /* ---------- Song Request Queue ---------- */
 .sr-section { margin-top: 20px; }
