@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import ErrorBoundary from './components/ErrorBoundary';
-import OnboardingWizard from './components/OnboardingWizard';
 import { apiFetch, getApiToken } from './hooks/useApi';
 import { useToast } from './i18n/ToastContext';
 import { useDashboardLayout } from './hooks/useDashboardLayout';
@@ -104,7 +103,6 @@ export default function App() {
   const { toast } = useToast();
   const [activeArea, setActiveArea] = useState<AreaKey>(loadActiveArea);
   const [activeTab, setActiveTab] = useState<TabKey>(() => firstTabInArea(loadActiveArea()));
-  const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
 
   // Persist area + keep activeTab valid within current area.
   useEffect(() => {
@@ -133,26 +131,6 @@ export default function App() {
   // Drag state
   const [dragKey, setDragKey] = useState<string | null>(null);
   const [dragOverKey, setDragOverKey] = useState<string | null>(null);
-
-  useEffect(() => {
-    let retries = 0;
-    function checkOnboarding() {
-      const token = getApiToken();
-      if (!token) {
-        if (retries++ < 20) {
-          setTimeout(checkOnboarding, 500);
-        } else {
-          setShowOnboarding(false);
-        }
-        return;
-      }
-      apiFetch('/settings/onboarding')
-        .then((r) => r.json())
-        .then((data) => setShowOnboarding(!data.completed))
-        .catch(() => setShowOnboarding(false));
-    }
-    checkOnboarding();
-  }, []);
 
   useEffect(() => {
     const api = window.electronAPI;
@@ -206,9 +184,6 @@ export default function App() {
     setDragKey(null);
     setDragOverKey(null);
   };
-
-  if (showOnboarding === null) return null; // Loading
-  if (showOnboarding) return <ErrorBoundary><OnboardingWizard onComplete={() => setShowOnboarding(false)} /></ErrorBoundary>;
 
   const renderHeroPanel = () => {
     const p = panelMap.get(layout.hero);

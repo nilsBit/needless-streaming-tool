@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-import { useApi, apiPost } from '../../hooks/useApi';
-import { useTranslation } from '../../i18n/LanguageContext';
-import { useToast } from '../../i18n/ToastContext';
-import NotionDatabasePicker from '../NotionDatabasePicker';
+import { useApi, apiPost } from '../hooks/useApi';
+import { useTranslation } from '../i18n/LanguageContext';
+import { useToast } from '../i18n/ToastContext';
+import NotionDatabasePicker from './NotionDatabasePicker';
 
 interface Props {
   onComplete?: () => void;
 }
 
-export default function NotionStep({ onComplete }: Props) {
+export default function NotionSetup({ onComplete }: Props) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const { data: notionInfo, refetch: refetchNotion } = useApi<{ configured: boolean }>('/settings/notion');

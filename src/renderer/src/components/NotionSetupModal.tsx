@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import NotionStep from './onboarding/NotionStep';
+import NotionSetup from './NotionSetup';
 
 interface Props {
   open: boolean;
@@ -27,7 +27,7 @@ export default function NotionSetupModal({ open, onClose, onComplete }: Props) {
           <button className="notion-setup-modal-close" onClick={onClose}>✕</button>
         </div>
         <div className="notion-setup-modal-body">
-          <NotionStep onComplete={onComplete} />
+          <NotionSetup onComplete={onComplete} />
         </div>
       </div>
     </div>

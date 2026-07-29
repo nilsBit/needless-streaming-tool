@@ -415,20 +415,6 @@ export default function SettingsPanel() {
         )}
       </div>
 
-      <div className="s-card">
-        <div className="s-card-header">
-          <div className="s-card-info">
-            <span className="s-card-icon">🧙</span>
-            <div>
-              <div className="s-card-title">{t('settings.wizard')}</div>
-              <div className="s-card-status" style={{ color: '#888' }}>{t('settings.wizard_desc')}</div>
-            </div>
-          </div>
-          <button className="s-card-action ghost" onClick={async () => { await apiPost('/settings/onboarding', { completed: false }); window.location.reload(); }}>
-            {t('settings.wizard_restart')}
-          </button>
-        </div>
-      </div>
     </>
   );
 

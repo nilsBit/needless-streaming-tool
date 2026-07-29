@@ -165,22 +165,6 @@ router.get('/notion/database/check', async (_req, res) => {
   res.json(result);
 });
 
-// Onboarding
-router.get('/onboarding', (_req, res) => {
-  const row = getDb().prepare('SELECT value FROM settings WHERE key = ?').get('onboarding_completed') as { value: string } | undefined;
-  res.json({ completed: row?.value === 'true' });
-});
-
-router.post('/onboarding', (req, res) => {
-  const { completed } = req.body;
-  if (completed === undefined) {
-    res.status(400).json({ error: 'completed field is required' });
-    return;
-  }
-  getDb().prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('onboarding_completed', completed ? 'true' : 'false');
-  res.json({ success: true });
-});
-
 // Install Stream Deck plugin
 router.post('/streamdeck/install', async (_req, res) => {
   try {
