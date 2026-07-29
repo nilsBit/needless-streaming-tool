@@ -18,6 +18,8 @@ Electron Desktop App for Twitch streaming. Manages overlays, chat commands, stre
 ```bash
 npm run dev        # Starts Vite dev server + Electron with nodemon auto-reload
 npm run typecheck  # Type check without emit
+npm test           # Vitest, single run (see Testing below)
+npm run test:watch # Vitest in watch mode
 npm run lint       # ESLint
 npm run format     # Prettier
 npm run build      # Production build + electron-builder
@@ -68,19 +70,50 @@ Browser source overlays are served at `http://localhost:4000/overlay/*` — add 
 
 SQLite via better-sqlite3. DB file lives at `data/stream.db`. Schema is defined in `src/server/db/schema.ts`. Migrations run on server startup.
 
+## Testing
+
+Tests run at **one seam: the HTTP API**. A test calls `initDatabase(':memory:')`, then
+`createApp()` from `src/server/index.ts`, then drives real routes with supertest. No
+mocks, no port bound, nothing external contacted. `src/server/__tests__/http-seam.test.ts`
+is the reference — copy its shape.
+
+Assert on what a caller observes over HTTP: status codes and response bodies. Never
+assert on internal function calls, and never verify by querying the database directly.
+
+Do not add a second seam without agreeing it first. Renderer components and Electron
+main are deliberately untested — they are verified by using the app.
+
+`createApp()` must stay free of connections. Anything that binds a socket or talks to
+Twitch, OBS, or SMTC belongs in `startServer()`.
+
+**Why `npm test` runs through Electron:** `better-sqlite3` is a native module compiled
+against Electron's ABI. Running Vitest under plain Node fails with a
+`NODE_MODULE_VERSION` mismatch. The test script therefore runs Vitest inside Electron
+via `ELECTRON_RUN_AS_NODE=1`, which is a pure Node process — no window, no port. Do not
+"fix" this with `npm rebuild`; that would break the app.
+
 ## Conventions
 
 - Code is written in **English**
 - User communicates in **German**
 - Keep commits and PR descriptions in English
+- Domain vocabulary lives in `CONTEXT.md` at the repo root — use those terms in code,
+  test names, and issue titles instead of drifting to synonyms
 
 ## IMPORTANT: Do NOT start processes
 
 - **NEVER** run `npm run dev`, `npm run build`, `npm start`, or any command that starts a server or builds the app
 - **NEVER** run commands that bind to ports (4000, 5173, etc.)
 - The user manages the dev server and builds separately
-- Only run `npm run typecheck` and `npm run lint` for verification
+- Use `npm run typecheck`, `npm run lint`, and `npm test` for verification — all three
+  terminate on their own and bind no ports
 
 ## Active work
 
-Cross-machine state for in-progress projects lives in `docs/superpowers/state/`. Check there first when resuming work — files are committed to git, so they're available on any device after `git pull`. Per-machine memory under `~/.Codex/projects/.../memory/` may be out of sync.
+Open work lives in **GitHub Issues** (`gh issue list`) — that is the single source of
+truth, available on any machine without a `git pull`. Per-machine memory under
+`~/.claude/projects/.../memory/` may be out of sync and never overrides an issue.
+
+Historical specs and plans from the previous Superpowers-based workflow sit in
+`docs/archive/`. They record what was built and why. They are **not** current process
+and should not be used as templates for new work.
