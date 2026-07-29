@@ -4,7 +4,7 @@
   "Name": "NST Deck",
   "Author": "nilsBit",
   "URL": "https://github.com/nilsBit/nst-streamdeck-plugin",
-  "Description": "Needless Streaming Tool for GameDev Streaming — Scene Switch, Clips, Bugs, Experiments, Todos, Milestones and more.",
+  "Description": "Needless Streaming Tool for world-building streams — Scene Switch, Clips, Lucky Wheel, Challenges, Todos, Milestones and more.",
   "Version": "1.0.1.0",
   "CodePath": "bin/plugin.js",
   "Icon": "imgs/plugin-icon",
