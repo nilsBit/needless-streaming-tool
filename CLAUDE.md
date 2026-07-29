@@ -100,13 +100,36 @@ via `ELECTRON_RUN_AS_NODE=1`, which is a pure Node process — no window, no por
 - Domain vocabulary lives in `CONTEXT.md` at the repo root — use those terms in code,
   test names, and issue titles instead of drifting to synonyms
 
-## IMPORTANT: Do NOT start processes
+## IMPORTANT: Check before starting the dev server
 
-- **NEVER** run `npm run dev`, `npm run build`, `npm start`, or any command that starts a server or builds the app
-- **NEVER** run commands that bind to ports (4000, 5173, etc.)
-- The user manages the dev server and builds separately
-- Use `npm run typecheck`, `npm run lint`, and `npm test` for verification — all three
-  terminate on their own and bind no ports
+A dev server is usually already running. Starting a second one is the mistake to
+avoid — it fails on the occupied port and leaves a dead Electron window behind.
+
+**Always check first:**
+
+```bash
+lsof -nP -iTCP:4000 -sTCP:LISTEN   # Express
+lsof -nP -iTCP:5173 -sTCP:LISTEN   # Vite
+```
+
+- Either port in use → the app is up. Use it. Do **not** start another one.
+- Both free → `npm run dev` is fine to start.
+
+**Never kill or restart a running dev process**, and never reach for `pkill` or
+`lsof | kill`. Nodemon reloads on every saved file by itself, so edits need no
+restart.
+
+**Batch file edits.** Nodemon restarts Electron on every single save, and
+Electron does not close the previous window — so a run of sequential edits leaves
+a stack of orphaned windows behind. This has hit 4 and 7 windows in past
+sessions. Group edits into as few rounds as possible; multiple edits in one
+message are fine.
+
+`npm run build`, `build:mac`, `build:win` and `electron-builder` stay off-limits
+unless explicitly asked. They are slow and write artifacts to `release/`.
+
+Use `npm run typecheck`, `npm run lint`, and `npm test` for verification — all
+three terminate on their own and bind no ports.
 
 ## Active work
 
