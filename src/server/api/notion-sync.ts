@@ -30,7 +30,7 @@ function release(): void {
   if (next) next();
 }
 
-async function notionFetch(path: string, init: RequestInit & { method: string }): Promise<Response> {
+export async function notionFetch(path: string, init: RequestInit & { method: string }): Promise<Response> {
   const token = getNotionToken();
   if (!token) throw new Error('no_token');
   await acquire();

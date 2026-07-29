@@ -24,6 +24,7 @@ import rewardStatsRouter from './api/reward-stats';
 import backupRouter from './api/backup';
 import overlayConfigRouter, { getOverlayConfig } from './api/overlay-config';
 import songRequestsRouter, { getActiveQueue } from './api/song-requests';
+import charactersRouter, { getActiveCharacter } from './api/characters';
 import { connectBot } from './bot/index';
 import { connectObs } from './obs/index';
 import { initAutoClips } from './auto-clips';
@@ -128,6 +129,7 @@ export function createApp(): express.Express {
   app.use('/api/backup', backupRouter);
   app.use('/api/overlay-config', overlayConfigRouter);
   app.use('/api/song-requests', songRequestsRouter);
+  app.use('/api/characters', charactersRouter);
 
   // Twitch OAuth callback redirect (no auth needed)
   app.get('/auth/twitch/callback', (req, res) => res.redirect('/api/auth/twitch/callback'));
@@ -159,6 +161,10 @@ export function createApp(): express.Express {
       item.todos = getDb().prepare('SELECT * FROM todos WHERE parent_id = ? ORDER BY done ASC, sort_order ASC, created_at ASC').all(item.id as number);
     }
     res.json({ project_name: state?.project_name || null, items });
+  });
+
+  app.get('/public/character', (_req, res) => {
+    res.json({ character: getActiveCharacter() });
   });
 
   app.get('/public/reward-stats/top', (req, res) => {

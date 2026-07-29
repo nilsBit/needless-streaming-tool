@@ -18,7 +18,7 @@ const FONT_OPTIONS = [
   { value: "'Fira Code', monospace", label: 'Fira Code' },
 ];
 
-const OVERLAY_NAMES = ['challenge', 'todos', 'progress', 'milestone', 'song', 'alerts', 'poll', 'roulette', 'reward-leaderboard', 'reward-rankchange'];
+const OVERLAY_NAMES = ['challenge', 'todos', 'progress', 'milestone', 'song', 'alerts', 'poll', 'roulette', 'reward-leaderboard', 'reward-rankchange', 'character'];
 
 const OVERLAY_ICONS: Record<string, string> = {
   challenge: '🎯',
@@ -31,9 +31,10 @@ const OVERLAY_ICONS: Record<string, string> = {
   roulette: '🎰',
   'reward-leaderboard': '🏅',
   'reward-rankchange': '🔄',
+  character: '👥',
 };
 
-const TESTABLE_OVERLAYS = new Set(['alerts', 'song', 'poll', 'milestone', 'roulette', 'challenge', 'todos', 'progress', 'song-queue', 'reward-leaderboard', 'reward-rankchange']);
+const TESTABLE_OVERLAYS = new Set(['alerts', 'song', 'poll', 'milestone', 'roulette', 'challenge', 'todos', 'progress', 'song-queue', 'reward-leaderboard', 'reward-rankchange', 'character']);
 
 const THEME_PRESETS: { name: string; label: string; color: string; values: Record<string, string> }[] = [
   {

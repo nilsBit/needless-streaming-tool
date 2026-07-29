@@ -5,6 +5,7 @@ import { StreamState, Issue } from '../../shared/types';
 import { changeScene, getScenes } from '../obs/index';
 import { broadcast } from '../websocket/index';
 import { resolveOEmbed, detectSource } from '../api/song-requests';
+import { getActiveCharacter } from '../api/characters';
 
 const startTime = Date.now();
 
@@ -23,6 +24,7 @@ const DEFAULT_COMMANDS: Record<string, string> = {
   sr: '!sr',
   queue: '!queue',
   rewardstats: '!stats',
+  character: '!figur',
 };
 
 function getCommandNames(): Record<string, string> {
@@ -165,6 +167,18 @@ export function registerCommands(client: Client) {
         const total = items.length;
         const name = state?.project_name || 'Kein Projekt';
         client.say(channel, `📊 ${name} — ${done}/${total} Features fertig`);
+        break;
+      }
+
+      case 'character': {
+        const active = getActiveCharacter();
+        if (!active) {
+          client.say(channel, '👥 Gerade wird an keiner Figur gearbeitet.');
+          break;
+        }
+        const role = active.role ? ` (${active.role})` : '';
+        const summary = active.summary ? ` — ${active.summary}` : '';
+        client.say(channel, `👥 ${active.name}${role}${summary}`);
         break;
       }
 

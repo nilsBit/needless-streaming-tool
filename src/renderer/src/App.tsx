@@ -15,6 +15,7 @@ import SongPanel from './panels/SongPanel';
 import StatsPanel from './panels/StatsPanel';
 import RewardStatsPanel from './panels/RewardStatsPanel';
 import ObsPanel from './panels/ObsPanel';
+import CharactersPanel from './panels/CharactersPanel';
 import logoSvg from './assets/logo.svg';
 
 interface UpdateInfo { version: string; url: string }
@@ -55,6 +56,7 @@ const TABS = {
     label: 'Projekt',
     panels: [
       { key: 'progress', label: 'Progress Tracker', component: ProgressPanel },
+      { key: 'characters', label: 'Figuren', component: CharactersPanel },
       { key: 'stats', label: 'Statistiken', component: StatsPanel },
     ],
   },
