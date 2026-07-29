@@ -74,7 +74,14 @@ export class TodoAction extends SingletonAction<TodoSettings> {
         }
         targetId = next.id;
       } else {
-        targetId = todoId;
+        // Settings come from the Property Inspector as free text — keep
+        // anything that isn't an id out of the request URL.
+        const parsed = Number(todoId);
+        if (!Number.isInteger(parsed) || parsed <= 0) {
+          await ev.action.showAlert();
+          return;
+        }
+        targetId = parsed;
       }
       await apiPatch(`/api/progress/todos/${targetId}`, { done: 1 });
       await ev.action.showOk();

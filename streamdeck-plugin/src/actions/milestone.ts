@@ -67,7 +67,14 @@ export class MilestoneAction extends SingletonAction<MilestoneSettings> {
         }
         targetId = next.id;
       } else {
-        targetId = milestoneId;
+        // Settings come from the Property Inspector as free text — keep
+        // anything that isn't an id out of the request URL.
+        const parsed = Number(milestoneId);
+        if (!Number.isInteger(parsed) || parsed <= 0) {
+          await ev.action.showAlert();
+          return;
+        }
+        targetId = parsed;
       }
       await apiPatch(`/api/milestones/${targetId}`, { status: 'completed' });
       await ev.action.showOk();

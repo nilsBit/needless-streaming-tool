@@ -7,17 +7,22 @@ interface CompilePraySettings extends JsonObject {}
 
 @action({ UUID: 'com.nst.deck.compile-pray' })
 export class CompilePrayAction extends SingletonAction<CompilePraySettings> {
+  /** Pending title reset, so back-to-back events don't cut the flash short. */
+  private resetTimer: ReturnType<typeof setTimeout> | null = null;
+
   constructor() {
     super();
     connectionManager.on('stateChange', () => this.updateAll());
     connectionManager.on('message', (event: string) => {
       if (event === 'compile-pray') {
+        if (this.resetTimer) clearTimeout(this.resetTimer);
         for (const a of this.actions) {
           a.setTitle('🙏').catch(() => { /* ignore */ });
-          setTimeout(() => {
-            a.setTitle(connectionManager.isConnected() ? 'Compile' : 'OFFLINE').catch(() => { /* ignore */ });
-          }, 2000);
         }
+        this.resetTimer = setTimeout(() => {
+          this.resetTimer = null;
+          this.updateAll();
+        }, 2000);
       }
     });
   }
