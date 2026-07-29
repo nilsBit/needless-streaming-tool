@@ -1,7 +1,10 @@
 import { Router } from 'express';
+import fs from 'fs';
+import path from 'path';
 import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
 import { notionFetch } from './notion-sync';
+import { getUserDataPath } from '../paths';
 
 /**
  * Characters live in Notion, not in this database — Notion is where the story
@@ -96,6 +99,49 @@ router.get('/', async (_req, res) => {
   }
 });
 
+export const CHARACTER_IMAGE_DIR = getUserDataPath('character-images');
+
+const EXTENSION_BY_TYPE: Record<string, string> = {
+  'image/png': 'png',
+  'image/jpeg': 'jpg',
+  'image/gif': 'gif',
+  'image/webp': 'webp',
+  'image/avif': 'avif',
+};
+
+/**
+ * Copies a character portrait out of Notion and onto disk.
+ *
+ * Notion's file URLs are signed and expire after about an hour. A pinned
+ * character can stay on screen far longer than that, so the snapshot must not
+ * point at Notion — by the time a long stream ends, that URL is dead. Returns a
+ * local path served by /public/character-image, or null so the caller can fall
+ * back to whatever Notion gave us.
+ */
+async function cachePortrait(characterId: string, url: string): Promise<string | null> {
+  const safeId = characterId.replace(/[^a-zA-Z0-9-]/g, '');
+  if (!safeId) return null;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const type = (res.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
+    const ext = EXTENSION_BY_TYPE[type];
+    if (!ext) return null;
+
+    fs.mkdirSync(CHARACTER_IMAGE_DIR, { recursive: true });
+    // Drop older copies of this character so switching portraits doesn't pile up.
+    for (const existing of fs.readdirSync(CHARACTER_IMAGE_DIR)) {
+      if (existing.startsWith(`${safeId}.`)) fs.unlinkSync(path.join(CHARACTER_IMAGE_DIR, existing));
+    }
+    const filename = `${safeId}.${ext}`;
+    fs.writeFileSync(path.join(CHARACTER_IMAGE_DIR, filename), Buffer.from(await res.arrayBuffer()));
+    return `/public/character-image/${filename}`;
+  } catch (err) {
+    console.warn('[Characters] Portrait konnte nicht zwischengespeichert werden:', err);
+    return null;
+  }
+}
+
 /** The active character as the overlay sees it, or null when none is set. */
 export function getActiveCharacter(): Character | null {
   const raw = getSetting('active_character');
@@ -168,6 +214,11 @@ router.post('/active', async (req, res) => {
   };
   // Bank the time spent on whoever was pinned before switching.
   await flushTrackedTime();
+
+  // Notion's signed URL outlives neither a long stream nor a restart.
+  if (character.image) {
+    character.image = (await cachePortrait(character.id, character.image)) ?? character.image;
+  }
 
   setSetting('active_character', JSON.stringify(character));
   setSetting('active_character_since', String(Date.now()));

@@ -24,7 +24,7 @@ import rewardStatsRouter from './api/reward-stats';
 import backupRouter from './api/backup';
 import overlayConfigRouter, { getOverlayConfig } from './api/overlay-config';
 import songRequestsRouter, { getActiveQueue } from './api/song-requests';
-import charactersRouter, { getActiveCharacter } from './api/characters';
+import charactersRouter, { getActiveCharacter, CHARACTER_IMAGE_DIR } from './api/characters';
 import { connectBot } from './bot/index';
 import { connectObs } from './obs/index';
 import { initAutoClips } from './auto-clips';
@@ -166,6 +166,9 @@ export function createApp(): express.Express {
   app.get('/public/character', (_req, res) => {
     res.json({ character: getActiveCharacter() });
   });
+
+  // Portraits copied out of Notion, whose own URLs expire mid-stream.
+  app.use('/public/character-image', express.static(CHARACTER_IMAGE_DIR));
 
   app.get('/public/reward-stats/top', (req, res) => {
     const type = (req.query.type as string) || 'all';

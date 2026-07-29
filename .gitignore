@@ -6,6 +6,7 @@ assets/com.nst.deck.streamDeckPlugin
 data/*.db
 data/*.db-shm
 data/*.db-wal
+data/character-images/
 .env
 .worktrees/
 .claude/
