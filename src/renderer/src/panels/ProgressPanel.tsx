@@ -43,7 +43,7 @@ export default function ProgressPanel() {
   });
 
   // Auto-seed 3 example items on first ever panel-mount when board is empty
-  // (Trello/Notion-Pattern, see docs/superpowers/specs/2026-04-21-progress-auto-seed-design.md)
+  // (Trello/Notion-Pattern, see docs/archive/specs/2026-04-21-progress-auto-seed-design.md)
   const triedSeedRef = useRef(false);
   useEffect(() => {
     if (loading) return;
