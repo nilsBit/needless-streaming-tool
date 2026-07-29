@@ -41,10 +41,16 @@ if (isNaN(parsedPort) || parsedPort < 1 || parsedPort > 65535) {
 export const PORT = parsedPort;
 const HOST = process.env.NST_HOST || '127.0.0.1';
 
-export async function startServer(): Promise<{ token: string; port: number }> {
-  initDatabase();
-  const token = generateApiToken();
-
+/**
+ * Builds the Express app: middleware and routes only — no listening socket, no
+ * WebSocket, no Twitch/OBS/SMTC connections.
+ *
+ * This is the seam the HTTP tests drive. A test calls initDatabase(':memory:'),
+ * then createApp(), then issues requests with supertest — no port is bound and
+ * nothing external is contacted. Keep it that way: anything that opens a
+ * connection or touches hardware belongs in startServer(), not here.
+ */
+export function createApp(): express.Express {
   const app = express();
 
   // CORS — muss VOR allen anderen Middleware kommen
@@ -174,6 +180,14 @@ export async function startServer(): Promise<{ token: string; port: number }> {
   app.use('/overlay', express.static(overlayOverridePath));
   app.use('/overlay', express.static(builtinOverlayPath));
 
+  return app;
+}
+
+export async function startServer(): Promise<{ token: string; port: number }> {
+  initDatabase();
+  const token = generateApiToken();
+
+  const app = createApp();
   const server = http.createServer(app);
   initWebSocket(server);
 

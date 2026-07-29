@@ -10,5 +10,6 @@
     "rootDir": "src",
     "resolveJsonModule": true
   },
-  "include": ["src/main/**/*", "src/server/**/*"]
+  "include": ["src/main/**/*", "src/server/**/*"],
+  "exclude": ["src/**/__tests__/**", "src/**/*.test.ts"]
 }
