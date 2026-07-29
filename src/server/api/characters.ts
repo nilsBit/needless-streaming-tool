@@ -108,12 +108,47 @@ export function getActiveCharacter(): Character | null {
 }
 
 router.get('/active', (_req, res) => {
-  res.json({ character: getActiveCharacter() });
+  res.json({ character: getActiveCharacter(), since: getSetting('active_character_since') });
 });
+
+/**
+ * Adds the minutes since the character was pinned to its Notion page, then
+ * clears the clock.
+ *
+ * Failure here must never block picking a character — the stream keeps running
+ * even when Notion does not. Anything that goes wrong is logged and swallowed,
+ * and the clock is reset either way so a broken write can't be counted twice.
+ */
+async function flushTrackedTime(): Promise<void> {
+  const active = getActiveCharacter();
+  const since = getSetting('active_character_since');
+  getDb().prepare('DELETE FROM settings WHERE key = ?').run('active_character_since');
+  if (!active || !since) return;
+
+  const minutes = Math.round((Date.now() - Number(since)) / 60_000);
+  if (!Number.isFinite(minutes) || minutes < 1) return;
+
+  try {
+    const pageRes = await notionFetch(`/v1/pages/${active.id}`, { method: 'GET' });
+    if (!pageRes.ok) return;
+    const page = (await pageRes.json()) as { properties?: Record<string, { number?: number | null }> };
+    const previous = page.properties?.['Zeit investiert (Min)']?.number ?? 0;
+
+    await notionFetch(`/v1/pages/${active.id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        properties: { 'Zeit investiert (Min)': { number: previous + minutes } },
+      }),
+    });
+    console.log(`[Characters] +${minutes} min auf ${active.name}`);
+  } catch (err) {
+    console.warn('[Characters] Zeit konnte nicht nach Notion geschrieben werden:', err);
+  }
+}
 
 // POST /active — pin a character to the overlay. The client sends the whole
 // character so the snapshot never needs a Notion round trip.
-router.post('/active', (req, res) => {
+router.post('/active', async (req, res) => {
   const { id, name, role, status, summary, image } = req.body ?? {};
   if (typeof id !== 'string' || !id.trim()) {
     res.status(400).json({ error: 'id_required' });
@@ -131,12 +166,17 @@ router.post('/active', (req, res) => {
     summary: typeof summary === 'string' ? summary : null,
     image: typeof image === 'string' ? image : null,
   };
+  // Bank the time spent on whoever was pinned before switching.
+  await flushTrackedTime();
+
   setSetting('active_character', JSON.stringify(character));
+  setSetting('active_character_since', String(Date.now()));
   broadcast('character-changed', character);
   res.json({ character });
 });
 
-router.delete('/active', (_req, res) => {
+router.delete('/active', async (_req, res) => {
+  await flushTrackedTime();
   getDb().prepare('DELETE FROM settings WHERE key = ?').run('active_character');
   broadcast('character-changed', null);
   res.json({ success: true });

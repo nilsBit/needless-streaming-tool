@@ -75,9 +75,33 @@ describe('characters', () => {
     expect(res.body.character).toMatchObject({ name: 'Rafe', role: null, summary: null });
   });
 
-  it('clears the active character', async () => {
+  it('starts the clock when a character is pinned', async () => {
+    await request(app)
+      .post('/api/characters/active')
+      .set(auth())
+      .send({ id: 'page-3', name: 'Akira' })
+      .expect(200);
+
+    const res = await request(app).get('/api/characters/active').set(auth()).expect(200);
+    expect(Number(res.body.since)).toBeGreaterThan(0);
+  });
+
+  it('clears the active character and stops the clock', async () => {
     await request(app).delete('/api/characters/active').set(auth()).expect(200);
     const res = await request(app).get('/public/character').expect(200);
     expect(res.body.character).toBeNull();
+
+    const active = await request(app).get('/api/characters/active').set(auth()).expect(200);
+    expect(active.body.since).toBeNull();
+  });
+
+  it('still switches characters when Notion cannot be reached', async () => {
+    // No token is configured here, so flushing the tracked time fails. Picking
+    // the next character must succeed regardless — the stream comes first.
+    await request(app).post('/api/characters/active').set(auth()).send({ id: 'a', name: 'Erste' }).expect(200);
+    await request(app).post('/api/characters/active').set(auth()).send({ id: 'b', name: 'Zweite' }).expect(200);
+
+    const res = await request(app).get('/public/character').expect(200);
+    expect(res.body.character.name).toBe('Zweite');
   });
 });
