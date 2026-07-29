@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useApi, apiPost, apiGet } from '../hooks/useApi';
-import { useTranslation } from '../i18n/LanguageContext';
-import { useToast } from '../i18n/ToastContext';
+import { useToast } from '../contexts/ToastContext';
 import { NotionDatabase, NotionPage, NotionDatabaseCheck } from '../../../shared/types';
-import { TranslationKey } from '../i18n/translations';
 
 interface Props {
   onConfigured?: () => void;
@@ -13,7 +11,6 @@ interface Props {
 type Phase = 'loading' | 'picker' | 'empty' | 'configured' | 'creating' | 'token_missing';
 
 export default function NotionDatabasePicker({ onConfigured, compact }: Props) {
-  const { t } = useTranslation();
   const { toast } = useToast();
   const { data: tokenInfo } = useApi<{ configured: boolean }>('/settings/notion');
   const { data: dbInfo, refetch: refetchDb } = useApi<{ configured: boolean; database_id: string | null }>('/settings/notion/database');
@@ -58,11 +55,11 @@ export default function NotionDatabasePicker({ onConfigured, compact }: Props) {
   const pickDatabase = async (db: NotionDatabase) => {
     setBusy(true);
     const ok = await apiPost('/settings/notion/database', { database_id: db.id });
-    if (!ok) { toast.error(t('error.action_failed')); setBusy(false); return; }
+    if (!ok) { toast.error('Aktion fehlgeschlagen'); setBusy(false); return; }
     if (db.missing_properties.length > 0) {
       await apiPost('/settings/notion/database/heal', { database_id: db.id });
     }
-    toast.success(t('notion.picker.ready'));
+    toast.success('Datenbank bereit');
     setBusy(false);
     refetchDb();
     onConfigured?.();
@@ -73,7 +70,7 @@ export default function NotionDatabasePicker({ onConfigured, compact }: Props) {
     if (!cleaned) return;
     setBusy(true);
     const ok = await apiPost('/settings/notion/database', { database_id: cleaned });
-    if (!ok) { toast.error(t('error.action_failed')); setBusy(false); return; }
+    if (!ok) { toast.error('Aktion fehlgeschlagen'); setBusy(false); return; }
     setManualId('');
     setShowManual(false);
     setBusy(false);
@@ -93,8 +90,8 @@ export default function NotionDatabasePicker({ onConfigured, compact }: Props) {
     setBusy(true);
     const ok = await apiPost('/settings/notion/database/create', { parent_page_id: selectedParent, title: newName || 'Stream Clips' });
     setBusy(false);
-    if (!ok) { toast.error(t('error.action_failed')); return; }
-    toast.success(t('notion.picker.ready'));
+    if (!ok) { toast.error('Aktion fehlgeschlagen'); return; }
+    toast.success('Datenbank bereit');
     refetchDb();
     onConfigured?.();
   };
@@ -105,8 +102,8 @@ export default function NotionDatabasePicker({ onConfigured, compact }: Props) {
     setBusy(true);
     const ok = await apiPost('/settings/notion/database/heal', { database_id: dbId });
     setBusy(false);
-    if (!ok) { toast.error(t('error.action_failed')); return; }
-    toast.success(t('notion.picker.ready'));
+    if (!ok) { toast.error('Aktion fehlgeschlagen'); return; }
+    toast.success('Datenbank bereit');
     loadCheck();
   };
 
@@ -117,10 +114,9 @@ export default function NotionDatabasePicker({ onConfigured, compact }: Props) {
     loadDatabases();
   };
 
-  const fmt = (key: TranslationKey, n: number) => t(key).replace('{n}', String(n));
 
   if (phase === 'token_missing') {
-    return <div className="notion-picker-empty">{t('notion.picker.token_needed')}</div>;
+    return <div className="notion-picker-empty">Token speichern, um Datenbanken zu sehen</div>;
   }
 
   if (phase === 'loading') {
@@ -137,15 +133,15 @@ export default function NotionDatabasePicker({ onConfigured, compact }: Props) {
         <div className="notion-picker-current">
           <span className="notion-picker-icon">📊</span>
           <span className="notion-picker-title">{dbId ? `${dbId.substring(0, 8)}…${dbId.substring(24)}` : ''}</span>
-          {schemaOk && <span className="notion-picker-badge ok">✓ {t('notion.picker.ready')}</span>}
-          {schemaMissing && <span className="notion-picker-badge warn">⚠ {fmt('notion.picker.schema_fix', schemaMissing.length)}</span>}
-          {hardError === 'db_gone' && <span className="notion-picker-badge error">{t('notion.picker.error_db_gone')}</span>}
-          {hardError === 'token_invalid' && <span className="notion-picker-badge error">{t('notion.picker.error_token')}</span>}
+          {schemaOk && <span className="notion-picker-badge ok">✓ Datenbank bereit</span>}
+          {schemaMissing && <span className="notion-picker-badge warn">⚠ {schemaMissing.length} Properties fehlen — Reparieren</span>}
+          {hardError === 'db_gone' && <span className="notion-picker-badge error">Datenbank nicht mehr verfügbar</span>}
+          {hardError === 'token_invalid' && <span className="notion-picker-badge error">Token ungültig — bitte prüfen</span>}
         </div>
-        {schemaOk && <p className="notion-picker-sub">{t('notion.picker.schema_ok')}</p>}
+        {schemaOk && <p className="notion-picker-sub">Schema: alle Properties OK</p>}
         <div className="notion-picker-actions">
           {schemaMissing && <button onClick={healNow} disabled={busy}>🔧</button>}
-          <button onClick={unlinkDatabase} disabled={busy}>{t('notion.picker.other')}</button>
+          <button onClick={unlinkDatabase} disabled={busy}>Andere wählen</button>
         </div>
       </div>
     );
@@ -154,16 +150,16 @@ export default function NotionDatabasePicker({ onConfigured, compact }: Props) {
   if (phase === 'creating') {
     return (
       <div className={`notion-picker creating ${compact ? 'compact' : ''}`}>
-        <h4>{t('notion.picker.create')}</h4>
+        <h4>Neue Datenbank für mich erstellen</h4>
         <label>
-          {t('notion.picker.create_name')}
+          Name
           <input type="text" value={newName} onChange={(e) => setNewName(e.target.value)} />
         </label>
         {pages.length === 0 ? (
-          <p className="notion-picker-hint">{t('notion.picker.create_empty_pages')}</p>
+          <p className="notion-picker-hint">Noch keine Seite erreichbar — verbinde die Integration erst mit einer Notion-Seite.</p>
         ) : (
           <fieldset className="notion-picker-pages">
-            <legend>{t('notion.picker.create_parent')}</legend>
+            <legend>Unter welcher Notion-Seite?</legend>
             {pages.map((p) => (
               <label key={p.id} className="notion-picker-page-option">
                 <input type="radio" name="parent" checked={selectedParent === p.id} onChange={() => setSelectedParent(p.id)} />
@@ -173,8 +169,8 @@ export default function NotionDatabasePicker({ onConfigured, compact }: Props) {
           </fieldset>
         )}
         <div className="notion-picker-actions">
-          <button onClick={() => loadDatabases()} disabled={busy}>{t('notion.picker.create_cancel')}</button>
-          <button onClick={submitCreate} disabled={busy || !selectedParent || pages.length === 0}>{t('notion.picker.create_button')}</button>
+          <button onClick={() => loadDatabases()} disabled={busy}>Abbrechen</button>
+          <button onClick={submitCreate} disabled={busy || !selectedParent || pages.length === 0}>Erstellen</button>
         </div>
       </div>
     );
@@ -183,16 +179,16 @@ export default function NotionDatabasePicker({ onConfigured, compact }: Props) {
   if (phase === 'empty') {
     return (
       <div className={`notion-picker empty ${compact ? 'compact' : ''}`}>
-        <h4>{t('notion.picker.empty_title')}</h4>
-        <p>{t('notion.picker.empty_help_intro')}</p>
+        <h4>Noch keine Datenbank erreichbar</h4>
+        <p>So verbindest du eine:</p>
         <ol>
-          <li>{t('notion.picker.empty_help_1')}</li>
-          <li>{t('notion.picker.empty_help_2')}</li>
-          <li>{t('notion.picker.empty_help_3')}</li>
+          <li>Öffne eine Seite in Notion</li>
+          <li>„…" → „Add connections"</li>
+          <li>Wähle deine Stream-Toolkit-Integration</li>
         </ol>
         <div className="notion-picker-actions">
-          <button onClick={loadDatabases} disabled={busy}>🔄 {t('notion.picker.refresh')}</button>
-          <button onClick={openCreate} disabled={busy}>➕ {t('notion.picker.create')}</button>
+          <button onClick={loadDatabases} disabled={busy}>🔄 Erneut suchen</button>
+          <button onClick={openCreate} disabled={busy}>➕ Neue Datenbank für mich erstellen</button>
         </div>
       </div>
     );
@@ -202,16 +198,16 @@ export default function NotionDatabasePicker({ onConfigured, compact }: Props) {
   return (
     <div className={`notion-picker picker ${compact ? 'compact' : ''}`}>
       <div className="notion-picker-header">
-        <h4>{t('notion.picker.title')}</h4>
-        <button className="notion-picker-refresh" onClick={loadDatabases} disabled={busy} title={t('notion.picker.refresh')}>🔄</button>
+        <h4>Wähle deine Clip-Datenbank</h4>
+        <button className="notion-picker-refresh" onClick={loadDatabases} disabled={busy} title="Erneut suchen">🔄</button>
       </div>
-      <button className="notion-picker-create-btn" onClick={openCreate} disabled={busy}>➕ {t('notion.picker.create')}</button>
+      <button className="notion-picker-create-btn" onClick={openCreate} disabled={busy}>➕ Neue Datenbank für mich erstellen</button>
       <ul className="notion-picker-list">
         {databases.map((db) => (
           <li key={db.id} className="notion-picker-item" onClick={() => !busy && pickDatabase(db)}>
             <span className="notion-picker-icon">{db.icon || '📊'}</span>
             <span className="notion-picker-title">{db.title}</span>
-            {db.missing_properties.length > 0 && <span className="notion-picker-badge warn">⚠ {fmt('notion.picker.schema_missing_chip', db.missing_properties.length)}</span>}
+            {db.missing_properties.length > 0 && <span className="notion-picker-badge warn">⚠ {db.missing_properties.length} fehlend</span>}
           </li>
         ))}
       </ul>
@@ -222,7 +218,7 @@ export default function NotionDatabasePicker({ onConfigured, compact }: Props) {
             <button onClick={pickManual} disabled={busy}>✓</button>
           </div>
         ) : (
-          <button className="link" onClick={() => setShowManual(true)}>🔗 {t('notion.picker.manual')}</button>
+          <button className="link" onClick={() => setShowManual(true)}>🔗 Manuell: ID oder URL einfügen</button>
         )}
       </div>
     </div>

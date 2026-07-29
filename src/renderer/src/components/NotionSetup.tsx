@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useApi, apiPost } from '../hooks/useApi';
-import { useTranslation } from '../i18n/LanguageContext';
-import { useToast } from '../i18n/ToastContext';
+import { useToast } from '../contexts/ToastContext';
 import NotionDatabasePicker from './NotionDatabasePicker';
 
 interface Props {
@@ -9,7 +8,6 @@ interface Props {
 }
 
 export default function NotionSetup({ onComplete }: Props) {
-  const { t } = useTranslation();
   const { toast } = useToast();
   const { data: notionInfo, refetch: refetchNotion } = useApi<{ configured: boolean }>('/settings/notion');
   const [token, setToken] = useState('');
@@ -23,60 +21,60 @@ export default function NotionSetup({ onComplete }: Props) {
       setToken('');
       refetchNotion();
     } catch {
-      toast.error(t('onboarding.save_failed'));
+      toast.error('Speichern fehlgeschlagen');
     }
     setSaving(false);
   };
 
   return (
     <div className="onboarding-step">
-      <h2>{t('notion.title')}</h2>
-      <p className="step-desc">{t('notion.desc')}</p>
+      <h2>Notion (optional)</h2>
+      <p className="step-desc">Wenn du Notion nutzt, kannst du deine Clips automatisch dorthin syncen. Falls nicht, überspringe diesen Schritt.</p>
 
       {!notionInfo?.configured ? (
         <>
           <div className="onboarding-steps-list">
             <div className="setup-instruction">
               <span className="instruction-number">1</span>
-              <span>{t('notion.step1')}</span>
+              <span>Öffne notion.so/my-integrations in deinem Browser und logge dich mit deinem Notion-Account ein</span>
             </div>
             <div className="setup-instruction">
               <span className="instruction-number">2</span>
-              <span>{t('notion.step2')}</span>
+              <span>Klicke auf "+ New integration" (oder "Neue Integration")</span>
             </div>
             <div className="setup-instruction">
               <span className="instruction-number">3</span>
-              <span>{t('notion.step3')}</span>
+              <span>Vergib einen Namen (z. B. "Stream Toolkit"), wähle deinen Workspace und Type "Internal". Dann auf "Save" klicken.</span>
             </div>
             <div className="setup-instruction">
               <span className="instruction-number">4</span>
-              <span>{t('notion.step4')}</span>
+              <span>Klicke auf "Show" beim "Internal Integration Secret" und kopiere den Token (beginnt mit ntn_ oder secret_)</span>
             </div>
             <div className="setup-instruction">
               <span className="instruction-number">5</span>
-              <span>{t('notion.step5')}</span>
+              <span>Füge den Token hier unten ein und speichere:</span>
             </div>
           </div>
 
           <div className="input-row">
             <input
               type="text"
-              placeholder={t('notion.token_placeholder')}
+              placeholder="ntn_... oder secret_..."
               value={token}
               onChange={(e) => setToken(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && saveToken()}
             />
             <button onClick={saveToken} disabled={!token.trim() || saving}>
-              {saving ? t('onboarding.loading') : t('settings.save')}
+              {saving ? 'Laden...' : 'Speichern'}
             </button>
           </div>
-          <p className="step-hint" style={{ fontSize: '11px', marginTop: '4px' }}>{t('notion.token_format_hint')}</p>
+          <p className="step-hint" style={{ fontSize: '11px', marginTop: '4px' }}>Token beginnt mit ntn_ oder secret_</p>
 
-          <p className="step-hint">{t('notion.share_hint')}</p>
+          <p className="step-hint">Im nächsten Schritt verbindest du eine Notion-Seite oder Datenbank mit der Integration.</p>
         </>
       ) : (
         <>
-          <div className="onboarding-check">{t('notion.token_saved')}</div>
+          <div className="onboarding-check">Notion-Token gespeichert</div>
           <NotionDatabasePicker onConfigured={onComplete} />
         </>
       )}

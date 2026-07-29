@@ -2,7 +2,6 @@ import React, { useEffect, useRef } from 'react';
 import { useApi } from '../hooks/useApi';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { Stats } from '../../../shared/types';
-import { useTranslation } from '../i18n/LanguageContext';
 import Sparkline from '../components/Sparkline';
 import DeltaPill from '../components/DeltaPill';
 import ProgressBar from '../components/ProgressBar';
@@ -19,7 +18,6 @@ const THROTTLE_MS = 2000;
 
 export default function StatsPanel() {
   const { data: stats, loading, refetch } = useApi<Stats>('/stats');
-  const { t } = useTranslation();
 
   const lastFetchRef = useRef<number>(0);
   const pendingRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -46,52 +44,52 @@ export default function StatsPanel() {
   if (loading || !stats) {
     return (
       <div className="panel stats-panel">
-        <h2>📊 {t('stats.title')}</h2>
-        <p className="panel-desc">{t('stats.loading')}</p>
+        <h2>📊 Statistiken</h2>
+        <p className="panel-desc">Wird geladen...</p>
       </div>
     );
   }
 
   return (
     <div className="panel stats-panel">
-      <h2>📊 {t('stats.title')}</h2>
-      <p className="panel-desc">{t('stats.desc')}</p>
+      <h2>📊 Statistiken</h2>
+      <p className="panel-desc">Überblick über alle Stream-Daten.</p>
 
       <section className="stats-section">
-        <h3 className="stats-section-title">{t('stats.section.today')}</h3>
+        <h3 className="stats-section-title">Heute</h3>
         <div className="stats-grid stats-grid-hero">
           <HeroCard icon="🎬" value={stats.today.clips}
-                    label={t('stats.today.clips')}
+                    label="Clips heute"
                     delta={stats.today.delta_clips}
-                    deltaLabel={t('stats.delta.vs_yesterday')} />
+                    deltaLabel="vs. gestern" />
           <HeroCard icon="✅" value={stats.today.todos_done}
-                    label={t('stats.today.todos_done')}
+                    label="Todos erledigt"
                     delta={stats.today.delta_todos}
-                    deltaLabel={t('stats.delta.vs_7d_avg')} />
+                    deltaLabel="vs. 7-Tage-Ø" />
           <HeroCard icon="⚠️" value={stats.today.new_issues}
-                    label={t('stats.today.new_issues')}
+                    label="Neue Einträge"
                     delta={stats.today.delta_issues}
-                    deltaLabel={t('stats.delta.vs_yesterday')} />
+                    deltaLabel="vs. gestern" />
           <HeroCard icon="🏆" value={stats.today.milestones}
-                    label={t('stats.today.milestones')}
+                    label="Milestones heute"
                     delta={stats.today.delta_milestones}
-                    deltaLabel={t('stats.delta.vs_yesterday')} />
+                    deltaLabel="vs. gestern" />
         </div>
       </section>
 
       <section className="stats-section">
-        <h3 className="stats-section-title">{t('stats.section.progress')}</h3>
+        <h3 className="stats-section-title">Fortschritt</h3>
         <div className="stats-grid">
           <ProgressCard icon="📝"
-                        label={t('stats.progress.todos')}
+                        label="Todos"
                         value={stats.progress.todos.done}
                         total={stats.progress.todos.total} />
           <ProgressCard icon="🎯"
-                        label={t('stats.progress.milestones')}
+                        label="Milestones"
                         value={stats.progress.milestones.completed}
                         total={stats.progress.milestones.total} />
           <ProgressCard icon="⚠️"
-                        label={t('stats.progress.issues')}
+                        label="Offen"
                         value={stats.progress.issues.open}
                         total={stats.progress.issues.total}
                         inverted />
@@ -99,14 +97,14 @@ export default function StatsPanel() {
       </section>
 
       <section className="stats-section">
-        <h3 className="stats-section-title">{t('stats.section.totals')}</h3>
+        <h3 className="stats-section-title">Gesamt & Trend</h3>
         <div className="stats-grid">
           <TrendCard icon="🎬" value={stats.totals.clips}
-                     label={t('stats.totals.clips')}   trend={stats.trends.clips} />
+                     label="Clips gesamt"   trend={stats.trends.clips} />
           <TrendCard icon="🎁" value={stats.totals.rewards}
-                     label={t('stats.totals.rewards')} trend={stats.trends.rewards} />
+                     label="Belohnungen gesamt" trend={stats.trends.rewards} />
           <TrendCard icon="📅" value={stats.totals.active_days_30d}
-                     label={t('stats.totals.active_days')} trend={stats.trends.active} />
+                     label="Aktive Tage (30d)" trend={stats.trends.active} />
         </div>
       </section>
     </div>

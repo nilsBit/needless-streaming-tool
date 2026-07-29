@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useToast } from '../i18n/ToastContext';
+import { useToast } from '../contexts/ToastContext';
 
 export default function ToastContainer() {
   const { toasts } = useToast();

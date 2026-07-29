@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { useApi, apiPost, apiPatch, apiDelete } from '../hooks/useApi';
 import { Milestone, ProjectItem } from '../../../shared/types';
 import { useWebSocket } from '../hooks/useWebSocket';
-import { useTranslation } from '../i18n/LanguageContext';
-import { useToast } from '../i18n/ToastContext';
+import { useToast } from '../contexts/ToastContext';
 
 const LEVEL_CONFIG = {
   minor: { emoji: '✨', label: 'Minor', color: '#3498db' },
@@ -24,7 +23,6 @@ export default function MilestonesPanel() {
   const [title, setTitle] = useState('');
   const [level, setLevel] = useState<Level>('major');
   const [projectId, setProjectId] = useState<number | ''>('');
-  const { t } = useTranslation();
   const { toast } = useToast();
 
   useWebSocket((event) => {
@@ -40,25 +38,25 @@ export default function MilestonesPanel() {
       level,
       project_id: projectId || null,
     });
-    if (!result) { toast.error(t('error.action_failed')); return; }
+    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
     setTitle('');
     setProjectId('');
   };
 
   const completeMilestone = async (id: number) => {
     const result = await apiPatch(`/milestones/${id}`, { status: 'completed' });
-    if (!result) { toast.error(t('error.action_failed')); return; }
+    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
     refetch();
   };
 
   const deleteMilestone = async (id: number) => {
     const ok = await apiDelete(`/milestones/${id}`);
-    if (!ok) { toast.error(t('error.action_failed')); return; }
+    if (!ok) { toast.error('Aktion fehlgeschlagen'); return; }
     refetch();
   };
 
   if (loading && !milestones) {
-    return <div className="panel"><p className="empty">{t('common.loading')}</p></div>;
+    return <div className="panel"><p className="empty">Laden...</p></div>;
   }
 
   const pending = milestones?.filter((ms) => ms.status === 'pending') || [];
@@ -71,16 +69,16 @@ export default function MilestonesPanel() {
 
   return (
     <div className="panel milestones-panel">
-      <h2>🎉 {t('milestones.title')}</h2>
+      <h2>🎉 Milestones</h2>
 
       <div className="milestone-list">
-        {pending.length === 0 && <p className="empty">{t('milestones.empty')}</p>}
+        {pending.length === 0 && <p className="empty">Keine offenen Milestones</p>}
         {pending.map((ms) => (
           <div key={ms.id} className="milestone-item pending">
             <button
               className="status-toggle"
               onClick={() => completeMilestone(ms.id)}
-              title={t('milestones.check_tooltip')}
+              title="Abhaken → Achievement"
             >
               ⬜
             </button>
@@ -98,14 +96,14 @@ export default function MilestonesPanel() {
                 </span>
               )}
             </div>
-            <button className="btn-delete-small" onClick={() => deleteMilestone(ms.id)} title={t('tooltip.delete')}>✕</button>
+            <button className="btn-delete-small" onClick={() => deleteMilestone(ms.id)} title="Löschen">✕</button>
           </div>
         ))}
       </div>
 
       {completed.length > 0 && (
         <div className="milestone-history">
-          <h3>{`${t('milestones.completed')} (${completed.length})`}</h3>
+          <h3>{`Erledigt (${completed.length})`}</h3>
           {completed.map((ms) => (
             <div key={ms.id} className="milestone-item completed">
               <span className="status-toggle done">✅</span>
@@ -114,7 +112,7 @@ export default function MilestonesPanel() {
               <span className="ms-time">
                 {ms.completed_at ? new Date(ms.completed_at + 'Z').toLocaleDateString('de-DE') : ''}
               </span>
-              <button className="btn-delete-small" onClick={() => deleteMilestone(ms.id)} title={t('tooltip.delete')}>✕</button>
+              <button className="btn-delete-small" onClick={() => deleteMilestone(ms.id)} title="Löschen">✕</button>
             </div>
           ))}
         </div>

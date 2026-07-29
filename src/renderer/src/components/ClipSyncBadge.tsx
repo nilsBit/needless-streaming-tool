@@ -1,5 +1,4 @@
 import React from 'react';
-import { useTranslation } from '../i18n/LanguageContext';
 
 export type SyncState = 'pending' | 'syncing' | 'synced' | 'failed' | 'disabled';
 
@@ -9,7 +8,6 @@ interface Props {
 }
 
 export default function ClipSyncBadge({ state, onRetry }: Props) {
-  const { t } = useTranslation();
   if (state === 'disabled') return null;
 
   const icon =
@@ -18,12 +16,11 @@ export default function ClipSyncBadge({ state, onRetry }: Props) {
     state === 'synced' ? '✅' :
     '⚠️';
 
-  const titleKey =
-    state === 'pending' ? ('clips.sync_status.pending' as const) :
-    state === 'syncing' ? ('clips.sync_status.syncing' as const) :
-    state === 'synced' ? ('clips.sync_status.synced' as const) :
-    ('clips.sync_status.failed' as const);
-  const title = t(titleKey);
+  const title =
+    state === 'pending' ? 'Wartet auf Sync' :
+    state === 'syncing' ? 'Synchronisiert…' :
+    state === 'synced' ? 'In Notion — klicken zum Öffnen' :
+    'Sync fehlgeschlagen — klicken für Retry';
   const clickable = state === 'failed' && !!onRetry;
 
   return (

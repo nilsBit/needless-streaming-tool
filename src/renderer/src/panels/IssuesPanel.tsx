@@ -3,12 +3,10 @@ import { useApi, apiPost, apiPatch, apiDelete } from '../hooks/useApi';
 import { Issue } from '../../../shared/types';
 import { useWebSocket } from '../hooks/useWebSocket';
 import ChatCommands from '../components/ChatCommands';
-import { useTranslation } from '../i18n/LanguageContext';
-import { useToast } from '../i18n/ToastContext';
+import { useToast } from '../contexts/ToastContext';
 import { useCountdown } from '../hooks/useCountdown';
 
 export default function IssuesPanel() {
-  const { t } = useTranslation();
   const { toast } = useToast();
   const { data: bugs, loading, refetch } = useApi<Issue[]>('/issues');
   const [newIssue, setNewIssue] = useState('');
@@ -30,26 +28,26 @@ export default function IssuesPanel() {
   });
 
   if (loading && !bugs) {
-    return <div className="panel"><p className="empty">{t('common.loading')}</p></div>;
+    return <div className="panel"><p className="empty">Laden...</p></div>;
   }
 
   const addIssue = async () => {
     if (!newIssue.trim()) return;
     const result = await apiPost('/issues', { title: newIssue });
-    if (!result) { toast.error(t('error.action_failed')); return; }
+    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
     setNewIssue('');
     refetch();
   };
 
   const fixIssue = async (id: number) => {
     const result = await apiPatch(`/issues/${id}`, { status: 'fixed' });
-    if (!result) { toast.error(t('error.action_failed')); return; }
+    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
     refetch();
   };
 
   const deleteIssue = async (id: number) => {
     const ok = await apiDelete(`/issues/${id}`);
-    if (!ok) { toast.error(t('error.action_failed')); return; }
+    if (!ok) { toast.error('Aktion fehlgeschlagen'); return; }
     refetch();
   };
 
@@ -62,7 +60,7 @@ export default function IssuesPanel() {
 
     const result = await apiPost<{ winner: { id: number; title: string } }>('/actions/roulette', {});
     if (!result) {
-      toast.error(t('error.action_failed'));
+      toast.error('Aktion fehlgeschlagen');
       setSpinning(false);
     }
     // Result comes back via WebSocket 'roulette-result' event
@@ -73,13 +71,13 @@ export default function IssuesPanel() {
 
   return (
     <div className="panel issues-panel">
-      <h2>🎯 {t('issues.title')}</h2>
-      <p className="panel-desc">{t('issues.desc')}</p>
+      <h2>🎯 Glücksrad</h2>
+      <p className="panel-desc">Themen sammeln, Rad drehen — der Chat entscheidet was dran kommt.</p>
 
       <div className="issue-input">
         <input
           type="text"
-          placeholder={t('issues.placeholder')}
+          placeholder="Neuer Eintrag..."
           value={newIssue}
           onChange={(e) => setNewIssue(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && addIssue()}
@@ -92,7 +90,7 @@ export default function IssuesPanel() {
         onClick={spinRoulette}
         disabled={spinning || openIssues.length === 0 || cooldown > 0}
       >
-        {spinning ? `🎰 ${t('issues.spinning')}` : cooldown > 0 ? `⏳ ${t('issues.cooldown')} ${cooldown}s` : `🎰 ${t('issues.spin')}`}
+        {spinning ? `🎰 Spinning...` : cooldown > 0 ? `⏳ Cooldown ${cooldown}s` : `🎰 Drehen!`}
       </button>
 
       {selectedIssue && !spinning && (
@@ -103,21 +101,21 @@ export default function IssuesPanel() {
 
       <div className="issue-list">
         {openIssues.length === 0 && fixedIssues.length === 0 && !spinning && !selectedIssue && (
-          <p className="empty">{t('issues.empty_list')}</p>
+          <p className="empty">Keine Einträge</p>
         )}
-        <h3>{t('issues.open')} ({openIssues.length})</h3>
+        <h3>Offen ({openIssues.length})</h3>
         {openIssues.map((bug) => (
           <div key={bug.id} className="issue-item">
             <span>{bug.title}</span>
             <div className="issue-actions">
               <button onClick={() => fixIssue(bug.id)}>✅</button>
-              <button title={t('tooltip.delete')} onClick={() => deleteIssue(bug.id)}>🗑️</button>
+              <button title="Löschen" onClick={() => deleteIssue(bug.id)}>🗑️</button>
             </div>
           </div>
         ))}
         {fixedIssues.length > 0 && (
           <>
-            <h3>{t('issues.fixed')} ({fixedIssues.length})</h3>
+            <h3>Erledigt ({fixedIssues.length})</h3>
             {fixedIssues.map((bug) => (
               <div key={bug.id} className="issue-item fixed">
                 <span>{bug.title}</span>
@@ -127,7 +125,7 @@ export default function IssuesPanel() {
         )}
       </div>
       <ChatCommands commands={[
-        { cmd: '!issues', desc: t('issues.cmd_issues') },
+        { cmd: '!issues', desc: 'Zeigt offene Einträge' },
       ]} />
     </div>
   );

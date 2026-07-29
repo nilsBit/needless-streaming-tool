@@ -2,21 +2,28 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useApi, apiGet, apiPost, apiFetch, getApiToken, getServerPort } from '../hooks/useApi';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { TwitchConfigResponse, BotStatus } from '../../../shared/types';
-import { useTranslation } from '../i18n/LanguageContext';
-import { useTheme } from '../i18n/ThemeContext';
-import { useToast } from '../i18n/ToastContext';
+import { useTheme } from '../contexts/ThemeContext';
+import { useToast } from '../contexts/ToastContext';
 import CopyButton from '../components/CopyButton';
 import NotionDatabasePicker from '../components/NotionDatabasePicker';
 import { applyProfilePreset, PROFILE_KEYS, ProfileKey } from '../hooks/useDashboardLayout';
 
 type SettingsCategory = 'connections' | 'features' | 'app' | 'data';
 
-const CATEGORIES: { key: SettingsCategory; icon: string; labelKey: string }[] = [
-  { key: 'connections', icon: '🔗', labelKey: 'settings.group.connections' },
-  { key: 'features', icon: '🎬', labelKey: 'settings.group.features' },
-  { key: 'app', icon: '🖥️', labelKey: 'settings.group.app' },
-  { key: 'data', icon: '💾', labelKey: 'settings.group.data' },
+const CATEGORIES: { key: SettingsCategory; icon: string; label: string }[] = [
+  { key: 'connections', icon: '🔗', label: 'Verbindungen' },
+  { key: 'features', icon: '🎬', label: 'Features' },
+  { key: 'app', icon: '🖥️', label: 'App' },
+  { key: 'data', icon: '💾', label: 'Daten & API' },
 ];
+
+const PROFILE_LABELS: Record<string, string> = {
+  creative: 'Kreativ',
+  gaming: 'Gaming',
+  coding: 'Coding',
+  chatting: 'Just Chatting',
+  all: 'Alles',
+};
 
 export default function SettingsPanel() {
   const { data: botStatus, refetch: refetchBot } = useApi<BotStatus>('/settings/bot-status');
@@ -33,7 +40,6 @@ export default function SettingsPanel() {
   const { data: commandsData, refetch: refetchCommands } = useApi<Record<string, string>>('/settings/commands');
 
   const { toast } = useToast();
-  const { t, lang, setLang } = useTranslation();
   const { theme, setTheme } = useTheme();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -103,7 +109,7 @@ export default function SettingsPanel() {
   const connectTwitch = async () => {
     try {
       await apiFetch('/auth/twitch/open', { method: 'POST' });
-    } catch { toast.error(t('error.action_failed')); }
+    } catch { toast.error('Aktion fehlgeschlagen'); }
   };
 
   const disconnectBot = async () => {
@@ -113,13 +119,13 @@ export default function SettingsPanel() {
 
   const saveNotionToken = async () => {
     const result = await apiPost('/settings/notion', { token: notionToken.trim() });
-    if (!result) { toast.error(t('error.action_failed')); return; }
+    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
     setNotionToken(''); setExpanded(null); refetchNotion();
   };
 
   const saveGithubToken = async () => {
     const result = await apiPost('/progress/github', { token: githubToken.trim() });
-    if (!result) { toast.error(t('error.action_failed')); return; }
+    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
     setGithubToken(''); refetchGithub();
   };
 
@@ -130,15 +136,15 @@ export default function SettingsPanel() {
     try {
       const res = await apiFetch('/progress/import/github', { method: 'POST', body: JSON.stringify({ owner: parts[0], repo: parts[1] }) });
       const data = await res.json();
-      if (res.ok) toast.success(`${data.imported} ${t('github.imported')}, ${data.skipped} ${t('github.skipped')}`);
-      else toast.error(data.error || t('error.action_failed'));
-    } catch { toast.error(t('error.action_failed')); }
+      if (res.ok) toast.success(`${data.imported} importiert, ${data.skipped} übersprungen`);
+      else toast.error(data.error || 'Aktion fehlgeschlagen');
+    } catch { toast.error('Aktion fehlgeschlagen'); }
     setImporting(false);
   };
 
   const saveObsConfig = async () => {
     const result = await apiPost('/obs/config', { host: obsHost.trim() || 'localhost', port: parseInt(obsPort) || 4455, password: obsPassword });
-    if (!result) { toast.error(t('error.action_failed')); return; }
+    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
     setObsPassword(''); setExpanded(null); refetchObs();
     const connectResult = await apiPost('/obs/connect', {});
     if (connectResult) refetchObsStatus();
@@ -146,8 +152,8 @@ export default function SettingsPanel() {
 
   const saveCommands = async () => {
     const result = await apiPost('/settings/commands', editCommands);
-    if (!result) { toast.error(t('error.action_failed')); return; }
-    toast.success(t('commands.saved')); refetchCommands();
+    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
+    toast.success('Commands gespeichert'); refetchCommands();
   };
 
   const saveAutoClipSettings = async () => {
@@ -157,8 +163,8 @@ export default function SettingsPanel() {
       auto_clip_trigger_hype: String(triggerHype),
       auto_clip_trigger_milestone: String(triggerMilestone),
     });
-    if (!result) { toast.error(t('error.action_failed')); return; }
-    toast.success(t('overlay_config.saved'));
+    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
+    toast.success('Design gespeichert');
   };
 
   const exportBackup = async () => {
@@ -168,8 +174,8 @@ export default function SettingsPanel() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a'); a.href = url; a.download = 'nst-backup.json'; a.click();
       URL.revokeObjectURL(url);
-      toast.success(t('settings.backup_exported'));
-    } catch { toast.error(t('settings.export_failed')); }
+      toast.success('Backup exportiert!');
+    } catch { toast.error('Export fehlgeschlagen'); }
   };
 
   const importBackup = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -179,9 +185,9 @@ export default function SettingsPanel() {
       const text = await file.text();
       const data = JSON.parse(text);
       const res = await apiFetch('/backup/import', { method: 'POST', body: JSON.stringify(data) });
-      if (res.ok) toast.success(t('settings.backup_imported'));
-      else toast.error(t('settings.import_failed'));
-    } catch { toast.error(t('settings.import_failed')); }
+      if (res.ok) toast.success('Backup erfolgreich importiert!');
+      else toast.error('Import fehlgeschlagen');
+    } catch { toast.error('Import fehlgeschlagen'); }
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -212,18 +218,18 @@ export default function SettingsPanel() {
     <>
       <SettingsCard
         id="twitch" icon="🟣" title="Twitch"
-        status={botStatus?.connected ? `${t('settings.connected_to')} #${botStatus.channel}` : t('settings.not_connected')}
+        status={botStatus?.connected ? `Verbunden mit #${botStatus.channel}` : 'Nicht verbunden'}
         statusColor={botStatus?.connected ? '#2ecc71' : '#e74c3c'}
-        action={botStatus?.connected ? t('settings.disconnect') : t('settings.connect_twitch')}
+        action={botStatus?.connected ? 'Trennen' : 'Mit Twitch verbinden'}
         actionColor={botStatus?.connected ? 'danger' : 'primary'}
         onAction={botStatus?.connected ? disconnectBot : connectTwitch}
       />
 
       <SettingsCard
         id="obs" icon="🎥" title="OBS"
-        status={obsStatus?.connected ? t('settings.obs_connected') : t('settings.obs_not_connected')}
+        status={obsStatus?.connected ? 'Verbunden mit OBS' : 'Nicht verbunden'}
         statusColor={obsStatus?.connected ? '#2ecc71' : '#e74c3c'}
-        action={obsStatus?.connected ? t('settings.obs_disconnect') : (obsConfig?.configured ? t('settings.obs_connect') : 'Setup')}
+        action={obsStatus?.connected ? 'OBS trennen' : (obsConfig?.configured ? 'Mit OBS verbinden' : 'Setup')}
         actionColor={obsStatus?.connected ? 'danger' : 'primary'}
         onAction={obsStatus?.connected
           ? async () => { await apiPost('/obs/disconnect', {}); refetchObsStatus(); }
@@ -234,51 +240,51 @@ export default function SettingsPanel() {
       >
         <div className="s-card-inputs">
           <div className="s-card-input-row">
-            <input type="text" placeholder={t('settings.obs_host')} value={obsHost} onChange={e => setObsHost(e.target.value)} style={{ flex: 2 }} />
-            <input type="text" placeholder={t('settings.obs_port')} value={obsPort} onChange={e => setObsPort(e.target.value)} style={{ flex: 1 }} />
+            <input type="text" placeholder="Host (localhost)" value={obsHost} onChange={e => setObsHost(e.target.value)} style={{ flex: 2 }} />
+            <input type="text" placeholder="Port (4455)" value={obsPort} onChange={e => setObsPort(e.target.value)} style={{ flex: 1 }} />
           </div>
-          <input type="password" placeholder={t('settings.obs_password')} value={obsPassword} onChange={e => setObsPassword(e.target.value)} />
-          <button className="s-card-action primary" onClick={saveObsConfig}>{t('settings.obs_connect')}</button>
+          <input type="password" placeholder="Passwort (optional)" value={obsPassword} onChange={e => setObsPassword(e.target.value)} />
+          <button className="s-card-action primary" onClick={saveObsConfig}>Mit OBS verbinden</button>
         </div>
       </SettingsCard>
 
       <SettingsCard
         id="notion" icon="📝" title="Notion"
-        status={notionInfo?.configured ? `Token: ${notionInfo.preview}` : t('settings.not_connected')}
+        status={notionInfo?.configured ? `Token: ${notionInfo.preview}` : 'Nicht verbunden'}
         statusColor={notionInfo?.configured ? '#2ecc71' : '#888'}
-        action={notionInfo?.configured ? t('settings.change_token') : 'Setup'}
+        action={notionInfo?.configured ? 'Token ändern' : 'Setup'}
         actionColor={notionInfo?.configured ? 'ghost' : 'primary'}
         onAction={() => toggle('notion')}
       >
         <div className="s-card-inputs">
-          <input type="text" placeholder={t('settings.notion_placeholder')} value={notionToken} onChange={e => setNotionToken(e.target.value)} onKeyDown={e => e.key === 'Enter' && saveNotionToken()} />
-          <button className="s-card-action primary" onClick={saveNotionToken}>{t('settings.save')}</button>
+          <input type="text" placeholder="Notion Internal Integration Token (ntn_...)" value={notionToken} onChange={e => setNotionToken(e.target.value)} onKeyDown={e => e.key === 'Enter' && saveNotionToken()} />
+          <button className="s-card-action primary" onClick={saveNotionToken}>Speichern</button>
           <NotionDatabasePicker compact />
         </div>
       </SettingsCard>
 
       <SettingsCard
         id="github" icon="🐙" title="GitHub"
-        status={githubInfo?.configured ? `Token: ${githubInfo.preview}` : t('settings.not_connected')}
+        status={githubInfo?.configured ? `Token: ${githubInfo.preview}` : 'Nicht verbunden'}
         statusColor={githubInfo?.configured ? '#2ecc71' : '#888'}
-        action={githubInfo?.configured ? t('settings.change_token') : 'Setup'}
+        action={githubInfo?.configured ? 'Token ändern' : 'Setup'}
         actionColor={githubInfo?.configured ? 'ghost' : 'primary'}
         onAction={() => toggle('github')}
       >
         <div className="s-card-inputs">
           {!githubInfo?.configured && (
             <>
-              <input type="password" placeholder={t('github.token_placeholder')} value={githubToken} onChange={e => setGithubToken(e.target.value)} onKeyDown={e => e.key === 'Enter' && saveGithubToken()} />
-              <button className="s-card-action primary" onClick={saveGithubToken}>{t('settings.save')}</button>
+              <input type="password" placeholder="GitHub Personal Access Token (ghp_...)" value={githubToken} onChange={e => setGithubToken(e.target.value)} onKeyDown={e => e.key === 'Enter' && saveGithubToken()} />
+              <button className="s-card-action primary" onClick={saveGithubToken}>Speichern</button>
             </>
           )}
           {githubInfo?.configured && (
             <>
-              <input type="text" placeholder={t('github.repo_placeholder')} value={githubRepo} onChange={e => setGithubRepo(e.target.value)} onKeyDown={e => e.key === 'Enter' && importGithub()} />
+              <input type="text" placeholder="owner/repo" value={githubRepo} onChange={e => setGithubRepo(e.target.value)} onKeyDown={e => e.key === 'Enter' && importGithub()} />
               <button className="s-card-action primary" onClick={importGithub} disabled={importing || !githubRepo.trim()}>
-                {importing ? '...' : t('github.import_btn')}
+                {importing ? '...' : '📥 Importieren'}
               </button>
-              <button className="s-card-action ghost" onClick={async () => { await apiPost('/progress/github', { token: '' }); refetchGithub(); }}>{t('settings.change_token')}</button>
+              <button className="s-card-action ghost" onClick={async () => { await apiPost('/progress/github', { token: '' }); refetchGithub(); }}>Token ändern</button>
             </>
           )}
         </div>
@@ -293,9 +299,9 @@ export default function SettingsPanel() {
           <div className="s-card-info">
             <span className="s-card-icon">🎬</span>
             <div>
-              <div className="s-card-title">{t('auto_clips.title')}</div>
+              <div className="s-card-title">Auto-Clips</div>
               <div className="s-card-status" style={{ color: autoClipsEnabled ? '#2ecc71' : '#888' }}>
-                {autoClipsEnabled ? t('auto_clips.enabled') : t('auto_clips.disabled')}
+                {autoClipsEnabled ? 'Auto-Clips aktiviert' : 'Auto-Clips deaktiviert'}
               </div>
             </div>
           </div>
@@ -306,13 +312,13 @@ export default function SettingsPanel() {
         {expanded === 'autoclips' && (
           <div className="s-card-body">
             <div className="s-toggle-row">
-              <button className={`s-toggle-btn ${autoClipsEnabled ? 'active' : ''}`} onClick={() => setAutoClipsEnabled(true)}>{t('auto_clips.enabled')}</button>
-              <button className={`s-toggle-btn ${!autoClipsEnabled ? 'active' : ''}`} onClick={() => setAutoClipsEnabled(false)}>{t('auto_clips.disabled')}</button>
+              <button className={`s-toggle-btn ${autoClipsEnabled ? 'active' : ''}`} onClick={() => setAutoClipsEnabled(true)}>Auto-Clips aktiviert</button>
+              <button className={`s-toggle-btn ${!autoClipsEnabled ? 'active' : ''}`} onClick={() => setAutoClipsEnabled(false)}>Auto-Clips deaktiviert</button>
             </div>
-            <label className="s-checkbox"><input type="checkbox" checked={triggerReward} onChange={e => setTriggerReward(e.target.checked)} /> {t('auto_clips.trigger_reward')}</label>
-            <label className="s-checkbox"><input type="checkbox" checked={triggerHype} onChange={e => setTriggerHype(e.target.checked)} /> {t('auto_clips.trigger_hype')}</label>
-            <label className="s-checkbox"><input type="checkbox" checked={triggerMilestone} onChange={e => setTriggerMilestone(e.target.checked)} /> {t('auto_clips.trigger_milestone')}</label>
-            <button className="s-card-action primary" onClick={saveAutoClipSettings}>{t('settings.save')}</button>
+            <label className="s-checkbox"><input type="checkbox" checked={triggerReward} onChange={e => setTriggerReward(e.target.checked)} /> Channel Point Rewards</label>
+            <label className="s-checkbox"><input type="checkbox" checked={triggerHype} onChange={e => setTriggerHype(e.target.checked)} /> Hype Moments</label>
+            <label className="s-checkbox"><input type="checkbox" checked={triggerMilestone} onChange={e => setTriggerMilestone(e.target.checked)} /> Milestones</label>
+            <button className="s-card-action primary" onClick={saveAutoClipSettings}>Speichern</button>
           </div>
         )}
       </div>
@@ -322,8 +328,8 @@ export default function SettingsPanel() {
           <div className="s-card-info">
             <span className="s-card-icon">💬</span>
             <div>
-              <div className="s-card-title">{t('commands.title')}</div>
-              <div className="s-card-status" style={{ color: '#888' }}>{t('commands.desc')}</div>
+              <div className="s-card-title">Chat Commands</div>
+              <div className="s-card-status" style={{ color: '#888' }}>Chat-Befehle umbenennen. Alle Befehle beginnen mit !</div>
             </div>
           </div>
           <button className={`s-card-action ${expanded === 'commands' ? 'ghost' : 'primary'}`} onClick={() => toggle('commands')}>
@@ -338,7 +344,7 @@ export default function SettingsPanel() {
                 <input type="text" value={value} onChange={e => setEditCommands(prev => ({ ...prev, [key]: e.target.value }))} />
               </div>
             ))}
-            <button className="s-card-action primary" onClick={saveCommands}>{t('settings.save')}</button>
+            <button className="s-card-action primary" onClick={saveCommands}>Speichern</button>
           </div>
         )}
       </div>
@@ -350,21 +356,8 @@ export default function SettingsPanel() {
       <div className="s-card">
         <div className="s-card-header">
           <div className="s-card-info">
-            <span className="s-card-icon">🌐</span>
-            <div><div className="s-card-title">{t('settings.language')}</div></div>
-          </div>
-          <div className="s-toggle-row compact">
-            <button className={`s-toggle-btn ${lang === 'de' ? 'active' : ''}`} onClick={() => setLang('de')}>Deutsch</button>
-            <button className={`s-toggle-btn ${lang === 'en' ? 'active' : ''}`} onClick={() => setLang('en')}>English</button>
-          </div>
-        </div>
-      </div>
-
-      <div className="s-card">
-        <div className="s-card-header">
-          <div className="s-card-info">
             <span className="s-card-icon">🎨</span>
-            <div><div className="s-card-title">{t('settings.design')}</div></div>
+            <div><div className="s-card-title">Design</div></div>
           </div>
           <div className="s-toggle-row compact">
             <button className={`s-toggle-btn ${theme === 'dark' ? 'active' : ''}`} onClick={() => setTheme('dark')}>Dark</button>
@@ -377,11 +370,11 @@ export default function SettingsPanel() {
         <div className="s-card-header">
           <div className="s-card-info">
             <span className="s-card-icon">🚀</span>
-            <div><div className="s-card-title">{t('settings.autostart')}</div></div>
+            <div><div className="s-card-title">Autostart</div></div>
           </div>
           <div className="s-toggle-row compact">
-            <button className={`s-toggle-btn ${autostartInfo?.enabled ? 'active' : ''}`} onClick={async () => { await apiPost('/settings/autostart', { enabled: true }); refetchAutostart(); }}>{t('settings.enabled')}</button>
-            <button className={`s-toggle-btn ${!autostartInfo?.enabled ? 'active' : ''}`} onClick={async () => { await apiPost('/settings/autostart', { enabled: false }); refetchAutostart(); }}>{t('settings.disabled')}</button>
+            <button className={`s-toggle-btn ${autostartInfo?.enabled ? 'active' : ''}`} onClick={async () => { await apiPost('/settings/autostart', { enabled: true }); refetchAutostart(); }}>Aktiviert</button>
+            <button className={`s-toggle-btn ${!autostartInfo?.enabled ? 'active' : ''}`} onClick={async () => { await apiPost('/settings/autostart', { enabled: false }); refetchAutostart(); }}>Deaktiviert</button>
           </div>
         </div>
       </div>
@@ -391,8 +384,8 @@ export default function SettingsPanel() {
           <div className="s-card-info">
             <span className="s-card-icon">👤</span>
             <div>
-              <div className="s-card-title">{t('profile.settings_title')}</div>
-              <div className="s-card-status" style={{ color: '#888' }}>{t(`profile.${currentProfile}` as any)}</div>
+              <div className="s-card-title">Streaming-Profil</div>
+              <div className="s-card-status" style={{ color: '#888' }}>{PROFILE_LABELS[currentProfile]}</div>
             </div>
           </div>
           <button className={`s-card-action ${expanded === 'profile' ? 'ghost' : 'primary'}`} onClick={() => toggle('profile')}>
@@ -407,7 +400,7 @@ export default function SettingsPanel() {
                   await apiPost('/settings/set', { key: 'stream_profile', value: key });
                   applyProfilePreset(key); refetchProfile(); window.location.reload();
                 }}>
-                  {key === 'creative' ? '🎨' : key === 'gaming' ? '🎮' : key === 'coding' ? '💻' : key === 'chatting' ? '🎙️' : '⚙️'} {t(`profile.${key}` as any)}
+                  {key === 'creative' ? '🎨' : key === 'gaming' ? '🎮' : key === 'coding' ? '💻' : key === 'chatting' ? '🎙️' : '⚙️'} {PROFILE_LABELS[key]}
                 </button>
               ))}
             </div>
@@ -425,9 +418,9 @@ export default function SettingsPanel() {
           <div className="s-card-info">
             <span className="s-card-icon">🔑</span>
             <div>
-              <div className="s-card-title">{t('settings.streamdeck')}</div>
+              <div className="s-card-title">Stream Deck API Token</div>
               <div className="s-card-status" style={{ color: '#888' }}>
-                {tokenInfo?.token ? `${tokenInfo.token.substring(0, 8)}...` : t('settings.token_loading')}
+                {tokenInfo?.token ? `${tokenInfo.token.substring(0, 8)}...` : 'Token wird geladen...'}
               </div>
             </div>
           </div>
@@ -446,16 +439,16 @@ export default function SettingsPanel() {
           <div className="s-card-info">
             <span className="s-card-icon">💾</span>
             <div>
-              <div className="s-card-title">{t('settings.backup')}</div>
-              <div className="s-card-status" style={{ color: '#888' }}>{t('settings.backup_desc')}</div>
+              <div className="s-card-title">Daten-Backup</div>
+              <div className="s-card-status" style={{ color: '#888' }}>Alle Daten als JSON exportieren oder ein Backup importieren.</div>
             </div>
           </div>
         </div>
         <div className="s-card-body" style={{ paddingTop: 0 }}>
           <div className="s-card-input-row">
-            <button className="s-card-action primary" onClick={exportBackup}>{t('settings.backup_export')}</button>
+            <button className="s-card-action primary" onClick={exportBackup}>💾 Backup exportieren</button>
             <label className="s-card-action primary" style={{ cursor: 'pointer', textAlign: 'center' }}>
-              {t('settings.backup_import')}
+              📂 Backup importieren
               <input ref={fileInputRef} type="file" accept=".json" onChange={importBackup} style={{ display: 'none' }} />
             </label>
           </div>
@@ -469,7 +462,7 @@ export default function SettingsPanel() {
             <div>
               <div className="s-card-title">Cloud Sync</div>
               <div className="s-card-status" style={{ color: syncEnabled ? '#2ecc71' : '#888' }}>
-                {syncEnabled ? (syncStatus?.lastSync ? `${t('settings.last_sync')}: ${new Date(syncStatus.lastSync).toLocaleString('de-DE')}` : t('settings.enabled')) : t('settings.disabled')}
+                {syncEnabled ? (syncStatus?.lastSync ? `Letzter Sync: ${new Date(syncStatus.lastSync).toLocaleString('de-DE')}` : 'Aktiviert') : 'Deaktiviert'}
               </div>
             </div>
           </div>
@@ -488,7 +481,7 @@ export default function SettingsPanel() {
               <button className="s-card-action ghost" onClick={async () => {
                 const folder = await window.electronAPI?.selectSyncFolder();
                 if (folder) { setSyncPath(folder); await apiPost('/settings/sync/config', { enabled: syncEnabled, syncPath: folder }); refetchSync(); }
-              }}>{t('settings.select')}</button>
+              }}>Auswählen</button>
             </div>
             {syncStatus?.error && <div className="s-card-status" style={{ color: '#e74c3c' }}>{syncStatus.error}</div>}
             <button className="s-card-action primary" onClick={async () => {
@@ -497,7 +490,7 @@ export default function SettingsPanel() {
               setSyncing(false); refetchSync();
               if (result?.success) toast.success('Sync OK'); else toast.error(result?.error || 'Sync failed');
             }} disabled={!syncEnabled || !syncPath || syncing}>
-              {syncing ? '...' : t('settings.sync_now')}
+              {syncing ? '...' : 'Jetzt synchronisieren'}
             </button>
           </div>
         )}
@@ -515,7 +508,7 @@ export default function SettingsPanel() {
             onClick={() => setCategory(cat.key)}
           >
             <span>{cat.icon}</span>
-            <span>{t(cat.labelKey as any)}</span>
+            <span>{cat.label}</span>
           </button>
         ))}
       </div>

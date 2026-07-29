@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import ErrorBoundary from './components/ErrorBoundary';
 import { apiFetch, getApiToken } from './hooks/useApi';
-import { useToast } from './i18n/ToastContext';
+import { useToast } from './contexts/ToastContext';
 import { useDashboardLayout } from './hooks/useDashboardLayout';
-import { useTranslation } from './i18n/LanguageContext';
-import type { TranslationKey } from './i18n/translations';
 import ChallengePanel from './panels/ChallengePanel';
 import IssuesPanel from './panels/IssuesPanel';
 import ProgressPanel from './panels/ProgressPanel';
@@ -25,8 +23,8 @@ interface UpdateInfo { version: string; url: string }
 type Area = 'live' | 'produktion' | 'shared';
 
 const AREAS = {
-  live: { icon: '🔴', labelKey: 'area.live' satisfies TranslationKey },
-  produktion: { icon: '🎬', labelKey: 'area.produktion' satisfies TranslationKey },
+  live: { icon: '🔴', label: 'Live' },
+  produktion: { icon: '🎬', label: 'Produktion' },
 } as const;
 type AreaKey = keyof typeof AREAS;
 
@@ -34,52 +32,52 @@ const TABS = {
   live: {
     area: 'live',
     icon: '🔴',
-    labelKey: 'tab.live',
+    label: 'Live',
     panels: [
-      { key: 'challenge', labelKey: 'panel.challenge', component: ChallengePanel },
-      { key: 'issues', labelKey: 'panel.issues', component: IssuesPanel },
-      { key: 'designs', labelKey: 'panel.designs', component: DesignsPanel },
-      { key: 'rewardstats', labelKey: 'panel.rewardstats', component: RewardStatsPanel },
-      { key: 'song', labelKey: 'panel.song', component: SongPanel },
-      { key: 'obs', labelKey: 'panel.obs', component: ObsPanel },
+      { key: 'challenge', label: 'Challenge', component: ChallengePanel },
+      { key: 'issues', label: 'Glücksrad', component: IssuesPanel },
+      { key: 'designs', label: 'Abstimmungen', component: DesignsPanel },
+      { key: 'rewardstats', label: 'Reward Stats', component: RewardStatsPanel },
+      { key: 'song', label: 'Now Playing', component: SongPanel },
+      { key: 'obs', label: 'OBS Scenes', component: ObsPanel },
     ],
   },
   produktion: {
     area: 'produktion',
     icon: '🎬',
-    labelKey: 'tab.produktion',
+    label: 'Produktion',
     panels: [
-      { key: 'clips', labelKey: 'panel.clips', component: ClipsPanel },
+      { key: 'clips', label: 'Clip Moments', component: ClipsPanel },
     ],
   },
   projekt: {
     area: 'produktion',
     icon: '📋',
-    labelKey: 'tab.project',
+    label: 'Projekt',
     panels: [
-      { key: 'progress', labelKey: 'panel.progress', component: ProgressPanel },
-      { key: 'stats', labelKey: 'panel.stats', component: StatsPanel },
+      { key: 'progress', label: 'Progress Tracker', component: ProgressPanel },
+      { key: 'stats', label: 'Statistiken', component: StatsPanel },
     ],
   },
   settings: {
     area: 'shared',
     icon: '⚙️',
-    labelKey: 'tab.settings',
+    label: 'Settings',
     panels: [
-      { key: 'settings', labelKey: 'panel.settings', component: SettingsPanel },
-      { key: 'overlays', labelKey: 'panel.overlays', component: OverlaysPanel },
-      { key: 'milestones', labelKey: 'panel.milestones', component: MilestonesPanel },
+      { key: 'settings', label: 'Settings', component: SettingsPanel },
+      { key: 'overlays', label: 'Overlays', component: OverlaysPanel },
+      { key: 'milestones', label: 'Milestones', component: MilestonesPanel },
     ],
   },
   help: {
     area: 'shared',
     icon: '📖',
-    labelKey: 'tab.help',
+    label: 'Hilfe',
     panels: [
-      { key: 'help', labelKey: 'panel.help', component: HelpPanel },
+      { key: 'help', label: 'Hilfe & Dokumentation', component: HelpPanel },
     ],
   },
-} as const satisfies Record<string, { area: Area; icon: string; labelKey: TranslationKey; panels: ReadonlyArray<{ key: string; labelKey: TranslationKey; component: React.ComponentType }> }>;
+} as const satisfies Record<string, { area: Area; icon: string; label: string; panels: ReadonlyArray<{ key: string; label: string; component: React.ComponentType }> }>;
 
 const AREA_STORAGE_KEY = 'stream_area';
 
@@ -99,7 +97,6 @@ function firstTabInArea(area: AreaKey): TabKey {
 type TabKey = keyof typeof TABS;
 
 export default function App() {
-  const { t } = useTranslation();
   const { toast } = useToast();
   const [activeArea, setActiveArea] = useState<AreaKey>(loadActiveArea);
   const [activeTab, setActiveTab] = useState<TabKey>(() => firstTabInArea(loadActiveArea()));
@@ -137,9 +134,9 @@ export default function App() {
     if (!api?.onUpdateAvailable) return;
     const handler = (data: UpdateInfo) => {
       toast.errorAction({
-        message: `${t('update.available')}: v${data.version}`,
+        message: `Neues Update verfügbar: v${data.version}`,
         action: {
-          label: t('update.download'),
+          label: 'Herunterladen',
           onClick: () => window.open(data.url, '_blank'),
         },
       });
@@ -150,7 +147,7 @@ export default function App() {
   const tab = TABS[activeTab];
 
   const panelMap = useMemo(() => {
-    const map = new Map<string, { key: string; labelKey: TranslationKey; component: React.ComponentType }>();
+    const map = new Map<string, { key: string; label: string; component: React.ComponentType }>();
     for (const p of tab.panels) {
       map.set(p.key, p);
     }
@@ -193,22 +190,22 @@ export default function App() {
       <div className="hero-panel" data-panel={layout.hero}>
         <div className="panel-header-bar">
           <span className="hero-badge">FOKUS</span>
-          <span className="collapse-label">{t(p.labelKey)}</span>
+          <span className="collapse-label">{p.label}</span>
           <div className="panel-header-controls">
             <button
               className="panel-header-btn"
               onClick={() => layout.hide(layout.hero)}
-              title={t('layout.hide')}
+              title="Ausblenden"
             >
               👁
             </button>
           </div>
         </div>
         <ErrorBoundary
-          fallback={t(p.labelKey)}
-          errorTitle={t('error.title')}
-          errorMessage={t('error.message')}
-          retryLabel={t('error.retry')}
+          fallback={p.label}
+          errorTitle="Fehler"
+          errorMessage="Etwas ist schiefgelaufen."
+          retryLabel="Nochmal versuchen"
         >
           <Component />
         </ErrorBoundary>
@@ -240,20 +237,20 @@ export default function App() {
           </span>
           <button className="panel-collapse-btn" onClick={() => layout.toggleCollapsed(key)}>
             <span className="collapse-icon">{isCollapsed ? '▶' : '▼'}</span>
-            <span className="collapse-label">{t(p.labelKey)}</span>
+            <span className="collapse-label">{p.label}</span>
           </button>
           <div className="panel-header-controls">
             <button
               className="pin-btn"
               onClick={() => layout.pinAsHero(key)}
-              title={t('layout.pin_as_focus')}
+              title="Als Fokus setzen"
             >
               📌
             </button>
             <button
               className="panel-header-btn"
               onClick={() => layout.hide(key)}
-              title={t('layout.hide')}
+              title="Ausblenden"
             >
               👁
             </button>
@@ -261,10 +258,10 @@ export default function App() {
         </div>
         {!isCollapsed && (
           <ErrorBoundary
-            fallback={t(p.labelKey)}
-            errorTitle={t('error.title')}
-            errorMessage={t('error.message')}
-            retryLabel={t('error.retry')}
+            fallback={p.label}
+            errorTitle="Fehler"
+            errorMessage="Etwas ist schiefgelaufen."
+            retryLabel="Nochmal versuchen"
           >
             <Component />
           </ErrorBoundary>
@@ -295,22 +292,22 @@ export default function App() {
           >
             ⠿
           </span>
-          <span className="collapse-label">{t(p.labelKey)}</span>
+          <span className="collapse-label">{p.label}</span>
           <div className="panel-header-controls">
             <button
               className="panel-header-btn"
               onClick={() => layout.hide(key)}
-              title={t('layout.hide')}
+              title="Ausblenden"
             >
               👁
             </button>
           </div>
         </div>
         <ErrorBoundary
-          fallback={t(p.labelKey)}
-          errorTitle={t('error.title')}
-          errorMessage={t('error.message')}
-          retryLabel={t('error.retry')}
+          fallback={p.label}
+          errorTitle="Fehler"
+          errorMessage="Etwas ist schiefgelaufen."
+          retryLabel="Nochmal versuchen"
         >
           <Component />
         </ErrorBoundary>
@@ -329,7 +326,7 @@ export default function App() {
               className={`area-btn ${activeArea === key ? 'active' : ''}`}
               onClick={() => setActiveArea(key)}
             >
-              {areaDef.icon} {t(areaDef.labelKey)}
+              {areaDef.icon} {areaDef.label}
             </button>
           ))}
         </nav>
@@ -342,7 +339,7 @@ export default function App() {
                 className={`tab-btn ${activeTab === key ? 'active' : ''}`}
                 onClick={() => setActiveTab(key)}
               >
-                {tabDef.icon} {t(tabDef.labelKey)}
+                {tabDef.icon} {tabDef.label}
               </button>
             );
           })}
@@ -372,17 +369,17 @@ export default function App() {
       {/* Hidden panels bar */}
       {layout.hidden.length > 0 && (
         <div className="hidden-bar">
-          <span className="hidden-bar-label">{t('layout.hidden_panels')}:</span>
+          <span className="hidden-bar-label">Ausgeblendet:</span>
           {layout.hidden.map((key) => {
             const p = panelMap.get(key);
             return p ? (
               <button key={key} className="hidden-bar-btn" onClick={() => layout.show(key)}>
-                {t(p.labelKey)}
+                {p.label}
               </button>
             ) : null;
           })}
-          <button className="hidden-bar-btn" onClick={layout.reset} title={t('layout.reset')}>
-            ↩️ {t('layout.reset')}
+          <button className="hidden-bar-btn" onClick={layout.reset} title="Layout zurücksetzen">
+            ↩️ Layout zurücksetzen
           </button>
         </div>
       )}

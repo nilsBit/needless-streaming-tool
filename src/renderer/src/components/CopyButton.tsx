@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useTranslation } from '../i18n/LanguageContext';
 
 interface Props {
   text: string;
@@ -8,7 +7,6 @@ interface Props {
 }
 
 export default function CopyButton({ text, label, className }: Props) {
-  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
 
   const copy = () => {
@@ -21,9 +19,9 @@ export default function CopyButton({ text, label, className }: Props) {
     <button
       className={className || 'btn-copy-small'}
       onClick={copy}
-      title={copied ? t('tooltip.copied') : t('tooltip.copy')}
+      title={copied ? 'Kopiert!' : 'Kopieren'}
     >
-      {copied ? '✅' : '📋'}{label ? ` ${copied ? t('tooltip.copied') : label}` : ''}
+      {copied ? '✅' : '📋'}{label ? ` ${copied ? 'Kopiert!' : label}` : ''}
     </button>
   );
 }

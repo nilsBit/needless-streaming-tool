@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useApi, apiPost, apiDelete } from '../hooks/useApi';
 import { useWebSocket } from '../hooks/useWebSocket';
-import { useTranslation } from '../i18n/LanguageContext';
-import { useToast } from '../i18n/ToastContext';
+import { useToast } from '../contexts/ToastContext';
 import { SongRequest, SongData } from '../../../shared/types';
 import ChatCommands from '../components/ChatCommands';
 interface SongResponse {
@@ -28,7 +27,6 @@ function prettySource(source: string): string {
 }
 
 export default function SongPanel() {
-  const { t } = useTranslation();
   const { toast } = useToast();
   const { data, loading, refetch } = useApi<SongResponse>('/actions/song');
   const [showManual, setShowManual] = useState(false);
@@ -43,14 +41,14 @@ export default function SongPanel() {
   });
 
   if (loading && !data) {
-    return <div className="panel"><p className="empty">{t('common.loading')}</p></div>;
+    return <div className="panel"><p className="empty">Laden...</p></div>;
   }
 
   const toggleAutoDetect = async () => {
     const result = await apiPost<{ success: boolean; enabled: boolean }>('/actions/song/auto-detect', {
       enabled: !data?.auto_detect,
     });
-    if (!result) { toast.error(t('error.action_failed')); return; }
+    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
     refetch();
   };
 
@@ -61,7 +59,7 @@ export default function SongPanel() {
       artist: manualArtist.trim(),
       source: 'manual',
     });
-    if (!result) { toast.error(t('error.action_failed')); return; }
+    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
     setManualTitle('');
     setManualArtist('');
     setShowManual(false);
@@ -70,32 +68,32 @@ export default function SongPanel() {
 
   const clearSong = async () => {
     const result = await apiPost('/actions/song', { title: null });
-    if (!result) { toast.error(t('error.action_failed')); return; }
+    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
     refetch();
   };
 
   const playSong = async (id: number) => {
     const result = await apiPost(`/song-requests/${id}/play`, {});
-    if (!result) { toast.error(t('error.action_failed')); return; }
+    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
     refetchQueue();
   };
 
   const skipSong = async (id: number) => {
     const result = await apiPost(`/song-requests/${id}/skip`, {});
-    if (!result) { toast.error(t('error.action_failed')); return; }
+    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
     refetchQueue();
   };
 
   const deleteSong = async (id: number) => {
     const ok = await apiDelete(`/song-requests/${id}`);
-    if (!ok) { toast.error(t('error.action_failed')); return; }
+    if (!ok) { toast.error('Aktion fehlgeschlagen'); return; }
     refetchQueue();
   };
 
   const clearQueue = async () => {
     const result = await apiPost('/song-requests/clear', {});
-    if (!result) { toast.error(t('error.action_failed')); return; }
-    toast.success(t('sr.cleared'));
+    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
+    toast.success('Queue geleert');
     refetchQueue();
   };
 
@@ -108,14 +106,14 @@ export default function SongPanel() {
 
   return (
     <div className="panel song-panel">
-      <h2>🎵 {t('song.panel_title')}</h2>
-      <p className="panel-desc">{t('song.desc_auto')}</p>
+      <h2>🎵 Now Playing</h2>
+      <p className="panel-desc">Erkennt automatisch was du gerade hörst — Spotify, YouTube, Apple Music und mehr.</p>
 
       {autoSupported && (
         <div className="song-auto-toggle">
           <label className="song-toggle-label">
             <input type="checkbox" checked={autoOn} onChange={toggleAutoDetect} />
-            <span>{t('song.auto_detect')}</span>
+            <span>Song automatisch erkennen</span>
           </label>
           {autoOn && data?.auto_detect_running && (
             <span className="song-status-dot song-status-dot--live" title="Live" />
@@ -124,7 +122,7 @@ export default function SongPanel() {
       )}
 
       {!autoSupported && (
-        <p className="song-platform-note">{t('song.auto_unsupported')}</p>
+        <p className="song-platform-note">Automatische Erkennung nur unter Windows verfügbar. Nutze das manuelle Feld unten.</p>
       )}
 
       {song ? (
@@ -134,42 +132,42 @@ export default function SongPanel() {
             {song.artist && <span className="song-artist">{song.artist}</span>}
             {song.source && <span className="song-source">{prettySource(song.source)}</span>}
           </div>
-          <button className="btn-reset" onClick={clearSong}>{t('song.clear')}</button>
+          <button className="btn-reset" onClick={clearSong}>Löschen</button>
         </div>
       ) : (
-        <p className="empty">{autoOn ? t('song.waiting') : t('song.no_song')}</p>
+        <p className="empty">{autoOn ? 'Warte auf Musik…' : 'Kein Song aktiv'}</p>
       )}
 
       <div className="song-manual">
         <button className="song-manual-toggle" onClick={() => setShowManual(!showManual)}>
           <span>{showManual ? '▼' : '▶'}</span>
-          <span>{t('song.manual_override')}</span>
+          <span>Manuell überschreiben</span>
         </button>
         {showManual && (
           <div className="song-manual-form">
             <input
               type="text"
-              placeholder={t('song.title_placeholder')}
+              placeholder="Song-Titel"
               value={manualTitle}
               onChange={(e) => setManualTitle(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && setManualSong()}
             />
             <input
               type="text"
-              placeholder={t('song.artist_placeholder')}
+              placeholder="Artist (optional)"
               value={manualArtist}
               onChange={(e) => setManualArtist(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && setManualSong()}
             />
-            <button onClick={setManualSong} disabled={!manualTitle.trim()}>{t('song.set')}</button>
+            <button onClick={setManualSong} disabled={!manualTitle.trim()}>Übernehmen</button>
           </div>
         )}
       </div>
       <div className="sr-section">
         <div className="sr-header">
-          <h3>🎵 {t('sr.title')} <span className="sr-badge">{pendingQueue.length}</span></h3>
+          <h3>🎵 Song Queue <span className="sr-badge">{pendingQueue.length}</span></h3>
           {pendingQueue.length > 0 && (
-            <button className="btn-export-small" onClick={clearQueue}>{t('sr.clear')}</button>
+            <button className="btn-export-small" onClick={clearQueue}>Queue leeren</button>
           )}
         </div>
 
@@ -180,12 +178,12 @@ export default function SongPanel() {
             <span className="sr-row-source">{playingNow.source === 'youtube' ? '🔴' : '🟢'}</span>
             <span className="sr-row-user">@{playingNow.requested_by}</span>
             <a className="sr-row-link" href={playingNow.url} target="_blank" rel="noopener noreferrer" title="Open">🔗</a>
-            <button className="btn-row-action" onClick={() => skipSong(playingNow.id)} title={t('sr.skip')}>⏭</button>
+            <button className="btn-row-action" onClick={() => skipSong(playingNow.id)} title="Überspringen">⏭</button>
           </div>
         )}
 
         {pendingQueue.length === 0 && !playingNow ? (
-          <p className="empty">{t('sr.empty')}</p>
+          <p className="empty">Queue ist leer — Viewer können mit !sr einen Song requesten</p>
         ) : (
           pendingQueue.map((sr, i) => (
             <div key={sr.id} className="sr-row">
@@ -194,17 +192,17 @@ export default function SongPanel() {
               <span className="sr-row-source">{sr.source === 'youtube' ? '🔴' : '🟢'}</span>
               <span className="sr-row-user">@{sr.requested_by}</span>
               <a className="sr-row-link" href={sr.url} target="_blank" rel="noopener noreferrer" title="Open">🔗</a>
-              <button className="btn-row-action" onClick={() => playSong(sr.id)} title={t('sr.play')}>▶</button>
-              <button className="btn-row-action" onClick={() => skipSong(sr.id)} title={t('sr.skip')}>⏭</button>
-              <button className="btn-row-action" onClick={() => deleteSong(sr.id)} title={t('tooltip.delete')}>✕</button>
+              <button className="btn-row-action" onClick={() => playSong(sr.id)} title="Abspielen">▶</button>
+              <button className="btn-row-action" onClick={() => skipSong(sr.id)} title="Überspringen">⏭</button>
+              <button className="btn-row-action" onClick={() => deleteSong(sr.id)} title="Löschen">✕</button>
             </div>
           ))
         )}
       </div>
 
       <ChatCommands commands={[
-        { cmd: '!sr', desc: t('sr.cmd_sr') },
-        { cmd: '!queue', desc: t('sr.cmd_queue') },
+        { cmd: '!sr', desc: 'Song zur Queue hinzufügen (!sr <URL>)' },
+        { cmd: '!queue', desc: 'Nächste Songs anzeigen' },
       ]} />
     </div>
   );

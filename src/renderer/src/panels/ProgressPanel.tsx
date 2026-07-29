@@ -3,8 +3,7 @@ import { useApi, apiGet, apiPost, apiPatch, apiDelete, apiFetch, getApiToken, ge
 import { ProjectItem, StreamState, Milestone } from '../../../shared/types';
 import { useWebSocket } from '../hooks/useWebSocket';
 import ChatCommands from '../components/ChatCommands';
-import { useTranslation } from '../i18n/LanguageContext';
-import { useToast } from '../i18n/ToastContext';
+import { useToast } from '../contexts/ToastContext';
 import EmptyState from '../components/ux/EmptyState';
 import TryThisBadge from '../components/ux/TryThisBadge';
 import { celebrate } from '../components/ux/celebrate';
@@ -26,7 +25,6 @@ export default function ProgressPanel() {
   const [newItem, setNewItem] = useState('');
   const [editingName, setEditingName] = useState(false);
   const [projectName, setProjectName] = useState('');
-  const { t } = useTranslation();
   const { toast } = useToast();
   const { data: streamState } = useApi<StreamState>('/stream-state');
   const { data: milestones, refetch: refetchMilestones } = useApi<Milestone[]>('/milestones');
@@ -106,7 +104,7 @@ export default function ProgressPanel() {
   }, [streamState?.timer_running]);
 
   const formatTime = (seconds: number): string => {
-    if (seconds < 60) return t('progress.less_than_minute');
+    if (seconds < 60) return '< 1m';
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
     return h > 0 ? `${h}h ${m}m` : `${m}m`;
@@ -115,7 +113,7 @@ export default function ProgressPanel() {
   const addItem = async () => {
     if (!newItem.trim()) return;
     const result = await apiPost('/progress/items', { title: newItem.trim() });
-    if (!result) { toast.error(t('error.action_failed')); return; }
+    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
     setNewItem('');
     refetch();
   };
@@ -126,10 +124,10 @@ export default function ProgressPanel() {
       status: next,
       current_timer_seconds: liveSeconds,
     });
-    if (!result) { toast.error(t('error.action_failed')); return; }
+    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
     if (next === 'in_progress' && (item.todos || []).length === 0) {
       if (!firstActivate.seen && !firstActivate.loading) {
-        toast.info(t('progress.subtodo_hint_toast').replace('{title}', item.title));
+        toast.info(`💡 Füge Sub-Tasks zu „${item.title}" hinzu — sie erscheinen live im Overlay`);
         firstActivate.markSeen();
       }
       setFocusItemId(item.id);
@@ -139,7 +137,7 @@ export default function ProgressPanel() {
 
   const deleteItem = async (id: number) => {
     const ok = await apiDelete(`/progress/items/${id}`);
-    if (!ok) { toast.error(t('error.action_failed')); return; }
+    if (!ok) { toast.error('Aktion fehlgeschlagen'); return; }
     refetch();
   };
 
@@ -156,17 +154,17 @@ export default function ProgressPanel() {
     const text = newTodoText[itemId]?.trim();
     if (!text) return;
     const result = await apiPost(`/progress/items/${itemId}/todos`, { title: text });
-    if (!result) { toast.error(t('error.action_failed')); return; }
+    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
     setNewTodoText(prev => ({ ...prev, [itemId]: '' }));
     refetch();
   };
 
   const toggleTodo = async (todoId: number, currentDone: number, el?: HTMLElement | null) => {
     const result = await apiPatch(`/progress/todos/${todoId}`, { done: currentDone ? 0 : 1 });
-    if (!result) { toast.error(t('error.action_failed')); return; }
+    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
     if (currentDone === 0 && !firstCheck.seen && !firstCheck.loading) {
       if (el) celebrate('check', el);
-      toast.success(t('celebrate.first_todo_done'));
+      toast.success('Erstes Task erledigt 🎯 — das erscheint live im Overlay.');
       firstCheck.markSeen();
     }
     refetch();
@@ -174,13 +172,13 @@ export default function ProgressPanel() {
 
   const deleteTodo = async (todoId: number) => {
     const ok = await apiDelete(`/progress/todos/${todoId}`);
-    if (!ok) { toast.error(t('error.action_failed')); return; }
+    if (!ok) { toast.error('Aktion fehlgeschlagen'); return; }
     refetch();
   };
 
   const linkTodoToMilestone = async (todoId: number, milestoneId: number | null) => {
     const result = await apiPatch(`/progress/todos/${todoId}`, { milestone_id: milestoneId });
-    if (!result) { toast.error(t('error.action_failed')); return; }
+    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
     setMilestonePickerTodo(null);
     refetch();
     refetchMilestones();
@@ -188,7 +186,7 @@ export default function ProgressPanel() {
 
   const saveProjectName = async () => {
     const result = await apiPatch('/progress/project', { project_name: projectName });
-    if (!result) { toast.error(t('error.action_failed')); return; }
+    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
     setEditingName(false);
     refetch();
   };
@@ -240,10 +238,10 @@ export default function ProgressPanel() {
       status: targetStatus,
       current_timer_seconds: liveSeconds,
     });
-    if (!result) { toast.error(t('error.action_failed')); return; }
+    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
     if (targetStatus === 'in_progress' && (item.todos || []).length === 0) {
       if (!firstActivate.seen && !firstActivate.loading) {
-        toast.info(t('progress.subtodo_hint_toast').replace('{title}', item.title));
+        toast.info(`💡 Füge Sub-Tasks zu „${item.title}" hinzu — sie erscheinen live im Overlay`);
         firstActivate.markSeen();
       }
       setFocusItemId(itemId);
@@ -252,7 +250,7 @@ export default function ProgressPanel() {
   };
 
   if (loading && !data) {
-    return <div className="panel"><p className="empty">{t('common.loading')}</p></div>;
+    return <div className="panel"><p className="empty">Laden...</p></div>;
   }
 
   const items = data?.items || [];
@@ -286,7 +284,7 @@ export default function ProgressPanel() {
           <span className={`item-title ${hasTodos && doneTodos.length === todos.length ? 'all-done' : ''}`} onClick={() => toggleExpand(item.id)}>{item.title}</span>
           {hasTodos && <span className="todo-count">☑ {doneTodos.length}/{todos.length}</span>}
           {displayTime > 0 && <span className="item-time">{formatTime(displayTime)}</span>}
-          <button className="btn-delete-small" onClick={e => { e.stopPropagation(); deleteItem(item.id); }} title={t('tooltip.delete')}>✕</button>
+          <button className="btn-delete-small" onClick={e => { e.stopPropagation(); deleteItem(item.id); }} title="Löschen">✕</button>
         </div>
         {hasTodos && (
           <div className="kanban-item-progress">
@@ -299,7 +297,7 @@ export default function ProgressPanel() {
         {isExpanded && (
           <div className="kanban-item-todos">
             {isActive && todos.length === 0 && (
-              <div className="sub-todos-hint">📺 {t('progress.subtodo_hint')}</div>
+              <div className="sub-todos-hint">📺 Sub-Tasks erscheinen live im Overlay — füge hier welche hinzu 👇</div>
             )}
             {todos.map(td => {
               const projectMilestones = (milestones || []).filter(
@@ -354,11 +352,11 @@ export default function ProgressPanel() {
                       )}
                     </span>
                   )}
-                  <button className="btn-delete-small" onClick={() => deleteTodo(td.id)} title={t('tooltip.delete')}>✕</button>
+                  <button className="btn-delete-small" onClick={() => deleteTodo(td.id)} title="Löschen">✕</button>
                 </div>
               );
             })}
-            <TryThisBadge hint={t('try_this.add_subtodo')} done={!isActive || todos.length > 0}>
+            <TryThisBadge hint="Füge hier deine erste Sub-Task hinzu" done={!isActive || todos.length > 0}>
               <div className="sub-todo-add">
                 <input
                   ref={el => {
@@ -368,7 +366,7 @@ export default function ProgressPanel() {
                     }
                   }}
                   type="text"
-                  placeholder={t('todos.placeholder')}
+                  placeholder="Neues Todo..."
                   value={newTodoText[item.id] || ''}
                   onChange={e => setNewTodoText(prev => ({ ...prev, [item.id]: e.target.value }))}
                   onKeyDown={e => e.key === 'Enter' && addTodo(item.id)}
@@ -398,14 +396,14 @@ export default function ProgressPanel() {
       <div className="kanban-items">
         {columnItems.map(renderItem)}
         {columnItems.length === 0 && (
-          <p className="kanban-empty">{t('kanban.drop_here')}</p>
+          <p className="kanban-empty">Hierher ziehen</p>
         )}
       </div>
       {status === 'pending' && (
         <div className="kanban-add">
           <input
             type="text"
-            placeholder={t('progress.item_placeholder')}
+            placeholder="Neues Item..."
             value={newItem}
             onChange={e => setNewItem(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && addItem()}
@@ -418,7 +416,7 @@ export default function ProgressPanel() {
 
   return (
     <div className="panel progress-panel">
-      <h2>📊 {t('progress.title')}</h2>
+      <h2>📊 Progress Tracker</h2>
 
       <div className="progress-header">
         {editingName ? (
@@ -428,17 +426,17 @@ export default function ProgressPanel() {
               value={projectName}
               onChange={e => setProjectName(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && saveProjectName()}
-              placeholder={t('progress.project_placeholder')}
+              placeholder="Projektname..."
             />
             <button onClick={saveProjectName}>💾</button>
           </div>
         ) : (
           <div className="project-name" onClick={() => { setEditingName(true); setProjectName(data?.project_name || ''); }}>
-            <strong>{data?.project_name || t('progress.no_project')}</strong> ✏️
+            <strong>{data?.project_name || 'Kein Projekt'}</strong> ✏️
           </div>
         )}
         <span className="progress-count">{doneCount}/{items.length} done</span>
-        <button className="btn-export-small" onClick={exportCsv} title={t('progress.export_csv')}>📥</button>
+        <button className="btn-export-small" onClick={exportCsv} title="CSV Export">📥</button>
       </div>
 
       <div className="progress-bar-container">
@@ -448,25 +446,25 @@ export default function ProgressPanel() {
       {items.length === 0 ? (
         <EmptyState
           icon="📋"
-          title={t('empty.kanban.title')}
-          description={t('empty.kanban.desc')}
+          title="Dein Kanban ist leer"
+          description="Features und Tasks, die du streamst, verwaltest du hier. Fang klein an."
           inlineInput={{
             value: newItem,
             onChange: setNewItem,
             onSubmit: addItem,
-            placeholder: t('progress.item_placeholder'),
+            placeholder: 'Neues Item...',
           }}
         />
       ) : (
         <div className="kanban-board">
-          {renderColumn('pending', t('kanban.backlog'), '⬜', backlog)}
-          {renderColumn('in_progress', t('kanban.in_progress'), '🔨', inProgress)}
-          {renderColumn('done', t('kanban.done'), '✅', done)}
+          {renderColumn('pending', 'Backlog', '⬜', backlog)}
+          {renderColumn('in_progress', 'Aktiv', '🔨', inProgress)}
+          {renderColumn('done', 'Erledigt', '✅', done)}
         </div>
       )}
 
       <ChatCommands commands={[
-        { cmd: '!progress', desc: t('progress.cmd_progress') },
+        { cmd: '!progress', desc: 'Zeigt Projektfortschritt' },
       ]} />
     </div>
   );

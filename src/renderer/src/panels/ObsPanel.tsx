@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useApi, apiPost } from '../hooks/useApi';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { BotStatus } from '../../../shared/types';
-import { useTranslation } from '../i18n/LanguageContext';
-import { useToast } from '../i18n/ToastContext';
+import { useToast } from '../contexts/ToastContext';
 
 interface SceneMapping {
   reward_title: string;
@@ -18,7 +17,6 @@ interface Reward {
 }
 
 export default function ObsPanel() {
-  const { t } = useTranslation();
   const { toast } = useToast();
 
   const { data: obsStatus, refetch: refetchObs } = useApi<{ connected: boolean }>('/obs/status');
@@ -48,9 +46,9 @@ export default function ObsPanel() {
     try {
       await apiPost('/obs/mappings', { mappings: valid });
       setDirty(false);
-      toast.success(t('obs.mapping_saved'));
+      toast.success('Mapping gespeichert');
     } catch {
-      toast.error(t('error.action_failed'));
+      toast.error('Aktion fehlgeschlagen');
     }
     setSaving(false);
   };
@@ -80,24 +78,24 @@ export default function ObsPanel() {
       <div className="obs-status-bar">
         <div className="obs-status-item">
           <span className="status-dot" style={{ background: obsConnected ? '#2ecc71' : '#e74c3c' }} />
-          <span>{obsConnected ? t('settings.obs_connected') : t('settings.obs_not_connected')}</span>
+          <span>{obsConnected ? 'Verbunden mit OBS' : 'Nicht verbunden'}</span>
         </div>
         <div className="obs-status-item">
           <span className="status-dot" style={{ background: twitchConnected ? '#2ecc71' : '#e74c3c' }} />
-          <span>{twitchConnected ? `Twitch: ${botStatus?.channel}` : t('settings.not_connected')}</span>
+          <span>{twitchConnected ? `Twitch: ${botStatus?.channel}` : 'Nicht verbunden'}</span>
         </div>
       </div>
 
       {!obsConnected && (
-        <p className="obs-hint">{t('obs.no_obs_hint')}</p>
+        <p className="obs-hint">OBS ist nicht verbunden. Verbinde OBS in den Einstellungen.</p>
       )}
       {!twitchConnected && (
-        <p className="obs-hint">{t('obs.no_twitch_hint')}</p>
+        <p className="obs-hint">Twitch ist nicht verbunden.</p>
       )}
 
       <div className="obs-mappings-section">
-        <h3>{t('obs.scene_mappings')}</h3>
-        <p className="setup-info">{t('obs.scene_mappings_desc')}</p>
+        <h3>Scene Mappings</h3>
+        <p className="setup-info">Wenn ein Channel Point Reward eingelöst wird, wechselt OBS automatisch zur zugeordneten Szene.</p>
 
         <div className="obs-mappings-list">
           {mappings.map((mapping, i) => (
@@ -109,9 +107,9 @@ export default function ObsPanel() {
                   disabled={!twitchConnected}
                 >
                   <option value="">{
-                    !twitchConnected ? t('obs.no_twitch_hint') :
-                    rewards.length === 0 ? t('obs.no_rewards') :
-                    t('obs.reward_placeholder')
+                    !twitchConnected ? 'Twitch ist nicht verbunden.' :
+                    rewards.length === 0 ? 'Keine Rewards gefunden' :
+                    'Reward wählen...'
                   }</option>
                   {rewards.map((r) => (
                     <option key={r.id} value={r.title}>{r.title}</option>
@@ -126,9 +124,9 @@ export default function ObsPanel() {
                   disabled={!obsConnected}
                 >
                   <option value="">{
-                    !obsConnected ? t('obs.no_obs_hint') :
-                    scenes.length === 0 ? t('obs.no_scenes') :
-                    t('obs.scene_placeholder')
+                    !obsConnected ? 'OBS ist nicht verbunden. Verbinde OBS in den Einstellungen.' :
+                    scenes.length === 0 ? 'Keine Szenen gefunden' :
+                    'Szene wählen...'
                   }</option>
                   {scenes.map((s) => (
                     <option key={s} value={s}>{s}</option>
@@ -141,22 +139,22 @@ export default function ObsPanel() {
               </div>
 
               <div className="obs-mapping-timer-row">
-                <label>{t('obs.revert_after')}</label>
+                <label>Zurück nach</label>
                 <input
                   type="number"
                   className="obs-mapping-duration"
                   value={mapping.duration_seconds || ''}
                   onChange={(e) => updateMapping(i, 'duration_seconds', parseInt(e.target.value) || 0)}
-                  placeholder={t('obs.duration_placeholder')}
+                  placeholder="Sek."
                   min="0"
                 />
-                <label>{t('obs.revert_to')}</label>
+                <label>zu</label>
                 <select
                   value={mapping.revert_scene || ''}
                   onChange={(e) => updateMapping(i, 'revert_scene', e.target.value)}
                   disabled={!obsConnected}
                 >
-                  <option value="">{t('obs.use_previous')}</option>
+                  <option value="">Vorherige Szene</option>
                   {scenes.map((s) => (
                     <option key={s} value={s}>{s}</option>
                   ))}
@@ -172,14 +170,14 @@ export default function ObsPanel() {
             onClick={addMapping}
             disabled={!obsConnected || !twitchConnected}
           >
-            + {t('obs.add_mapping')}
+            + Mapping hinzufügen
           </button>
           <button
             className="btn-settings-primary"
             onClick={save}
             disabled={!dirty || saving}
           >
-            {saving ? t('onboarding.loading') : t('settings.save')}
+            {saving ? 'Laden...' : 'Speichern'}
           </button>
         </div>
       </div>

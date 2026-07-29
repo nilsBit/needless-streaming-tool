@@ -3,8 +3,7 @@ import { useApi, apiPost, apiPatch, apiDelete } from '../hooks/useApi';
 import { Design } from '../../../shared/types';
 import { useWebSocket } from '../hooks/useWebSocket';
 import ChatCommands from '../components/ChatCommands';
-import { useTranslation } from '../i18n/LanguageContext';
-import { useToast } from '../i18n/ToastContext';
+import { useToast } from '../contexts/ToastContext';
 import { useCountdown } from '../hooks/useCountdown';
 
 interface ActiveVote {
@@ -17,7 +16,6 @@ interface ActiveVote {
 }
 
 export default function DesignsPanel() {
-  const { t } = useTranslation();
   const { toast } = useToast();
   const { data: designs, loading, refetch } = useApi<Design[]>('/designs');
   const { data: vote, refetch: refetchVote } = useApi<ActiveVote>('/voting');
@@ -33,20 +31,20 @@ export default function DesignsPanel() {
   const addDesign = async () => {
     if (!title.trim()) return;
     const result = await apiPost('/designs', { title: title.trim(), type: 'general' });
-    if (!result) { toast.error(t('error.action_failed')); return; }
+    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
     setTitle('');
     refetch();
   };
 
   const completeDesign = async (id: number) => {
     const result = await apiPatch(`/designs/${id}`, { status: 'completed' });
-    if (!result) { toast.error(t('error.action_failed')); return; }
+    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
     refetch();
   };
 
   const deleteDesign = async (id: number) => {
     const ok = await apiDelete(`/designs/${id}`);
-    if (!ok) { toast.error(t('error.action_failed')); return; }
+    if (!ok) { toast.error('Aktion fehlgeschlagen'); return; }
     refetch();
   };
 
@@ -54,25 +52,25 @@ export default function DesignsPanel() {
   const startVoteFromDesigns = async () => {
     if (active.length < 2) return;
     const options = active.map(d => d.title);
-    const result = await apiPost('/voting/start', { title: `🗳️ ${t('designs.title')}`, options, duration: voteDuration });
-    if (!result) { toast.error(t('error.action_failed')); return; }
+    const result = await apiPost('/voting/start', { title: `🗳️ Abstimmungen`, options, duration: voteDuration });
+    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
     refetchVote();
   };
 
   const endVote = async () => {
     const result = await apiPost('/voting/end', {});
-    if (!result) { toast.error(t('error.action_failed')); return; }
+    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
     refetchVote();
   };
 
   const cancelVote = async () => {
     const result = await apiPost('/voting/cancel', {});
-    if (!result) { toast.error(t('error.action_failed')); return; }
+    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
     refetchVote();
   };
 
   if (loading && !designs) {
-    return <div className="panel"><p className="empty">{t('common.loading')}</p></div>;
+    return <div className="panel"><p className="empty">Laden...</p></div>;
   }
 
   const active = designs?.filter((d) => d.status === 'active') || [];
@@ -81,14 +79,14 @@ export default function DesignsPanel() {
 
   return (
     <div className="panel designs-panel">
-      <h2>🗳️ {t('designs.title')}</h2>
-      <p className="panel-desc">{t('designs.desc')}</p>
+      <h2>🗳️ Abstimmungen</h2>
+      <p className="panel-desc">Sammle Vorschläge und lass den Chat abstimmen.</p>
 
       {/* Step 1: Collect design proposals */}
       <div className="design-create">
         <input
           type="text"
-          placeholder={t('designs.placeholder')}
+          placeholder="Neuer Vorschlag..."
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && addDesign()}
@@ -97,13 +95,13 @@ export default function DesignsPanel() {
       </div>
 
       <div className="design-list">
-        {active.length === 0 && !hasActiveVote && <p className="empty">{t('designs.no_active')}</p>}
+        {active.length === 0 && !hasActiveVote && <p className="empty">Keine Vorschläge</p>}
         {active.map((d) => (
           <div key={d.id} className="design-item active">
             <span>🎨 {d.title}</span>
             <div className="design-actions">
-              <button onClick={() => completeDesign(d.id)} title={t('auto_clips.confirm')}>✅</button>
-              <button title={t('tooltip.delete')} onClick={() => deleteDesign(d.id)}>🗑️</button>
+              <button onClick={() => completeDesign(d.id)} title="Bestätigen">✅</button>
+              <button title="Löschen" onClick={() => deleteDesign(d.id)}>🗑️</button>
             </div>
           </div>
         ))}
@@ -113,7 +111,7 @@ export default function DesignsPanel() {
       <div className="vote-section">
         {hasActiveVote ? (
           <div className="vote-active">
-            <h3>🗳️ {t('designs.vote_running')} — {countdown}s</h3>
+            <h3>🗳️ Abstimmung läuft — {countdown}s</h3>
             <div className="vote-results">
               {vote.options!.map((opt) => {
                 const count = vote.counts?.[opt] || 0;
@@ -131,8 +129,8 @@ export default function DesignsPanel() {
               })}
             </div>
             <div className="vote-controls">
-              <button onClick={endVote}>🏆 {t('designs.vote_end')}</button>
-              <button onClick={cancelVote}>✖ {t('designs.vote_cancel')}</button>
+              <button onClick={endVote}>🏆 Beenden</button>
+              <button onClick={cancelVote}>✖ Abbrechen</button>
             </div>
           </div>
         ) : (
@@ -145,7 +143,7 @@ export default function DesignsPanel() {
                 <option value={300}>5 Min</option>
               </select>
               <button onClick={startVoteFromDesigns} disabled={active.length < 2}>
-                🗳️ {t('designs.vote_start')} ({active.length})
+                🗳️ Abstimmung starten ({active.length})
               </button>
             </div>
           </div>
@@ -154,20 +152,20 @@ export default function DesignsPanel() {
 
       {completed.length > 0 && (
         <div className="design-list">
-          <h3>{t('designs.completed')} ({completed.length})</h3>
+          <h3>Abgeschlossen ({completed.length})</h3>
           {completed.slice(0, 5).map((d) => (
             <div key={d.id} className="design-item done">
               <span>🎨 {d.title}</span>
-              <button title={t('tooltip.delete')} onClick={() => deleteDesign(d.id)}>🗑️</button>
+              <button title="Löschen" onClick={() => deleteDesign(d.id)}>🗑️</button>
             </div>
           ))}
         </div>
       )}
 
       <ChatCommands commands={[
-        { cmd: '!vote <option>', desc: t('designs.cmd_vote') },
-        { cmd: '!design end', desc: t('designs.cmd_end') },
-        { cmd: '!design status', desc: t('designs.cmd_status') },
+        { cmd: '!vote <option>', desc: 'Für eine Option stimmen' },
+        { cmd: '!design end', desc: 'Abstimmung beenden' },
+        { cmd: '!design status', desc: 'Aktueller Stand' },
       ]} />
     </div>
   );

@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useApi, apiPost, apiDelete, apiPatch, getApiToken, getApiBase } from '../hooks/useApi';
-import { useTranslation } from '../i18n/LanguageContext';
-import { useToast } from '../i18n/ToastContext';
+import { useToast } from '../contexts/ToastContext';
 import ClipSyncBadge, { SyncState } from '../components/ClipSyncBadge';
 import { celebrate } from '../components/ux/celebrate';
 import NotionSetupModal from '../components/NotionSetupModal';
@@ -36,7 +35,6 @@ interface SessionInfo {
 }
 
 export default function ClipsPanel() {
-  const { t } = useTranslation();
   const { toast } = useToast();
   const today = new Date().toISOString().split('T')[0];
   const { data: sessions, refetch: refetchSessions } = useApi<SessionInfo[]>('/clips/sessions');
@@ -70,7 +68,7 @@ export default function ClipsPanel() {
 
   const addClip = async (tag: string) => {
     const result = await apiPost('/clips', { tag, note: note || undefined });
-    if (!result) { toast.error(t('error.action_failed')); return; }
+    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
     setNote('');
     refetchClips();
     refetchSessions();
@@ -78,7 +76,7 @@ export default function ClipsPanel() {
 
   const deleteClip = async (id: number) => {
     const ok = await apiDelete(`/clips/${id}`);
-    if (!ok) { toast.error(t('error.action_failed')); return; }
+    if (!ok) { toast.error('Aktion fehlgeschlagen'); return; }
     refetchClips();
     refetchSessions();
   };
@@ -87,7 +85,7 @@ export default function ClipsPanel() {
     setSyncingDay(sessionDate);
     const result = await apiPost<SyncResult>('/clips/sync', { session_date: sessionDate });
     if (!result) {
-      toast.error(t('error.action_failed'));
+      toast.error('Aktion fehlgeschlagen');
     } else {
       console.log(`[Clips] Synced ${result.synced}/${result.total} clips to Notion`);
     }
@@ -110,7 +108,7 @@ export default function ClipsPanel() {
     const trimmed = newTagName.trim().toLowerCase();
     if (!trimmed) return;
     const result = await apiPost('/clip-tags', { tag: trimmed });
-    if (!result) { toast.error(t('error.action_failed')); return; }
+    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
     setNewTagName('');
     setShowNewTagInput(false);
     refetchTags();
@@ -118,7 +116,7 @@ export default function ClipsPanel() {
 
   const deleteCustomTag = async (tag: string) => {
     const ok = await apiDelete(`/clip-tags/${tag}`);
-    if (!ok) { toast.error(t('error.action_failed')); return; }
+    if (!ok) { toast.error('Aktion fehlgeschlagen'); return; }
     refetchTags();
   };
 
@@ -180,7 +178,7 @@ export default function ClipsPanel() {
   const confirmClip = async (clip: Clip) => {
     const newTag = clip.tag.replace('auto-', '');
     const result = await apiPatch(`/clips/${clip.id}`, { tag: newTag || 'highlight' });
-    if (!result) { toast.error(t('error.action_failed')); return; }
+    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
     refetchClips();
   };
 
@@ -196,14 +194,14 @@ export default function ClipsPanel() {
   return (
     <div className="panel clips-panel">
       <div className="clips-panel-header">
-        <h2>🎬 {t('clips.title')}</h2>
+        <h2>🎬 Clip Moments</h2>
         <button
           ref={autoSyncToggleRef}
           className={`auto-sync-toggle ${notionConfigured && autoSync ? 'on' : 'off'}`}
           onClick={toggleAutoSync}
-          title={t('clips.auto_sync_label')}
+          title="Auto-Sync"
         >
-          ☁️ {t('clips.auto_sync_label')}: {notionConfigured && autoSync ? t('clips.auto_sync_on') : t('clips.auto_sync_off')}
+          ☁️ Auto-Sync: {notionConfigured && autoSync ? 'An' : 'Aus'}
         </button>
       </div>
 
@@ -260,16 +258,16 @@ export default function ClipsPanel() {
         </select>
         <input
           type="text"
-          placeholder={t('clips.note_placeholder')}
+          placeholder="Notiz (optional)..."
           value={note}
           onChange={(e) => setNote(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && addClip(selectedTag)}
         />
-        <button onClick={() => addClip(selectedTag)}>{t('clips.add')}</button>
+        <button onClick={() => addClip(selectedTag)}>+ Clip</button>
       </div>
 
       <div className="clip-sessions">
-        {sortedDays.length === 0 && <p className="empty">{t('clips.empty')}</p>}
+        {sortedDays.length === 0 && <p className="empty">Keine Clips</p>}
         {sortedDays.map((date) => {
           const dayClips = filterClips(clipsByDay.get(date) || []);
           const isToday = date === today;
@@ -279,7 +277,7 @@ export default function ClipsPanel() {
             <div key={date} className={`clip-day ${isToday ? 'today' : ''}`}>
               <div className="clip-day-header" onClick={() => toggleDay(date)}>
                 <span className="day-toggle">{isCollapsed ? '▶' : '▼'}</span>
-                <span className="day-date">{isToday ? `${t('clips.today')} (${date})` : date}</span>
+                <span className="day-date">{isToday ? `Heute (${date})` : date}</span>
                 <span className="day-breakdown">
                   {Array.from(
                     (clipsByDay.get(date) || []).reduce((m, c) => {
@@ -294,7 +292,7 @@ export default function ClipsPanel() {
                 <span className="day-count">{dayClips.length} Clips</span>
                 {notionConfigured && (
                   <button className="btn-export" onClick={(e) => { e.stopPropagation(); syncToNotion(date); }} disabled={syncingDay === date}>
-                    {syncingDay === date ? '⏳' : '📤'} {t('clips.re_sync')}
+                    {syncingDay === date ? '⏳' : '📤'} Re-Sync
                   </button>
                 )}
                 <button className="btn-export" onClick={(e) => { e.stopPropagation(); exportDay(date); }}>📥 DaVinci</button>
@@ -302,7 +300,7 @@ export default function ClipsPanel() {
 
               {!isCollapsed && (
                 <div className="clip-list">
-                  {dayClips.length === 0 && <p className="empty">{activeFilter ? `${t('clips.empty')} ${t('clips.with_tag')} "${activeFilter}"` : t('clips.empty')}</p>}
+                  {dayClips.length === 0 && <p className="empty">{activeFilter ? `Keine Clips mit Tag "${activeFilter}"` : 'Keine Clips'}</p>}
                   {dayClips.map((clip) => (
                     <div key={clip.id} className={`clip-row ${isAutoClip(clip) ? 'auto-clip' : ''}`}>
                       <span className="clip-row-time" title={buildTimecodeTooltip(clip)}>
@@ -327,11 +325,11 @@ export default function ClipsPanel() {
                       <ClipSyncBadge state={syncStateFor(clip)} onRetry={() => retryClip(clip.id)} />
                       {isAutoClip(clip) ? (
                         <>
-                          <button className="btn-clip-confirm" onClick={() => confirmClip(clip)} title={t('auto_clips.confirm')}>✓</button>
-                          <button className="btn-clip-reject" onClick={() => deleteClip(clip.id)} title={t('auto_clips.reject')}>✕</button>
+                          <button className="btn-clip-confirm" onClick={() => confirmClip(clip)} title="Bestätigen">✓</button>
+                          <button className="btn-clip-reject" onClick={() => deleteClip(clip.id)} title="Verwerfen">✕</button>
                         </>
                       ) : (
-                        <button className="btn-row-action" onClick={() => deleteClip(clip.id)} title={t('tooltip.delete')}>✕</button>
+                        <button className="btn-row-action" onClick={() => deleteClip(clip.id)} title="Löschen">✕</button>
                       )}
                     </div>
                   ))}

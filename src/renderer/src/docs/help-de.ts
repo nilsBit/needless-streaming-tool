@@ -5,7 +5,7 @@ export const HELP_SECTIONS_DE = [
     title: 'Erste Schritte',
     content: `Das Stream Toolkit ist deine Zentrale für Streaming. Hier steuerst du alles — Overlays, Challenges, Clips, Aufgaben, Milestones und mehr.
 
-Beim ersten Start führt dich der **Setup-Wizard** durch die Einrichtung. Du kannst ihn jederzeit unter **Settings → Setup-Wizard erneut starten** wiederholen.
+Alle Verbindungen richtest du unter **Settings** ein — Twitch, OBS, Notion und den Stream Deck Token.
 
 **Voraussetzungen:**
 - OBS Studio (Version 28+) mit aktiviertem WebSocket Server
@@ -141,7 +141,7 @@ Das Template unter /overlay/_template/index.html enthält:
     content: `Das "NST Deck" Stream Deck Plugin bietet 8 Buttons mit Live-Status.
 
 **Installation:**
-- Im Toolkit: Onboarding → Stream Deck → "Plugin jetzt installieren"
+- Im Toolkit: Settings → Stream Deck → "Plugin jetzt installieren"
 - Oder: .streamDeckPlugin Datei manuell öffnen
 
 **Einrichtung:**
