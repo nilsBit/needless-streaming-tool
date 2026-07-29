@@ -6,7 +6,6 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useToast } from '../contexts/ToastContext';
 import CopyButton from '../components/CopyButton';
 import NotionDatabasePicker from '../components/NotionDatabasePicker';
-import { applyProfilePreset, PROFILE_KEYS, ProfileKey } from '../hooks/useDashboardLayout';
 
 type SettingsCategory = 'connections' | 'features' | 'app' | 'data';
 
@@ -16,14 +15,6 @@ const CATEGORIES: { key: SettingsCategory; icon: string; label: string }[] = [
   { key: 'app', icon: '🖥️', label: 'App' },
   { key: 'data', icon: '💾', label: 'Daten & API' },
 ];
-
-const PROFILE_LABELS: Record<string, string> = {
-  creative: 'Kreativ',
-  gaming: 'Gaming',
-  coding: 'Coding',
-  chatting: 'Just Chatting',
-  all: 'Alles',
-};
 
 export default function SettingsPanel() {
   const { data: botStatus, refetch: refetchBot } = useApi<BotStatus>('/settings/bot-status');
@@ -35,7 +26,6 @@ export default function SettingsPanel() {
   const { data: syncStatus, refetch: refetchSync } = useApi<{
     enabled: boolean; syncPath?: string; lastSync?: string; device?: string; error?: string;
   }>('/settings/sync/status');
-  const { data: profileData, refetch: refetchProfile } = useApi<{ value: string | null }>('/settings/get/stream_profile');
   const { data: autostartInfo, refetch: refetchAutostart } = useApi<{ enabled: boolean }>('/settings/autostart');
   const { data: commandsData, refetch: refetchCommands } = useApi<Record<string, string>>('/settings/commands');
 
@@ -68,7 +58,6 @@ export default function SettingsPanel() {
   const [triggerHype, setTriggerHype] = useState(true);
   const [triggerMilestone, setTriggerMilestone] = useState(true);
 
-  const currentProfile = (profileData?.value || 'all') as ProfileKey;
 
   useEffect(() => {
     if (commandsData && !commandsLoaded) {
@@ -379,34 +368,6 @@ export default function SettingsPanel() {
         </div>
       </div>
 
-      <div className="s-card">
-        <div className="s-card-header">
-          <div className="s-card-info">
-            <span className="s-card-icon">👤</span>
-            <div>
-              <div className="s-card-title">Streaming-Profil</div>
-              <div className="s-card-status" style={{ color: '#888' }}>{PROFILE_LABELS[currentProfile]}</div>
-            </div>
-          </div>
-          <button className={`s-card-action ${expanded === 'profile' ? 'ghost' : 'primary'}`} onClick={() => toggle('profile')}>
-            {expanded === 'profile' ? '▲' : '▼'}
-          </button>
-        </div>
-        {expanded === 'profile' && (
-          <div className="s-card-body">
-            <div className="s-profile-grid">
-              {PROFILE_KEYS.map(key => (
-                <button key={key} className={`s-profile-btn ${currentProfile === key ? 'active' : ''}`} onClick={async () => {
-                  await apiPost('/settings/set', { key: 'stream_profile', value: key });
-                  applyProfilePreset(key); refetchProfile(); window.location.reload();
-                }}>
-                  {key === 'creative' ? '🎨' : key === 'gaming' ? '🎮' : key === 'coding' ? '💻' : key === 'chatting' ? '🎙️' : '⚙️'} {PROFILE_LABELS[key]}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
 
     </>
   );

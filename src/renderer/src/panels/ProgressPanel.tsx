@@ -1,13 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useApi, apiGet, apiPost, apiPatch, apiDelete, apiFetch, getApiToken, getApiBase } from '../hooks/useApi';
+import React, { useState, useEffect } from 'react';
+import { useApi, apiPost, apiPatch, apiDelete, getApiToken, getApiBase } from '../hooks/useApi';
 import { ProjectItem, StreamState, Milestone } from '../../../shared/types';
 import { useWebSocket } from '../hooks/useWebSocket';
 import ChatCommands from '../components/ChatCommands';
 import { useToast } from '../contexts/ToastContext';
 import EmptyState from '../components/ux/EmptyState';
-import TryThisBadge from '../components/ux/TryThisBadge';
 import { celebrate } from '../components/ux/celebrate';
-import { useFirstTouch } from '../components/ux/useFirstTouch';
 
 const LEVEL_CONFIG_PROGRESS = {
   minor: { emoji: '✨' },
@@ -33,47 +31,12 @@ export default function ProgressPanel() {
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
   const [newTodoText, setNewTodoText] = useState<Record<number, string>>({});
   const [focusItemId, setFocusItemId] = useState<number | null>(null);
-  const firstActivate = useFirstTouch('progress.activate_item');
-  const firstCheck = useFirstTouch('progress.first_todo_checked');
   const [milestonePickerTodo, setMilestonePickerTodo] = useState<number | null>(null);
 
   useWebSocket((event) => {
     if (event.startsWith('progress-')) refetch();
     if (event.startsWith('milestone-')) refetchMilestones();
   });
-
-  // Auto-seed 3 example items on first ever panel-mount when board is empty
-  // (Trello/Notion-Pattern, see docs/archive/specs/2026-04-21-progress-auto-seed-design.md)
-  const triedSeedRef = useRef(false);
-  useEffect(() => {
-    if (loading) return;
-    if (!data) return;
-    if (data.items.length !== 0) return;
-    if (triedSeedRef.current) return;
-
-    triedSeedRef.current = true;
-
-    (async () => {
-      const marker = await apiGet<{ value: string | null }>('/settings/get/progress_seeded_v1');
-      if (marker?.value === 'true') return;
-
-      const res = await apiFetch('/progress/seed-examples', {
-        method: 'POST',
-        body: JSON.stringify({}),
-      });
-
-      if (res.status === 201) {
-        await apiPost('/settings/set', { key: 'progress_seeded_v1', value: 'true' });
-        refetch();
-      } else if (res.status === 409) {
-        // Defensive: items already exist (race), mark as seeded so we don't retry next mount
-        await apiPost('/settings/set', { key: 'progress_seeded_v1', value: 'true' });
-      } else {
-        // Network/server error — silently allow retry on next mount
-        triedSeedRef.current = false;
-      }
-    })();
-  }, [loading, data, refetch]);
 
   // Auto-expand active items that have no sub-todos — guides the user to add some
   useEffect(() => {
@@ -126,10 +89,6 @@ export default function ProgressPanel() {
     });
     if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
     if (next === 'in_progress' && (item.todos || []).length === 0) {
-      if (!firstActivate.seen && !firstActivate.loading) {
-        toast.info(`💡 Füge Sub-Tasks zu „${item.title}" hinzu — sie erscheinen live im Overlay`);
-        firstActivate.markSeen();
-      }
       setFocusItemId(item.id);
     }
     refetch();
@@ -162,11 +121,7 @@ export default function ProgressPanel() {
   const toggleTodo = async (todoId: number, currentDone: number, el?: HTMLElement | null) => {
     const result = await apiPatch(`/progress/todos/${todoId}`, { done: currentDone ? 0 : 1 });
     if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
-    if (currentDone === 0 && !firstCheck.seen && !firstCheck.loading) {
-      if (el) celebrate('check', el);
-      toast.success('Erstes Task erledigt 🎯 — das erscheint live im Overlay.');
-      firstCheck.markSeen();
-    }
+    if (currentDone === 0 && el) celebrate('check', el);
     refetch();
   };
 
@@ -240,10 +195,6 @@ export default function ProgressPanel() {
     });
     if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
     if (targetStatus === 'in_progress' && (item.todos || []).length === 0) {
-      if (!firstActivate.seen && !firstActivate.loading) {
-        toast.info(`💡 Füge Sub-Tasks zu „${item.title}" hinzu — sie erscheinen live im Overlay`);
-        firstActivate.markSeen();
-      }
       setFocusItemId(itemId);
     }
     refetch();
@@ -356,7 +307,6 @@ export default function ProgressPanel() {
                 </div>
               );
             })}
-            <TryThisBadge hint="Füge hier deine erste Sub-Task hinzu" done={!isActive || todos.length > 0}>
               <div className="sub-todo-add">
                 <input
                   ref={el => {
@@ -374,7 +324,6 @@ export default function ProgressPanel() {
                 />
                 <button onClick={() => addTodo(item.id)}>+</button>
               </div>
-            </TryThisBadge>
           </div>
         )}
       </div>

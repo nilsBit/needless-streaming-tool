@@ -34,15 +34,6 @@ function migrateDashboardToLive(layout: DashboardLayout): boolean {
   }
 }
 
-function getCurrentProfile(): string {
-  try {
-    const stored = localStorage.getItem('stream_profile');
-    return stored || 'all';
-  } catch {
-    return 'all';
-  }
-}
-
 function loadLayout(): DashboardLayout {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -69,81 +60,20 @@ function saveLayout(layout: DashboardLayout): void {
   apiPost('/settings/set', { key: 'ui.dashboard_layout', value: JSON.stringify(layout) });
 }
 
-// --- Stream Profile Presets ---
-const ALL_DASHBOARD_PANELS = ['challenge', 'issues', 'clips', 'designs', 'song', 'rewardstats', 'obs'];
-const ALL_PROJECT_PANELS = ['progress', 'milestones'];
-
-interface ProfileLayout {
+// Defaults for a tab that has no saved layout yet, and the target of reset().
+interface TabDefault {
   hero: string;
   open: string[];
   hidden: string[];
 }
 
-const PROFILE_LAYOUT: Record<string, { dashboard: ProfileLayout; projekt: ProfileLayout }> = {
-  creative: {
-    dashboard: { hero: 'challenge', open: ['song'], hidden: ['issues', 'clips', 'rewardstats', 'obs'] },
-    projekt: { hero: 'progress', open: ['milestones'], hidden: [] },
-  },
-  gaming: {
-    dashboard: { hero: 'challenge', open: ['issues', 'song'], hidden: ['designs', 'clips', 'rewardstats'] },
-    projekt: { hero: 'progress', open: [], hidden: ['milestones'] },
-  },
-  coding: {
-    dashboard: { hero: 'challenge', open: ['issues'], hidden: ['designs', 'clips', 'rewardstats'] },
-    projekt: { hero: 'progress', open: ['milestones'], hidden: [] },
-  },
-  chatting: {
-    dashboard: { hero: 'designs', open: ['challenge', 'song'], hidden: ['issues', 'clips', 'rewardstats', 'obs'] },
-    projekt: { hero: 'progress', open: [], hidden: ['milestones'] },
-  },
-  all: {
-    dashboard: { hero: 'challenge', open: ALL_DASHBOARD_PANELS.filter(k => k !== 'challenge'), hidden: [] },
-    projekt: { hero: 'progress', open: ['milestones'], hidden: [] },
-  },
+const DEFAULT_LAYOUT: Record<string, TabDefault> = {
+  live: { hero: 'challenge', open: ['issues', 'song'], hidden: ['designs', 'clips', 'rewardstats'] },
+  projekt: { hero: 'progress', open: [], hidden: ['milestones'] },
 };
-
-export const PROFILE_KEYS = ['creative', 'gaming', 'coding', 'chatting', 'all'] as const;
-export type ProfileKey = typeof PROFILE_KEYS[number];
-
-export function applyProfilePreset(profile: string): void {
-  const preset = PROFILE_LAYOUT[profile] || PROFILE_LAYOUT['all'];
-  const layout: DashboardLayout = loadLayout();
-
-  // Dashboard
-  const dashProfile = preset.dashboard;
-  const dashOpen = new Set(dashProfile.open);
-  const dashHidden = new Set(dashProfile.hidden);
-  const dashCollapsed = ALL_DASHBOARD_PANELS.filter(
-    k => k !== dashProfile.hero && !dashOpen.has(k) && !dashHidden.has(k)
-  );
-  layout['dashboard'] = {
-    order: layout['dashboard']?.order || [...ALL_DASHBOARD_PANELS],
-    hidden: dashProfile.hidden,
-    hero: dashProfile.hero,
-    collapsed: dashCollapsed,
-  };
-
-  // Projekt
-  const projProfile = preset.projekt;
-  const projOpen = new Set(projProfile.open);
-  const projHidden = new Set(projProfile.hidden);
-  const projCollapsed = ALL_PROJECT_PANELS.filter(
-    k => k !== projProfile.hero && !projOpen.has(k) && !projHidden.has(k)
-  );
-  layout['projekt'] = {
-    order: layout['projekt']?.order || [...ALL_PROJECT_PANELS],
-    hidden: projProfile.hidden,
-    hero: projProfile.hero,
-    collapsed: projCollapsed,
-  };
-
-  saveLayout(layout);
-  localStorage.setItem('stream_profile', profile);
-}
 
 export function useDashboardLayout(tabKey: string, defaultPanelKeys: string[]) {
   const [layout, setLayout] = useState<DashboardLayout>(loadLayout);
-  const currentProfile = getCurrentProfile();
 
   useEffect(() => {
     apiGet<{ value: string | null }>('/settings/get/ui.dashboard_layout').then((res) => {
@@ -171,12 +101,9 @@ export function useDashboardLayout(tabKey: string, defaultPanelKeys: string[]) {
 
   const getTabLayout = useCallback((): TabLayout => {
     const saved = layout[tabKey];
-    const profileKey = currentProfile || 'all';
-    const tabProfile = tabKey === 'projekt'
-      ? PROFILE_LAYOUT[profileKey]?.projekt
-      : PROFILE_LAYOUT[profileKey]?.dashboard;
-    // Profiles were built for the old dashboard shape — clamp them to the
-    // new tab's panel keys so live/produktion don't inherit foreign heroes.
+    const tabProfile = DEFAULT_LAYOUT[tabKey];
+    // The defaults name panels from the old dashboard shape — clamp them to
+    // this tab's keys so live/produktion don't inherit a foreign hero.
     const defaultsSet = new Set(defaultPanelKeys);
     const defaultHero = tabProfile?.hero && defaultsSet.has(tabProfile.hero)
       ? tabProfile.hero
@@ -204,7 +131,7 @@ export function useDashboardLayout(tabKey: string, defaultPanelKeys: string[]) {
       hero: saved.hero && validKeys.has(saved.hero) ? saved.hero : defaultHero,
       collapsed: saved.collapsed?.filter(k => validKeys.has(k)) || [],
     };
-  }, [layout, tabKey, defaultPanelKeys, currentProfile]);
+  }, [layout, tabKey, defaultPanelKeys]);
 
   const tabLayout = getTabLayout();
 
@@ -268,10 +195,7 @@ export function useDashboardLayout(tabKey: string, defaultPanelKeys: string[]) {
   }, [getTabLayout, update]);
 
   const reset = useCallback(() => {
-    const profileKey = currentProfile || 'all';
-    const tabProfile = tabKey === 'projekt'
-      ? PROFILE_LAYOUT[profileKey]?.projekt
-      : PROFILE_LAYOUT[profileKey]?.dashboard;
+    const tabProfile = DEFAULT_LAYOUT[tabKey];
     const defaultsSet = new Set(defaultPanelKeys);
     const defaultHero = tabProfile?.hero && defaultsSet.has(tabProfile.hero)
       ? tabProfile.hero
@@ -285,7 +209,7 @@ export function useDashboardLayout(tabKey: string, defaultPanelKeys: string[]) {
       hero: defaultHero,
       collapsed,
     });
-  }, [defaultPanelKeys, tabKey, currentProfile, update]);
+  }, [defaultPanelKeys, tabKey, update]);
 
   return {
     order: visibleOrder,

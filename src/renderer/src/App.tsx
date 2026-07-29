@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import ErrorBoundary from './components/ErrorBoundary';
-import { apiFetch, getApiToken } from './hooks/useApi';
 import { useToast } from './contexts/ToastContext';
 import { useDashboardLayout } from './hooks/useDashboardLayout';
 import ChallengePanel from './panels/ChallengePanel';
