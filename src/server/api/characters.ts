@@ -60,6 +60,15 @@ function firstFileUrl(prop: NotionProps[string] | undefined): string | null {
   return file?.file?.url ?? file?.external?.url ?? null;
 }
 
+/**
+ * Notion's API cannot create real database templates, so the Notion side keeps
+ * a "▸ Vorlage" row per database to duplicate from. Those rows are scaffolding,
+ * not characters, and must never reach the panel or the overlay.
+ */
+function isTemplate(name: string): boolean {
+  return name.trimStart().startsWith('▸');
+}
+
 function toCharacter(page: { id: string; properties?: NotionProps }): Character {
   const props = page.properties ?? {};
   return {
@@ -89,7 +98,7 @@ router.get('/', async (_req, res) => {
       return;
     }
     const data = (await notionRes.json()) as { results?: Array<{ id: string; properties?: NotionProps }> };
-    res.json((data.results ?? []).map(toCharacter));
+    res.json((data.results ?? []).map(toCharacter).filter((c) => !isTemplate(c.name)));
   } catch (err) {
     if (err instanceof Error && err.message === 'no_token') {
       res.status(400).json({ error: 'no_token', message: 'Kein Notion-Token hinterlegt.' });
