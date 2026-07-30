@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
 import { getAutoDetectSetting, setAutoDetectSetting, isSMTCSupported, isSMTCRunning } from '../integrations/smtc';
+import { getActiveCharacter } from './characters';
 
 const router = Router();
 
@@ -134,6 +135,23 @@ const STATIC_TEST_EVENTS: Record<string, { event: string; data: unknown }[]> = {
 
 function getTestEvents(name: string): { event: string; data: unknown }[] {
   if (STATIC_TEST_EVENTS[name]) return STATIC_TEST_EVENTS[name];
+
+  // Preview the character that is actually pinned, so the test shows what will
+  // really be on screen. Falls back to a demo when nothing is picked yet.
+  if (name === 'character') {
+    const active = getActiveCharacter();
+    return [{
+      event: 'character-changed',
+      data: active ?? {
+        id: 'test',
+        name: 'Mila',
+        role: 'Protagonistin',
+        status: 'In Arbeit',
+        summary: 'Introvertierte Grafikdesign-Studentin, die eine Parallelwelt entdeckt.',
+        image: null,
+      },
+    }];
+  }
 
   if (name === 'roulette') {
     const issues = getDb().prepare('SELECT * FROM issues WHERE status = ?').all('open') as Array<{ id: number; title: string }>;
