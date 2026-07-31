@@ -95,6 +95,11 @@ describe('characters', () => {
     expect(active.body.since).toBeNull();
   });
 
+  it('reports a missing database when cycling too', async () => {
+    const res = await request(app).post('/api/characters/cycle').set(auth()).expect(400);
+    expect(res.body.error).toBe('no_database');
+  });
+
   it('still switches characters when Notion cannot be reached', async () => {
     // No token is configured here, so flushing the tracked time fails. Picking
     // the next character must succeed regardless — the stream comes first.

@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Response } from 'express';
 import fs from 'fs';
 import path from 'path';
 import { getDb } from '../db/index';
@@ -89,36 +89,49 @@ function toCharacter(page: { id: string; properties?: NotionProps }): Character 
   };
 }
 
-// GET / — the character list straight from Notion
-router.get('/', async (_req, res) => {
+/** Why the character list could not be produced, in a form routes can map to HTTP. */
+type LoadFailure = { error: string; message?: string; status?: number };
+
+function isFailure(result: Character[] | LoadFailure): result is LoadFailure {
+  return !Array.isArray(result);
+}
+
+/** Reads the Notion database, dropping templates and empty rows. */
+async function loadCharacters(): Promise<Character[] | LoadFailure> {
   const dbId = getSetting('notion_characters_db');
   if (!dbId) {
-    res.status(400).json({ error: 'no_database', message: 'Keine Figuren-Datenbank konfiguriert.' });
-    return;
+    return { error: 'no_database', message: 'Keine Figuren-Datenbank konfiguriert.' };
   }
   try {
     const notionRes = await notionFetch(`/v1/databases/${dbId}/query`, {
       method: 'POST',
       body: JSON.stringify({ page_size: 100 }),
     });
-    if (!notionRes.ok) {
-      res.status(502).json({ error: 'notion_error', status: notionRes.status });
-      return;
-    }
+    if (!notionRes.ok) return { error: 'notion_error', status: notionRes.status };
+
     const data = (await notionRes.json()) as { results?: Array<{ id: string; properties?: NotionProps }> };
-    res.json(
-      (data.results ?? [])
-        .filter(hasName)
-        .map(toCharacter)
-        .filter((c) => !isTemplate(c.name))
-    );
+    return (data.results ?? [])
+      .filter(hasName)
+      .map(toCharacter)
+      .filter((c) => !isTemplate(c.name));
   } catch (err) {
     if (err instanceof Error && err.message === 'no_token') {
-      res.status(400).json({ error: 'no_token', message: 'Kein Notion-Token hinterlegt.' });
-      return;
+      return { error: 'no_token', message: 'Kein Notion-Token hinterlegt.' };
     }
-    res.status(502).json({ error: 'notion_unreachable' });
+    return { error: 'notion_unreachable' };
   }
+}
+
+function sendFailure(res: Response, failure: LoadFailure): void {
+  const status = failure.error === 'no_database' || failure.error === 'no_token' ? 400 : 502;
+  res.status(status).json(failure);
+}
+
+// GET / — the character list straight from Notion
+router.get('/', async (_req, res) => {
+  const result = await loadCharacters();
+  if (isFailure(result)) { sendFailure(res, result); return; }
+  res.json(result);
 });
 
 export const CHARACTER_IMAGE_DIR = getUserDataPath('character-images');
@@ -234,7 +247,17 @@ router.post('/active', async (req, res) => {
     summary: typeof summary === 'string' ? summary : null,
     image: typeof image === 'string' ? image : null,
   };
-  // Bank the time spent on whoever was pinned before switching.
+  res.json({ character: await pin(character) });
+});
+
+/**
+ * Puts a character on the overlay: banks the time spent on the previous one,
+ * caches the portrait, stores the snapshot and tells every listener.
+ *
+ * Shared by the panel (POST /active) and the Stream Deck (POST /cycle) so both
+ * routes behave identically — including the time tracking.
+ */
+async function pin(character: Character): Promise<Character> {
   await flushTrackedTime();
 
   // Notion's signed URL outlives neither a long stream nor a restart.
@@ -245,7 +268,30 @@ router.post('/active', async (req, res) => {
   setSetting('active_character', JSON.stringify(character));
   setSetting('active_character_since', String(Date.now()));
   broadcast('character-changed', character);
-  res.json({ character });
+  return character;
+}
+
+/**
+ * POST /cycle — advance to the next character, wrapping at the end.
+ *
+ * Exists for the Stream Deck, which has one button and no way to pick from a
+ * list. Deliberately takes no arguments: the button needs no configuration and
+ * keeps working when characters are added or removed in Notion.
+ */
+router.post('/cycle', async (_req, res) => {
+  const result = await loadCharacters();
+  if (isFailure(result)) { sendFailure(res, result); return; }
+  if (result.length === 0) {
+    res.status(404).json({ error: 'no_characters' });
+    return;
+  }
+
+  const active = getActiveCharacter();
+  const current = active ? result.findIndex((c) => c.id === active.id) : -1;
+  // Unknown or absent current character starts the cycle at the top.
+  const next = result[(current + 1) % result.length];
+
+  res.json({ character: await pin(next), position: (current + 1) % result.length + 1, total: result.length });
 });
 
 router.delete('/active', async (_req, res) => {

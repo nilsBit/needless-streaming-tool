@@ -10,6 +10,7 @@ import { TodoAction } from './actions/todo.js';
 import { MilestoneAction } from './actions/milestone.js';
 import { CompilePrayAction } from './actions/compile-pray.js';
 import { RouletteAction } from './actions/roulette.js';
+import { CharacterAction } from './actions/character.js';
 
 streamDeck.logger.setLevel(LogLevel.INFO);
 
@@ -21,6 +22,7 @@ streamDeck.actions.registerAction(new TodoAction());
 streamDeck.actions.registerAction(new MilestoneAction());
 streamDeck.actions.registerAction(new CompilePrayAction());
 streamDeck.actions.registerAction(new RouletteAction());
+streamDeck.actions.registerAction(new CharacterAction());
 
 // When user changes global settings manually (from PI advanced section)
 streamDeck.settings.onDidReceiveGlobalSettings<Partial<Settings>>((ev) => {

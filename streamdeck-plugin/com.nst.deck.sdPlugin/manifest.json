@@ -5,7 +5,7 @@
   "Author": "nilsBit",
   "URL": "https://github.com/nilsBit/nst-streamdeck-plugin",
   "Description": "Needless Streaming Tool for world-building streams — Scene Switch, Clips, Lucky Wheel, Challenges, Todos, Milestones and more.",
-  "Version": "1.0.1.0",
+  "Version": "1.1.0.0",
   "CodePath": "bin/plugin.js",
   "Icon": "imgs/plugin-icon",
   "SDKVersion": 2,
@@ -64,9 +64,9 @@
     },
     {
       "UUID": "com.nst.deck.bug",
-      "Name": "Bug Report",
+      "Name": "Loses Ende",
       "Icon": "imgs/actions/bug",
-      "Tooltip": "Create a bug report",
+      "Tooltip": "Offene Frage in der Geschichte festhalten",
       "PropertyInspectorPath": "ui/pi.html",
       "Controllers": [
         "Keypad"
@@ -81,9 +81,9 @@
     },
     {
       "UUID": "com.nst.deck.experiment",
-      "Name": "Experiment",
+      "Name": "Challenge",
       "Icon": "imgs/actions/experiment",
-      "Tooltip": "Control experiment status",
+      "Tooltip": "Challenge-Status setzen",
       "PropertyInspectorPath": "ui/pi.html",
       "Controllers": [
         "Keypad"
@@ -132,9 +132,9 @@
     },
     {
       "UUID": "com.nst.deck.roulette",
-      "Name": "Bug Roulette",
+      "Name": "Glücksrad",
       "Icon": "imgs/actions/roulette",
-      "Tooltip": "Spin the bug roulette",
+      "Tooltip": "Zufälliges loses Ende ziehen",
       "PropertyInspectorPath": "ui/pi.html",
       "Controllers": [
         "Keypad"
@@ -159,6 +159,23 @@
       "States": [
         {
           "Image": "imgs/actions/milestone",
+          "ShowTitle": true,
+          "TitleAlignment": "bottom"
+        }
+      ]
+    },
+    {
+      "UUID": "com.nst.deck.character",
+      "Name": "Figur wechseln",
+      "Icon": "imgs/actions/character",
+      "Tooltip": "Nächste Figur im Story-Overlay anzeigen",
+      "PropertyInspectorPath": "ui/pi.html",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/character",
           "ShowTitle": true,
           "TitleAlignment": "bottom"
         }
