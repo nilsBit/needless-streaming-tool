@@ -47,6 +47,18 @@ A subtask belonging to exactly one Project Item via `parent_id`, optionally link
 **Milestone**:
 A celebrated achievement on the story — a finished chapter, a closed arc — graded `minor`, `major`, or `epic`. Completing one triggers an overlay celebration sized to its grade.
 
+### The world
+
+**Character**:
+Someone in the story being written on stream, as this app shows them: a name, a role, a status and a portrait. Characters are never authored here — this app reads them and puts one on screen.
+
+**Character Source**:
+Where Characters are read from — `notion` or `worldbuilder`, held in `settings.character_source`. Notion is the default and the original. Worldbuilder is the desktop world-building tool on the same machine, read over a loopback HTTP window it calls its "Schaufenster"; it needs no account and is where the world is actually written.
+_Avoid_: Backend, provider, integration.
+
+**Active Character**:
+The one Character currently on the Overlay, stored as a whole snapshot rather than an id so the Overlay keeps rendering when the source is slow or gone. Carries the clock that banks time onto the character.
+
 ### Viewer interaction
 
 **Reward**:

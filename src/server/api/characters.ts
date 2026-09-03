@@ -4,16 +4,24 @@ import path from 'path';
 import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
 import { notionFetch } from './notion-sync';
+import { loadCharactersFromWorld, loadWorld, portraitHeaders } from './worldbuilder';
 import { getUserDataPath } from '../paths';
 
 /**
- * Characters live in Notion, not in this database — Notion is where the story
- * is written, so it stays the source of truth.
+ * Characters are never authored here — they are read from wherever the story
+ * is being written, and one of them is put on screen.
+ *
+ * That used to be Notion by definition. It is now a choice between two sources
+ * (see `character_source`): Notion, and Worldbuilder — the desktop world-builder
+ * on this machine, which needs no account and is where this stream's world
+ * actually gets written. Notion stays the default so an existing setup is
+ * unaffected; the reading half of each source lives behind `loadCharacters()`.
  *
  * The one thing kept locally is the *active* character: a snapshot of what the
  * overlay should show right now. Storing a snapshot rather than an id means the
- * overlay renders without reaching Notion on every request, and keeps showing
- * the right thing if Notion is slow or the token expires mid-stream.
+ * overlay renders without reaching the source on every request, and keeps
+ * showing the right thing if that source goes slow or away mid-stream — a
+ * Notion token expiring, or Worldbuilder simply being closed.
  */
 
 const router = Router();
@@ -96,8 +104,33 @@ function isFailure(result: Character[] | LoadFailure): result is LoadFailure {
   return !Array.isArray(result);
 }
 
-/** Reads the Notion database, dropping templates and empty rows. */
+/**
+ * Where characters come from.
+ *
+ * Notion stays the default so an existing setup keeps behaving exactly as it
+ * did. Worldbuilder is the local alternative: the same world, on this machine,
+ * with no account behind it.
+ */
+type CharacterSource = 'notion' | 'worldbuilder';
+
+function characterSource(): CharacterSource {
+  return getSetting('character_source') === 'worldbuilder' ? 'worldbuilder' : 'notion';
+}
+
+/** Which kind of entry counts as a character over in Worldbuilder. */
+function worldbuilderKind(): string {
+  return getSetting('worldbuilder_art') || 'Figur';
+}
+
+/** The character list from whichever source is configured. */
 async function loadCharacters(): Promise<Character[] | LoadFailure> {
+  return characterSource() === 'worldbuilder'
+    ? loadCharactersFromWorld(worldbuilderKind())
+    : loadFromNotion();
+}
+
+/** Reads the Notion database, dropping templates and empty rows. */
+async function loadFromNotion(): Promise<Character[] | LoadFailure> {
   const dbId = getSetting('notion_characters_db');
   if (!dbId) {
     return { error: 'no_database', message: 'Keine Figuren-Datenbank konfiguriert.' };
@@ -122,16 +155,66 @@ async function loadCharacters(): Promise<Character[] | LoadFailure> {
   }
 }
 
+/**
+ * Something the streamer has to fix (400), or something that is simply not
+ * there right now (503), or a source that answered badly (502).
+ *
+ * Worldbuilder being closed is the middle case on purpose. It is not a
+ * misconfiguration and not a fault — it is a program that is not running, and
+ * starting it is the whole remedy.
+ */
+const NEEDS_CONFIGURATION = ['no_database', 'no_token'];
+const NOT_RIGHT_NOW = ['worldbuilder_not_running', 'worldbuilder_no_world', 'worldbuilder_timeout'];
+
 function sendFailure(res: Response, failure: LoadFailure): void {
-  const status = failure.error === 'no_database' || failure.error === 'no_token' ? 400 : 502;
+  const status = NEEDS_CONFIGURATION.includes(failure.error)
+    ? 400
+    : NOT_RIGHT_NOW.includes(failure.error)
+      ? 503
+      : 502;
   res.status(status).json(failure);
 }
 
-// GET / — the character list straight from Notion
+// GET / — the character list from whichever source is configured
 router.get('/', async (_req, res) => {
   const result = await loadCharacters();
   if (isFailure(result)) { sendFailure(res, result); return; }
   res.json(result);
+});
+
+/**
+ * GET /source — which source is in use, and what it is currently attached to.
+ *
+ * Worth its own route because picking characters out of the wrong world is a
+ * mistake that only shows up on stream. The panel can name the world before
+ * anything goes on screen.
+ */
+router.get('/source', async (_req, res) => {
+  const source = characterSource();
+  if (source !== 'worldbuilder') {
+    res.json({ source, configured: !!getSetting('notion_characters_db') });
+    return;
+  }
+
+  const world = await loadWorld();
+  res.json({
+    source,
+    kind: worldbuilderKind(),
+    world: 'name' in world ? world.name : null,
+    ...('error' in world ? { error: world.error, message: world.message } : {}),
+  });
+});
+
+// POST /source — switch between Notion and Worldbuilder.
+router.post('/source', (req, res) => {
+  const { source, kind } = req.body ?? {};
+  if (source !== 'notion' && source !== 'worldbuilder') {
+    res.status(400).json({ error: 'source_invalid', message: "notion oder worldbuilder." });
+    return;
+  }
+  setSetting('character_source', source);
+  if (typeof kind === 'string' && kind.trim()) setSetting('worldbuilder_art', kind.trim());
+  res.json({ source, kind: worldbuilderKind() });
 });
 
 export const CHARACTER_IMAGE_DIR = getUserDataPath('character-images');
@@ -145,19 +228,24 @@ const EXTENSION_BY_TYPE: Record<string, string> = {
 };
 
 /**
- * Copies a character portrait out of Notion and onto disk.
+ * Copies a character portrait onto disk.
  *
- * Notion's file URLs are signed and expire after about an hour. A pinned
- * character can stay on screen far longer than that, so the snapshot must not
- * point at Notion — by the time a long stream ends, that URL is dead. Returns a
- * local path served by /public/character-image, or null so the caller can fall
- * back to whatever Notion gave us.
+ * Both sources need this, for different reasons. Notion's file URLs are signed
+ * and expire after about an hour, and a pinned character can stay on screen far
+ * longer than that. Worldbuilder's never expire, but they sit behind a token
+ * and refuse cross-origin reads — an overlay in OBS cannot follow one.
+ *
+ * Either way the overlay must end up pointing at this app. Returns a local path
+ * served by /public/character-image, or null so the caller can fall back to
+ * whatever the source gave us.
  */
 async function cachePortrait(characterId: string, url: string): Promise<string | null> {
   const safeId = characterId.replace(/[^a-zA-Z0-9-]/g, '');
   if (!safeId) return null;
   try {
-    const res = await fetch(url);
+    // Worldbuilder wants its token; Notion's signed URL carries its own
+    // credentials and gets no header.
+    const res = await fetch(url, { headers: portraitHeaders(url) });
     if (!res.ok) return null;
     const type = (res.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
     const ext = EXTENSION_BY_TYPE[type];
@@ -260,9 +348,15 @@ router.post('/active', async (req, res) => {
 async function pin(character: Character): Promise<Character> {
   await flushTrackedTime();
 
-  // Notion's signed URL outlives neither a long stream nor a restart.
+  // No source's URL is fit to reach an overlay directly — Notion's expires,
+  // Worldbuilder's needs a token the browser will not send.
   if (character.image) {
-    character.image = (await cachePortrait(character.id, character.image)) ?? character.image;
+    const cached = await cachePortrait(character.id, character.image);
+    // Falling back to the original only helps for Notion, whose URL at least
+    // works for an hour. A Worldbuilder URL an overlay cannot follow would put
+    // a broken image on stream, so it drops to no portrait at all.
+    const fallback = portraitHeaders(character.image) ? null : character.image;
+    character.image = cached ?? fallback;
   }
 
   setSetting('active_character', JSON.stringify(character));
