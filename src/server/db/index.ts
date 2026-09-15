@@ -173,6 +173,45 @@ function runMigrations(from: number, to: number) {
     console.log('[DB] Migrated: added hidden_entry_fields');
   }
 
+  if (from < 20) {
+    // The Lexikon palette (docs/overlay-lexikon-design.md). This has to touch the
+    // stored value, not just the defaults in the overlay files: the config is
+    // applied as an inline style on :root, so it beats every stylesheet. Leaving
+    // it alone would make the redesign invisible.
+    const LEXIKON: Record<string, string> = {
+      '--color-bg': '#0e0c0a',
+      '--color-bg-secondary': '#282018',
+      '--color-bg-opacity': '0.95',
+      '--color-text': '#e1d6c2',
+      '--color-primary': '#f4ead7',
+      '--color-secondary': '#b8a98c',
+      '--color-accent': '#c9a45c',
+      '--font-display': "'Cormorant Garamond', Georgia, serif",
+      '--font-body': "'Source Serif 4', Georgia, serif",
+      '--font-size-base': '15px',
+    };
+
+    const row = db.prepare('SELECT value FROM settings WHERE key = ?').get('overlay_config') as
+      | { value: string }
+      | undefined;
+
+    // Overrides were set per overlay on purpose. Only the global layer is ours.
+    let overrides = {};
+    if (row) {
+      try {
+        overrides = JSON.parse(row.value).overrides ?? {};
+      } catch {
+        overrides = {};
+      }
+    }
+
+    db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run(
+      'overlay_config',
+      JSON.stringify({ global: LEXIKON, overrides }),
+    );
+    console.log('[DB] Migrated: overlay config set to the Lexikon palette');
+  }
+
   // Safety check: ensure experiment_* columns were renamed to challenge_*
   // (can be missed if DB was copied from an older version after migration ran)
   try {
