@@ -30,17 +30,41 @@ Alle Verbindungen richtest du unter **Settings** ein — Twitch, OBS, Notion und
 **Chat-Commands:**
 | Command | Beschreibung |
 |---------|-------------|
+| !befehle | Listet alle Befehle — deine Erklär-Commands zuerst |
 | !challenge | Zeigt aktuelle Challenge |
+| !figur | Zeigt die Figur, die gerade im Overlay ist |
 | !song | Zeigt aktuellen Song |
+| !sr <URL> | Wünscht einen Song (YouTube oder Spotify) |
+| !queue | Zeigt die nächsten Song-Wünsche |
 | !hype | Löst einen Hype Moment aus |
 | !issues | Zeigt offene Einträge |
 | !todo | Zeigt offene Aufgaben |
 | !progress | Zeigt Projekt-Fortschritt |
+| !stats [name] | Zeigt eingelöste Rewards |
 | !vote <option> | Stimme bei Abstimmung ab |
 | !design start/end/status | Chat-Abstimmung |
 | !scene | Listet OBS-Szenen (nur Mods) |
 | !scene <name> | Wechselt OBS-Szene (nur Mods) |
-| !uptime | Zeigt Stream-Laufzeit |`,
+| !uptime | Zeigt Stream-Laufzeit |
+
+Alle Befehle lassen sich unter Settings → Chat Commands umbenennen. Antworten, die länger als eine Chat-Nachricht (500 Zeichen) sind, verteilt der Bot automatisch auf mehrere Nachrichten.`,
+  },
+  {
+    title: 'Erklär-Commands',
+    content: `Erklär-Commands sind Chat-Befehle, deren Antwort du selbst schreibst — für alles, was du sonst in jedem Stream neu erklärst: Worum geht die Story? Wo spielt sie? Was passiert hier?
+
+**Anlegen:** Projekt → Erklär-Commands → „+ Neu“
+- **Befehl:** ein Wort, z. B. !story. Das ! kannst du weglassen.
+- **Text:** was der Chat lesen soll. Darunter siehst du, in wie viele Chat-Nachrichten er aufgeteilt wird — höchstens 3.
+- **Cooldown:** so viele Sekunden antwortet der Befehl nach einer Antwort nicht noch einmal. Mods und du selbst sind davon ausgenommen und starten ihn auch nicht.
+
+**Ausprobieren:** Unten im Panel einen Befehl eintippen, z. B. !befehle — du siehst die Antwort, ohne live zu sein. Getestet wird als Broadcaster, der Cooldown startet also nicht.
+
+**Regeln:**
+- Ein Erklär-Command darf nicht heißen wie ein eingebauter Befehl — auch nicht wie ein umbenannter.
+- Ausgeschaltete Befehle antworten nicht und stehen nicht in !befehle.
+- !befehle nennt deine Erklär-Commands zuerst, danach die eingebauten, die Zuschauer benutzen können.
+- Erklär-Commands sind im Backup enthalten.`,
   },
   {
     title: 'OBS verbinden',
@@ -177,6 +201,8 @@ Das Template unter /overlay/_template/index.html enthält:
 
 **Projekt Tab:**
 - **Progress Tracker** — Verfolge den Fortschritt deines Projekts
+- **Figuren** — Eine Figur im Overlay zeigen
+- **Erklär-Commands** — Chat-Befehle mit selbst geschriebenem Text, z. B. !story
 - **Milestones** — Achievement-System (Minor, Major, Epic)
 - **Todos** — Aufgabenliste für den Stream
 
@@ -204,6 +230,11 @@ Auth-Header: Authorization: Bearer <token>
 **Stream State:**
 - GET /api/stream-state
 - PATCH /api/stream-state
+
+**Erklär-Commands:**
+- GET /api/text-commands — POST /api/text-commands — PATCH /api/text-commands/:id — DELETE /api/text-commands/:id
+- POST /api/text-commands/preview — { response } → wie der Text im Chat ankommt
+- POST /api/text-commands/try — { message, as?: "viewer" } → was der Chat antworten würde
 
 **Issues:**
 - GET /api/issues — POST /api/issues — PATCH /api/issues/:id — DELETE /api/issues/:id

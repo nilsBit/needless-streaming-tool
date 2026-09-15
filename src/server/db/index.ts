@@ -134,6 +134,18 @@ function runMigrations(from: number, to: number) {
     console.log('[DB] Migrated: added performance indexes');
   }
 
+  if (from < 17) {
+    db.exec(`CREATE TABLE IF NOT EXISTS text_commands (
+      id               INTEGER PRIMARY KEY AUTOINCREMENT,
+      trigger          TEXT NOT NULL UNIQUE,
+      response         TEXT NOT NULL,
+      cooldown_seconds INTEGER NOT NULL DEFAULT 30,
+      enabled          INTEGER NOT NULL DEFAULT 1,
+      created_at       DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
+    console.log('[DB] Migrated: added text_commands table');
+  }
+
   // Safety check: ensure experiment_* columns were renamed to challenge_*
   // (can be missed if DB was copied from an older version after migration ran)
   try {

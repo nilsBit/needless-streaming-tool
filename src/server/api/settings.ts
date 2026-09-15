@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { getBotConfig, saveBotConfig } from '../bot/config';
 import { connectBot, disconnectBot, getBotStatus } from '../bot/index';
+import { getCommandNames, normalizeTrigger } from '../bot/command-names';
 import { BotConfig } from '../../shared/types';
 import { getFixedToken } from '../auth-token';
 import { getDb } from '../db/index';
@@ -267,17 +268,9 @@ router.post('/batch', (req, res) => {
   res.json({ success: true });
 });
 
-// Custom command names
+// Built-in command names — renaming changes the trigger, never the key
 router.get('/commands', (_req, res) => {
-  const row = getDb().prepare('SELECT value FROM settings WHERE key = ?').get('custom_commands') as { value: string } | undefined;
-  const defaults: Record<string, string> = {
-    challenge: '!challenge', issues: '!issues', song: '!song', hype: '!hype',
-    uptime: '!uptime', design: '!design', todo: '!todo', progress: '!progress',
-    scene: '!scene', vote: '!vote',
-  };
-  let custom: Record<string, string> = {};
-  if (row?.value) { try { custom = JSON.parse(row.value); } catch {} }
-  res.json({ ...defaults, ...custom });
+  res.json(getCommandNames());
 });
 
 router.post('/commands', (req, res) => {
@@ -287,10 +280,18 @@ router.post('/commands', (req, res) => {
   const cleaned: Record<string, string> = {};
   for (const [key, val] of Object.entries(commands)) {
     if (typeof val === 'string' && val.trim()) {
-      cleaned[key] = val.startsWith('!') ? val.toLowerCase() : `!${val.toLowerCase()}`;
+      cleaned[key] = normalizeTrigger(val);
     }
   }
-  getDb().prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('custom_commands', JSON.stringify(cleaned));
+  // Built-ins are matched first — renamed onto a Text Command, one would silence the other.
+  const db = getDb();
+  for (const trigger of Object.values(cleaned)) {
+    if (db.prepare('SELECT 1 FROM text_commands WHERE trigger = ?').get(trigger)) {
+      res.status(409).json({ error: 'trigger_taken', message: `${trigger} ist schon ein Erklär-Command.` });
+      return;
+    }
+  }
+  db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('custom_commands', JSON.stringify(cleaned));
   res.json({ success: true });
 });
 

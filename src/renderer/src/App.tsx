@@ -16,6 +16,7 @@ import StatsPanel from './panels/StatsPanel';
 import RewardStatsPanel from './panels/RewardStatsPanel';
 import ObsPanel from './panels/ObsPanel';
 import CharactersPanel from './panels/CharactersPanel';
+import TextCommandsPanel from './panels/TextCommandsPanel';
 import logoSvg from './assets/logo.svg';
 
 interface UpdateInfo { version: string; url: string }
@@ -57,6 +58,7 @@ const TABS = {
     panels: [
       { key: 'progress', label: 'Progress Tracker', component: ProgressPanel },
       { key: 'characters', label: 'Figuren', component: CharactersPanel },
+      { key: 'textcommands', label: 'Erklär-Commands', component: TextCommandsPanel },
       { key: 'stats', label: 'Statistiken', component: StatsPanel },
     ],
   },

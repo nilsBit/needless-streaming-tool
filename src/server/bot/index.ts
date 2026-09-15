@@ -1,6 +1,7 @@
 import tmi from 'tmi.js';
 import { getBotConfig } from './config';
 import { registerCommands } from './commands';
+import { sayInParts } from './chat-message';
 import { registerEvents } from './events';
 import { connectEventSub, disconnectEventSub } from './eventsub';
 import { broadcast } from '../websocket/index';
@@ -59,9 +60,7 @@ export function sayInChat(message: string) {
   if (!client || !connected) return;
   const config = getBotConfig();
   if (config?.channel) {
-    client.say(config.channel, message).catch((err: Error) => {
-      console.error('[Bot] Say failed:', err.message);
-    });
+    void sayInParts(client, config.channel, message);
   }
 }
 

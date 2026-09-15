@@ -61,6 +61,10 @@ The one Character currently on the Overlay, stored as a whole snapshot rather th
 
 ### Viewer interaction
 
+**Text Command**:
+A chat command whose reply the streamer wrote in the app — `!story`, `!welt` — stored in `text_commands`, with its own cooldown. Built-in commands compute their reply; a Text Command only ever says what was written. Shown in the app as "Erklär-Commands".
+_Avoid_: Custom command — `custom_commands` already names the streamer's renames of built-in triggers. Also macro, snippet.
+
 **Reward**:
 A Twitch channel-point redemption a viewer has spent points on. `rewards` holds the pending queue, `reward_log` the full history, and `reward_stats` the per-viewer running totals that feed the leaderboard.
 

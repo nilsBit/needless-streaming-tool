@@ -6,37 +6,11 @@ import { changeScene, getScenes } from '../obs/index';
 import { broadcast } from '../websocket/index';
 import { resolveOEmbed, detectSource } from '../api/song-requests';
 import { getActiveCharacter } from '../api/characters';
+import { sayInParts } from './chat-message';
+import { getCommandNames, triggerOf } from './command-names';
+import { answerChatMessage } from './text-commands';
 
 const startTime = Date.now();
-
-// Default command names — can be overridden via settings
-const DEFAULT_COMMANDS: Record<string, string> = {
-  challenge: '!challenge',
-  issues: '!issues',
-  song: '!song',
-  hype: '!hype',
-  uptime: '!uptime',
-  design: '!design',
-  todo: '!todo',
-  progress: '!progress',
-  scene: '!scene',
-  vote: '!vote',
-  sr: '!sr',
-  queue: '!queue',
-  rewardstats: '!stats',
-  character: '!figur',
-};
-
-function getCommandNames(): Record<string, string> {
-  try {
-    const row = getDb().prepare('SELECT value FROM settings WHERE key = ?').get('custom_commands') as { value: string } | undefined;
-    if (row?.value) {
-      const custom = JSON.parse(row.value) as Record<string, string>;
-      return { ...DEFAULT_COMMANDS, ...custom };
-    }
-  } catch {}
-  return { ...DEFAULT_COMMANDS };
-}
 
 function matchCommand(input: string, cmds: Record<string, string>): string | null {
   for (const [key, name] of Object.entries(cmds)) {
@@ -45,12 +19,20 @@ function matchCommand(input: string, cmds: Record<string, string>): string | nul
   return null;
 }
 
+/** Broadcaster and mods — the people allowed to steer the stream from chat. */
+function isPrivileged(tags: { mod?: boolean; badges?: { broadcaster?: string } | null }): boolean {
+  return !!tags.mod || tags.badges?.broadcaster === '1';
+}
+
 export function registerCommands(client: Client) {
   client.on('message', async (channel, tags, message, self) => {
     if (self) return;
     if (!message.startsWith('!')) return;
 
-    const input = message.trim().toLowerCase().split(' ')[0];
+    // Every reply goes out through the splitter, so none can exceed Twitch's limit.
+    const say = (text: string) => void sayInParts(client, channel, text);
+
+    const input = triggerOf(message);
     const cmds = getCommandNames();
     const command = matchCommand(input, cmds);
 
@@ -58,10 +40,10 @@ export function registerCommands(client: Client) {
       case 'challenge': {
         const state = getDb().prepare('SELECT * FROM stream_state WHERE id = 1').get() as StreamState;
         if (!state.challenge_title) {
-          client.say(channel, 'Keine Challenge aktiv.');
+          say('Keine Challenge aktiv.');
         } else {
           const statusEmoji = state.challenge_status === 'in_progress' ? '🔴' : state.challenge_status === 'done' ? '🟢' : state.challenge_status === 'failed' ? '❌' : '⏸️';
-          client.say(channel, `${statusEmoji} Challenge: ${state.challenge_title} [${state.challenge_status}]`);
+          say(`${statusEmoji} Challenge: ${state.challenge_title} [${state.challenge_status}]`);
         }
         break;
       }
@@ -69,10 +51,10 @@ export function registerCommands(client: Client) {
       case 'issues': {
         const bugs = getDb().prepare('SELECT * FROM issues WHERE status = ? ORDER BY created_at DESC LIMIT 5').all('open') as Issue[];
         if (bugs.length === 0) {
-          client.say(channel, 'Keine offenen Issues! 🎉');
+          say('Keine offenen Issues! 🎉');
         } else {
           const list = bugs.map((b, i) => `${i + 1}. ${b.title}`).join(' | ');
-          client.say(channel, `⚠️ Offene Issues (${bugs.length}): ${list}`);
+          say(`⚠️ Offene Issues (${bugs.length}): ${list}`);
         }
         break;
       }
@@ -82,25 +64,25 @@ export function registerCommands(client: Client) {
         if (row?.value) {
           try {
             const d = JSON.parse(row.value) as { title: string; artist?: string };
-            client.say(channel, `🎵 ${d.artist ? d.artist + ' — ' : ''}${d.title}`);
+            say(`🎵 ${d.artist ? d.artist + ' — ' : ''}${d.title}`);
           } catch {
-            client.say(channel, `🎵 ${row.value}`);
+            say(`🎵 ${row.value}`);
           }
         } else {
-          client.say(channel, '🎵 Kein Song aktiv.');
+          say('🎵 Kein Song aktiv.');
         }
         break;
       }
 
       case 'hype': {
         broadcast('compile-pray', { user: tags['display-name'] || tags.username || 'Chat' });
-        client.say(channel, '🙌 HYPE MOMENT!');
+        say('🙌 HYPE MOMENT!');
         break;
       }
 
       case 'uptime': {
         const uptime = Math.floor((Date.now() - startTime) / 1000 / 60);
-        client.say(channel, `⏱️ Stream läuft seit ${uptime} Minuten`);
+        say(`⏱️ Stream läuft seit ${uptime} Minuten`);
         break;
       }
 
@@ -112,34 +94,34 @@ export function registerCommands(client: Client) {
           const duration = parseInt(args[1], 10) || 60;
           const options = args.slice(2);
           if (options.length < 2) {
-            client.say(channel, '❌ Mindestens 2 Optionen: !design start 60 option1 option2 ...');
+            say('❌ Mindestens 2 Optionen: !design start 60 option1 option2 ...');
             break;
           }
           const success = startVote('🗳️ Abstimmung', options, duration);
           if (success) {
-            client.say(channel, `🎨 ABSTIMMUNG! Schreibt !vote <option> — Optionen: ${options.join(', ')} — ${duration}s Zeit!`);
+            say(`🎨 ABSTIMMUNG! Schreibt !vote <option> — Optionen: ${options.join(', ')} — ${duration}s Zeit!`);
           } else {
-            client.say(channel, '❌ Es läuft bereits eine Abstimmung!');
+            say('❌ Es läuft bereits eine Abstimmung!');
           }
         } else if (subCommand === 'end') {
           const result = endVote();
           if (result) {
             const sorted = Object.entries(result.counts).sort((a, b) => b[1] - a[1]);
             const resultText = sorted.map(([opt, count]) => `${opt}: ${count}`).join(' | ');
-            client.say(channel, `🎨 ERGEBNIS: ${resultText} — Gewinner: ${result.winner} 🏆`);
+            say(`🎨 ERGEBNIS: ${resultText} — Gewinner: ${result.winner} 🏆`);
           } else {
-            client.say(channel, '❌ Keine aktive Abstimmung.');
+            say('❌ Keine aktive Abstimmung.');
           }
         } else if (subCommand === 'status') {
           const vote = getActiveVote();
           if (vote) {
             const countsText = vote.options.map((o) => `${o}: ${vote.counts[o] || 0}`).join(' | ');
-            client.say(channel, `🎨 Abstimmung: ${countsText} — noch ${vote.remaining}s`);
+            say(`🎨 Abstimmung: ${countsText} — noch ${vote.remaining}s`);
           } else {
-            client.say(channel, '❌ Keine aktive Abstimmung.');
+            say('❌ Keine aktive Abstimmung.');
           }
         } else {
-          client.say(channel, '🎨 Befehle: !design start <sekunden> <opt1> <opt2> ... | !design end | !design status');
+          say('🎨 Befehle: !design start <sekunden> <opt1> <opt2> ... | !design end | !design status');
         }
         break;
       }
@@ -147,15 +129,15 @@ export function registerCommands(client: Client) {
       case 'todo': {
         const activeItem = getDb().prepare('SELECT * FROM project_items WHERE status = ?').get('in_progress') as { id: number; title: string } | undefined;
         if (!activeItem) {
-          client.say(channel, '📋 Kein aktives Feature.');
+          say('📋 Kein aktives Feature.');
           break;
         }
         const todos = getDb().prepare('SELECT * FROM todos WHERE parent_id = ? AND done = 0 ORDER BY sort_order ASC').all(activeItem.id) as Array<{ title: string }>;
         if (todos.length === 0) {
-          client.say(channel, `📋 ${activeItem.title} — Alle Aufgaben erledigt! 🎉`);
+          say(`📋 ${activeItem.title} — Alle Aufgaben erledigt! 🎉`);
         } else {
           const list = todos.map((td, i) => `${i + 1}. ${td.title}`).join(' | ');
-          client.say(channel, `📋 ${activeItem.title}: ${list}`);
+          say(`📋 ${activeItem.title}: ${list}`);
         }
         break;
       }
@@ -166,26 +148,25 @@ export function registerCommands(client: Client) {
         const done = items.filter((i) => i.status === 'done').length;
         const total = items.length;
         const name = state?.project_name || 'Kein Projekt';
-        client.say(channel, `📊 ${name} — ${done}/${total} Features fertig`);
+        say(`📊 ${name} — ${done}/${total} Features fertig`);
         break;
       }
 
       case 'character': {
         const active = getActiveCharacter();
         if (!active) {
-          client.say(channel, '👥 Gerade wird an keiner Figur gearbeitet.');
+          say('👥 Gerade wird an keiner Figur gearbeitet.');
           break;
         }
         const role = active.role ? ` (${active.role})` : '';
         const summary = active.summary ? ` — ${active.summary}` : '';
-        client.say(channel, `👥 ${active.name}${role}${summary}`);
+        say(`👥 ${active.name}${role}${summary}`);
         break;
       }
 
       case 'scene': {
-        const isMod = tags.mod || tags.badges?.broadcaster === '1';
-        if (!isMod) {
-          client.say(channel, '❌ Nur Mods und Broadcaster können Szenen wechseln!');
+        if (!isPrivileged(tags)) {
+          say('❌ Nur Mods und Broadcaster können Szenen wechseln!');
           break;
         }
 
@@ -193,18 +174,18 @@ export function registerCommands(client: Client) {
         if (!sceneName) {
           const scenes = await getScenes();
           if (scenes.length > 0) {
-            client.say(channel, `🎬 Verfügbare Szenen: ${scenes.join(', ')}`);
+            say(`🎬 Verfügbare Szenen: ${scenes.join(', ')}`);
           } else {
-            client.say(channel, '❌ OBS nicht verbunden oder keine Szenen gefunden.');
+            say('❌ OBS nicht verbunden oder keine Szenen gefunden.');
           }
           break;
         }
 
         const result = await changeScene(sceneName);
         if (result.success) {
-          client.say(channel, `🎬 Scene gewechselt zu: ${sceneName}`);
+          say(`🎬 Scene gewechselt zu: ${sceneName}`);
         } else {
-          client.say(channel, `❌ Scene-Wechsel fehlgeschlagen: ${result.error || 'Unbekannter Fehler'}`);
+          say(`❌ Scene-Wechsel fehlgeschlagen: ${result.error || 'Unbekannter Fehler'}`);
         }
         break;
       }
@@ -213,16 +194,16 @@ export function registerCommands(client: Client) {
         const option = message.trim().split(/\s+/).slice(1).join(' ');
         const username = tags['display-name'] || tags.username || 'anon';
         if (!option) {
-          client.say(channel, '❌ Schreib !vote <option>');
+          say('❌ Schreib !vote <option>');
           break;
         }
         const success = castVote(username, option);
         if (!success) {
           const vote = getActiveVote();
           if (!vote) {
-            client.say(channel, '❌ Keine aktive Abstimmung.');
+            say('❌ Keine aktive Abstimmung.');
           } else {
-            client.say(channel, `❌ Ungültige Option. Wähle: ${vote.options.join(', ')}`);
+            say(`❌ Ungültige Option. Wähle: ${vote.options.join(', ')}`);
           }
         }
         break;
@@ -232,12 +213,12 @@ export function registerCommands(client: Client) {
         const url = message.trim().split(/\s+/)[1];
         const username = tags['display-name'] || tags.username || 'anon';
         if (!url) {
-          client.say(channel, '❌ Benutzung: !sr <YouTube oder Spotify URL>');
+          say('❌ Benutzung: !sr <YouTube oder Spotify URL>');
           break;
         }
         const source = detectSource(url);
         if (!source) {
-          client.say(channel, '❌ Nur YouTube- und Spotify-Links erlaubt.');
+          say('❌ Nur YouTube- und Spotify-Links erlaubt.');
           break;
         }
         try {
@@ -246,21 +227,21 @@ export function registerCommands(client: Client) {
           const max = parseInt(maxRow?.value || '2', 10);
           const count = db.prepare("SELECT COUNT(*) as c FROM song_requests WHERE requested_by = ? AND status = 'pending'").get(username) as { c: number };
           if (count.c >= max) {
-            client.say(channel, `❌ Du hast bereits ${max} Songs in der Queue, @${username}.`);
+            say(`❌ Du hast bereits ${max} Songs in der Queue, @${username}.`);
             break;
           }
           const meta = await resolveOEmbed(url);
           if (!meta) {
-            client.say(channel, '❌ Konnte den Song nicht laden.');
+            say('❌ Konnte den Song nicht laden.');
             break;
           }
           db.prepare('INSERT INTO song_requests (url, title, artist, source, requested_by) VALUES (?, ?, ?, ?, ?)').run(url, meta.title, meta.artist, meta.source, username);
           const pos = db.prepare("SELECT COUNT(*) as c FROM song_requests WHERE status = 'pending'").get() as { c: number };
           broadcast('sr-update', {});
-          client.say(channel, `🎵 "${meta.title}" von @${username} zur Queue hinzugefügt (Position ${pos.c})`);
+          say(`🎵 "${meta.title}" von @${username} zur Queue hinzugefügt (Position ${pos.c})`);
         } catch (err) {
           console.error('[SR] Error:', err);
-          client.say(channel, '❌ Konnte den Song nicht laden.');
+          say('❌ Konnte den Song nicht laden.');
         }
         break;
       }
@@ -269,10 +250,10 @@ export function registerCommands(client: Client) {
         const db = getDb();
         const pending = db.prepare("SELECT title, requested_by FROM song_requests WHERE status = 'pending' ORDER BY created_at ASC LIMIT 3").all() as Array<{ title: string; requested_by: string }>;
         if (pending.length === 0) {
-          client.say(channel, '🎵 Die Queue ist leer. Requeste mit !sr <URL>');
+          say('🎵 Die Queue ist leer. Requeste mit !sr <URL>');
         } else {
           const list = pending.map((s, i) => `${i + 1}. "${s.title}" (@${s.requested_by})`).join(' | ');
-          client.say(channel, `🎵 Queue: ${list}`);
+          say(`🎵 Queue: ${list}`);
         }
         break;
       }
@@ -286,13 +267,21 @@ export function registerCommands(client: Client) {
         ).all(target.toLowerCase()) as Array<{ reward_type: string; count: number }>;
 
         if (byType.length === 0) {
-          client.say(channel, `@${target} hat noch keine Rewards eingelöst.`);
+          say(`@${target} hat noch keine Rewards eingelöst.`);
           break;
         }
 
         const total = byType.reduce((sum, r) => sum + r.count, 0);
         const breakdown = byType.map(r => `${r.reward_type}: ${r.count}`).join(', ');
-        client.say(channel, `@${target} — ${total} Rewards gesamt (${breakdown})`);
+        say(`@${target} — ${total} Rewards gesamt (${breakdown})`);
+        break;
+      }
+
+      // `!befehle` and every Text Command: the same path the app's "try it" box takes.
+      case 'commands':
+      default: {
+        const answer = answerChatMessage(message, isPrivileged(tags));
+        for (const reply of answer.replies ?? []) say(reply);
         break;
       }
     }
