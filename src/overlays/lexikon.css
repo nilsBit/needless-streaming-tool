@@ -18,9 +18,14 @@
   --font-body: 'Source Serif 4', Georgia, serif;
   --font-size-base: 15px;
 
-  --lex-frame: color-mix(in srgb, var(--color-primary) 20%, transparent);
-  --lex-frame-inner: color-mix(in srgb, var(--color-primary) 8%, transparent);
-  --lex-rule: color-mix(in srgb, var(--color-primary) 15%, transparent);
+  /* The card's ornament tone. Deliberately literal and not configurable: it is
+     warmer than --color-primary (#f4ead7), and deriving the frame from that
+     shifted the hairline ~15% in blue, turning gold into neutral. */
+  --lex-parchment: #e9d6b2;
+
+  --lex-frame: color-mix(in srgb, var(--lex-parchment) 20%, transparent);
+  --lex-frame-inner: color-mix(in srgb, var(--lex-parchment) 8%, transparent);
+  --lex-rule: color-mix(in srgb, var(--lex-parchment) 15%, transparent);
   --lex-soft: color-mix(in srgb, var(--color-text) 82%, var(--color-bg));
   --lex-faint: color-mix(in srgb, var(--color-text) 60%, var(--color-bg));
 
