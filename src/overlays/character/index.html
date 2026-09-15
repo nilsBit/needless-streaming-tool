@@ -16,6 +16,13 @@
     :root {
       --lex-width: 720px;
       --lex-kicker: 'Lexikon';
+      /* Hand-picked in the original card and not reproducible by mixing
+         --color-text toward --color-bg: the required ratio differs per channel
+         (89/83/72), so the tone sits off that line. Pinned here to keep the
+         card true to the design agreed in #19. Other overlays keep the derived
+         values from lexikon.css, which do follow the configured text colour. */
+      --lex-soft: #c9b48f;
+      --lex-faint: #9d8f76;
     }
 
     .slot {
