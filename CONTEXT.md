@@ -68,7 +68,7 @@ _Avoid_: Active Character, except in the older routes and the `character-changed
 What the Overlay shows of the Active Entry, in the "Lexikon" style: title, alias and role, a short description, a few facts, the world's name and the Reifegrad. Built on the server and sent as `entry-changed`, so a Hidden Field never reaches a browser source.
 
 **Hidden Field**:
-A part of one Entry the streamer switched off for stream, typically a spoiler. Stored per Entry and field name in `hidden_entry_fields`; `@text`, `@aliases` and `@image` stand for the parts that are not fields. Honoured by the Entry Card and by Lookup Commands alike.
+A part of one Entry the streamer switched off for stream, typically a spoiler. Stored per Entry and field name in `hidden_entry_fields`; `@text`, `@aliases`, `@image` and `@rel:<label>` stand for the parts that are not fields. Honoured by the Entry Card and by Lookup Commands alike.
 _Avoid_: Private field, secret.
 
 **Follow Mode**:

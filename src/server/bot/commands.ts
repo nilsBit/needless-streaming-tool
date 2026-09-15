@@ -9,8 +9,6 @@ import { sayInParts } from './chat-message';
 import { getCommandNames, triggerOf } from './command-names';
 import { answerChatMessage } from './chat-answers';
 
-const startTime = Date.now();
-
 function matchCommand(input: string, cmds: Record<string, string>): string | null {
   for (const [key, name] of Object.entries(cmds)) {
     if (input === name) return key;
@@ -76,12 +74,6 @@ export function registerCommands(client: Client) {
       case 'hype': {
         broadcast('compile-pray', { user: tags['display-name'] || tags.username || 'Chat' });
         say('🙌 HYPE MOMENT!');
-        break;
-      }
-
-      case 'uptime': {
-        const uptime = Math.floor((Date.now() - startTime) / 1000 / 60);
-        say(`⏱️ Stream läuft seit ${uptime} Minuten`);
         break;
       }
 
@@ -264,7 +256,7 @@ export function registerCommands(client: Client) {
         break;
       }
 
-      // `!befehle`, Text Commands and Lookup Commands: the same path the app's "try it" box takes.
+      // `!befehle`, `!uptime`, Text Commands and Lookup Commands: the same path the app's "try it" box takes.
       case 'commands':
       default: {
         const answer = await answerChatMessage(message, isPrivileged(tags));

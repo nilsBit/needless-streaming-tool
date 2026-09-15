@@ -33,6 +33,11 @@ const WORLD = [
     id: 'e-aldric', titel: 'Aldric', art: 'Figur', reifegrad: 'Kanon', zweitnamen: ['Sturmklinge'], text: 'Lange Vorgeschichte.',
     werte: { Rolle: 'Protagonist', Alter: '31', Kurzbeschreibung: `Wanderer ohne Erinnerung — ${SPOILER}.`, 'Stärken': 'Zäh', 'Schwächen': 'Vergesslich' },
     hatBild: true,
+    beziehungen: [
+      { bezeichnung: 'gehört zu', gruppe: 'Bindung', text: '', zu: { id: 'e-orden', titel: 'Der Orden', art: 'Fraktion', reifegrad: 'Entwurf' } },
+      { bezeichnung: 'gehört zu', gruppe: 'Bindung', text: '', zu: { id: 'e-alt', titel: 'Alte Gilde', art: 'Fraktion', reifegrad: 'Verworfen' } },
+      { bezeichnung: 'Freund von', gruppe: 'Bindung', text: '', zu: { id: 'e-mila', titel: 'Mila', art: 'Figur', reifegrad: 'Entwurf' } },
+    ],
   },
   { id: 'e-mila', titel: 'Mila', art: 'Figur', reifegrad: 'Entwurf', zweitnamen: [], text: '', werte: { Kurzbeschreibung: 'Kartografin.' }, hatBild: false },
   { id: 'e-saldor', titel: 'Saldor', art: 'Region', reifegrad: 'Idee', zweitnamen: [], text: 'Eine Wüste voller gerader Straßen.', werte: {}, hatBild: false },
@@ -225,6 +230,24 @@ describe('entries', () => {
       const res = await request(app).post('/api/chat/try').set(auth()).send({ message: '!figur aldric' }).expect(200);
       expect(res.body.replies[0]).toContain('Aldric');
       expect(res.body.replies[0]).not.toContain(SPOILER);
+    });
+  });
+
+  describe('relationships', () => {
+    it('shows them grouped by how they read, leaving out discarded entries', async () => {
+      await pin('Figur', 'e-aldric');
+
+      expect((await card())?.relations).toEqual([
+        { name: 'gehört zu', value: 'Der Orden' },
+        { name: 'Freund von', value: 'Mila' },
+      ]);
+    });
+
+    it('hides a relationship just like a field', async () => {
+      await hide('e-aldric', ['@rel:Freund von']);
+      await pin('Figur', 'e-aldric');
+
+      expect((await card())?.relations).toEqual([{ name: 'gehört zu', value: 'Der Orden' }]);
     });
   });
 

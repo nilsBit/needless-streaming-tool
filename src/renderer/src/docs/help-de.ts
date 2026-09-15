@@ -103,7 +103,7 @@ Alle Befehle lassen sich unter Settings → Chat Commands umbenennen. Antworten,
 - **Festpinnen:** Wählst du im Panel einen Eintrag (▶) oder leerst das Overlay, bleibt die Karte stehen, egal was im Worldbuilder offen ist. „Wieder folgen“ — oder der Stream-Deck-Knopf „Karte festpinnen“ — lässt sie wieder folgen, und sie springt sofort zum offenen Eintrag.
 - Funktioniert nur mit Worldbuilder als Quelle. Der Worldbuilder muss das Schaufenster offen haben.
 
-**Was die Karte zeigt:** Titel, Zweitname und Rolle, die Kurzbeschreibung (sonst den Text), bis zu vier weitere Felder, den Namen der Welt und den Reifegrad.
+**Was die Karte zeigt:** Titel, Zweitname und Rolle, die Kurzbeschreibung (sonst den Text), bis zu vier weitere Felder, bis zu zwei Beziehungen („Gehört zu: Die Goldene Hand“), den Namen der Welt und den Reifegrad. Beziehungen zu verworfenen Einträgen erscheinen nicht. Jede Beziehung hat im Panel ihren eigenen 👁-Schalter (↔).
 
 **Umgestalten:** Alle Farben, Schriften und Größen stehen als Variablen oben in der Datei. Über Settings → Overlays lässt sich eine eigene Kopie anlegen.`,
   },
@@ -156,6 +156,9 @@ Konfiguriere Mappings über die API:
 | Milestone | /overlay/milestone/index.html | Achievement-Benachrichtigungen |
 | Alerts | /overlay/alerts/index.html | Raids, Rewards, Events |
 | Song | /overlay/song/index.html | Aktueller Song |
+| Song Queue | /overlay/song-queue/index.html | Aktueller Song und Song-Wünsche |
+| Reward Leaderboard | /overlay/reward-leaderboard/index.html | Wer die meisten Rewards eingelöst hat |
+| Reward Rank Change | /overlay/reward-rankchange/index.html | Einblendung, wenn sich die Rangliste ändert |
 | Todos | /overlay/todos/index.html | Todo-Liste |
 | Poll | /overlay/poll/index.html | Abstimmungen |
 | Roulette | /overlay/roulette/index.html | Glücksrad |
@@ -268,8 +271,10 @@ Auth-Header: Authorization: Bearer <token>
 **Public Endpoints (ohne Auth):**
 - GET /public/stream-state
 - GET /public/issues
-- GET /public/todos
-- GET /public/progress
+- GET /public/progress — Projekt, Items und ihre Todos
+- GET /public/song-queue — aktueller Song und Warteschlange
+- GET /public/reward-stats/top — Rangliste (?type=all&limit=3)
+- GET /public/overlay-config — Farben und Schriften
 - GET /public/entry — die Eintragskarte, ohne ausgeblendete Felder
 - GET /public/character — dieselbe Karte im alten Figuren-Format
 
@@ -298,8 +303,26 @@ Auth-Header: Authorization: Bearer <token>
 **Issues:**
 - GET /api/issues — POST /api/issues — PATCH /api/issues/:id — DELETE /api/issues/:id
 
-**Todos:**
-- GET /api/todos — POST /api/todos — PATCH /api/todos/:id — DELETE /api/todos/:id
+**Progress & Todos:**
+- GET /api/progress — PATCH /api/progress/project — GET /api/progress/export
+- POST /api/progress/items — PATCH /api/progress/items/:id — DELETE /api/progress/items/:id
+- POST /api/progress/items/:id/todos — PATCH /api/progress/todos/:id — DELETE /api/progress/todos/:id
+- GET /api/progress/github — POST /api/progress/github — POST /api/progress/import/github
+
+**Abstimmungen:**
+- GET /api/designs — POST /api/designs — PATCH /api/designs/:id — DELETE /api/designs/:id
+
+**Song-Wünsche:**
+- GET /api/song-requests — POST /api/song-requests/clear
+- POST /api/song-requests/:id/play — POST /api/song-requests/:id/skip — DELETE /api/song-requests/:id
+
+**Reward Stats:**
+- GET /api/reward-stats — GET /api/reward-stats/types — GET /api/reward-stats/log — GET /api/reward-stats/:username
+- POST /api/reward-stats — DELETE /api/reward-stats/:username/:type
+
+**Clip-Tags & Overlay-Farben:**
+- GET /api/clip-tags — POST /api/clip-tags — DELETE /api/clip-tags/:tag
+- GET /api/overlay-config — POST /api/overlay-config — DELETE /api/overlay-config
 
 **Clips:**
 - GET /api/clips — POST /api/clips — PATCH /api/clips/:id — DELETE /api/clips/:id
@@ -353,23 +376,28 @@ Alle Events werden als JSON gesendet: { "event": "name", "data": { ... } }
 - character-changed — dieselbe Karte im alten Figuren-Format (Stream Deck)
 - follow-changed — Worldbuilder folgen an/aus, festgepinnt oder nicht, Wartezeit
 
-**Todos:**
-- todo-created / todo-updated / todo-deleted / todos-cleared
-
-**Progress:**
-- progress-updated / progress-item-created / progress-item-updated / progress-item-deleted
+**Progress & Todos:**
+- progress-update — Projekt-Fortschritt oder Todos geändert
 
 **Milestones:**
 - milestone-trigger / milestone-created / milestone-updated / milestone-deleted
 
 **Clips:**
-- clip-created
+- clip-created / clip-updated / clip-deleted
+- clip-sync-failed — Notion-Sync fehlgeschlagen
+- clip-tags-changed
 
 **Rewards:**
-- reward-redeemed
+- reward-redeemed / reward-updated
+- reward-leaderboard-update — Rangliste geändert
 
-**Voting:**
-- design-vote-started / design-vote-ended
+**Abstimmungen:**
+- poll-update / poll-close / vote-result
+- design-created / design-updated / design-deleted
+
+**Songs:**
+- song-update / song-clear — Now Playing
+- sr-update — Song-Wünsche geändert
 
 **OBS:**
 - obs-status — Verbindungsstatus geändert
@@ -380,8 +408,10 @@ Alle Events werden als JSON gesendet: { "event": "name", "data": { ... } }
 
 **Actions:**
 - compile-pray — Hype Moment ausgelöst
-- roulette-spin / roulette-result — Roulette Events
-- song-update / song-clear — Song Events`,
+- roulette-spin / roulette-result / roulette-cooldown — Glücksrad
+
+**Overlays:**
+- overlay-config — Farben oder Schriften geändert`,
   },
   {
     title: 'Tastenkürzel',

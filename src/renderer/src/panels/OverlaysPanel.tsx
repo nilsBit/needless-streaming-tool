@@ -18,7 +18,7 @@ const FONT_OPTIONS = [
   { value: "'Fira Code', monospace", label: 'Fira Code' },
 ];
 
-const OVERLAY_NAMES = ['challenge', 'todos', 'progress', 'milestone', 'song', 'alerts', 'poll', 'roulette', 'reward-leaderboard', 'reward-rankchange', 'character'];
+const OVERLAY_NAMES = ['challenge', 'todos', 'progress', 'milestone', 'song', 'song-queue', 'alerts', 'poll', 'roulette', 'reward-leaderboard', 'reward-rankchange', 'character'];
 
 const OVERLAY_ICONS: Record<string, string> = {
   challenge: '🎯',
@@ -26,6 +26,7 @@ const OVERLAY_ICONS: Record<string, string> = {
   progress: '📊',
   milestone: '🏆',
   song: '🎵',
+  'song-queue': '📜',
   alerts: '🔔',
   poll: '📊',
   roulette: '🎰',

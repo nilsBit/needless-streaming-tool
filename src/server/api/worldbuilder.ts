@@ -65,12 +65,22 @@ interface EntryListItem {
   reifegrad: string;
 }
 
+/** A relationship as the Schaufenster gives it, read from this entry's side. */
+interface WorldRelation {
+  bezeichnung: string;
+  gruppe: string;
+  text: string;
+  zu: { id: string; titel: string; art: string; reifegrad: string | null };
+}
+
 /** One entry in full. */
 export interface EntryDetail extends EntryListItem {
   zweitnamen: string[];
   text: string;
   werte: Record<string, string>;
   hatBild: boolean;
+  /** Missing from a Worldbuilder whose Schaufenster predates relationships. */
+  beziehungen?: WorldRelation[];
 }
 
 /** An Art of the open world, with the color the streamer gave it there. */
@@ -274,9 +284,26 @@ export function toEntry(
     text: detail.text || null,
     // Field order is the world's order — the Schaufenster sends them sorted.
     fields: Object.entries(detail.werte ?? {}).map(([name, value]) => ({ name, value })),
+    relations: relationsOf(detail.beziehungen ?? []),
     image: extras.image,
     world: extras.world,
   };
+}
+
+/**
+ * Relationships grouped by how they read from this entry — "gehört zu: Der
+ * Orden", "Freund von: Mila, Rafe" — in the order the world gives them.
+ *
+ * A relationship to a discarded entry is left out: Verworfen is not the story,
+ * the same rule Lookup Commands follow.
+ */
+function relationsOf(beziehungen: WorldRelation[]): Entry['fields'] {
+  const grouped = new Map<string, string[]>();
+  for (const beziehung of beziehungen) {
+    if (beziehung.zu.reifegrad === 'Verworfen') continue;
+    grouped.set(beziehung.bezeichnung, [...(grouped.get(beziehung.bezeichnung) ?? []), beziehung.zu.titel]);
+  }
+  return [...grouped].map(([name, titles]) => ({ name, value: titles.join(', ') }));
 }
 
 /**

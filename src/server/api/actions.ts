@@ -193,12 +193,10 @@ function getTestEvents(name: string): { event: string; data: unknown }[] {
     }];
   }
 
-  if (name === 'todos') {
-    return [{ event: 'todo-created', data: {} }];
-  }
-
-  if (name === 'progress') {
-    return [{ event: 'progress-updated', data: {} }];
+  // Both overlays reload /public/progress on this event — the one the server
+  // really sends. The old names (todo-created, progress-updated) do not exist.
+  if (name === 'todos' || name === 'progress') {
+    return [{ event: 'progress-update', data: {} }];
   }
 
   if (name === 'song-queue') {

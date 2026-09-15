@@ -38,6 +38,11 @@ export interface Entry {
   text: string | null;
   /** In the order the world keeps them. */
   fields: EntryField[];
+  /**
+   * Relationships as they read from this entry — "gehört zu: Die Goldene Hand".
+   * Missing from snapshots taken before relationships reached this app.
+   */
+  relations?: EntryField[];
   image: string | null;
   world: string | null;
 }
@@ -55,6 +60,7 @@ export interface EntryCard {
   aliasLine: string | null;
   body: string | null;
   facts: EntryField[];
+  relations: EntryField[];
   image: string | null;
   world: string | null;
 }
@@ -63,6 +69,8 @@ export interface EntryCard {
 export const TEXT = '@text';
 export const ALIASES = '@aliases';
 export const IMAGE = '@image';
+/** Prefix for a relationship label, so "gehört zu" can never collide with a field of that name. */
+export const RELATION = '@rel:';
 
 /** Fields the card gives a place of their own instead of listing them as facts. */
 const ROLE = 'Rolle';
@@ -143,6 +151,7 @@ export function toCard(entry: Entry): EntryCard {
     aliasLine: [aliasText, role].filter(Boolean).join(' · ') || null,
     body: valueOf(SHORT) ?? (hidden.has(TEXT) ? null : entry.text?.trim() || null),
     facts: shown.filter((field) => field.name !== ROLE && field.name !== SHORT),
+    relations: (entry.relations ?? []).filter((relation) => !hidden.has(RELATION + relation.name)),
     image: hidden.has(IMAGE) ? null : entry.image,
     world: entry.world,
   };
@@ -169,6 +178,7 @@ export function characterToEntry(character: Character, source: Entry['source']):
       ...(character.role ? [{ name: ROLE, value: character.role }] : []),
       ...(character.summary ? [{ name: SHORT, value: character.summary }] : []),
     ],
+    relations: [],
     image: character.image,
     world: null,
   };

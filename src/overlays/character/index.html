@@ -124,6 +124,8 @@
   <script>
     /** Facts beyond this many would push the page past a glance. */
     const MAX_FACTS = 4;
+    /** Relationships come after the facts, and only the first few. */
+    const MAX_RELATIONS = 2;
 
     // A glyph for the Arten a world usually has; any other Art gets initials.
     const BOOK = '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"><path d="M6 10 C14 8 20 9 24 13 C28 9 34 8 42 10 V38 C34 36 28 37 24 41 C20 37 14 36 6 38 Z"/><path d="M24 13 V41"/></svg>';
@@ -149,8 +151,14 @@
       return `<div class="seal">${GLYPHS[card.art.toLowerCase()] || esc(initials(card.title))}</div>`;
     }
 
+    /** Relationships read like facts ("Gehört zu"), capitalised the way a lexicon would. */
+    const capitalise = (label) => label.charAt(0).toUpperCase() + label.slice(1);
+
     function render(card) {
-      const facts = card.facts.slice(0, MAX_FACTS);
+      const facts = [
+        ...card.facts.slice(0, MAX_FACTS),
+        ...(card.relations || []).slice(0, MAX_RELATIONS).map((r) => ({ name: capitalise(r.name), value: r.value })),
+      ];
       const maturity = card.maturity ? `Stand: ${card.maturity}` : '';
       return `<div class="card${card.image ? ' has-portrait' : ''}">
         ${seal(card)}

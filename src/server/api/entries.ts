@@ -48,6 +48,12 @@ function readEntry(body: Record<string, unknown> | undefined): Entry | null {
             typeof field?.name === 'string' && typeof field?.value === 'string')
           .map(({ name, value }) => ({ name, value }))
       : [],
+    relations: Array.isArray(body.relations)
+      ? body.relations
+          .filter((relation): relation is { name: string; value: string } =>
+            typeof relation?.name === 'string' && typeof relation?.value === 'string')
+          .map(({ name, value }) => ({ name, value }))
+      : [],
     image: text(body.image),
     world: text(body.world),
   };

@@ -20,37 +20,36 @@
     4. WebSocket verbindet sich IMMER mit: ws://<host>?overlay=1  (via window.__overlayWs)
     5. Daten holen über: <origin>/public/<endpoint>  (via window.__overlayOrigin)
 
-    VERFÜGBARE WEBSOCKET-EVENTS:
-    ┌──────────────────────────────┬─────────────────────────────────────┐
-    │ Event                        │ Beschreibung                        │
-    ├──────────────────────────────┼─────────────────────────────────────┤
-    │ stream-state                 │ Stream-Status geändert              │
-    │ issue-created / issue-updated │ Issue hinzugefügt/geändert          │
-    │ issue-deleted                │ Issue gelöscht                      │
-    │ reward-redeemed              │ Channel Point Reward eingelöst      │
-    │ raid-incoming                │ Raid empfangen                      │
-    │ todo-created / todo-updated  │ Todo hinzugefügt/geändert           │
-    │ todo-deleted / todos-cleared │ Todo gelöscht/alle gelöscht         │
-    │ progress-updated             │ Projekt-Fortschritt geändert        │
-    │ progress-item-*              │ Progress Item CRUD                  │
-    │ milestone-trigger            │ Achievement ausgelöst               │
-    │ song-update / song-clear     │ Song anzeigen/ausblenden            │
-    │ compile-pray                 │ Hype Moment ausgelöst               │
-    │ roulette-spin                │ Roulette dreht sich                 │
-    │ roulette-result              │ Roulette Ergebnis                   │
-    │ design-vote-started          │ Design-Abstimmung gestartet         │
-    │ design-vote-ended            │ Design-Abstimmung beendet           │
-    │ bot-status                   │ Bot verbunden/getrennt              │
-    │ obs-status                   │ OBS verbunden/getrennt              │
-    │ obs-scene-changed            │ OBS Szene gewechselt                │
-    │ clip-created                 │ Clip markiert                       │
-    └──────────────────────────────┴─────────────────────────────────────┘
+    VERFÜGBARE WEBSOCKET-EVENTS (jeweils { event, data }):
+    - stream-state                                Stream-Status oder Challenge geändert
+    - issue-created / issue-updated / issue-deleted   Lose Enden
+    - progress-update                             Projekt-Fortschritt oder Todos geändert
+    - milestone-trigger                           Achievement ausgelöst
+    - milestone-created / milestone-updated / milestone-deleted
+    - entry-changed                               Eintragskarte geändert (oder null)
+    - character-changed                           dieselbe Karte in der alten Figuren-Form
+    - follow-changed                              Worldbuilder folgen / festgepinnt
+    - reward-redeemed / reward-updated            Channel Point Reward eingelöst / erledigt
+    - reward-leaderboard-update                   Rangliste geändert
+    - song-update / song-clear                    Song anzeigen / ausblenden
+    - sr-update                                   Song-Wünsche geändert
+    - poll-update / poll-close / vote-result      Abstimmungen
+    - design-created / design-updated / design-deleted
+    - compile-pray                                Hype Moment ausgelöst
+    - roulette-spin / roulette-result / roulette-cooldown
+    - clip-created / clip-updated / clip-deleted / clip-sync-failed / clip-tags-changed
+    - obs-status / obs-scene-changed
+    - bot-status
+    - overlay-config                              Farben oder Schriften geändert
 
     VERFÜGBARE PUBLIC API ENDPOINTS (kein Token nötig):
-    - GET /public/stream-state   → { challenge_title, challenge_status, ... }
-    - GET /public/issues         → [ { id, title, status, ... }, ... ]
-    - GET /public/todos          → [ { id, title, done, ... }, ... ]
-    - GET /public/progress       → { project_name, items: [...] }
+    - GET /public/stream-state      → { challenge_title, challenge_status, ... }
+    - GET /public/issues            → [ { id, title, status, ... }, ... ]
+    - GET /public/progress          → { project_name, items: [ { ..., todos: [...] } ] }
+    - GET /public/song-queue        → aktueller Song und Warteschlange
+    - GET /public/reward-stats/top  → Rangliste (?type=all&limit=3)
+    - GET /public/entry             → { card } — die Eintragskarte
+    - GET /public/overlay-config    → Farben und Schriften
     Fetch via: fetch(`${window.__overlayOrigin}/public/<endpoint>`)
 
     DESIGN-STYLES:
@@ -197,8 +196,8 @@
     // Passe diese Werte an dein Overlay an.
     // =============================================
     const OVERLAY_NAME = 'MeinOverlay';              // Für Logs
-    const API_ENDPOINT = '/public/todos';             // Welche Daten holen
-    const WS_EVENTS = ['todo-created', 'todo-updated', 'todo-deleted']; // Auf welche Events reagieren
+    const API_ENDPOINT = '/public/issues';            // Welche Daten holen
+    const WS_EVENTS = ['issue-created', 'issue-updated', 'issue-deleted']; // Auf welche Events reagieren
     const POLL_INTERVAL = 10000;                      // Backup-Polling in ms (0 = aus)
 
     // =============================================

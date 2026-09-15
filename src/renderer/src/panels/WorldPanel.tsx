@@ -20,6 +20,7 @@ interface Entry {
   aliases: string[];
   text: string | null;
   fields: EntryField[];
+  relations?: EntryField[];
   image: string | null;
   world: string | null;
   hidden: string[];
@@ -89,6 +90,8 @@ function switchableParts(entry: Entry): Array<{ key: string; label: string; valu
     ...(entry.aliases.length > 0 ? [{ key: ALIASES, label: 'Zweitnamen', value: entry.aliases.join(', ') }] : []),
     ...entry.fields.filter((f) => f.value.trim()).map((f) => ({ key: f.name, label: f.name, value: f.value })),
     ...(entry.text ? [{ key: TEXT, label: 'Text', value: entry.text }] : []),
+    // '@rel:' keeps a relationship label apart from a field of the same name.
+    ...(entry.relations ?? []).map((r) => ({ key: `@rel:${r.name}`, label: `↔ ${r.name}`, value: r.value })),
     ...(entry.image ? [{ key: IMAGE, label: 'Bild', value: 'Porträt' }] : []),
   ];
 }
