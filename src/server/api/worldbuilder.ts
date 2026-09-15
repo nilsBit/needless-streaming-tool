@@ -208,6 +208,56 @@ export async function loadWorldEntries(art: string): Promise<Entry[] | WorldFail
   );
 }
 
+/** The entry open in Worldbuilder right now, as the Schaufenster reports it. */
+export interface WorldFocus {
+  id: string;
+  titel: string;
+  art: string;
+  /** When it was opened, ISO 8601. */
+  seit: string;
+}
+
+/**
+ * What is open in Worldbuilder — `null` when nothing is.
+ *
+ * A Worldbuilder too old to have the route answers 404; that reads as nothing
+ * open rather than as a fault, so following simply never switches.
+ */
+export async function loadFocusFromWorld(): Promise<WorldFocus | null | WorldFailure> {
+  const connection = readConnection();
+  if (!connection) return NOT_RUNNING;
+  try {
+    const res = await get(connection, '/fokus');
+    if (res.status === 503) return NO_WORLD;
+    if (res.status === 404) return null;
+    if (!res.ok) return { error: 'worldbuilder_error', status: res.status };
+    return (await res.json()) as WorldFocus | null;
+  } catch (err) {
+    return asFailure(err);
+  }
+}
+
+/** One entry as an Entry, with its Art's color and the world's name. */
+export async function loadWorldEntry(id: string): Promise<Entry | WorldFailure> {
+  const connection = readConnection();
+  if (!connection) return NOT_RUNNING;
+  try {
+    const res = await get(connection, `/eintrag/${encodeURIComponent(id)}`);
+    if (res.status === 503) return NO_WORLD;
+    if (!res.ok) return { error: 'worldbuilder_error', status: res.status };
+
+    const detail = (await res.json()) as EntryDetail;
+    const [arten, world] = await Promise.all([loadArtenFromWorld(), loadWorld()]);
+    return toEntry(detail, {
+      artColor: Array.isArray(arten) ? (arten.find((a) => a.name === detail.art)?.color ?? null) : null,
+      world: 'name' in world ? world.name : null,
+      image: detail.hatBild ? imageUrl(connection, detail.id) : null,
+    });
+  } catch (err) {
+    return asFailure(err);
+  }
+}
+
 /** A Schaufenster entry as an Entry. The extras live on other routes over there. */
 export function toEntry(
   detail: EntryDetail,

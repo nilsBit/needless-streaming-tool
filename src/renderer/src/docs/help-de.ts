@@ -97,6 +97,12 @@ Alle Befehle lassen sich unter Settings → Chat Commands umbenennen. Antworten,
 - Wirkt sofort, auch wenn die Karte gerade zu sehen ist. Ist die Kurzbeschreibung aus, rückt der Text nach, wenn er an ist.
 - Die Schalter bleiben gespeichert und sind im Backup enthalten.
 
+**Worldbuilder folgen:** Die Karte wechselt von selbst zu dem Eintrag, den du im Worldbuilder öffnest — auf der Karte zählt der Eintrag hinter der gewählten Markierung.
+- Erst wenn ein Eintrag die Wartezeit lang offen bleibt (Standard 3 s), springt die Karte um. Durch eine Liste klicken flackert nicht.
+- Ist nichts mehr offen, bleibt die letzte Karte stehen.
+- **Festpinnen:** Wählst du im Panel einen Eintrag (▶) oder leerst das Overlay, bleibt die Karte stehen, egal was im Worldbuilder offen ist. „Wieder folgen“ — oder der Stream-Deck-Knopf „Karte festpinnen“ — lässt sie wieder folgen, und sie springt sofort zum offenen Eintrag.
+- Funktioniert nur mit Worldbuilder als Quelle. Der Worldbuilder muss das Schaufenster offen haben.
+
 **Was die Karte zeigt:** Titel, Zweitname und Rolle, die Kurzbeschreibung (sonst den Text), bis zu vier weitere Felder, den Namen der Welt und den Reifegrad.
 
 **Umgestalten:** Alle Farben, Schriften und Größen stehen als Variablen oben in der Datei. Über Settings → Overlays lässt sich eine eigene Kopie anlegen.`,
@@ -198,7 +204,7 @@ Das Template unter /overlay/_template/index.html enthält:
   },
   {
     title: 'Stream Deck',
-    content: `Das "NST Deck" Stream Deck Plugin bietet 8 Buttons mit Live-Status.
+    content: `Das "NST Deck" Stream Deck Plugin bietet 10 Buttons mit Live-Status.
 
 **Installation:**
 - Im Toolkit: Settings → Stream Deck → "Plugin jetzt installieren"
@@ -221,6 +227,8 @@ Das Template unter /overlay/_template/index.html enthält:
 | Hype Moment | Hype Moment auslösen | Flash-Animation |
 | Glücksrad | Roulette drehen | Spin-Animation |
 | Milestone | Milestone abschließen | Pending-Anzahl |
+| Figur wechseln | Nächste Figur ins Overlay (pinnt fest) | Name der Figur |
+| Karte festpinnen | Festpinnen oder wieder dem Worldbuilder folgen | Folgt / Festgepinnt / Folgen aus |
 
 **API Token:**
 - Findest du unter Settings → Stream Deck API Token
@@ -274,6 +282,9 @@ Auth-Header: Authorization: Bearer <token>
 - GET /api/entries?art=Figur — alle Einträge einer Art, mit ihren ausgeblendeten Feldern
 - GET /api/entries/active — POST /api/entries/active — DELETE /api/entries/active
 - POST /api/entries/:id/hidden — { fields: ["Kurzbeschreibung", "@text", "@aliases", "@image"] }
+- GET /api/entries/follow — POST /api/entries/follow — { enabled?, held?, settleSeconds? }
+- POST /api/entries/follow/toggle-hold — festpinnen oder wieder folgen (Stream Deck)
+- POST /api/entries/follow/check — einmal in den Worldbuilder schauen und die Karte wechseln, wenn es passt
 - GET /api/characters/source — POST /api/characters/source — { source: "worldbuilder" | "notion" }
 - POST /api/characters/cycle — nächste Figur ins Overlay (Stream Deck)
 
@@ -340,6 +351,7 @@ Alle Events werden als JSON gesendet: { "event": "name", "data": { ... } }
 **Welt:**
 - entry-changed — neue Eintragskarte (oder null), ausgeblendete Felder schon entfernt
 - character-changed — dieselbe Karte im alten Figuren-Format (Stream Deck)
+- follow-changed — Worldbuilder folgen an/aus, festgepinnt oder nicht, Wartezeit
 
 **Todos:**
 - todo-created / todo-updated / todo-deleted / todos-cleared

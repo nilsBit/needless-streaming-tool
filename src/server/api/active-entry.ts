@@ -5,6 +5,7 @@ import { broadcast } from '../websocket/index';
 import { getUserDataPath } from '../paths';
 import { fold } from '../fold';
 import { notionFetch } from './notion-sync';
+import { holdCard } from './follow-state';
 import { portraitHeaders } from './worldbuilder';
 import type { Character } from './characters';
 
@@ -219,10 +220,11 @@ function announce(entry: Entry | null): void {
  * Puts an Entry on the Overlay: banks the time spent on the previous one,
  * copies the portrait locally, stores the snapshot and tells every listener.
  *
- * Shared by the panel, the Stream Deck's cycle button and the older character
- * route, so all of them behave the same — time tracking included.
+ * Shared by the panel, the Stream Deck's cycle button, the older character
+ * route and Follow Mode, so all of them behave the same — time tracking
+ * included. Anything but Follow Mode is a pick by hand, and holds the card.
  */
-export async function pinEntry(entry: Entry): Promise<Entry> {
+export async function pinEntry(entry: Entry, by: 'hand' | 'follow' = 'hand'): Promise<Entry> {
   await flushTrackedTime();
 
   let pinned = entry;
@@ -241,13 +243,16 @@ export async function pinEntry(entry: Entry): Promise<Entry> {
   setSetting('active_entry_since', String(Date.now()));
   getDb().prepare('DELETE FROM settings WHERE key = ?').run('active_character');
   announce(pinned);
+  if (by === 'hand') holdCard();
   return pinned;
 }
 
+/** Clears the Overlay. That is a choice by hand too, and holds the empty card. */
 export async function clearActiveEntry(): Promise<void> {
   await flushTrackedTime();
   getDb().prepare('DELETE FROM settings WHERE key IN (?, ?)').run('active_entry', 'active_character');
   announce(null);
+  holdCard();
 }
 
 /**

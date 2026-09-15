@@ -27,6 +27,7 @@ import songRequestsRouter, { getActiveQueue } from './api/song-requests';
 import charactersRouter from './api/characters';
 import entriesRouter from './api/entries';
 import { activeCard, activeCharacter, CHARACTER_IMAGE_DIR } from './api/active-entry';
+import { startFollowing } from './api/follow';
 import textCommandsRouter from './api/text-commands';
 import lookupCommandsRouter from './api/lookup-commands';
 import chatRouter from './api/chat';
@@ -246,6 +247,8 @@ export async function startServer(): Promise<{ token: string; port: number }> {
       initRewardLeaderboard();
       connectBot().catch(() => {});
       connectObs().catch(() => {});
+      // Follow Mode looks at Worldbuilder once a second — a connection, so here and not in createApp().
+      startFollowing();
 
       // Init auto-clips after bot connects (needs a small delay for bot to be ready)
       setTimeout(() => initAutoClips(), 3000);

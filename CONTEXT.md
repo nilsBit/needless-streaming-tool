@@ -71,6 +71,14 @@ What the Overlay shows of the Active Entry, in the "Lexikon" style: title, alias
 A part of one Entry the streamer switched off for stream, typically a spoiler. Stored per Entry and field name in `hidden_entry_fields`; `@text`, `@aliases` and `@image` stand for the parts that are not fields. Honoured by the Entry Card and by Lookup Commands alike.
 _Avoid_: Private field, secret.
 
+**Follow Mode**:
+The Entry Card switching to whatever entry is open in Worldbuilder (its "Fokus"), once that entry has stayed open for the settle time (`follow_settle_seconds`, 3 by default). The server looks at the Schaufenster once a second; it only runs with Worldbuilder as the Character Source.
+_Avoid_: Auto mode, sync.
+
+**Held Card**:
+A card picked or cleared by hand, which Follow Mode leaves alone until it is released — in the Welt panel or with the Stream Deck's "Karte festpinnen". Stored as `follow_held`. The app shows it as "festgepinnt"; in code, "pin" already means putting an Entry on the Overlay.
+_Avoid_: Locked, frozen.
+
 ### Viewer interaction
 
 **Text Command**:

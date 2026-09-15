@@ -12,11 +12,13 @@ import {
   toCard,
   type Entry,
 } from './active-entry';
+import { followStep } from './follow';
+import { followState, MAX_SETTLE_SECONDS, updateFollow } from './follow-state';
 import { loadArtenFromWorld, loadWorldEntries } from './worldbuilder';
 
 /**
- * Entries: anything in the world, listed by Art, put on the Overlay, and with
- * the per-field switch that keeps spoilers off stream.
+ * Entries: anything in the world, listed by Art, put on the Overlay, with the
+ * per-field switch that keeps spoilers off stream, and Follow Mode.
  */
 
 const router = Router();
@@ -84,6 +86,7 @@ router.get('/active', (_req, res) => {
   res.json({ entry: entry ? withHidden(entry) : null, card: entry ? toCard(entry) : null, since: activeSince() });
 });
 
+// POST /active — a pick by hand, which also holds the card against Follow Mode.
 router.post('/active', async (req, res) => {
   const entry = readEntry(req.body);
   if (!entry) {
@@ -98,6 +101,38 @@ router.delete('/active', async (_req, res) => {
   await clearActiveEntry();
   res.json({ success: true });
 });
+
+// ---------- Follow Mode ----------
+
+router.get('/follow', (_req, res) => {
+  res.json(followState());
+});
+
+// POST /follow — { enabled?, held?, settleSeconds? }
+router.post('/follow', (req, res) => {
+  const { enabled, held, settleSeconds } = req.body ?? {};
+  if ((enabled !== undefined && typeof enabled !== 'boolean') || (held !== undefined && typeof held !== 'boolean')) {
+    res.status(400).json({ error: 'follow_invalid', message: 'enabled und held sind true oder false.' });
+    return;
+  }
+  if (settleSeconds !== undefined && !(Number.isInteger(settleSeconds) && settleSeconds >= 0 && settleSeconds <= MAX_SETTLE_SECONDS)) {
+    res.status(400).json({ error: 'settle_invalid', message: `Die Wartezeit liegt zwischen 0 und ${MAX_SETTLE_SECONDS} Sekunden.` });
+    return;
+  }
+  res.json(updateFollow({ enabled, held, settleSeconds }));
+});
+
+// POST /follow/toggle-hold — the Stream Deck's one button.
+router.post('/follow/toggle-hold', (_req, res) => {
+  res.json(updateFollow({ held: !followState().held }));
+});
+
+// POST /follow/check — one look at Worldbuilder, the same one the server takes every second.
+router.post('/follow/check', async (_req, res) => {
+  res.json(await followStep());
+});
+
+// ---------- Hidden Fields ----------
 
 // POST /:id/hidden — { fields } replaces which parts of this Entry stay off stream.
 router.post('/:id/hidden', (req, res) => {

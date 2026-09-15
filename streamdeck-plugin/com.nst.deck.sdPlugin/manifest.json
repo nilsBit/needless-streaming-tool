@@ -180,6 +180,23 @@
           "TitleAlignment": "bottom"
         }
       ]
+    },
+    {
+      "UUID": "com.nst.deck.pin",
+      "Name": "Karte festpinnen",
+      "Icon": "imgs/actions/pin",
+      "Tooltip": "Die Karte im Overlay festhalten oder wieder dem Worldbuilder folgen lassen",
+      "PropertyInspectorPath": "ui/pi.html",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/pin",
+          "ShowTitle": true,
+          "TitleAlignment": "bottom"
+        }
+      ]
     }
   ]
 }

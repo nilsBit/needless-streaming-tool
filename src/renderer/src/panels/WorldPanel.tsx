@@ -36,6 +36,13 @@ interface SourceInfo {
   world?: string | null;
 }
 
+interface FollowState {
+  enabled: boolean;
+  held: boolean;
+  settleSeconds: number;
+  available: boolean;
+}
+
 interface LoadError {
   error: string;
   message?: string;
@@ -45,6 +52,8 @@ interface LoadError {
 const TEXT = '@text';
 const ALIASES = '@aliases';
 const IMAGE = '@image';
+
+const SETTLE_CHOICES = [0, 1, 2, 3, 5, 8];
 
 function hint(failure: LoadError): string {
   switch (failure.error) {
@@ -96,6 +105,7 @@ export default function WorldPanel() {
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [active, setActive] = useState<Entry | null>(null);
+  const [follow, setFollow] = useState<FollowState | null>(null);
 
   const loadActive = useCallback(async () => {
     const data = await apiGet<{ entry: Entry | null }>('/entries/active');
@@ -106,6 +116,7 @@ export default function WorldPanel() {
     setLoading(true);
     const info = await apiGet<SourceInfo>('/characters/source');
     setSource(info);
+    setFollow(await apiGet<FollowState>('/entries/follow'));
 
     const res = await apiFetch('/entries/arten');
     if (!res.ok) {
@@ -148,8 +159,9 @@ export default function WorldPanel() {
     return () => { cancelled = true; };
   }, [art, reloadKey]);
 
-  useWebSocket((event) => {
+  useWebSocket((event, data) => {
     if (event === 'entry-changed') loadActive();
+    if (event === 'follow-changed') setFollow(data as FollowState);
   });
 
   const refresh = () => {
@@ -166,6 +178,12 @@ export default function WorldPanel() {
     setEntries([]);
     setSelectedId(null);
     refresh();
+  };
+
+  const changeFollow = async (change: Partial<Pick<FollowState, 'enabled' | 'held' | 'settleSeconds'>>) => {
+    const result = await apiPost<FollowState>('/entries/follow', change);
+    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
+    setFollow(result);
   };
 
   const pin = async (entry: Entry) => {
@@ -225,6 +243,41 @@ export default function WorldPanel() {
           <span className="world-source-name">„{source.world}“</span>
         )}
       </div>
+
+      {follow?.available && (
+        <div className={`world-follow ${follow.enabled && !follow.held ? 'following' : ''}`}>
+          <label className="s-checkbox" title="Die Karte wechselt zu dem Eintrag, der im Worldbuilder offen ist">
+            <input
+              type="checkbox"
+              checked={follow.enabled}
+              onChange={(e) => changeFollow({ enabled: e.target.checked })}
+            />{' '}
+            Worldbuilder folgen
+          </label>
+          {follow.enabled && (follow.held ? (
+            <>
+              <span className="world-follow-state">📌 Festgepinnt</span>
+              <button className="btn-export-small" onClick={() => changeFollow({ held: false })}>Wieder folgen</button>
+            </>
+          ) : (
+            <>
+              <span className="world-follow-state">
+                🔗 Folgt nach
+                <select
+                  value={follow.settleSeconds}
+                  onChange={(e) => changeFollow({ settleSeconds: Number(e.target.value) })}
+                  title="So lange muss ein Eintrag offen sein, bevor die Karte wechselt"
+                >
+                  {Array.from(new Set([...SETTLE_CHOICES, follow.settleSeconds])).sort((a, b) => a - b).map((s) => (
+                    <option key={s} value={s}>{s} s</option>
+                  ))}
+                </select>
+              </span>
+              <button className="btn-export-small" onClick={() => changeFollow({ held: true })}>📌 Festpinnen</button>
+            </>
+          ))}
+        </div>
+      )}
 
       {active && (
         <button className="character-active" onClick={() => setSelectedId(active.id)} title="Schalter für diesen Eintrag zeigen">
@@ -291,7 +344,7 @@ export default function WorldPanel() {
                   {e.maturity && <span className="character-row-role">{e.maturity}</span>}
                   <button
                     className="btn-export-small"
-                    title="Ins Overlay"
+                    title="Ins Overlay — und festpinnen"
                     onClick={(ev) => { ev.stopPropagation(); pin(e); }}
                   >
                     ▶
