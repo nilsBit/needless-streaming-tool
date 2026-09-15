@@ -39,6 +39,14 @@ describe('overlay config after the Lexikon migration', () => {
     const res = await request(app).get('/public/overlay-config').expect(200);
     expect(res.body.overrides.song['--color-accent']).toBe('#ff0000');
   });
+
+  it('serves the shared overlay assets without a token', async () => {
+    const js = await request(app).get('/overlay/boot.js').expect(200);
+    expect(js.text).toContain('__applyOverlayConfig');
+
+    const css = await request(app).get('/overlay/lexikon.css').expect(200);
+    expect(css.text).toContain('--lex-rule');
+  });
 });
 
 describe('overlay config migration from a pre-Lexikon database', () => {
