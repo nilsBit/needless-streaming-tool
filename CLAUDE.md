@@ -113,8 +113,15 @@ avoid — it fails on the occupied port and leaves a dead Electron window behind
 **Always check first:**
 
 ```bash
+# macOS / Linux
 lsof -nP -iTCP:4000 -sTCP:LISTEN   # Express
 lsof -nP -iTCP:5173 -sTCP:LISTEN   # Vite
+```
+
+```powershell
+# Windows — there is no lsof
+Get-NetTCPConnection -LocalPort 4000 -State Listen -ErrorAction SilentlyContinue
+Get-NetTCPConnection -LocalPort 5173 -State Listen -ErrorAction SilentlyContinue
 ```
 
 - Either port in use → the app is up. Use it. Do **not** start another one.

@@ -82,10 +82,11 @@ Rechner kopiert werden.
 **Offen (GitHub Issues)**
 
 - **#11** Installieren-Knopf fürs Stream-Deck-Plugin: Der Fix ist drin
-  (`40fe0bd`), es fehlt nur die Kontrolle an einem gepackten Build:
+  (`40fe0bd`), es fehlt nur die Kontrolle an einem gepackten Build. Unter macOS
   `npm run build:mac`, dann prüfen, ob
   `release/mac-arm64/Needless Streaming Tool.app/Contents/Resources/assets/`
-  die Plugin-Datei enthält.
+  die Plugin-Datei enthält. Unter Windows `npm run build:win` und
+  `release/win-unpacked/resources/assets/`.
 - **#10** Hardware-Test am echten Stream Deck, inklusive „Karte festpinnen“.
 - **#22** Die Tests sind zweimal unter hoher Last gewackelt — Ursache offen.
 
@@ -123,10 +124,14 @@ optional die GitHub CLI (`gh`), OBS mit aktiviertem WebSocket-Server.
 git clone https://github.com/nilsBit/needless-streaming-tool.git stream-toolkit
 cd stream-toolkit
 npm install
-npm --prefix streamdeck-plugin install
+(cd streamdeck-plugin && npm install)
 npm run build:plugin      # baut das Stream-Deck-Plugin für den Installieren-Knopf
 npm run dev
 ```
+
+Das `cd` ist nicht bloß Geschmackssache: `npm --prefix streamdeck-plugin install`
+aus dem Wurzelverzeichnis trägt mit npm 10.3 das Hauptprojekt als Abhängigkeit
+`"needless-streaming-tool": "file:.."` in `streamdeck-plugin/package.json` ein.
 
 Die Einstellungen liegen in `data/stream.db` und sind **nicht** im Repo —
 Erklär-Commands, Nachschlage-Commands, Spoiler-Schalter, Settings. Zum Umziehen
@@ -147,6 +152,28 @@ pnpm dev
 Dann die `.welt`-Datei öffnen und unter *Verwalten* das Schaufenster öffnen.
 Eine Welt aus einer älteren Version hebt der Worldbuilder beim Öffnen auf die
 aktuelle Schemaversion — vorher eine Kopie behalten.
+
+**Auf Windows**
+
+Beide Projekte sind auf macOS entstanden; seit dem 15. September 2026 laufen
+sie auch unter Windows. Was dort anders ist:
+
+- **Kein `lsof`.** Der Port-Check geht über `Get-NetTCPConnection` — die
+  Befehle stehen in `CLAUDE.md`.
+- **pnpm über corepack.** Der Worldbuilder pinnt `pnpm@10.28.0` in
+  `packageManager`; `corepack pnpm …` zieht genau diese Fassung, auch wenn
+  global eine ältere installiert ist. `corepack enable` darf dabei mit `EPERM`
+  am Yarn-Shim scheitern — für pnpm ist das ohne Belang.
+- **Keine Bash-Syntax in `package.json`.** `VAR=wert befehl` versteht
+  PowerShell nicht. Im Worldbuilder setzen deshalb `skripte/durchgaenge.mjs`
+  und `skripte/oeffne.mjs` die Umgebung bzw. öffnen Dateien so, dass es auf
+  allen drei Systemen gleich funktioniert. Neue Skripte bitte genauso anlegen.
+- **Eine geöffnete Datei lässt sich nicht löschen.** Was unter macOS
+  durchgeht, scheitert hier mit `EPERM`. Genau so kam heraus, dass `oeffneWelt`
+  den SQLite-Handle auf dem Fehlerpfad offen ließ.
+
+Auf diesem Rechner liegen die Projekte unter `D:\dev\stream-toolkit` und
+`D:\dev\worldbuilder`, nicht unter `~/`.
 
 **Im Stream**
 
