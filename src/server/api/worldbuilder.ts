@@ -4,13 +4,12 @@ import path from 'path';
 import type { Character } from './characters';
 
 /**
- * Reads characters out of Worldbuilder — the desktop tool where the world this
+ * Reads the world out of Worldbuilder — the desktop tool where the world this
  * stream is about actually gets written.
  *
- * Notion was the source of truth because that was where the story lived. It no
- * longer has to be: Worldbuilder holds the same entries, on this machine, with
- * no account and no service behind it. This module is the second source, not a
- * replacement — which one is used is a setting, and Notion stays untouched.
+ * Two things read it. The character list, as the second source next to Notion
+ * (which one is used is a setting, and Notion stays untouched). And Lookup
+ * Commands, which let chat look up any entry by name.
  *
  * ## How it connects
  *
@@ -25,8 +24,9 @@ import type { Character } from './characters';
  * ## Vocabulary
  *
  * The far side speaks German because its domain language is German — `titel`,
- * `art`, `reifegrad`. Translation happens here, at the edge, so the rest of
- * this app keeps saying `Character`.
+ * `art`, `reifegrad`. Characters are translated here, at the edge, so the rest
+ * of this app keeps saying `Character`. Entries read for Lookup Commands keep
+ * the far side's shape.
  */
 
 /**
@@ -65,12 +65,15 @@ interface EntryListItem {
 }
 
 /** One entry in full. */
-interface EntryDetail extends EntryListItem {
+export interface EntryDetail extends EntryListItem {
   zweitnamen: string[];
   text: string;
   werte: Record<string, string>;
   hatBild: boolean;
 }
+
+const NOT_RUNNING: WorldFailure = { error: 'worldbuilder_not_running', message: 'Worldbuilder läuft nicht.' };
+const NO_WORLD: WorldFailure = { error: 'worldbuilder_no_world', message: 'In Worldbuilder ist keine Welt offen.' };
 
 function readConnection(): Connection | null {
   try {
@@ -115,14 +118,10 @@ function asFailure(err: unknown): WorldFailure {
 /** The world currently open over there, for the panel to show. */
 export async function loadWorld(): Promise<{ name: string } | WorldFailure> {
   const connection = readConnection();
-  if (!connection) {
-    return { error: 'worldbuilder_not_running', message: 'Worldbuilder läuft nicht.' };
-  }
+  if (!connection) return NOT_RUNNING;
   try {
     const res = await get(connection, '/welt');
-    if (res.status === 503) {
-      return { error: 'worldbuilder_no_world', message: 'In Worldbuilder ist keine Welt offen.' };
-    }
+    if (res.status === 503) return NO_WORLD;
     if (!res.ok) return { error: 'worldbuilder_error', status: res.status };
     return (await res.json()) as { name: string };
   } catch (err) {
@@ -131,25 +130,40 @@ export async function loadWorld(): Promise<{ name: string } | WorldFailure> {
 }
 
 /**
- * Reads every entry of one kind and turns it into a Character.
+ * The names of the Arten in the open world.
+ *
+ * Arten are user data over there: one world says "Region" where another says
+ * "Ort". Whatever points at an Art by name needs to offer the ones that exist.
+ */
+export async function loadArtenFromWorld(): Promise<string[] | WorldFailure> {
+  const connection = readConnection();
+  if (!connection) return NOT_RUNNING;
+  try {
+    const res = await get(connection, '/arten');
+    if (res.status === 503) return NO_WORLD;
+    if (!res.ok) return { error: 'worldbuilder_error', status: res.status };
+    return ((await res.json()) as Array<{ name: string }>).map((art) => art.name);
+  } catch (err) {
+    return asFailure(err);
+  }
+}
+
+/**
+ * Reads every entry of one Art in full.
  *
  * The list route carries only what a list needs, so the body of each entry is
- * fetched separately — an extra round trip per character, all of it on
- * loopback. For the handful of characters a stream puts on screen that is far
- * below noticeable, and it keeps the far side from having to ship the full text
- * of a four-thousand-entry world to answer a list request.
+ * fetched separately — an extra round trip per entry, all of it on loopback.
+ * For the dozens of entries an Art holds that is far below noticeable, and it
+ * keeps the far side from having to ship the full text of a four-thousand-entry
+ * world to answer a list request.
  */
-export async function loadCharactersFromWorld(kind: string): Promise<Character[] | WorldFailure> {
+export async function loadEntriesFromWorld(kind: string): Promise<EntryDetail[] | WorldFailure> {
   const connection = readConnection();
-  if (!connection) {
-    return { error: 'worldbuilder_not_running', message: 'Worldbuilder läuft nicht.' };
-  }
+  if (!connection) return NOT_RUNNING;
 
   try {
     const res = await get(connection, `/eintraege?art=${encodeURIComponent(kind)}`);
-    if (res.status === 503) {
-      return { error: 'worldbuilder_no_world', message: 'In Worldbuilder ist keine Welt offen.' };
-    }
+    if (res.status === 503) return NO_WORLD;
     if (!res.ok) return { error: 'worldbuilder_error', status: res.status };
 
     const list = (await res.json()) as EntryListItem[];
@@ -160,10 +174,20 @@ export async function loadCharactersFromWorld(kind: string): Promise<Character[]
       }),
     );
 
-    return details.filter((d): d is EntryDetail => d !== null).map((d) => toCharacter(connection, d));
+    return details.filter((d): d is EntryDetail => d !== null);
   } catch (err) {
     return asFailure(err);
   }
+}
+
+/** Reads every entry of one kind and turns it into a Character. */
+export async function loadCharactersFromWorld(kind: string): Promise<Character[] | WorldFailure> {
+  const connection = readConnection();
+  if (!connection) return NOT_RUNNING;
+
+  const entries = await loadEntriesFromWorld(kind);
+  if (!Array.isArray(entries)) return entries;
+  return entries.map((entry) => toCharacter(connection, entry));
 }
 
 /**

@@ -129,6 +129,7 @@ export default function CharactersPanel() {
 
       <ChatCommands commands={[
         { cmd: '!figur', desc: 'Zeigt die Figur, an der gerade gearbeitet wird' },
+        { cmd: '!figur <Name>', desc: 'Schlägt eine Figur in der Welt nach' },
       ]} />
     </div>
   );

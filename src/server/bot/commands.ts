@@ -5,10 +5,9 @@ import { StreamState, Issue } from '../../shared/types';
 import { changeScene, getScenes } from '../obs/index';
 import { broadcast } from '../websocket/index';
 import { resolveOEmbed, detectSource } from '../api/song-requests';
-import { getActiveCharacter } from '../api/characters';
 import { sayInParts } from './chat-message';
 import { getCommandNames, triggerOf } from './command-names';
-import { answerChatMessage } from './text-commands';
+import { answerChatMessage } from './chat-answers';
 
 const startTime = Date.now();
 
@@ -152,18 +151,6 @@ export function registerCommands(client: Client) {
         break;
       }
 
-      case 'character': {
-        const active = getActiveCharacter();
-        if (!active) {
-          say('👥 Gerade wird an keiner Figur gearbeitet.');
-          break;
-        }
-        const role = active.role ? ` (${active.role})` : '';
-        const summary = active.summary ? ` — ${active.summary}` : '';
-        say(`👥 ${active.name}${role}${summary}`);
-        break;
-      }
-
       case 'scene': {
         if (!isPrivileged(tags)) {
           say('❌ Nur Mods und Broadcaster können Szenen wechseln!');
@@ -277,10 +264,10 @@ export function registerCommands(client: Client) {
         break;
       }
 
-      // `!befehle` and every Text Command: the same path the app's "try it" box takes.
+      // `!befehle`, Text Commands and Lookup Commands: the same path the app's "try it" box takes.
       case 'commands':
       default: {
-        const answer = answerChatMessage(message, isPrivileged(tags));
+        const answer = await answerChatMessage(message, isPrivileged(tags));
         for (const reply of answer.replies ?? []) say(reply);
         break;
       }

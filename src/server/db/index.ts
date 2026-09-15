@@ -146,6 +146,24 @@ function runMigrations(from: number, to: number) {
     console.log('[DB] Migrated: added text_commands table');
   }
 
+  if (from < 18) {
+    db.exec(`CREATE TABLE IF NOT EXISTS lookup_commands (
+      id               INTEGER PRIMARY KEY AUTOINCREMENT,
+      trigger          TEXT NOT NULL UNIQUE,
+      art              TEXT NOT NULL,
+      cooldown_seconds INTEGER NOT NULL DEFAULT 30,
+      enabled          INTEGER NOT NULL DEFAULT 1,
+      created_at       DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
+    // Worldbuilder's starter Arten. A world that names them differently is
+    // remapped in the panel.
+    const seed = db.prepare('INSERT OR IGNORE INTO lookup_commands (trigger, art) VALUES (?, ?)');
+    for (const [trigger, art] of [['!figur', 'Figur'], ['!ort', 'Ort'], ['!gilde', 'Fraktion'], ['!begriff', 'Konzept']]) {
+      seed.run(trigger, art);
+    }
+    console.log('[DB] Migrated: added lookup_commands with the starter set');
+  }
+
   // Safety check: ensure experiment_* columns were renamed to challenge_*
   // (can be missed if DB was copied from an older version after migration ran)
   try {

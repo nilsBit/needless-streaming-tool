@@ -9,8 +9,8 @@ import { createApp } from '../index';
  * Text Commands: chat replies the streamer writes once in the app.
  *
  * The bot never runs here — it needs Twitch. What it would say is reachable
- * over `/api/text-commands/try`, which goes down the same path the bot takes
- * for everything that is not a computed built-in. That is how cooldowns and
+ * over `/api/chat/try`, which goes down the same path the bot takes for
+ * everything that is not a computed built-in. That is how cooldowns and
  * `!befehle` are tested at this seam.
  */
 
@@ -25,7 +25,7 @@ describe('text commands', () => {
   const create = (body: Record<string, unknown>) =>
     request(app).post('/api/text-commands').set(auth()).send(body);
   const tryInChat = (message: string, as?: 'viewer' | 'moderator') =>
-    request(app).post('/api/text-commands/try').set(auth()).send({ message, as });
+    request(app).post('/api/chat/try').set(auth()).send({ message, as });
 
   beforeAll(() => {
     initDatabase(':memory:');
@@ -62,8 +62,8 @@ describe('text commands', () => {
     });
 
     it('refuses a trigger a built-in command already uses, and says which', async () => {
-      const res = await create({ trigger: '!figur', response: 'Wer?' }).expect(409);
-      expect(res.body.message).toContain('!figur');
+      const res = await create({ trigger: '!song', response: 'Welcher?' }).expect(409);
+      expect(res.body.message).toContain('!song');
     });
 
     it('refuses a trigger a renamed built-in command uses', async () => {
@@ -178,7 +178,7 @@ describe('text commands', () => {
     });
 
     it('leaves computed built-ins to the real chat', async () => {
-      const res = await tryInChat('!figur').expect(200);
+      const res = await tryInChat('!song').expect(200);
       expect(res.body).toEqual({ replies: null, reason: 'builtin' });
     });
   });
@@ -193,24 +193,22 @@ describe('text commands', () => {
       const reply = (res.body.replies as string[]).join(' ');
 
       expect(reply).toMatch(/^📜 Befehle: !story !welt · /);
-      expect(reply).toContain('!figur');
+      expect(reply).toContain('!challenge');
       expect(reply).not.toContain('!geheim');
       expect(reply).not.toContain('!scene');
     });
 
     it('follows a renamed built-in', async () => {
-      await request(app).post('/api/settings/commands').set(auth()).send({ character: '!wer' }).expect(200);
+      await request(app).post('/api/settings/commands').set(auth()).send({ song: '!lied' }).expect(200);
 
       const res = await tryInChat('!befehle').expect(200);
-      expect(res.body.replies[0]).toContain('!wer');
-      expect(res.body.replies[0]).not.toContain('!figur');
+      expect(res.body.replies[0]).toContain('!lied');
+      expect(res.body.replies[0]).not.toContain('!song');
     });
   });
 
   it('offers every built-in command for renaming in Settings', async () => {
     const res = await request(app).get('/api/settings/commands').set(auth()).expect(200);
-    expect(Object.keys(res.body)).toEqual(
-      expect.arrayContaining(['sr', 'queue', 'rewardstats', 'character', 'commands']),
-    );
+    expect(Object.keys(res.body)).toEqual(expect.arrayContaining(['sr', 'queue', 'rewardstats', 'commands']));
   });
 });

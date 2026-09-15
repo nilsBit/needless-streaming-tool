@@ -33,6 +33,8 @@ Alle Verbindungen richtest du unter **Settings** ein — Twitch, OBS, Notion und
 | !befehle | Listet alle Befehle — deine Erklär-Commands zuerst |
 | !challenge | Zeigt aktuelle Challenge |
 | !figur | Zeigt die Figur, die gerade im Overlay ist |
+| !figur <Name> | Schlägt eine Figur in der Welt nach |
+| !ort / !gilde / !begriff <Name> | Schlagen Orte, Gilden und Begriffe nach (einstellbar) |
 | !song | Zeigt aktuellen Song |
 | !sr <URL> | Wünscht einen Song (YouTube oder Spotify) |
 | !queue | Zeigt die nächsten Song-Wünsche |
@@ -63,8 +65,18 @@ Alle Befehle lassen sich unter Settings → Chat Commands umbenennen. Antworten,
 **Regeln:**
 - Ein Erklär-Command darf nicht heißen wie ein eingebauter Befehl — auch nicht wie ein umbenannter.
 - Ausgeschaltete Befehle antworten nicht und stehen nicht in !befehle.
-- !befehle nennt deine Erklär-Commands zuerst, danach die eingebauten, die Zuschauer benutzen können.
-- Erklär-Commands sind im Backup enthalten.`,
+- !befehle nennt deine Erklär-Commands zuerst, dann die Nachschlage-Commands, danach die eingebauten.
+- Eigene Texte und Nachschlage-Commands sind im Backup enthalten.
+
+**Aus der Welt nachschlagen:** Nachschlage-Commands suchen live in deiner Worldbuilder-Welt. Zuschauer schreiben z. B. !figur Mila oder !ort Saldor und bekommen Titel, Rolle und Kurzbeschreibung (oder den Text) in einer Chat-Nachricht.
+- **Voreingestellt:** !figur → Figur, !ort → Ort, !gilde → Fraktion, !begriff → Konzept. Heißt eine Art in deiner Welt anders (z. B. „Region“ statt „Ort“), wählst du sie im Panel aus. Ein ⚠️ markiert Arten, die es in der offenen Welt nicht gibt.
+- **Eigene dazu:** unten im Abschnitt einen Befehl und eine Art wählen, z. B. !fähigkeit → Fähigkeit.
+- **Suche:** in Titel und Zweitnamen, ohne auf Groß-/Kleinschreibung oder Akzente zu achten. Ein Teil des Namens reicht („silberzunge“). Ein genauer Treffer schlägt Namen, die ihn nur enthalten.
+- **Mehrere Treffer** nennt der Bot. **Kein Treffer:** „Kenne ich (noch) nicht“ — was der Zuschauer getippt hat, wiederholt der Bot nie.
+- **Ohne Namen:** !figur zeigt die Figur im Overlay; ist keine drin, und bei allen anderen Befehlen, listet der Bot die Einträge der Art.
+- **Verworfen** markierte Einträge findet niemand.
+- **Cooldown pro Name:** !figur Mila und !figur Selma bremsen sich nicht gegenseitig.
+- **Voraussetzung:** Der Worldbuilder läuft und das Schaufenster ist offen (Worldbuilder → Verwalten → Schaufenster öffnen).`,
   },
   {
     title: 'OBS verbinden',
@@ -234,7 +246,9 @@ Auth-Header: Authorization: Bearer <token>
 **Erklär-Commands:**
 - GET /api/text-commands — POST /api/text-commands — PATCH /api/text-commands/:id — DELETE /api/text-commands/:id
 - POST /api/text-commands/preview — { response } → wie der Text im Chat ankommt
-- POST /api/text-commands/try — { message, as?: "viewer" } → was der Chat antworten würde
+- GET /api/lookup-commands — POST /api/lookup-commands — PATCH /api/lookup-commands/:id — DELETE /api/lookup-commands/:id
+- GET /api/lookup-commands/arten — die Arten der offenen Worldbuilder-Welt
+- POST /api/chat/try — { message, as?: "viewer" } → was der Chat antworten würde (!befehle, eigene Texte, Nachschlagen)
 
 **Issues:**
 - GET /api/issues — POST /api/issues — PATCH /api/issues/:id — DELETE /api/issues/:id

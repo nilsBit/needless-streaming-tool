@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { apiDelete, apiFetch, apiPatch, apiPost, useApi } from '../hooks/useApi';
+import { apiDelete, apiFetch, apiGet, apiPatch, apiPost, useApi } from '../hooks/useApi';
 import { useToast } from '../contexts/ToastContext';
 import EmptyState from '../components/ux/EmptyState';
 import ChatCommands from '../components/ChatCommands';
@@ -8,6 +8,14 @@ interface TextCommand {
   id: number;
   trigger: string;
   response: string;
+  cooldown_seconds: number;
+  enabled: boolean;
+}
+
+interface LookupCommand {
+  id: number;
+  trigger: string;
+  art: string;
   cooldown_seconds: number;
   enabled: boolean;
 }
@@ -60,10 +68,18 @@ async function save(method: 'POST' | 'PATCH', endpoint: string, body: unknown): 
 export default function TextCommandsPanel() {
   const { toast } = useToast();
   const { data: commands, loading, refetch } = useApi<TextCommand[]>('/text-commands');
+  const { data: lookups, refetch: refetchLookups } = useApi<LookupCommand[]>('/lookup-commands');
   const [draft, setDraft] = useState<Draft | null>(null);
   const [preview, setPreview] = useState<Preview | null>(null);
   const [trial, setTrial] = useState('');
   const [trialAnswer, setTrialAnswer] = useState<ChatAnswer | null>(null);
+  // null while Worldbuilder cannot be asked — closed, or no world open.
+  const [arten, setArten] = useState<string[] | null>(null);
+  const [newLookup, setNewLookup] = useState({ trigger: '', art: '' });
+
+  useEffect(() => {
+    apiGet<string[]>('/lookup-commands/arten').then(setArten);
+  }, []);
 
   // Shows how the reply lands in chat while it is being written.
   const response = draft?.response ?? '';
@@ -105,13 +121,36 @@ export default function TextCommandsPanel() {
     refetch();
   };
 
-  const tryOut = async () => {
-    if (!trial.trim()) return;
-    setTrialAnswer(await apiPost<ChatAnswer>('/text-commands/try', { message: trial }));
-  };
-
   const edit = (c: TextCommand) =>
     setDraft({ id: c.id, trigger: c.trigger, response: c.response, cooldown_seconds: c.cooldown_seconds, enabled: c.enabled });
+
+  const updateLookup = async (lookup: LookupCommand, change: { art?: string; enabled?: boolean }) => {
+    const refusal = await save('PATCH', `/lookup-commands/${lookup.id}`, change);
+    if (refusal) { toast.error(refusal); return; }
+    refetchLookups();
+  };
+
+  const addLookup = async () => {
+    const refusal = await save('POST', '/lookup-commands', newLookup);
+    if (refusal) { toast.error(refusal); return; }
+    setNewLookup({ trigger: '', art: '' });
+    refetchLookups();
+  };
+
+  const removeLookup = async (lookup: LookupCommand) => {
+    if (!window.confirm(`${lookup.trigger} löschen?`)) return;
+    const ok = await apiDelete(`/lookup-commands/${lookup.id}`);
+    if (!ok) { toast.error('Aktion fehlgeschlagen'); return; }
+    refetchLookups();
+  };
+
+  /** The open world's Arten, plus the one a command already points at even if the world lacks it. */
+  const artOptions = (current: string) => Array.from(new Set([...(arten ?? []), current]));
+
+  const tryOut = async () => {
+    if (!trial.trim()) return;
+    setTrialAnswer(await apiPost<ChatAnswer>('/chat/try', { message: trial }));
+  };
 
   const list = commands ?? [];
 
@@ -119,13 +158,17 @@ export default function TextCommandsPanel() {
     <div className="panel text-commands-panel">
       <div className="clips-panel-header">
         <h2>💬 Erklär-Commands</h2>
+      </div>
+      <p className="panel-desc">
+        Was du sonst in jedem Stream neu erklärst, ruft der Chat hier selbst ab.
+      </p>
+
+      <div className="text-commands-section">
+        <h3>✍️ Eigene Texte</h3>
         {!draft && (
           <button className="btn-export-small" onClick={() => setDraft({ ...EMPTY_DRAFT })}>+ Neu</button>
         )}
       </div>
-      <p className="panel-desc">
-        Einmal aufschreiben, was du sonst in jedem Stream neu erklärst — der Chat ruft es selbst ab.
-      </p>
 
       {draft && (
         <div className="text-command-editor">
@@ -190,8 +233,9 @@ export default function TextCommandsPanel() {
       ) : list.length === 0 && !draft ? (
         <>
           <EmptyState
-            icon="💬"
-            title="Noch keine Erklär-Commands"
+            size="compact"
+            icon="✍️"
+            title="Noch keine eigenen Texte"
             description="Womit fängst du an? Ein Klick legt den Befehl an, den Text schreibst du."
           />
           <div className="text-command-suggestions">
@@ -229,11 +273,68 @@ export default function TextCommandsPanel() {
         </div>
       )}
 
+      <div className="text-commands-section">
+        <h3>📖 Aus der Welt nachschlagen</h3>
+        <button
+          className="btn-export-small"
+          title="Arten neu aus dem Worldbuilder laden"
+          onClick={() => apiGet<string[]>('/lookup-commands/arten').then(setArten)}
+        >
+          🔄
+        </button>
+      </div>
+      <p className="panel-desc">
+        Zuschauer schlagen selbst nach, z. B. <code>!figur Mila</code>. Jeder Befehl sucht in einer Art deiner Welt.
+      </p>
+      {arten === null && (
+        <p className="empty">
+          Worldbuilder ist nicht erreichbar — öffne ihn und schalte unter Verwalten das Schaufenster an.
+        </p>
+      )}
+
+      <div className="text-command-list">
+        {(lookups ?? []).map((l) => (
+          <div key={l.id} className={`text-command-row ${l.enabled ? '' : 'disabled'}`}>
+            <code className="text-command-trigger">{l.trigger}</code>
+            <span className="lookup-arrow">→</span>
+            <select value={l.art} onChange={(e) => updateLookup(l, { art: e.target.value })} title="In dieser Art wird gesucht">
+              {artOptions(l.art).map((art) => <option key={art} value={art}>{art}</option>)}
+            </select>
+            {arten && !arten.includes(l.art) && (
+              <span className="lookup-missing" title={`Die offene Welt hat keine Art „${l.art}“ — dieser Befehl findet dort nichts.`}>
+                ⚠️
+              </span>
+            )}
+            <span className="text-command-meta" title="Cooldown pro Name">{l.cooldown_seconds}s</span>
+            <div className="issue-actions">
+              <button title={l.enabled ? 'Ausschalten' : 'Einschalten'} onClick={() => updateLookup(l, { enabled: !l.enabled })}>
+                {l.enabled ? '⏸️' : '▶️'}
+              </button>
+              <button title="Löschen" onClick={() => removeLookup(l)}>🗑️</button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="issue-input lookup-add">
+        <input
+          type="text"
+          placeholder="!fähigkeit"
+          value={newLookup.trigger}
+          onChange={(e) => setNewLookup({ ...newLookup, trigger: e.target.value })}
+        />
+        <select value={newLookup.art} onChange={(e) => setNewLookup({ ...newLookup, art: e.target.value })}>
+          <option value="">Art wählen…</option>
+          {(arten ?? []).map((art) => <option key={art} value={art}>{art}</option>)}
+        </select>
+        <button onClick={addLookup} disabled={!newLookup.trigger.trim() || !newLookup.art} title="Nachschlage-Command anlegen">+</button>
+      </div>
+
       <div className="text-command-try">
         <div className="issue-input">
           <input
             type="text"
-            placeholder="Ausprobieren, z. B. !befehle"
+            placeholder="Ausprobieren, z. B. !figur Mila"
             value={trial}
             onChange={(e) => setTrial(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && tryOut()}
@@ -246,7 +347,11 @@ export default function TextCommandsPanel() {
       </div>
 
       <ChatCommands commands={[
-        { cmd: '!befehle', desc: 'Listet alle Befehle — deine Erklär-Commands zuerst' },
+        { cmd: '!befehle', desc: 'Listet alle Befehle' },
+        ...(lookups ?? []).filter((l) => l.enabled).map((l) => ({
+          cmd: `${l.trigger} <Name>`,
+          desc: `Sucht unter „${l.art}“`,
+        })),
       ]} />
     </div>
   );

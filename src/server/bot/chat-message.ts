@@ -7,6 +7,11 @@ import type { Client } from 'tmi.js';
  */
 export const CHAT_MESSAGE_LIMIT = 500;
 
+/** What chat gets for a message — or why it gets nothing. */
+export type ChatAnswer =
+  | { replies: string[] }
+  | { replies: null; reason: 'unknown' | 'disabled' | 'cooldown' | 'builtin' };
+
 /**
  * Splits a reply into chat messages that each fit the limit.
  *

@@ -283,10 +283,13 @@ router.post('/commands', (req, res) => {
       cleaned[key] = normalizeTrigger(val);
     }
   }
-  // Built-ins are matched first — renamed onto a Text Command, one would silence the other.
+  // Built-ins are matched first — renamed onto a Text or Lookup Command, one would silence the other.
   const db = getDb();
   for (const trigger of Object.values(cleaned)) {
-    if (db.prepare('SELECT 1 FROM text_commands WHERE trigger = ?').get(trigger)) {
+    const taken =
+      db.prepare('SELECT 1 FROM text_commands WHERE trigger = ?').get(trigger) ||
+      db.prepare('SELECT 1 FROM lookup_commands WHERE trigger = ?').get(trigger);
+    if (taken) {
       res.status(409).json({ error: 'trigger_taken', message: `${trigger} ist schon ein Erklär-Command.` });
       return;
     }

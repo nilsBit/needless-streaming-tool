@@ -3624,3 +3624,12 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .text-command-suggestions { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-bottom: 10px; }
 .text-command-try { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+
+.text-commands-section { display: flex; align-items: center; justify-content: space-between; margin: 14px 0 6px; }
+.text-commands-section h3 { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+
+.lookup-arrow { color: var(--muted); font-size: 12px; }
+.text-command-row select,
+.lookup-add select { max-width: 160px; padding: 2px 6px; font-size: 12px; }
+.lookup-missing { font-size: 12px; cursor: help; }
+.lookup-add { margin-top: 6px; }

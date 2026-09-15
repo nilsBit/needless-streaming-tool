@@ -26,6 +26,8 @@ import overlayConfigRouter, { getOverlayConfig } from './api/overlay-config';
 import songRequestsRouter, { getActiveQueue } from './api/song-requests';
 import charactersRouter, { getActiveCharacter, CHARACTER_IMAGE_DIR } from './api/characters';
 import textCommandsRouter from './api/text-commands';
+import lookupCommandsRouter from './api/lookup-commands';
+import chatRouter from './api/chat';
 import { connectBot } from './bot/index';
 import { connectObs } from './obs/index';
 import { initAutoClips } from './auto-clips';
@@ -132,6 +134,8 @@ export function createApp(): express.Express {
   app.use('/api/song-requests', songRequestsRouter);
   app.use('/api/characters', charactersRouter);
   app.use('/api/text-commands', textCommandsRouter);
+  app.use('/api/lookup-commands', lookupCommandsRouter);
+  app.use('/api/chat', chatRouter);
 
   // Twitch OAuth callback redirect (no auth needed)
   app.get('/auth/twitch/callback', (req, res) => res.redirect('/api/auth/twitch/callback'));
