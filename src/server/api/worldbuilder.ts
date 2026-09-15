@@ -176,6 +176,10 @@ export async function loadCharactersFromWorld(kind: string): Promise<Character[]
  * `role` prefers a field literally named "Rolle" and falls back to the entry's
  * kind. Fields are user data over there — a world may not have one, and then
  * "Figur" is a truer answer than an empty line.
+ *
+ * `summary` prefers a field named "Kurzbeschreibung" for the same reason: an
+ * imported world describes its characters there and leaves `text` empty. When
+ * both exist, the field wins — it was written to be short, `text` was not.
  */
 function toCharacter(connection: Connection, entry: EntryDetail): Character {
   return {
@@ -183,7 +187,7 @@ function toCharacter(connection: Connection, entry: EntryDetail): Character {
     name: entry.titel,
     role: entry.werte['Rolle'] ?? entry.art ?? null,
     status: entry.reifegrad ?? null,
-    summary: entry.text || null,
+    summary: entry.werte['Kurzbeschreibung'] || entry.text || null,
     // Not a URL the browser can follow: the Schaufenster wants a token and
     // refuses cross-origin reads. It is fetched and copied locally before it
     // ever reaches an overlay — see fetchPortrait.

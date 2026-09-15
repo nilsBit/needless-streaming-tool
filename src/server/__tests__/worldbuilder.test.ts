@@ -44,7 +44,20 @@ const MILA = {
   hatBild: false,
 };
 
-const ENTRIES = [ALDRIC, MILA];
+const SELMA = {
+  id: 'e-3',
+  titel: 'Selma',
+  art: 'Figur',
+  reifegrad: 'Entwurf',
+  zweitnamen: ['Silberzunge'],
+  // How an imported world actually looks: no text at all, the description
+  // sits in a field.
+  text: '',
+  werte: { Rolle: 'Protagonistin', Kurzbeschreibung: 'Handelt mit Geheimnissen.' },
+  hatBild: false,
+};
+
+const ENTRIES = [ALDRIC, MILA, SELMA];
 
 /** A one-pixel PNG, so the portrait path carries real bytes with a real header. */
 const PNG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x01, 0x02]);
@@ -130,7 +143,7 @@ describe('characters from Worldbuilder', () => {
     await useWorldbuilder();
 
     const res = await request(app).get('/api/characters').set(auth()).expect(200);
-    expect(res.body.map((c: { name: string }) => c.name)).toEqual(['Aldric', 'Mila']);
+    expect(res.body.map((c: { name: string }) => c.name)).toEqual(['Aldric', 'Mila', 'Selma']);
   });
 
   it('maps Reifegrad to status and the Rolle field to role', async () => {
@@ -151,6 +164,17 @@ describe('characters from Worldbuilder', () => {
     const res = await request(app).get('/api/characters').set(auth()).expect(200);
     // Mila carries no fields — "Figur" is a truer answer than an empty line.
     expect(res.body[1]).toMatchObject({ name: 'Mila', role: 'Figur', summary: null });
+  });
+
+  it('takes the summary from the Kurzbeschreibung field, where imported worlds keep it', async () => {
+    await useWorldbuilder();
+
+    const res = await request(app).get('/api/characters').set(auth()).expect(200);
+    expect(res.body[2]).toMatchObject({
+      name: 'Selma',
+      role: 'Protagonistin',
+      summary: 'Handelt mit Geheimnissen.',
+    });
   });
 
   it('names the connected world, so nobody streams the wrong one', async () => {
