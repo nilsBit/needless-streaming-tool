@@ -153,6 +153,7 @@ function getTestEvents(name: string): { event: string; data: unknown }[] {
         { name: 'Stärken', value: 'Zäh, geduldig' },
         { name: 'Schwächen', value: 'Vergisst, wem er vertraut hat' },
       ],
+      relations: [{ name: 'gehört zu', value: 'Der Orden der Klinge' }],
       image: null,
       world: 'Beispielwelt',
     };
