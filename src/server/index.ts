@@ -24,7 +24,9 @@ import rewardStatsRouter from './api/reward-stats';
 import backupRouter from './api/backup';
 import overlayConfigRouter, { getOverlayConfig } from './api/overlay-config';
 import songRequestsRouter, { getActiveQueue } from './api/song-requests';
-import charactersRouter, { getActiveCharacter, CHARACTER_IMAGE_DIR } from './api/characters';
+import charactersRouter from './api/characters';
+import entriesRouter from './api/entries';
+import { activeCard, activeCharacter, CHARACTER_IMAGE_DIR } from './api/active-entry';
 import textCommandsRouter from './api/text-commands';
 import lookupCommandsRouter from './api/lookup-commands';
 import chatRouter from './api/chat';
@@ -133,6 +135,7 @@ export function createApp(): express.Express {
   app.use('/api/overlay-config', overlayConfigRouter);
   app.use('/api/song-requests', songRequestsRouter);
   app.use('/api/characters', charactersRouter);
+  app.use('/api/entries', entriesRouter);
   app.use('/api/text-commands', textCommandsRouter);
   app.use('/api/lookup-commands', lookupCommandsRouter);
   app.use('/api/chat', chatRouter);
@@ -169,11 +172,17 @@ export function createApp(): express.Express {
     res.json({ project_name: state?.project_name || null, items });
   });
 
-  app.get('/public/character', (_req, res) => {
-    res.json({ character: getActiveCharacter() });
+  // The Entry Card — built server-side, so hidden fields never reach a browser source.
+  app.get('/public/entry', (_req, res) => {
+    res.json({ card: activeCard() });
   });
 
-  // Portraits copied out of Notion, whose own URLs expire mid-stream.
+  // The same Active Entry in the older character shape, for overlays that still read it.
+  app.get('/public/character', (_req, res) => {
+    res.json({ character: activeCharacter() });
+  });
+
+  // Portraits copied out of the source — Notion's URLs expire, Worldbuilder's want a token.
   app.use('/public/character-image', express.static(CHARACTER_IMAGE_DIR));
 
   app.get('/public/reward-stats/top', (req, res) => {

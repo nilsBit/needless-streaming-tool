@@ -8,7 +8,7 @@ router.use(express.json({ limit: '50mb' }));
 
 const TABLES = [
   'issues', 'clips', 'designs', 'milestones', 'project_items',
-  'rewards', 'settings', 'stream_state', 'text_commands', 'todos',
+  'rewards', 'settings', 'stream_state', 'text_commands', 'lookup_commands', 'hidden_entry_fields', 'todos',
 ];
 
 // Get valid column names for a table from the DB schema

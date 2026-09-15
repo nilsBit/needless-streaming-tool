@@ -1,8 +1,14 @@
-export const SCHEMA_VERSION = 18;
+export const SCHEMA_VERSION = 19;
 
 export const SCHEMA = `
 CREATE TABLE IF NOT EXISTS schema_version (
   version INTEGER PRIMARY KEY
+);
+
+CREATE TABLE IF NOT EXISTS hidden_entry_fields (
+  entry_id TEXT NOT NULL,
+  field    TEXT NOT NULL,
+  PRIMARY KEY (entry_id, field)
 );
 
 CREATE TABLE IF NOT EXISTS text_commands (

@@ -1,11 +1,18 @@
 import { Router, Response } from 'express';
-import fs from 'fs';
-import path from 'path';
 import { getDb } from '../db/index';
-import { broadcast } from '../websocket/index';
 import { notionFetch } from './notion-sync';
-import { loadCharactersFromWorld, loadWorld, portraitHeaders } from './worldbuilder';
-import { getUserDataPath } from '../paths';
+import { loadCharactersFromWorld, loadWorld, loadWorldEntries } from './worldbuilder';
+import {
+  activeCharacter,
+  activeSince,
+  characterArt,
+  characterToEntry,
+  clearActiveEntry,
+  getActiveEntry,
+  pinEntry,
+  toLegacyCharacter,
+  type Entry,
+} from './active-entry';
 
 /**
  * Characters are never authored here — they are read from wherever the story
@@ -15,13 +22,12 @@ import { getUserDataPath } from '../paths';
  * (see `character_source`): Notion, and Worldbuilder — the desktop world-builder
  * on this machine, which needs no account and is where this stream's world
  * actually gets written. Notion stays the default so an existing setup is
- * unaffected; the reading half of each source lives behind `loadCharacters()`.
+ * unaffected.
  *
- * The one thing kept locally is the *active* character: a snapshot of what the
- * overlay should show right now. Storing a snapshot rather than an id means the
- * overlay renders without reaching the source on every request, and keeps
- * showing the right thing if that source goes slow or away mid-stream — a
- * Notion token expiring, or Worldbuilder simply being closed.
+ * Since the Overlay shows any Entry, a Character is just an Entry of the
+ * character Art. These routes keep the character-shaped API that the Stream
+ * Deck plugin and older overlays speak; the Active Entry behind them lives in
+ * `active-entry.ts`.
  */
 
 const router = Router();
@@ -97,10 +103,10 @@ function toCharacter(page: { id: string; properties?: NotionProps }): Character 
   };
 }
 
-/** Why the character list could not be produced, in a form routes can map to HTTP. */
-type LoadFailure = { error: string; message?: string; status?: number };
+/** Why a list could not be produced, in a form routes can map to HTTP. */
+export type LoadFailure = { error: string; message?: string; status?: number };
 
-function isFailure(result: Character[] | LoadFailure): result is LoadFailure {
+export function isFailure<T>(result: T[] | LoadFailure): result is LoadFailure {
   return !Array.isArray(result);
 }
 
@@ -113,24 +119,19 @@ function isFailure(result: Character[] | LoadFailure): result is LoadFailure {
  */
 type CharacterSource = 'notion' | 'worldbuilder';
 
-function characterSource(): CharacterSource {
+export function characterSource(): CharacterSource {
   return getSetting('character_source') === 'worldbuilder' ? 'worldbuilder' : 'notion';
-}
-
-/** Which kind of entry counts as a character over in Worldbuilder. */
-function worldbuilderKind(): string {
-  return getSetting('worldbuilder_art') || 'Figur';
 }
 
 /** The character list from whichever source is configured. */
 async function loadCharacters(): Promise<Character[] | LoadFailure> {
   return characterSource() === 'worldbuilder'
-    ? loadCharactersFromWorld(worldbuilderKind())
+    ? loadCharactersFromWorld(characterArt())
     : loadFromNotion();
 }
 
 /** Reads the Notion database, dropping templates and empty rows. */
-async function loadFromNotion(): Promise<Character[] | LoadFailure> {
+export async function loadFromNotion(): Promise<Character[] | LoadFailure> {
   const dbId = getSetting('notion_characters_db');
   if (!dbId) {
     return { error: 'no_database', message: 'Keine Figuren-Datenbank konfiguriert.' };
@@ -166,7 +167,7 @@ async function loadFromNotion(): Promise<Character[] | LoadFailure> {
 const NEEDS_CONFIGURATION = ['no_database', 'no_token'];
 const NOT_RIGHT_NOW = ['worldbuilder_not_running', 'worldbuilder_no_world', 'worldbuilder_timeout'];
 
-function sendFailure(res: Response, failure: LoadFailure): void {
+export function sendFailure(res: Response, failure: LoadFailure): void {
   const status = NEEDS_CONFIGURATION.includes(failure.error)
     ? 400
     : NOT_RIGHT_NOW.includes(failure.error)
@@ -199,7 +200,7 @@ router.get('/source', async (_req, res) => {
   const world = await loadWorld();
   res.json({
     source,
-    kind: worldbuilderKind(),
+    kind: characterArt(),
     world: 'name' in world ? world.name : null,
     ...('error' in world ? { error: world.error, message: world.message } : {}),
   });
@@ -214,109 +215,15 @@ router.post('/source', (req, res) => {
   }
   setSetting('character_source', source);
   if (typeof kind === 'string' && kind.trim()) setSetting('worldbuilder_art', kind.trim());
-  res.json({ source, kind: worldbuilderKind() });
+  res.json({ source, kind: characterArt() });
 });
-
-export const CHARACTER_IMAGE_DIR = getUserDataPath('character-images');
-
-const EXTENSION_BY_TYPE: Record<string, string> = {
-  'image/png': 'png',
-  'image/jpeg': 'jpg',
-  'image/gif': 'gif',
-  'image/webp': 'webp',
-  'image/avif': 'avif',
-};
-
-/**
- * Copies a character portrait onto disk.
- *
- * Both sources need this, for different reasons. Notion's file URLs are signed
- * and expire after about an hour, and a pinned character can stay on screen far
- * longer than that. Worldbuilder's never expire, but they sit behind a token
- * and refuse cross-origin reads — an overlay in OBS cannot follow one.
- *
- * Either way the overlay must end up pointing at this app. Returns a local path
- * served by /public/character-image, or null so the caller can fall back to
- * whatever the source gave us.
- */
-async function cachePortrait(characterId: string, url: string): Promise<string | null> {
-  const safeId = characterId.replace(/[^a-zA-Z0-9-]/g, '');
-  if (!safeId) return null;
-  try {
-    // Worldbuilder wants its token; Notion's signed URL carries its own
-    // credentials and gets no header.
-    const res = await fetch(url, { headers: portraitHeaders(url) });
-    if (!res.ok) return null;
-    const type = (res.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
-    const ext = EXTENSION_BY_TYPE[type];
-    if (!ext) return null;
-
-    fs.mkdirSync(CHARACTER_IMAGE_DIR, { recursive: true });
-    // Drop older copies of this character so switching portraits doesn't pile up.
-    for (const existing of fs.readdirSync(CHARACTER_IMAGE_DIR)) {
-      if (existing.startsWith(`${safeId}.`)) fs.unlinkSync(path.join(CHARACTER_IMAGE_DIR, existing));
-    }
-    const filename = `${safeId}.${ext}`;
-    fs.writeFileSync(path.join(CHARACTER_IMAGE_DIR, filename), Buffer.from(await res.arrayBuffer()));
-    return `/public/character-image/${filename}`;
-  } catch (err) {
-    console.warn('[Characters] Portrait konnte nicht zwischengespeichert werden:', err);
-    return null;
-  }
-}
-
-/** The active character as the overlay sees it, or null when none is set. */
-export function getActiveCharacter(): Character | null {
-  const raw = getSetting('active_character');
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw) as Character;
-  } catch {
-    return null;
-  }
-}
 
 router.get('/active', (_req, res) => {
-  res.json({ character: getActiveCharacter(), since: getSetting('active_character_since') });
+  res.json({ character: activeCharacter(), since: activeSince() });
 });
 
-/**
- * Adds the minutes since the character was pinned to its Notion page, then
- * clears the clock.
- *
- * Failure here must never block picking a character — the stream keeps running
- * even when Notion does not. Anything that goes wrong is logged and swallowed,
- * and the clock is reset either way so a broken write can't be counted twice.
- */
-async function flushTrackedTime(): Promise<void> {
-  const active = getActiveCharacter();
-  const since = getSetting('active_character_since');
-  getDb().prepare('DELETE FROM settings WHERE key = ?').run('active_character_since');
-  if (!active || !since) return;
-
-  const minutes = Math.round((Date.now() - Number(since)) / 60_000);
-  if (!Number.isFinite(minutes) || minutes < 1) return;
-
-  try {
-    const pageRes = await notionFetch(`/v1/pages/${active.id}`, { method: 'GET' });
-    if (!pageRes.ok) return;
-    const page = (await pageRes.json()) as { properties?: Record<string, { number?: number | null }> };
-    const previous = page.properties?.['Zeit investiert (Min)']?.number ?? 0;
-
-    await notionFetch(`/v1/pages/${active.id}`, {
-      method: 'PATCH',
-      body: JSON.stringify({
-        properties: { 'Zeit investiert (Min)': { number: previous + minutes } },
-      }),
-    });
-    console.log(`[Characters] +${minutes} min auf ${active.name}`);
-  } catch (err) {
-    console.warn('[Characters] Zeit konnte nicht nach Notion geschrieben werden:', err);
-  }
-}
-
 // POST /active — pin a character to the overlay. The client sends the whole
-// character so the snapshot never needs a Notion round trip.
+// character so the snapshot never needs a round trip to the source.
 router.post('/active', async (req, res) => {
   const { id, name, role, status, summary, image } = req.body ?? {};
   if (typeof id !== 'string' || !id.trim()) {
@@ -335,34 +242,15 @@ router.post('/active', async (req, res) => {
     summary: typeof summary === 'string' ? summary : null,
     image: typeof image === 'string' ? image : null,
   };
-  res.json({ character: await pin(character) });
+  const pinned = await pinEntry(characterToEntry(character, characterSource()));
+  res.json({ character: toLegacyCharacter(pinned) });
 });
 
-/**
- * Puts a character on the overlay: banks the time spent on the previous one,
- * caches the portrait, stores the snapshot and tells every listener.
- *
- * Shared by the panel (POST /active) and the Stream Deck (POST /cycle) so both
- * routes behave identically — including the time tracking.
- */
-async function pin(character: Character): Promise<Character> {
-  await flushTrackedTime();
-
-  // No source's URL is fit to reach an overlay directly — Notion's expires,
-  // Worldbuilder's needs a token the browser will not send.
-  if (character.image) {
-    const cached = await cachePortrait(character.id, character.image);
-    // Falling back to the original only helps for Notion, whose URL at least
-    // works for an hour. A Worldbuilder URL an overlay cannot follow would put
-    // a broken image on stream, so it drops to no portrait at all.
-    const fallback = portraitHeaders(character.image) ? null : character.image;
-    character.image = cached ?? fallback;
-  }
-
-  setSetting('active_character', JSON.stringify(character));
-  setSetting('active_character_since', String(Date.now()));
-  broadcast('character-changed', character);
-  return character;
+/** The characters to cycle through, as full Entries where the source has them. */
+async function loadCycle(): Promise<Entry[] | LoadFailure> {
+  if (characterSource() === 'worldbuilder') return loadWorldEntries(characterArt());
+  const characters = await loadFromNotion();
+  return isFailure(characters) ? characters : characters.map((c) => characterToEntry(c, 'notion'));
 }
 
 /**
@@ -370,28 +258,27 @@ async function pin(character: Character): Promise<Character> {
  *
  * Exists for the Stream Deck, which has one button and no way to pick from a
  * list. Deliberately takes no arguments: the button needs no configuration and
- * keeps working when characters are added or removed in Notion.
+ * keeps working when characters are added or removed at the source.
  */
 router.post('/cycle', async (_req, res) => {
-  const result = await loadCharacters();
+  const result = await loadCycle();
   if (isFailure(result)) { sendFailure(res, result); return; }
   if (result.length === 0) {
     res.status(404).json({ error: 'no_characters' });
     return;
   }
 
-  const active = getActiveCharacter();
-  const current = active ? result.findIndex((c) => c.id === active.id) : -1;
+  const active = getActiveEntry();
+  const current = active ? result.findIndex((entry) => entry.id === active.id) : -1;
   // Unknown or absent current character starts the cycle at the top.
-  const next = result[(current + 1) % result.length];
+  const position = (current + 1) % result.length;
+  const pinned = await pinEntry(result[position]);
 
-  res.json({ character: await pin(next), position: (current + 1) % result.length + 1, total: result.length });
+  res.json({ character: toLegacyCharacter(pinned), position: position + 1, total: result.length });
 });
 
 router.delete('/active', async (_req, res) => {
-  await flushTrackedTime();
-  getDb().prepare('DELETE FROM settings WHERE key = ?').run('active_character');
-  broadcast('character-changed', null);
+  await clearActiveEntry();
   res.json({ success: true });
 });
 

@@ -3633,3 +3633,33 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .lookup-add select { max-width: 160px; padding: 2px 6px; font-size: 12px; }
 .lookup-missing { font-size: 12px; cursor: help; }
 .lookup-add { margin-top: 6px; }
+
+/* ---------- Welt ---------- */
+.world-source { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 12px; color: var(--muted); }
+.world-source-btn,
+.world-art { padding: 3px 10px; font-size: 12px; background: transparent; border: 1px solid var(--border-subtle); color: var(--text-secondary); cursor: pointer; }
+.world-source-btn { border-radius: 4px; }
+.world-source-btn.active,
+.world-art.active { border-color: var(--accent); color: var(--text); }
+.world-source-name { color: var(--text-secondary); font-style: italic; }
+
+.world-arten { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.world-art { display: flex; align-items: center; gap: 6px; border-radius: 999px; }
+.world-art i { width: 8px; height: 8px; border-radius: 50%; }
+.world-search { width: 100%; margin-bottom: 8px; }
+
+button.character-active { width: 100%; color: var(--text); text-align: left; cursor: pointer; }
+.character-row.selected { background: var(--bg-hover); border-color: var(--border); }
+.character-row-portrait.placeholder { font-size: 14px; font-weight: 700; }
+.world-row-hidden { font-size: 12px; }
+
+.entry-detail { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; padding: 10px; background: var(--bg-input); border: 1px solid var(--border-subtle); border-left: 3px solid var(--accent); border-radius: 4px; }
+.entry-detail-head { display: flex; align-items: center; gap: 8px; }
+.entry-detail-head strong { flex: 1; font-size: 14px; }
+.entry-detail-live { font-size: 11px; font-weight: 700; color: var(--accent); }
+.entry-field { display: grid; grid-template-columns: 26px 120px 1fr; align-items: start; gap: 8px; font-size: 12px; }
+.entry-field-eye { padding: 0; font-size: 14px; background: none; border: none; cursor: pointer; }
+.entry-field-label { font-weight: 600; color: var(--muted); }
+.entry-field-value { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; color: var(--text-secondary); white-space: pre-wrap; }
+.entry-field.is-hidden .entry-field-label,
+.entry-field.is-hidden .entry-field-value { opacity: 0.4; text-decoration: line-through; }

@@ -2,182 +2,224 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Source+Serif+4:ital,wght@0,400;1,400;1,600&display=swap" rel="stylesheet">
   <style>
+    /*
+     * The Entry Card in the "Lexikon" style (#19): whatever is being worked on
+     * right now, as a page out of the world's lexicon.
+     *
+     * Every color, font and size a redesign would touch sits in these
+     * variables. `--art` is set per card from the entry's Art color.
+     */
     :root {
-      --color-primary: #ffffff;
-      --color-secondary: #cccccc;
-      --color-accent: #ffffff;
-      --color-bg: #0a0a0a;
-      --font-display: 'Rajdhani', sans-serif;
-      --font-body: 'Inter', sans-serif;
+      --lex-width: 720px;
+      --lex-margin: 24px;
+      --lex-bg-from: rgba(40, 32, 24, 0.95);
+      --lex-bg-to: rgba(14, 12, 10, 0.95);
+      --lex-frame: rgba(233, 214, 178, 0.2);
+      --lex-frame-inner: rgba(233, 214, 178, 0.08);
+      --lex-rule: rgba(233, 214, 178, 0.15);
+      --lex-title: #f4ead7;
+      --lex-text: #e1d6c2;
+      --lex-soft: #c9b48f;
+      --lex-muted: #b8a98c;
+      --lex-faint: #9d8f76;
+      --lex-font-title: 'Cormorant Garamond', Georgia, serif;
+      --lex-font-text: 'Source Serif 4', Georgia, serif;
+      --lex-art-fallback: #c9a45c;
+      --lex-kicker: 'Lexikon';
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: transparent !important; background-color: rgba(0,0,0,0) !important; font-family: var(--font-body); overflow: hidden; }
+    html, body { background: transparent !important; overflow: hidden; }
 
-    .character {
-      display: none;
-      align-items: center;
-      gap: 16px;
-      padding: 14px 22px 14px 14px;
-      background: rgba(10, 10, 10, 0.85);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-left: 3px solid var(--color-accent);
-      border-radius: 6px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-      max-width: 460px;
+    .slot {
+      --art: var(--lex-art-fallback);
+      position: absolute;
+      top: var(--lex-margin);
+      left: var(--lex-margin);
+      opacity: 0;
+      transform: translateY(-14px);
+      transition: opacity .5s ease, transform .6s cubic-bezier(.2, .8, .2, 1);
     }
-    .character.visible { display: flex; animation: charIn 0.5s ease-out; }
+    .slot.in { opacity: 1; transform: none; transition-delay: .15s; }
+    .slot.out { opacity: 0; transform: translateY(10px); transition-delay: 0s; }
 
-    @keyframes charIn {
-      0% { opacity: 0; transform: translateX(-40px); }
-      100% { opacity: 1; transform: translateX(0); }
-    }
-
-    .character-portrait {
-      width: 64px;
-      height: 64px;
+    .card {
+      position: relative;
+      width: var(--lex-width);
+      padding: 34px 44px 28px;
+      color: var(--lex-text);
+      background: radial-gradient(120% 120% at 0% 0%, var(--lex-bg-from), var(--lex-bg-to));
+      border: 1px solid var(--lex-frame);
+      outline: 1px solid var(--lex-frame-inner);
+      outline-offset: -10px;
       border-radius: 4px;
-      object-fit: cover;
-      flex-shrink: 0;
-      display: none;
-      border: 1px solid rgba(255,255,255,0.12);
-    }
-    .character-portrait.visible { display: block; }
-
-    .character-body { min-width: 0; }
-
-    .character-label {
-      font-family: var(--font-body);
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--color-accent);
-      opacity: 0.85;
-      margin-bottom: 2px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, .45);
     }
 
-    .character-name {
-      font-family: var(--font-display);
-      font-size: 26px;
-      font-weight: 700;
-      line-height: 1.1;
-      color: var(--color-primary);
-    }
-
-    .character-role {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--color-secondary);
-      margin-top: 1px;
-    }
-
-    .character-summary {
-      font-size: 13px;
-      line-height: 1.4;
-      color: var(--color-secondary);
-      margin-top: 6px;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
+    .seal {
+      position: absolute;
+      top: 28px;
+      right: 32px;
+      width: 66px;
+      height: 66px;
+      display: grid;
+      place-items: center;
       overflow: hidden;
+      border: 1px solid rgba(233, 214, 178, .35);
+      border-radius: 50%;
+      color: var(--art);
+      font: 600 26px var(--lex-font-title);
     }
-    .character-summary:empty { display: none; }
+    .seal svg { width: 34px; height: 34px; }
+    .seal.portrait { width: 104px; height: 104px; border: 2px solid var(--art); }
+    .seal img { width: 100%; height: 100%; object-fit: cover; }
+
+    .kicker {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding-right: 90px;
+      font: 600 15px var(--lex-font-title);
+      letter-spacing: .28em;
+      text-transform: uppercase;
+      color: var(--lex-muted);
+    }
+    .kicker::before { content: var(--lex-kicker); }
+    .kicker::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, rgba(233, 214, 178, .35), transparent); }
+    .kicker .art { color: var(--art); }
+
+    .title { margin-top: 14px; padding-right: 60px; font: 600 60px/1 var(--lex-font-title); color: var(--lex-title); }
+    .has-portrait .kicker, .has-portrait .title { padding-right: 130px; }
+    .alias { margin-top: 4px; font: italic 500 26px var(--lex-font-title); color: var(--lex-soft); }
+
+    .body {
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 6;
+      overflow: hidden;
+      margin-top: 18px;
+      font: 400 22px/1.55 var(--lex-font-text);
+    }
+    .body:not(.empty)::first-letter { float: left; padding: 8px 10px 0 0; font: 600 76px/.8 var(--lex-font-title); color: var(--art); }
+    .body.empty { font-style: italic; color: var(--lex-faint); }
+
+    dl {
+      display: grid;
+      grid-template-columns: max-content 1fr;
+      gap: 6px 18px;
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px solid var(--lex-rule);
+      font: 400 18px/1.45 var(--lex-font-text);
+    }
+    dt { font: italic 600 18px var(--lex-font-text); color: var(--lex-muted); }
+    dd { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+
+    .foot { display: flex; justify-content: space-between; gap: 24px; margin-top: 16px; font: italic 16px var(--lex-font-text); color: var(--lex-faint); }
   </style>
-  <script>
-(function() {
-  var name = 'character';
-  var origin = window.location.origin || 'http://localhost:4000';
-  window.__overlayOrigin = origin;
-  window.__overlayWs = origin.replace(/^http/, 'ws');
-  document.documentElement.style.visibility = 'hidden';
-  function hexToRgb(hex) {
-    var r = parseInt(hex.slice(1,3), 16);
-    var g = parseInt(hex.slice(3,5), 16);
-    var b = parseInt(hex.slice(5,7), 16);
-    return r + ' ' + g + ' ' + b;
-  }
-  fetch(origin + '/public/overlay-config')
-    .then(function(r) { return r.json(); })
-    .then(function(config) {
-      var vars = Object.assign({}, config.global || {}, (config.overrides || {})[name] || {});
-      var root = document.documentElement;
-      Object.keys(vars).forEach(function(k) { root.style.setProperty(k, vars[k]); });
-      ['--color-primary', '--color-secondary', '--color-accent', '--color-bg'].forEach(function(k) {
-        if (vars[k]) root.style.setProperty(k + '-rgb', hexToRgb(vars[k]));
-      });
-      var fonts = [vars['--font-display'], vars['--font-body']].filter(Boolean);
-      if (fonts.length > 0) {
-        var families = fonts.map(function(f) { return f.split(',')[0].replace(/'/g, '').trim(); });
-        var link = document.createElement('link');
-        link.href = 'https://fonts.googleapis.com/css2?family=' + families.map(function(f) { return encodeURIComponent(f) + ':wght@400;600;700'; }).join('&') + '&display=swap';
-        link.rel = 'stylesheet';
-        document.head.appendChild(link);
-      }
-    })
-    .catch(function() {})
-    .finally(function() { document.documentElement.style.visibility = 'visible'; });
-  window.__applyOverlayConfig = function(config) {
-    var vars = Object.assign({}, config.global || {}, (config.overrides || {})[name] || {});
-    var root = document.documentElement;
-    Object.keys(vars).forEach(function(k) { root.style.setProperty(k, vars[k]); });
-    ['--color-primary', '--color-secondary', '--color-accent', '--color-bg'].forEach(function(k) {
-      if (vars[k]) root.style.setProperty(k + '-rgb', hexToRgb(vars[k]));
-    });
-  };
-})();
-  </script>
 </head>
 <body>
-  <div class="character" id="character">
-    <img class="character-portrait" id="character-portrait" alt="">
-    <div class="character-body">
-      <div class="character-label">Gerade in Arbeit</div>
-      <div class="character-name" id="character-name"></div>
-      <div class="character-role" id="character-role"></div>
-      <div class="character-summary" id="character-summary"></div>
-    </div>
-  </div>
-
   <script>
-    const card = document.getElementById('character');
-    const portrait = document.getElementById('character-portrait');
-    const nameEl = document.getElementById('character-name');
-    const roleEl = document.getElementById('character-role');
-    const summaryEl = document.getElementById('character-summary');
+    /** Facts beyond this many would push the page past a glance. */
+    const MAX_FACTS = 4;
 
-    function render(character) {
-      if (!character) {
-        card.classList.remove('visible');
-        return;
-      }
-      nameEl.textContent = character.name || '';
-      roleEl.textContent = character.role || '';
-      summaryEl.textContent = character.summary || '';
-      if (character.image) {
-        portrait.src = character.image;
-        portrait.classList.add('visible');
-      } else {
-        portrait.removeAttribute('src');
-        portrait.classList.remove('visible');
-      }
-      card.classList.add('visible');
+    // A glyph for the Arten a world usually has; any other Art gets initials.
+    const BOOK = '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"><path d="M6 10 C14 8 20 9 24 13 C28 9 34 8 42 10 V38 C34 36 28 37 24 41 C20 37 14 36 6 38 Z"/><path d="M24 13 V41"/></svg>';
+    const MOUNTAIN = '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"><path d="M4 38 L18 16 L26 28 L32 20 L44 38 Z"/><circle cx="35" cy="10" r="4"/></svg>';
+    const BANNER = '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"><path d="M12 5 V43"/><path d="M12 8 H38 L32 17 L38 26 H12"/></svg>';
+    const GLYPHS = { region: MOUNTAIN, ort: MOUNTAIN, gilde: BANNER, fraktion: BANNER, begriff: BOOK, konzept: BOOK };
+
+    const stage = document.body;
+    const esc = (value) => String(value).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+    function initials(title) {
+      const words = title
+        .replace(/„[^“]*“/g, ' ')
+        .replace(/\b(Die|Der|Das|und)\b|Dr\./g, ' ')
+        .split(/\s+/)
+        .filter(Boolean);
+      if (words.length === 0) return '?';
+      return (words.length > 1 ? words[0][0] + words[words.length - 1][0] : words[0][0]).toUpperCase();
     }
 
-    // Show whatever is pinned right now, so a reload mid-stream is seamless.
-    fetch(window.__overlayOrigin + '/public/character')
-      .then(function(r) { return r.json(); })
-      .then(function(d) { render(d.character); })
-      .catch(function() {});
+    function seal(card) {
+      if (card.image) return `<div class="seal portrait"><img src="${esc(card.image)}" alt=""></div>`;
+      return `<div class="seal">${GLYPHS[card.art.toLowerCase()] || esc(initials(card.title))}</div>`;
+    }
 
-    const ws = new WebSocket(`${window.__overlayWs}?overlay=1`);
-    ws.onmessage = (msg) => {
-      const { event, data } = JSON.parse(msg.data);
-      if (event === 'overlay-config' && window.__applyOverlayConfig) window.__applyOverlayConfig(data);
-      if (event === 'character-changed') render(data);
-    };
+    function render(card) {
+      const facts = card.facts.slice(0, MAX_FACTS);
+      const maturity = card.maturity ? `Stand: ${card.maturity}` : '';
+      return `<div class="card${card.image ? ' has-portrait' : ''}">
+        ${seal(card)}
+        <div class="kicker"><span class="art">${esc(card.art)}</span></div>
+        <div class="title">${esc(card.title)}</div>
+        ${card.aliasLine ? `<div class="alias">${esc(card.aliasLine)}</div>` : ''}
+        <p class="body${card.body ? '' : ' empty'}">${card.body ? esc(card.body) : 'Dieses Blatt ist noch leer.'}</p>
+        ${facts.length ? `<dl>${facts.map((f) => `<dt>${esc(f.name)}</dt><dd>${esc(f.value)}</dd>`).join('')}</dl>` : ''}
+        ${card.world || maturity ? `<div class="foot"><span>${esc(card.world || '')}</span><span>${esc(maturity)}</span></div>` : ''}
+      </div>`;
+    }
+
+    let current = null;
+
+    /**
+     * Shows a card, crossfading from the one before. The same entry again —
+     * a field switched off mid-stream — changes in place, without a flash.
+     */
+    function show(card) {
+      if (card && current && current.dataset.id === card.id) {
+        current.style.setProperty('--art', card.artColor || 'var(--lex-art-fallback)');
+        current.innerHTML = render(card);
+        return;
+      }
+
+      const old = current;
+      if (old) {
+        old.classList.remove('in');
+        old.classList.add('out');
+        setTimeout(() => old.remove(), 700);
+      }
+      current = null;
+      if (!card) return;
+
+      const slot = document.createElement('div');
+      slot.className = 'slot';
+      slot.dataset.id = card.id;
+      if (card.artColor) slot.style.setProperty('--art', card.artColor);
+      slot.innerHTML = render(card);
+      stage.appendChild(slot);
+      requestAnimationFrame(() => requestAnimationFrame(() => slot.classList.add('in')));
+      current = slot;
+    }
+
+    const origin = window.location.origin || 'http://localhost:4000';
+
+    function load() {
+      fetch(origin + '/public/entry')
+        .then((r) => r.json())
+        .then((d) => show(d.card))
+        .catch(() => {});
+    }
+
+    // Reconnects on its own, and catches up on whatever changed meanwhile.
+    function connect() {
+      const ws = new WebSocket(`${origin.replace(/^http/, 'ws')}?overlay=1`);
+      ws.onopen = load;
+      ws.onmessage = (msg) => {
+        try {
+          const { event, data } = JSON.parse(msg.data);
+          if (event === 'entry-changed') show(data);
+        } catch {}
+      };
+      ws.onclose = () => setTimeout(connect, 2000);
+      ws.onerror = () => ws.close();
+    }
+
+    load();
+    connect();
   </script>
 </body>
 </html>

@@ -49,15 +49,27 @@ A celebrated achievement on the story — a finished chapter, a closed arc — g
 
 ### The world
 
+**Entry**:
+Anything in the world being written on stream — a character, a place, a guild, a concept — as this app reads it: a title, an Art, a Reifegrad, aliases, text, named fields and a portrait. Entries are never authored here; this app reads them and puts one on screen.
+_Avoid_: Item, record, page.
+
 **Character**:
-Someone in the story being written on stream, as this app shows them: a name, a role, a status and a portrait. Characters are never authored here — this app reads them and puts one on screen.
+An Entry of the Art set as characters (`settings.worldbuilder_art`, "Figur" by default). The Stream Deck, `!figur` and Notion still speak in Characters.
 
 **Character Source**:
 Where Characters are read from — `notion` or `worldbuilder`, held in `settings.character_source`. Notion is the default and the original. Worldbuilder is the desktop world-building tool on the same machine, read over a loopback HTTP window it calls its "Schaufenster"; it needs no account and is where the world is actually written.
 _Avoid_: Backend, provider, integration.
 
-**Active Character**:
-The one Character currently on the Overlay, stored as a whole snapshot rather than an id so the Overlay keeps rendering when the source is slow or gone. Carries the clock that banks time onto the character.
+**Active Entry**:
+The one Entry currently on the Overlay, stored as a whole snapshot (`settings.active_entry`) rather than an id, so the Overlay keeps rendering when the source is slow or gone. It replaced the Active Character; a character pinned before that still shows. Carries the clock that banks time back, to Notion only, because Worldbuilder takes nothing in.
+_Avoid_: Active Character, except in the older routes and the `character-changed` event that the Stream Deck plugin still reads.
+
+**Entry Card**:
+What the Overlay shows of the Active Entry, in the "Lexikon" style: title, alias and role, a short description, a few facts, the world's name and the Reifegrad. Built on the server and sent as `entry-changed`, so a Hidden Field never reaches a browser source.
+
+**Hidden Field**:
+A part of one Entry the streamer switched off for stream, typically a spoiler. Stored per Entry and field name in `hidden_entry_fields`; `@text`, `@aliases` and `@image` stand for the parts that are not fields. Honoured by the Entry Card and by Lookup Commands alike.
+_Avoid_: Private field, secret.
 
 ### Viewer interaction
 

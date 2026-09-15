@@ -2,14 +2,16 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import type { Character } from './characters';
+import type { Entry } from './active-entry';
 
 /**
  * Reads the world out of Worldbuilder — the desktop tool where the world this
  * stream is about actually gets written.
  *
- * Two things read it. The character list, as the second source next to Notion
- * (which one is used is a setting, and Notion stays untouched). And Lookup
- * Commands, which let chat look up any entry by name.
+ * Three things read it: the character list (as the second source next to
+ * Notion — which one is used is a setting, and Notion stays untouched), the
+ * Entries the Overlay can show, and Lookup Commands, which let chat look up
+ * any entry by name.
  *
  * ## How it connects
  *
@@ -24,9 +26,8 @@ import type { Character } from './characters';
  * ## Vocabulary
  *
  * The far side speaks German because its domain language is German — `titel`,
- * `art`, `reifegrad`. Characters are translated here, at the edge, so the rest
- * of this app keeps saying `Character`. Entries read for Lookup Commands keep
- * the far side's shape.
+ * `art`, `reifegrad`. Translation into `Entry` and `Character` happens here, at
+ * the edge. Lookup Commands read the far side's shape as it is.
  */
 
 /**
@@ -70,6 +71,12 @@ export interface EntryDetail extends EntryListItem {
   text: string;
   werte: Record<string, string>;
   hatBild: boolean;
+}
+
+/** An Art of the open world, with the color the streamer gave it there. */
+export interface WorldArt {
+  name: string;
+  color: string | null;
 }
 
 const NOT_RUNNING: WorldFailure = { error: 'worldbuilder_not_running', message: 'Worldbuilder läuft nicht.' };
@@ -130,19 +137,22 @@ export async function loadWorld(): Promise<{ name: string } | WorldFailure> {
 }
 
 /**
- * The names of the Arten in the open world.
+ * The Arten of the open world.
  *
  * Arten are user data over there: one world says "Region" where another says
  * "Ort". Whatever points at an Art by name needs to offer the ones that exist.
  */
-export async function loadArtenFromWorld(): Promise<string[] | WorldFailure> {
+export async function loadArtenFromWorld(): Promise<WorldArt[] | WorldFailure> {
   const connection = readConnection();
   if (!connection) return NOT_RUNNING;
   try {
     const res = await get(connection, '/arten');
     if (res.status === 503) return NO_WORLD;
     if (!res.ok) return { error: 'worldbuilder_error', status: res.status };
-    return ((await res.json()) as Array<{ name: string }>).map((art) => art.name);
+    return ((await res.json()) as Array<{ name: string; farbe?: string }>).map((art) => ({
+      name: art.name,
+      color: art.farbe || null,
+    }));
   } catch (err) {
     return asFailure(err);
   }
@@ -180,6 +190,54 @@ export async function loadEntriesFromWorld(kind: string): Promise<EntryDetail[] 
   }
 }
 
+/**
+ * Every entry of one Art as an Entry — with its Art's color and the world's
+ * name, which the Entry Card shows and the Schaufenster keeps on other routes.
+ */
+export async function loadWorldEntries(art: string): Promise<Entry[] | WorldFailure> {
+  const connection = readConnection();
+  if (!connection) return NOT_RUNNING;
+
+  const [details, arten, world] = await Promise.all([loadEntriesFromWorld(art), loadArtenFromWorld(), loadWorld()]);
+  if (!Array.isArray(details)) return details;
+
+  const artColor = Array.isArray(arten) ? (arten.find((a) => a.name === art)?.color ?? null) : null;
+  const worldName = 'name' in world ? world.name : null;
+  return details.map((detail) =>
+    toEntry(detail, { artColor, world: worldName, image: detail.hatBild ? imageUrl(connection, detail.id) : null }),
+  );
+}
+
+/** A Schaufenster entry as an Entry. The extras live on other routes over there. */
+export function toEntry(
+  detail: EntryDetail,
+  extras: { artColor: string | null; world: string | null; image: string | null },
+): Entry {
+  return {
+    id: detail.id,
+    source: 'worldbuilder',
+    title: detail.titel,
+    art: detail.art,
+    artColor: extras.artColor,
+    maturity: detail.reifegrad ?? null,
+    aliases: detail.zweitnamen ?? [],
+    text: detail.text || null,
+    // Field order is the world's order — the Schaufenster sends them sorted.
+    fields: Object.entries(detail.werte ?? {}).map(([name, value]) => ({ name, value })),
+    image: extras.image,
+    world: extras.world,
+  };
+}
+
+/**
+ * Not a URL the browser can follow: the Schaufenster wants a token and refuses
+ * cross-origin reads. It is fetched and copied locally before it ever reaches
+ * an overlay.
+ */
+function imageUrl(connection: Connection, id: string): string {
+  return `http://127.0.0.1:${connection.port}/bild/${id}`;
+}
+
 /** Reads every entry of one kind and turns it into a Character. */
 export async function loadCharactersFromWorld(kind: string): Promise<Character[] | WorldFailure> {
   const connection = readConnection();
@@ -191,7 +249,7 @@ export async function loadCharactersFromWorld(kind: string): Promise<Character[]
 }
 
 /**
- * A world entry as the overlay wants it.
+ * A world entry as the older character API wants it.
  *
  * `status` is the entry's Reifegrad — Worldbuilder grades how settled a thing
  * is (Idee, Entwurf, Kanon, Verworfen) rather than tracking workflow state, and
@@ -212,10 +270,7 @@ function toCharacter(connection: Connection, entry: EntryDetail): Character {
     role: entry.werte['Rolle'] ?? entry.art ?? null,
     status: entry.reifegrad ?? null,
     summary: entry.werte['Kurzbeschreibung'] || entry.text || null,
-    // Not a URL the browser can follow: the Schaufenster wants a token and
-    // refuses cross-origin reads. It is fetched and copied locally before it
-    // ever reaches an overlay — see fetchPortrait.
-    image: entry.hatBild ? `http://127.0.0.1:${connection.port}/bild/${entry.id}` : null,
+    image: entry.hatBild ? imageUrl(connection, entry.id) : null,
   };
 }
 

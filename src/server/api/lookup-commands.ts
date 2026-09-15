@@ -25,7 +25,7 @@ router.get('/', (_req, res) => {
 router.get('/arten', async (_req, res) => {
   const arten = await loadArtenFromWorld();
   if (!Array.isArray(arten)) { res.status(503).json(arten); return; }
-  res.json(arten);
+  res.json(arten.map((art) => art.name));
 });
 
 router.post('/', (req, res) => {

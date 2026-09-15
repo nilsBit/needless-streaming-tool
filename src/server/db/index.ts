@@ -164,6 +164,15 @@ function runMigrations(from: number, to: number) {
     console.log('[DB] Migrated: added lookup_commands with the starter set');
   }
 
+  if (from < 19) {
+    db.exec(`CREATE TABLE IF NOT EXISTS hidden_entry_fields (
+      entry_id TEXT NOT NULL,
+      field    TEXT NOT NULL,
+      PRIMARY KEY (entry_id, field)
+    )`);
+    console.log('[DB] Migrated: added hidden_entry_fields');
+  }
+
   // Safety check: ensure experiment_* columns were renamed to challenge_*
   // (can be missed if DB was copied from an older version after migration ran)
   try {

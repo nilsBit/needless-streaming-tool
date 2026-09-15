@@ -15,7 +15,7 @@ import SongPanel from './panels/SongPanel';
 import StatsPanel from './panels/StatsPanel';
 import RewardStatsPanel from './panels/RewardStatsPanel';
 import ObsPanel from './panels/ObsPanel';
-import CharactersPanel from './panels/CharactersPanel';
+import WorldPanel from './panels/WorldPanel';
 import TextCommandsPanel from './panels/TextCommandsPanel';
 import logoSvg from './assets/logo.svg';
 
@@ -57,7 +57,7 @@ const TABS = {
     label: 'Projekt',
     panels: [
       { key: 'progress', label: 'Progress Tracker', component: ProgressPanel },
-      { key: 'characters', label: 'Figuren', component: CharactersPanel },
+      { key: 'characters', label: 'Welt', component: WorldPanel },
       { key: 'textcommands', label: 'Erklär-Commands', component: TextCommandsPanel },
       { key: 'stats', label: 'Statistiken', component: StatsPanel },
     ],

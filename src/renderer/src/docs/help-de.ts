@@ -79,6 +79,29 @@ Alle Befehle lassen sich unter Settings → Chat Commands umbenennen. Antworten,
 - **Voraussetzung:** Der Worldbuilder läuft und das Schaufenster ist offen (Worldbuilder → Verwalten → Schaufenster öffnen).`,
   },
   {
+    title: 'Welt & Eintragskarte',
+    content: `Die Eintragskarte zeigt im Stream, woran du gerade arbeitest — eine Figur, einen Ort, eine Gilde, einen Begriff — als Seite aus dem Lexikon deiner Welt.
+
+**In OBS:** Browser-Quelle mit http://localhost:4000/overlay/character/index.html (dieselbe URL wie früher das Figuren-Overlay), etwa 800 × 700 groß.
+
+**Panel:** Projekt → Welt
+- **Quelle:** Worldbuilder oder Notion. Notion kennt nur Figuren.
+- **Reiter:** eine Art pro Reiter, mit ihrer Farbe aus dem Worldbuilder. Darunter die Suche.
+- **▶** bringt einen Eintrag sofort ins Overlay. **✕ Overlay leeren** blendet die Karte aus.
+- **Klick auf einen Eintrag** zeigt alles, was auf der Karte landen könnte — jedes mit einem Schalter.
+
+**Spoiler ausblenden:** 👁 heißt „im Stream zu sehen“, 🙈 heißt „ausgeblendet“.
+- Gilt pro Eintrag und Feld: Samaels Kurzbeschreibung ausblenden lässt die von Mila unberührt.
+- Auch Text, Zweitnamen und Bild lassen sich ausblenden.
+- Ausgeblendetes erscheint weder auf der Karte noch in Chat-Antworten (!figur Samael).
+- Wirkt sofort, auch wenn die Karte gerade zu sehen ist. Ist die Kurzbeschreibung aus, rückt der Text nach, wenn er an ist.
+- Die Schalter bleiben gespeichert und sind im Backup enthalten.
+
+**Was die Karte zeigt:** Titel, Zweitname und Rolle, die Kurzbeschreibung (sonst den Text), bis zu vier weitere Felder, den Namen der Welt und den Reifegrad.
+
+**Umgestalten:** Alle Farben, Schriften und Größen stehen als Variablen oben in der Datei. Über Settings → Overlays lässt sich eine eigene Kopie anlegen.`,
+  },
+  {
     title: 'OBS verbinden',
     content: `**In OBS:**
 - Tools → WebSocket Server Settings
@@ -131,6 +154,7 @@ Konfiguriere Mappings über die API:
 | Poll | /overlay/poll/index.html | Abstimmungen |
 | Roulette | /overlay/roulette/index.html | Glücksrad |
 | Challenge | /overlay/challenge/index.html | Challenge-Status |
+| Eintragskarte | /overlay/character/index.html | Woran gerade gearbeitet wird — Figur, Ort, Gilde, Begriff |
 
 **In OBS einbinden:**
 1. Quellen → + → Browser
@@ -213,7 +237,7 @@ Das Template unter /overlay/_template/index.html enthält:
 
 **Projekt Tab:**
 - **Progress Tracker** — Verfolge den Fortschritt deines Projekts
-- **Figuren** — Eine Figur im Overlay zeigen
+- **Welt** — Einträge aus der Welt als Karte ins Overlay bringen, Spoiler-Felder ausblenden
 - **Erklär-Commands** — Chat-Befehle mit selbst geschriebenem Text, z. B. !story
 - **Milestones** — Achievement-System (Minor, Major, Epic)
 - **Todos** — Aufgabenliste für den Stream
@@ -238,10 +262,20 @@ Auth-Header: Authorization: Bearer <token>
 - GET /public/issues
 - GET /public/todos
 - GET /public/progress
+- GET /public/entry — die Eintragskarte, ohne ausgeblendete Felder
+- GET /public/character — dieselbe Karte im alten Figuren-Format
 
 **Stream State:**
 - GET /api/stream-state
 - PATCH /api/stream-state
+
+**Welt:**
+- GET /api/entries/arten — die Arten der Quelle, mit Farbe
+- GET /api/entries?art=Figur — alle Einträge einer Art, mit ihren ausgeblendeten Feldern
+- GET /api/entries/active — POST /api/entries/active — DELETE /api/entries/active
+- POST /api/entries/:id/hidden — { fields: ["Kurzbeschreibung", "@text", "@aliases", "@image"] }
+- GET /api/characters/source — POST /api/characters/source — { source: "worldbuilder" | "notion" }
+- POST /api/characters/cycle — nächste Figur ins Overlay (Stream Deck)
 
 **Erklär-Commands:**
 - GET /api/text-commands — POST /api/text-commands — PATCH /api/text-commands/:id — DELETE /api/text-commands/:id
@@ -302,6 +336,10 @@ Alle Events werden als JSON gesendet: { "event": "name", "data": { ... } }
 
 **Einträge:**
 - issue-created / issue-updated / issue-deleted
+
+**Welt:**
+- entry-changed — neue Eintragskarte (oder null), ausgeblendete Felder schon entfernt
+- character-changed — dieselbe Karte im alten Figuren-Format (Stream Deck)
 
 **Todos:**
 - todo-created / todo-updated / todo-deleted / todos-cleared
