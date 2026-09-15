@@ -206,7 +206,7 @@ git commit -m "feat(overlays): store the Lexikon palette as the overlay config"
 
 **Interfaces:**
 - Consumes: Task 1's stored config via `GET /public/overlay-config`
-- Produces: `/overlay/boot.js` and `/overlay/lexikon.css`; the global `window.__overlayOrigin`, `window.__overlayWs`, `window.__applyOverlayConfig(config)`; CSS classes `.lex`, `.lex-voll`, `.lex-schlank`, `.lex-fluechtig`, `.lex-kicker`, `.lex-rule`, `.lex-title`, `.lex-body`, `.lex-seal`
+- Produces: `/overlay/boot.js` and `/overlay/lexikon.css`; the global `window.__overlayOrigin`, `window.__overlayWs`, `window.__applyOverlayConfig(config)`; CSS classes `.lex`, `.lex-voll`, `.lex-schlank`, `.lex-fluechtig`, `.lex-kicker`, `.lex-rule`, `.lex-title`, `.lex-seal`
 
 - [ ] **Step 1: Write the failing test**
 
