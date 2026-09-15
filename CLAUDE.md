@@ -142,6 +142,10 @@ Open work lives in **GitHub Issues** (`gh issue list`) — that is the single so
 truth, available on any machine without a `git pull`. Per-machine memory under
 `~/.claude/projects/.../memory/` may be out of sync and never overrides an issue.
 
+The big picture — the goal, the decisions made so far, how this app connects to
+Worldbuilder, and how to set both up on a new machine — is in `docs/STAND.md`.
+Read it first in a session on a machine without memory.
+
 Historical specs and plans from the previous Superpowers-based workflow sit in
 `docs/archive/`. They record what was built and why. They are **not** current process
 and should not be used as templates for new work.
