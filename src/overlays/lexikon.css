@@ -26,6 +26,9 @@
   --lex-frame: color-mix(in srgb, var(--lex-parchment) 20%, transparent);
   --lex-frame-inner: color-mix(in srgb, var(--lex-parchment) 8%, transparent);
   --lex-rule: color-mix(in srgb, var(--lex-parchment) 15%, transparent);
+  /* Ornament lines that carry weight: the seal ring and the rule under a
+     kicker. The frame hairline is deliberately fainter than these. */
+  --lex-rule-strong: color-mix(in srgb, var(--lex-parchment) 35%, transparent);
   --lex-soft: color-mix(in srgb, var(--color-text) 82%, var(--color-bg));
   --lex-faint: color-mix(in srgb, var(--color-text) 60%, var(--color-bg));
 
@@ -71,7 +74,7 @@ html, body {
   content: '';
   flex: 1;
   height: 1px;
-  background: linear-gradient(90deg, var(--lex-rule), transparent);
+  background: linear-gradient(90deg, var(--lex-rule-strong), transparent);
 }
 
 .lex-rule { height: 1px; background: var(--lex-rule); border: 0; }
@@ -101,7 +104,7 @@ html, body {
   display: grid;
   place-items: center;
   overflow: hidden;
-  border: 1px solid var(--lex-frame);
+  border: 1px solid var(--lex-rule-strong);
   border-radius: 50%;
   color: var(--art);
   font: 600 26px var(--font-display);

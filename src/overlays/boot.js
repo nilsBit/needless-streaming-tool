@@ -53,7 +53,7 @@
       'https://fonts.googleapis.com/css2?' +
       families
         .map(function (f) {
-          return 'family=' + encodeURIComponent(f) + ':ital,wght@0,400;0,600;0,700;1,400;1,600';
+          return 'family=' + encodeURIComponent(f) + ':ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600';
         })
         .join('&') +
       '&display=swap';
