@@ -46,6 +46,28 @@
       border-bottom: 1px solid var(--lex-rule);
     }
 
+    /* The vote share, filled behind the label and count. A pseudo-element on
+       the row itself, not a sibling with negative z-index: negative stacking
+       would paint it behind the row's own background too, so it would vanish
+       the moment .poll-option got one. Zero here, with the row's real
+       children lifted to 1, keeps the fill behind content without depending
+       on .poll-option staying background-less. */
+    .poll-option::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      width: var(--fill, 0%);
+      background: var(--art);
+      opacity: 0.25;
+      z-index: 0;
+      transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .poll-option > * {
+      position: relative;
+      z-index: 1;
+    }
+
     .poll-label {
       font-family: var(--font-body);
       font-size: 14px;
@@ -62,17 +84,6 @@
       color: rgba(255,255,255,0.7);
       font-weight: 700;
       letter-spacing: 1px;
-    }
-
-    /* The vote share, filled behind the label and count. */
-    .poll-bar {
-      position: absolute;
-      inset: 0;
-      width: 0%;
-      background: var(--art);
-      opacity: 0.25;
-      z-index: -1;
-      transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     .poll-option.winner .poll-label {
@@ -112,16 +123,13 @@
         data.options.forEach(o => {
           const opt = document.createElement('div');
           opt.className = 'poll-option';
-          const bar = document.createElement('div');
-          bar.className = 'poll-bar';
-          bar.style.width = ((o.votes / total) * 100) + '%';
+          opt.style.setProperty('--fill', ((o.votes / total) * 100) + '%');
           const label = document.createElement('span');
           label.className = 'poll-label';
           label.textContent = o.label;
           const count = document.createElement('span');
           count.className = 'poll-count';
           count.textContent = String(o.votes);
-          opt.appendChild(bar);
           opt.appendChild(label);
           opt.appendChild(count);
           optionsEl.appendChild(opt);
