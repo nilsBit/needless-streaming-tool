@@ -15,8 +15,10 @@
     REGELN:
     1. Der Ordner-Name = die URL.
        Ordner "mein-overlay" → http://localhost:4000/overlay/mein-overlay/index.html
-    2. Alles in EINER Datei (HTML + CSS + JS). Keine externen Dateien nötig.
-    3. Background MUSS transparent sein (fuer OBS Browser Source).
+    2. Trage den Ordner-Namen unten bei data-overlay="..." ein.
+       Danach kann die Einstellungs-Seite dieses Overlay einzeln umfärben.
+    3. Reset, Transparenz und die Lexikon-Klassen kommen aus
+       /overlay/lexikon.css. Nicht noch einmal selbst schreiben.
     4. WebSocket verbindet sich IMMER mit: ws://<host>?overlay=1  (via window.__overlayWs)
     5. Daten holen über: <origin>/public/<endpoint>  (via window.__overlayOrigin)
 
@@ -52,74 +54,35 @@
     - GET /public/overlay-config    → Farben und Schriften
     Fetch via: fetch(`${window.__overlayOrigin}/public/<endpoint>`)
 
-    DESIGN-STYLES:
-    Es gibt zwei Styles im Toolkit — verwende welchen du willst:
-    - "Pixel Art" → Font: 'Press Start 2P', pixelated borders, retro look
-    - "Modern"   → Font: system-ui, backdrop blur, rounded corners
-    Oder mach dein eigenes Design. Alles erlaubt.
+    DESIGN:
+    Benutze den Lexikon-Stil — siehe docs/overlay-lexikon-design.md.
+    Gib dem äußeren Kasten eines der drei Gewichte:
+      .lex .lex-voll       Rahmen, Siegel, Kapitälchen  (groß, bleibt lange stehen)
+      .lex .lex-schlank    eine Kante, kein Rahmen      (klein, dauerhaft sichtbar)
+      .lex .lex-fluechtig  nur Schrift und Akzent       (ein paar Sekunden sichtbar)
+    Farben und Schriften kommen aus der Einstellungs-Seite.
+    Schreibe beides niemals fest in die Datei.
   -->
 
-  <!-- NST Modern: Rajdhani + Inter fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/overlay/lexikon.css">
 
   <style>
-    /* =============================================
-       RESET & TRANSPARENZ (NICHT ÄNDERN!)
-       ============================================= */
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    /* Dein eigenes CSS. Farben und Schriften immer über die Variablen:
+       --color-primary / --color-secondary / --color-accent / --color-text
+       --color-bg / --color-bg-secondary / --color-bg-opacity
+       --font-display / --font-body / --font-size-base
+       Dazu die abgeleiteten Töne --lex-rule, --lex-soft, --lex-faint,
+       --lex-frame und --art (der Akzent dieses Elements). */
 
-    html, body {
-      background: transparent !important;
-      background-color: rgba(0,0,0,0) !important;
-      overflow: hidden;
-      width: 100%;
-      height: 100%;
-    }
+    .overlay { padding: 16px; }
 
-    /* =============================================
-       NST MODERN STYLE
-       Ändere alles was du willst!
-       ============================================= */
+    .card { width: 320px; }
 
-    :root {
-      --color-primary: #ff2d7b;
-      --color-secondary: #00d4ff;
-      --color-accent: #ffd700;
-      --color-bg: #0a0a0a;
-      --font-display: 'Rajdhani', sans-serif;
-      --font-body: 'Inter', sans-serif;
-    }
+    .title { margin-bottom: 10px; }
 
-    .overlay {
-      font-family: var(--font-body);
-      padding: 16px;
-      color: #eee;
-      font-size: 14px;
-    }
-
-    /* Standard card: dark background, subtle border, soft shadow */
-    .card {
-      background: rgba(10, 10, 10, 0.85);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 6px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-      padding: 16px;
-    }
-
-    .title {
-      font-family: var(--font-display);
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: 2px;
-      color: var(--color-primary);
-      text-transform: uppercase;
-      margin-bottom: 10px;
-    }
-
-    /* Items */
     .item {
       padding: 6px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
+      border-bottom: 1px solid var(--lex-rule);
       animation: fadeIn 0.3s ease forwards;
       opacity: 0;
     }
@@ -129,7 +92,8 @@
     }
 
     .empty-msg {
-      color: #555;
+      color: var(--lex-faint);
+      font-style: italic;
       text-align: center;
       padding: 20px;
     }
@@ -173,24 +137,18 @@
        Passe die Struktur an dein Overlay an.
        ============================================= -->
   <div class="overlay">
-    <div class="card">
-      <div class="title">MEIN OVERLAY</div>
+    <div class="card lex lex-voll">
+      <div class="title lex-kicker">Mein Overlay</div>
       <div id="content">
-        <div class="empty-msg">LADE DATEN...</div>
+        <div class="empty-msg">Lade Daten …</div>
       </div>
     </div>
   </div>
 
+  <!-- Holt Farben und Schriften, setzt window.__overlayOrigin und
+       window.__overlayWs. Ordner-Namen bei data-overlay eintragen! -->
+  <script src="/overlay/boot.js" data-overlay="CHANGEME"></script>
   <script>
-    // =============================================
-    // ORIGIN (nicht ändern!)
-    // window.__overlayOrigin → für fetch()-Aufrufe
-    // window.__overlayWs     → für WebSocket-Verbindung
-    // =============================================
-    const _origin = window.location.origin || 'http://localhost:4000';
-    window.__overlayOrigin = _origin;
-    window.__overlayWs = _origin.replace(/^http/, 'ws');
-
     // =============================================
     // KONFIGURATION
     // Passe diese Werte an dein Overlay an.
@@ -236,7 +194,7 @@
       const items = Array.isArray(data) ? data : data.items || [];
 
       if (items.length === 0) {
-        container.innerHTML = '<div class="empty-msg">KEINE DATEN</div>';
+        container.innerHTML = '<div class="empty-msg">Keine Daten</div>';
         return;
       }
 
@@ -267,6 +225,11 @@
       ws.onmessage = function(e) {
         try {
           var msg = JSON.parse(e.data);
+
+          // Farben oder Schriften geändert → sofort übernehmen, ohne Reload
+          if (msg.event === 'overlay-config' && window.__applyOverlayConfig) {
+            window.__applyOverlayConfig(msg.data);
+          }
 
           // Prüfen ob das Event für uns relevant ist
           var isRelevant = WS_EVENTS.some(function(evt) {

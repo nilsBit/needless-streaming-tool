@@ -49,4 +49,25 @@ describe('overlay config after the Lexikon migration', () => {
     const css = await request(app).get('/overlay/lexikon.css').expect(200);
     expect(css.text).toContain('--lex-rule');
   });
+
+  /**
+   * The one that catches a forgotten overlay. Every file has to reach the
+   * shared boot script and stylesheet, and none may still carry the copy of
+   * the boot block that used to sit in all of them.
+   */
+  it('has every overlay on the shared boot script and stylesheet', async () => {
+    const names = [
+      'alerts', 'challenge', 'character', 'milestone', 'poll', 'progress',
+      'reward-leaderboard', 'reward-rankchange', 'roulette', 'song',
+      'song-queue', 'todos', '_template',
+    ];
+
+    for (const name of names) {
+      const res = await request(app).get(`/overlay/${name}/index.html`).expect(200);
+
+      expect(res.text, `${name} misses boot.js`).toContain('/overlay/boot.js');
+      expect(res.text, `${name} misses lexikon.css`).toContain('/overlay/lexikon.css');
+      expect(res.text, `${name} still carries its own boot block`).not.toContain('function hexToRgb');
+    }
+  });
 });
