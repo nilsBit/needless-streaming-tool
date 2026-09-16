@@ -1,0 +1,121 @@
+/*
+ * The Lexikon look, shared by every overlay.
+ *
+ * The ten --color-* / --font-* names come from the settings panel. Everything
+ * named --lex- below is derived from them and deliberately NOT configurable:
+ * twenty knobs of which eighteen never agree are worse than ten that always do.
+ */
+:root {
+  /* Fallbacks only — boot.js overwrites these from the stored config. */
+  --color-bg: #0e0c0a;
+  --color-bg-secondary: #282018;
+  --color-bg-opacity: 0.95;
+  --color-text: #e1d6c2;
+  --color-primary: #f4ead7;
+  --color-secondary: #b8a98c;
+  --color-accent: #c9a45c;
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-body: 'Source Serif 4', Georgia, serif;
+  --font-size-base: 15px;
+
+  --lex-frame: color-mix(in srgb, var(--color-primary) 20%, transparent);
+  --lex-frame-inner: color-mix(in srgb, var(--color-primary) 8%, transparent);
+  --lex-rule: color-mix(in srgb, var(--color-primary) 15%, transparent);
+  --lex-soft: color-mix(in srgb, var(--color-text) 82%, var(--color-bg));
+  --lex-faint: color-mix(in srgb, var(--color-text) 60%, var(--color-bg));
+
+  --lex-margin: 24px;
+  --art: var(--color-accent);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  background: transparent !important;
+  background-color: rgba(0, 0, 0, 0) !important;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
+
+.lex {
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--font-size-base);
+  line-height: 1.55;
+}
+
+.lex-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--color-primary);
+  line-height: 1.1;
+}
+
+/* The spaced small-caps line above a title. */
+.lex-kicker {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font: 600 15px var(--font-display);
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--color-secondary);
+}
+.lex-kicker::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--lex-rule), transparent);
+}
+
+.lex-rule { height: 1px; background: var(--lex-rule); border: 0; }
+
+/* ---- Weight: full. Frame, seal, small caps. Entry Card, leaderboard. ---- */
+.lex-voll {
+  position: relative;
+  padding: 34px 44px 28px;
+  background: radial-gradient(
+    120% 120% at 0% 0%,
+    color-mix(in srgb, var(--color-bg-secondary) calc(var(--color-bg-opacity) * 100%), transparent),
+    color-mix(in srgb, var(--color-bg) calc(var(--color-bg-opacity) * 100%), transparent)
+  );
+  border: 1px solid var(--lex-frame);
+  outline: 1px solid var(--lex-frame-inner);
+  outline-offset: -10px;
+  border-radius: 4px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+}
+
+.lex-seal {
+  position: absolute;
+  top: 28px;
+  right: 32px;
+  width: 66px;
+  height: 66px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--lex-frame);
+  border-radius: 50%;
+  color: var(--art);
+  font: 600 26px var(--font-display);
+}
+
+/* ---- Weight: slim. One rule, serif, no frame. Song, todos, progress. ---- */
+.lex-schlank {
+  padding: 12px 16px;
+  background: color-mix(in srgb, var(--color-bg) calc(var(--color-bg-opacity) * 100%), transparent);
+  border-left: 2px solid var(--art);
+  border-radius: 2px;
+}
+
+/* ---- Weight: fleeting. Type and accent only. Alerts, rank change, wheel. ----
+   No frame on purpose: two seconds on screen has to read at a glance, and a
+   border that fades in with it pulls the eye off the words. */
+.lex-fluechtig {
+  color: var(--color-primary);
+  font-family: var(--font-display);
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.75);
+}
+.lex-fluechtig .accent { color: var(--art); }
