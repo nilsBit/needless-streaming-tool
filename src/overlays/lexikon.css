@@ -19,6 +19,9 @@
   --font-size-base: 15px;
 
   --lex-frame: color-mix(in srgb, var(--color-primary) 20%, transparent);
+  /* The seal is a card's only ornament and always carried a stronger ring
+     than the frame around it. */
+  --lex-frame-strong: color-mix(in srgb, var(--color-primary) 35%, transparent);
   --lex-frame-inner: color-mix(in srgb, var(--color-primary) 8%, transparent);
   --lex-rule: color-mix(in srgb, var(--color-primary) 15%, transparent);
   --lex-soft: color-mix(in srgb, var(--color-text) 82%, var(--color-bg));
@@ -96,7 +99,7 @@ html, body {
   display: grid;
   place-items: center;
   overflow: hidden;
-  border: 1px solid var(--lex-frame);
+  border: 1px solid var(--lex-frame-strong);
   border-radius: 50%;
   color: var(--art);
   font: 600 26px var(--font-display);

@@ -2,39 +2,21 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Source+Serif+4:ital,wght@0,400;1,400;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/overlay/lexikon.css">
   <style>
     /*
      * The Entry Card in the "Lexikon" style (#19): whatever is being worked on
      * right now, as a page out of the world's lexicon.
      *
-     * Every color, font and size a redesign would touch sits in these
-     * variables. `--art` is set per card from the entry's Art color.
+     * Colors, fonts and the derived tones come from /overlay/lexikon.css and
+     * the settings panel. Only what is this overlay's own sits here.
      */
     :root {
       --lex-width: 720px;
-      --lex-margin: 24px;
-      --lex-bg-from: rgba(40, 32, 24, 0.95);
-      --lex-bg-to: rgba(14, 12, 10, 0.95);
-      --lex-frame: rgba(233, 214, 178, 0.2);
-      --lex-frame-inner: rgba(233, 214, 178, 0.08);
-      --lex-rule: rgba(233, 214, 178, 0.15);
-      --lex-title: #f4ead7;
-      --lex-text: #e1d6c2;
-      --lex-soft: #c9b48f;
-      --lex-muted: #b8a98c;
-      --lex-faint: #9d8f76;
-      --lex-font-title: 'Cormorant Garamond', Georgia, serif;
-      --lex-font-text: 'Source Serif 4', Georgia, serif;
-      --lex-art-fallback: #c9a45c;
       --lex-kicker: 'Lexikon';
     }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { background: transparent !important; overflow: hidden; }
-
     .slot {
-      --art: var(--lex-art-fallback);
       position: absolute;
       top: var(--lex-margin);
       left: var(--lex-margin);
@@ -45,54 +27,20 @@
     .slot.in { opacity: 1; transform: none; transition-delay: .15s; }
     .slot.out { opacity: 0; transform: translateY(10px); transition-delay: 0s; }
 
-    .card {
-      position: relative;
-      width: var(--lex-width);
-      padding: 34px 44px 28px;
-      color: var(--lex-text);
-      background: radial-gradient(120% 120% at 0% 0%, var(--lex-bg-from), var(--lex-bg-to));
-      border: 1px solid var(--lex-frame);
-      outline: 1px solid var(--lex-frame-inner);
-      outline-offset: -10px;
-      border-radius: 4px;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, .45);
-    }
+    /* Frame, background and seal come from .lex-voll and .lex-seal. */
+    .card { width: var(--lex-width); }
 
-    .seal {
-      position: absolute;
-      top: 28px;
-      right: 32px;
-      width: 66px;
-      height: 66px;
-      display: grid;
-      place-items: center;
-      overflow: hidden;
-      border: 1px solid rgba(233, 214, 178, .35);
-      border-radius: 50%;
-      color: var(--art);
-      font: 600 26px var(--lex-font-title);
-    }
     .seal svg { width: 34px; height: 34px; }
     .seal.portrait { width: 104px; height: 104px; border: 2px solid var(--art); }
     .seal img { width: 100%; height: 100%; object-fit: cover; }
 
-    .kicker {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding-right: 90px;
-      font: 600 15px var(--lex-font-title);
-      letter-spacing: .28em;
-      text-transform: uppercase;
-      color: var(--lex-muted);
-    }
+    .kicker { padding-right: 90px; }
     .kicker::before { content: var(--lex-kicker); }
-    .kicker::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, rgba(233, 214, 178, .35), transparent); }
     .kicker .art { color: var(--art); }
 
-    .title { margin-top: 14px; padding-right: 60px; font: 600 60px/1 var(--lex-font-title); color: var(--lex-title); }
+    .title { margin-top: 14px; padding-right: 60px; font-size: 60px; }
     .has-portrait .kicker, .has-portrait .title { padding-right: 130px; }
-    .alias { margin-top: 4px; font: italic 500 26px var(--lex-font-title); color: var(--lex-soft); }
+    .alias { margin-top: 4px; font: italic 500 26px var(--font-display); color: var(--lex-soft); }
 
     .body {
       display: -webkit-box;
@@ -100,9 +48,9 @@
       -webkit-line-clamp: 6;
       overflow: hidden;
       margin-top: 18px;
-      font: 400 22px/1.55 var(--lex-font-text);
+      font: 400 22px/1.55 var(--font-body);
     }
-    .body:not(.empty)::first-letter { float: left; padding: 8px 10px 0 0; font: 600 76px/.8 var(--lex-font-title); color: var(--art); }
+    .body:not(.empty)::first-letter { float: left; padding: 8px 10px 0 0; font: 600 76px/.8 var(--font-display); color: var(--art); }
     .body.empty { font-style: italic; color: var(--lex-faint); }
 
     dl {
@@ -112,15 +60,16 @@
       margin-top: 18px;
       padding-top: 14px;
       border-top: 1px solid var(--lex-rule);
-      font: 400 18px/1.45 var(--lex-font-text);
+      font: 400 18px/1.45 var(--font-body);
     }
-    dt { font: italic 600 18px var(--lex-font-text); color: var(--lex-muted); }
+    dt { font: italic 600 18px var(--font-body); color: var(--color-secondary); }
     dd { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
 
-    .foot { display: flex; justify-content: space-between; gap: 24px; margin-top: 16px; font: italic 16px var(--lex-font-text); color: var(--lex-faint); }
+    .foot { display: flex; justify-content: space-between; gap: 24px; margin-top: 16px; font: italic 16px var(--font-body); color: var(--lex-faint); }
   </style>
 </head>
 <body>
+  <script src="/overlay/boot.js" data-overlay="character"></script>
   <script>
     /** Facts beyond this many would push the page past a glance. */
     const MAX_FACTS = 4;
@@ -147,8 +96,8 @@
     }
 
     function seal(card) {
-      if (card.image) return `<div class="seal portrait"><img src="${esc(card.image)}" alt=""></div>`;
-      return `<div class="seal">${GLYPHS[card.art.toLowerCase()] || esc(initials(card.title))}</div>`;
+      if (card.image) return `<div class="seal lex-seal portrait"><img src="${esc(card.image)}" alt=""></div>`;
+      return `<div class="seal lex-seal">${GLYPHS[card.art.toLowerCase()] || esc(initials(card.title))}</div>`;
     }
 
     /** Relationships read like facts ("Gehört zu"), capitalised the way a lexicon would. */
@@ -160,10 +109,10 @@
         ...(card.relations || []).slice(0, MAX_RELATIONS).map((r) => ({ name: capitalise(r.name), value: r.value })),
       ];
       const maturity = card.maturity ? `Stand: ${card.maturity}` : '';
-      return `<div class="card${card.image ? ' has-portrait' : ''}">
+      return `<div class="card lex lex-voll${card.image ? ' has-portrait' : ''}">
         ${seal(card)}
-        <div class="kicker"><span class="art">${esc(card.art)}</span></div>
-        <div class="title">${esc(card.title)}</div>
+        <div class="kicker lex-kicker"><span class="art">${esc(card.art)}</span></div>
+        <div class="title lex-title">${esc(card.title)}</div>
         ${card.aliasLine ? `<div class="alias">${esc(card.aliasLine)}</div>` : ''}
         <p class="body${card.body ? '' : ' empty'}">${card.body ? esc(card.body) : 'Dieses Blatt ist noch leer.'}</p>
         ${facts.length ? `<dl>${facts.map((f) => `<dt>${esc(f.name)}</dt><dd>${esc(f.value)}</dd>`).join('')}</dl>` : ''}
@@ -179,7 +128,7 @@
      */
     function show(card) {
       if (card && current && current.dataset.id === card.id) {
-        current.style.setProperty('--art', card.artColor || 'var(--lex-art-fallback)');
+        current.style.setProperty('--art', card.artColor || 'var(--color-accent)');
         current.innerHTML = render(card);
         return;
       }
@@ -203,7 +152,7 @@
       current = slot;
     }
 
-    const origin = window.location.origin || 'http://localhost:4000';
+    const origin = window.__overlayOrigin;
 
     function load() {
       fetch(origin + '/public/entry')
@@ -214,11 +163,12 @@
 
     // Reconnects on its own, and catches up on whatever changed meanwhile.
     function connect() {
-      const ws = new WebSocket(`${origin.replace(/^http/, 'ws')}?overlay=1`);
+      const ws = new WebSocket(`${window.__overlayWs}?overlay=1`);
       ws.onopen = load;
       ws.onmessage = (msg) => {
         try {
           const { event, data } = JSON.parse(msg.data);
+          if (event === 'overlay-config' && window.__applyOverlayConfig) window.__applyOverlayConfig(data);
           if (event === 'entry-changed') show(data);
         } catch {}
       };
