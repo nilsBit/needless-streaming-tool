@@ -119,7 +119,9 @@
     }
     .sr-next-item:last-child { border-bottom: none; }
     .sr-next-pos { min-width: 16px; color: var(--lex-faint); }
-    .sr-next-title { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    /* min-width: 0, or a long title refuses to shrink and pushes the row
+       past the browser source's width instead of ellipsizing. */
+    .sr-next-title { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .sr-next-user { color: var(--lex-faint); font-size: 12px; font-style: italic; }
 
     @keyframes srFadeIn {
