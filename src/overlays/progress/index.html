@@ -3,29 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <title>NFS Progress - OBS Overlay</title>
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/overlay/lexikon.css">
 <style>
-  :root {
-    --color-primary: #ffffff;
-    --color-secondary: #cccccc;
-    --color-accent: #ffffff;
-    --color-bg: #0a0a0a;
-    --font-display: 'Rajdhani', sans-serif;
-    --font-body: 'Inter', sans-serif;
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  html, body {
-    background: transparent !important;
-    background-color: rgba(0,0,0,0) !important;
-    font-family: var(--font-body);
-    overflow: hidden;
-    width: 100%;
-    height: 100%;
-    margin: 0;
-  }
-
   .container {
     width: 100%;
     height: 100vh;
@@ -36,86 +15,54 @@
   }
 
   /* Header */
-  .header {
-    text-align: center;
-    margin-bottom: 4px;
-  }
-
-  .header-bar {
-    background: rgba(10, 10, 10, 0.95);
-    border: 1px solid rgba(255,255,255,0.08);
-    padding: 8px 12px;
-    border-radius: 6px;
-  }
-
-  .header h1 {
-    font-family: var(--font-display);
-    font-size: 16px;
-    color: #ffffff;
-    letter-spacing: 3px;
-    margin: 0;
-    text-transform: uppercase;
-  }
-
+  .header { margin-bottom: 4px; }
+  .header h1 { font-size: 15px; }
   .header-sub {
-    font-family: var(--font-display);
-    font-size: 10px;
-    color: rgba(255,255,255,0.5);
-    letter-spacing: 2px;
+    font-family: var(--font-body);
+    font-style: italic;
+    font-size: 12px;
+    color: var(--lex-faint);
     margin-top: 2px;
   }
 
   /* Project name */
   .project-name {
     font-family: var(--font-display);
-    font-size: 14px;
-    color: rgba(255,255,255,0.7);
-    letter-spacing: 2px;
-    text-align: center;
-    text-transform: uppercase;
-    padding: 2px 0;
+    font-size: 17px;
+    color: var(--color-primary);
+    padding: 2px 4px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  /* Card box */
-  .nfs-box {
-    background: rgba(10, 10, 10, 0.85);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 6px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    position: relative;
-  }
-
   /* Progress bar */
-  .progress-box { padding: 8px 10px; }
+  .progress-box { padding: 8px 14px; }
 
   .progress-top {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: baseline;
     margin-bottom: 8px;
   }
 
   .progress-label {
     font-family: var(--font-display);
-    font-size: 12px;
-    color: rgba(255,255,255,0.7);
-    letter-spacing: 2px;
+    font-size: 13px;
+    color: var(--color-secondary);
+    letter-spacing: 0.28em;
     text-transform: uppercase;
   }
 
   .progress-count {
     font-family: var(--font-display);
-    font-size: 14px;
-    color: #ffffff;
+    font-size: 17px;
+    color: var(--color-primary);
   }
 
   .bar-outer {
-    height: 8px;
-    background: rgba(20,20,20,0.9);
-    border: 1px solid #333;
+    height: 6px;
+    background: var(--lex-rule);
     border-radius: 3px;
     position: relative;
     overflow: hidden;
@@ -123,33 +70,28 @@
 
   .bar-fill {
     height: 100%;
-    background: rgba(255,255,255,0.3);
+    background: var(--art);
     transition: width 0.5s ease;
-  }
-
-  @keyframes barSlide {
-    0%, 100% { background-position: 0% 0%; }
-    50% { background-position: 100% 0%; }
   }
 
   .bar-tick {
     position: absolute;
     top: 0; bottom: 0;
     width: 1px;
-    background: rgba(255,255,255,0.05);
+    background: var(--lex-frame-inner);
   }
 
   .bar-pct {
     text-align: right;
     font-family: var(--font-display);
-    font-size: 11px;
-    color: rgba(255,255,255,0.7);
+    font-size: 13px;
+    color: var(--color-secondary);
     margin-top: 2px;
   }
 
   /* Item list */
   .item-list {
-    padding: 6px;
+    padding: 6px 14px;
     flex: 1;
     overflow-y: auto;
     min-height: 0;
@@ -159,8 +101,8 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 6px 8px;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding: 6px 0;
+    border-bottom: 1px solid var(--lex-rule);
     animation: slideIn 0.3s ease-out forwards;
     opacity: 0;
     transform: translateX(-20px);
@@ -172,85 +114,65 @@
     width: 18px;
     height: 18px;
     min-width: 18px;
-    background: rgba(10, 10, 10, 0.9);
-    border: 2px solid #555;
-    border-radius: 3px;
+    border: 1px solid var(--lex-frame);
+    border-radius: 2px;
     display: flex;
     align-items: center;
     justify-content: center;
+    color: var(--art);
     transition: all 0.2s ease;
   }
 
-  .checkbox.done {
-    background: rgba(255,255,255,0.1);
-    border-color: rgba(255,255,255,0.5);
-  }
-
-  .checkbox.in-progress {
-    background: rgba(255,255,255,0.07);
-    border-color: rgba(255,255,255,0.35);
-  }
+  .checkbox.done { border-color: var(--art); }
+  .checkbox.in-progress { border-color: var(--color-secondary); }
 
   .item-text {
     flex: 1;
-    font-size: 12px;
-    font-weight: 600;
-    color: #ccc;
+    /* Without this a flex item refuses to shrink below its text, and a long
+       title pushes the whole row past the browser source's width. */
+    min-width: 0;
+    font-size: 15px;
+    color: var(--color-text);
     line-height: 1.4;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
+  /* The strike takes the text colour — a rule-coloured one at 15% is invisible. */
   .item-text.done {
-    color: #444;
+    color: var(--lex-faint);
     text-decoration: line-through;
-    text-decoration-color: rgba(255,255,255,0.3);
   }
 
-  .item-text.in-progress {
-    color: rgba(255,255,255,0.7);
-  }
+  .item-text.in-progress { color: var(--color-primary); }
 
   .item-time {
     font-family: var(--font-body);
-    font-size: 11px;
-    color: #888;
+    font-style: italic;
+    font-size: 12px;
+    color: var(--lex-faint);
     margin-left: auto;
     padding-right: 4px;
   }
-  .item-time.active {
-    color: rgba(255,255,255,0.7);
-  }
+  .item-time.active { color: var(--color-secondary); }
 
   /* Footer */
   .footer {
     display: flex;
     justify-content: space-between;
     padding: 0 4px;
-  }
-
-  .footer-text {
-    font-family: var(--font-display);
-    font-size: 10px;
-    color: #555;
-    letter-spacing: 1px;
-  }
-
-  .footer-accent {
-    color: #333;
-    font-family: var(--font-display);
-    font-size: 10px;
-    letter-spacing: 1px;
+    font: italic 12px var(--font-body);
+    color: var(--lex-faint);
   }
 
   .empty-msg {
     text-align: center;
     padding: 12px 0;
-    color: #444;
-    font-family: var(--font-display);
-    font-size: 12px;
-    letter-spacing: 2px;
+    font-family: var(--font-body);
+    font-style: italic;
+    font-size: 14px;
+    color: var(--lex-faint);
   }
 
   @keyframes slideIn {
@@ -259,28 +181,26 @@
   }
 
   ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: rgba(10, 10, 10, 0.5); }
-  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border: 1px solid #333; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--lex-frame); border-radius: 3px; }
 </style>
 </head>
 <body>
 
-<div class="container">
+<div class="container lex">
   <!-- Header -->
-  <div class="header">
-    <div class="header-bar">
-      <h1>PROGRESS</h1>
-      <div class="header-sub">FEATURE TRACKER</div>
-    </div>
+  <div class="header lex-schlank">
+    <h1 class="lex-kicker">Progress</h1>
+    <div class="header-sub">Feature Tracker</div>
   </div>
 
   <!-- Project Name -->
-  <div class="project-name" id="projectName">&mdash;</div>
+  <div class="project-name lex-title" id="projectName">&mdash;</div>
 
   <!-- Progress Bar -->
-  <div class="nfs-box progress-box">
+  <div class="progress-box lex-schlank">
     <div class="progress-top">
-      <span class="progress-label">FORTSCHRITT</span>
+      <span class="progress-label">Fortschritt</span>
       <span class="progress-count" id="progressCount">0/0</span>
     </div>
     <div class="bar-outer">
@@ -299,70 +219,28 @@
   </div>
 
   <!-- Item List -->
-  <div class="nfs-box item-list" id="itemList">
-    <div class="empty-msg">LADE FEATURES...</div>
+  <div class="item-list lex-schlank" id="itemList">
+    <div class="empty-msg">Lade Features …</div>
   </div>
 
   <!-- Footer -->
   <div class="footer">
-    <span class="footer-text" id="openCount">0 OFFEN</span>
-    <span class="footer-accent">// NFS PROGRESS v1 //</span>
+    <span id="openCount">0 offen</span>
+    <span>NFS Progress</span>
   </div>
 </div>
 
-<script>
-(function() {
-  var name = 'progress';
-  var origin = window.location.origin || 'http://localhost:4000';
-  window.__overlayOrigin = origin;
-  window.__overlayWs = origin.replace(/^http/, 'ws');
-  document.documentElement.style.visibility = 'hidden';
-  function hexToRgb(hex) {
-    var r = parseInt(hex.slice(1,3), 16);
-    var g = parseInt(hex.slice(3,5), 16);
-    var b = parseInt(hex.slice(5,7), 16);
-    return r + ' ' + g + ' ' + b;
-  }
-  fetch(origin + '/public/overlay-config')
-    .then(function(r) { return r.json(); })
-    .then(function(config) {
-      var vars = Object.assign({}, config.global || {}, (config.overrides || {})[name] || {});
-      var root = document.documentElement;
-      Object.keys(vars).forEach(function(k) { root.style.setProperty(k, vars[k]); });
-      ['--color-primary', '--color-secondary', '--color-accent', '--color-bg'].forEach(function(k) {
-        if (vars[k]) root.style.setProperty(k + '-rgb', hexToRgb(vars[k]));
-      });
-      var fonts = [vars['--font-display'], vars['--font-body']].filter(Boolean);
-      if (fonts.length > 0) {
-        var families = fonts.map(function(f) { return f.split(',')[0].replace(/'/g, '').trim(); });
-        var link = document.createElement('link');
-        link.href = 'https://fonts.googleapis.com/css2?family=' + families.map(function(f) { return encodeURIComponent(f) + ':wght@400;600;700'; }).join('&') + '&display=swap';
-        link.rel = 'stylesheet';
-        document.head.appendChild(link);
-      }
-    })
-    .catch(function() {})
-    .finally(function() { document.documentElement.style.visibility = 'visible'; });
-  window.__applyOverlayConfig = function(config) {
-    var vars = Object.assign({}, config.global || {}, (config.overrides || {})[name] || {});
-    var root = document.documentElement;
-    Object.keys(vars).forEach(function(k) { root.style.setProperty(k, vars[k]); });
-    ['--color-primary', '--color-secondary', '--color-accent', '--color-bg'].forEach(function(k) {
-      if (vars[k]) root.style.setProperty(k + '-rgb', hexToRgb(vars[k]));
-    });
-  };
-})();
-</script>
+<script src="/overlay/boot.js" data-overlay="progress"></script>
 <script>
 let items = [];
-let projectName = '\u2014';
+let projectName = '—';
 let liveTimerSeconds = 0;
 
 async function fetchProgress() {
   try {
     const res = await fetch(`${window.__overlayOrigin}/public/progress`);
     const data = await res.json();
-    projectName = data.project_name || '\u2014';
+    projectName = data.project_name || '—';
     items = data.items || [];
     render();
   } catch (err) {
@@ -381,12 +259,12 @@ function render() {
   document.getElementById('progressCount').textContent = doneCount + '/' + total;
   document.getElementById('barFill').style.width = pct + '%';
   document.getElementById('barPct').textContent = pct + '%';
-  document.getElementById('openCount').textContent = openCount + ' OFFEN';
+  document.getElementById('openCount').textContent = openCount + ' offen';
 
   const list = document.getElementById('itemList');
 
   if (total === 0) {
-    list.innerHTML = '<div class="empty-msg">KEINE FEATURES VORHANDEN</div>';
+    list.innerHTML = '<div class="empty-msg">Keine Features vorhanden</div>';
     return;
   }
 
@@ -414,9 +292,9 @@ function render() {
 
     let checkmark = '';
     if (isDone) {
-      checkmark = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+      checkmark = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
     } else if (isInProgress) {
-      checkmark = '<span style="font-size:10px;color:rgba(255,255,255,0.7);font-weight:bold">\u25B6</span>';
+      checkmark = '<span style="font-size:10px">▶</span>';
     }
 
     var timeSpent = item.time_spent || 0;
