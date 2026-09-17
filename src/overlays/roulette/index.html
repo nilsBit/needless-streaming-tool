@@ -306,8 +306,17 @@ function spin(){
     targetAngle = Math.random() * 360;
   }
 
-  const spins = 5 + Math.random() * 3;
-  const totalDeg = spins * 360 + targetAngle;
+  // Whole turns only. A fractional count multiplied by 360 is not a multiple
+  // of 360, so it added a random angle on top of the target and the wheel came
+  // to rest wherever that happened to be — never on the winner the server had
+  // already picked.
+  const spins = Math.floor(5 + Math.random() * 3);
+  // targetAngle is where the wheel has to END UP, so what gets added is the way
+  // there from where it stands now. After the first spin that is no longer a
+  // multiple of 360, and adding the target outright would miss by the leftover.
+  const current = ((rotation % 360) + 360) % 360;
+  const delta = (((targetAngle - current) % 360) + 360) % 360;
+  const totalDeg = spins * 360 + delta;
   const startRot=rotation,endRot=startRot+totalDeg,dur=5000,t0=performance.now();
 
   function anim(now){
