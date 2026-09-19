@@ -78,12 +78,11 @@
 
   <script src="/overlay/boot.js" data-overlay="poll"></script>
   <script>
-    const ws = new WebSocket(`${window.__overlayWs}?overlay=1`);
     const poll = document.getElementById('poll');
     const pollTitle = document.getElementById('poll-title');
     const optionsEl = document.getElementById('options');
 
-    ws.onmessage = (msg) => {
+    const onMessage = (msg) => {
       const { event, data } = JSON.parse(msg.data);
 
       if (event === 'overlay-config' && window.__applyOverlayConfig) window.__applyOverlayConfig(data);
@@ -134,6 +133,16 @@
         setTimeout(() => poll.classList.remove('visible'), 5000);
       }
     };
+
+    // Reconnects on its own after a server restart.
+    function connect() {
+      const ws = new WebSocket(`${window.__overlayWs}?overlay=1`);
+      ws.onmessage = onMessage;
+      ws.onclose = () => setTimeout(connect, 2000);
+      ws.onerror = () => ws.close();
+    }
+
+    connect();
   </script>
 </body>
 </html>

@@ -225,8 +225,7 @@
       .catch(() => {});
 
     // --- WebSocket ---
-    const ws = new WebSocket(`${window.__overlayWs}?overlay=1`);
-    ws.onmessage = (msg) => {
+    const onMessage = (msg) => {
       const { event, data } = JSON.parse(msg.data);
 
       if (event === 'overlay-config' && window.__applyOverlayConfig) window.__applyOverlayConfig(data);
@@ -248,6 +247,18 @@
           .catch(() => {});
       }
     };
+
+    // Reconnects on its own after a server restart.
+    function connect() {
+      const ws = new WebSocket(`${window.__overlayWs}?overlay=1`);
+      // Catch up on the queue that changed while the connection was down.
+      ws.onopen = () => fetch(`${window.__overlayOrigin}/public/song-queue`).then(r => r.json()).then(renderQueue).catch(() => {});
+      ws.onmessage = onMessage;
+      ws.onclose = () => setTimeout(connect, 2000);
+      ws.onerror = () => ws.close();
+    }
+
+    connect();
   </script>
 </body>
 </html>

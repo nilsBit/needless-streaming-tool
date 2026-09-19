@@ -70,4 +70,22 @@ describe('overlay config after the Lexikon migration', () => {
       expect(res.text, `${name} still carries its own boot block`).not.toContain('function hexToRgb');
     }
   });
+
+  /**
+   * A browser source in OBS stays open for hours; the server restarts under it.
+   * An overlay that does not reconnect goes deaf and stays that way until
+   * someone refreshes the source by hand.
+   */
+  it('has every overlay reconnect after the server restarts', async () => {
+    const names = [
+      'alerts', 'challenge', 'character', 'milestone', 'poll', 'progress',
+      'reward-leaderboard', 'reward-rankchange', 'roulette', 'song',
+      'song-queue', 'todos', '_template',
+    ];
+
+    for (const name of names) {
+      const res = await request(app).get(`/overlay/${name}/index.html`).expect(200);
+      expect(res.text, `${name} never reconnects its WebSocket`).toMatch(/\.onclose\s*=/);
+    }
+  });
 });
