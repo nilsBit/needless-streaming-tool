@@ -305,6 +305,17 @@ async function flushTrackedTime(): Promise<void> {
 
 export const CHARACTER_IMAGE_DIR = getUserDataPath('character-images');
 
+/**
+ * How long a portrait may take before the pin goes ahead without it.
+ *
+ * Pinning waits for this copy, so a silent source would otherwise hold the
+ * Overlay — the stall the rest of the world client already rules out. Five
+ * seconds is the same budget the oEmbed lookups in `song-requests.ts` get, and
+ * for the same reason: Worldbuilder answers over loopback in milliseconds, but
+ * a Notion portrait comes off the internet and deserves the longer rope.
+ */
+const PORTRAIT_TIMEOUT_MS = 5000;
+
 const EXTENSION_BY_TYPE: Record<string, string> = {
   'image/png': 'png',
   'image/jpeg': 'jpg',
@@ -330,7 +341,7 @@ async function cachePortrait(entryId: string, url: string): Promise<string | nul
   try {
     // Worldbuilder wants its token; Notion's signed URL carries its own
     // credentials and gets no header.
-    const res = await fetch(url, { headers: portraitHeaders(url) });
+    const res = await fetch(url, { headers: portraitHeaders(url), signal: AbortSignal.timeout(PORTRAIT_TIMEOUT_MS) });
     if (!res.ok) return null;
     const type = (res.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
     const ext = EXTENSION_BY_TYPE[type];
