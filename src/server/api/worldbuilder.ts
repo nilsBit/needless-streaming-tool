@@ -122,14 +122,33 @@ async function get(connection: Connection, route: string): Promise<Response> {
  * "not running", never as an error the streamer has to debug mid-stream.
  */
 function asFailure(err: unknown): WorldFailure {
-  const message = err instanceof Error ? err.message : String(err);
   if (err instanceof Error && err.name === 'TimeoutError') {
     return { error: 'worldbuilder_timeout', message: 'Worldbuilder antwortet nicht.' };
   }
   return {
     error: 'worldbuilder_unreachable',
-    message: `Worldbuilder ist nicht erreichbar (${message}).`,
+    message: `Worldbuilder ist nicht erreichbar (${reason(err)}).`,
   };
+}
+
+/**
+ * The error, said in full.
+ *
+ * A failure below the protocol reaches here as a bare "fetch failed" and keeps
+ * everything worth knowing — a refused connection, a parse error — one link
+ * down in `cause`. Dropping that link is how a red test run ends up with
+ * nothing to go on, which is what issue #22 was left with.
+ */
+function reason(err: unknown): string {
+  if (!(err instanceof Error)) return String(err);
+  const links: string[] = [];
+  let current: unknown = err;
+  // Three is deeper than these ever nest, and ends a chain that points at itself.
+  for (let depth = 0; current instanceof Error && depth < 3; depth++) {
+    links.push(current.message);
+    current = (current as Error & { cause?: unknown }).cause;
+  }
+  return links.join(': ');
 }
 
 /** The world currently open over there, for the panel to show. */

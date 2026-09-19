@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import request from 'supertest';
 import type { Express } from 'express';
 import http from 'http';
+import net from 'net';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
@@ -202,6 +203,33 @@ describe('characters from Worldbuilder', () => {
 
     const res = await request(app).get('/api/characters').set(auth()).expect(503);
     expect(res.body.error).toBe('worldbuilder_not_running');
+  });
+
+  it('names what actually broke when the answer is not HTTP', async () => {
+    // A failure below the protocol reaches this app as a bare "fetch failed",
+    // with everything worth knowing tucked away in the error's cause. Issue #22
+    // is a suite that hit exactly this and had nothing to go on afterwards.
+    await useWorldbuilder();
+    const garbled = net.createServer((socket) => {
+      socket.on('data', () => socket.end('NOT-HTTP\r\n\r\n'));
+    });
+    const port = await new Promise<number>((done) =>
+      garbled.listen(0, '127.0.0.1', () => done((garbled.address() as { port: number }).port)),
+    );
+    const announcement = path.join(os.tmpdir(), `wb-garbled-${process.pid}.json`);
+    fs.writeFileSync(announcement, JSON.stringify({ version: 1, port, token: TOKEN, pid: process.pid }));
+    process.env.WORLDBUILDER_ANSCHLUSS = announcement;
+
+    try {
+      const res = await request(app).get('/api/characters').set(auth()).expect(502);
+      // "fetch failed" on its own is the useless half; the half worth keeping
+      // names the protocol that was broken.
+      expect(res.body.message).toMatch(/fetch failed/);
+      expect(res.body.message).toMatch(/Expected HTTP\//);
+    } finally {
+      await new Promise<void>((done) => garbled.close(() => done()));
+      fs.rmSync(announcement, { force: true });
+    }
   });
 
   it('refuses a source it does not have', async () => {
