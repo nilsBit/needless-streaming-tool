@@ -10,6 +10,16 @@ const router = Router();
 let rouletteCooldownUntil = 0;
 const ROULETTE_COOLDOWN_MS = 60_000; // 1 minute
 
+// The wheel in the roulette overlay turns for 5 s (its `dur`). The result waits
+// until it stands, or the alert names the winner while the wheel still turns.
+const WHEEL_SPIN_MS = 5000;
+const RESULT_AFTER_MS = WHEEL_SPIN_MS + 500;
+
+function announceWinner(issues: Array<{ id: number; title: string }>, winner: { id: number; title: string }): void {
+  broadcast('roulette-spin', { issues, winner_id: winner.id });
+  setTimeout(() => broadcast('roulette-result', { title: winner.title, id: winner.id }), RESULT_AFTER_MS);
+}
+
 // POST compile & pray
 router.post('/compile-pray', (_req, res) => {
   broadcast('compile-pray', { timestamp: new Date().toISOString() });
@@ -47,8 +57,7 @@ router.post('/roulette', (_req, res) => {
   // Set cooldown
   rouletteCooldownUntil = now + ROULETTE_COOLDOWN_MS;
 
-  broadcast('roulette-spin', { issues, winner_id: winner.id });
-  broadcast('roulette-result', { title: winner.title, id: winner.id });
+  announceWinner(issues, winner);
   broadcast('roulette-cooldown', { remaining_seconds: 60 });
 
   res.json({ winner, issues_count: issues.length, cooldown_seconds: 60 });
@@ -110,8 +119,7 @@ export function triggerRoulette(): { winner: { id: number; title: string } } | {
   const winner = issues[Math.floor(Math.random() * issues.length)];
   rouletteCooldownUntil = now + ROULETTE_COOLDOWN_MS;
 
-  broadcast('roulette-spin', { issues, winner_id: winner.id });
-  broadcast('roulette-result', { title: winner.title, id: winner.id });
+  announceWinner(issues, winner);
   broadcast('roulette-cooldown', { remaining_seconds: 60 });
 
   return { winner };

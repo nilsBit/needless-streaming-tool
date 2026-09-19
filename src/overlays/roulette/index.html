@@ -317,6 +317,8 @@ function spin(){
   const current = ((rotation % 360) + 360) % 360;
   const delta = (((targetAngle - current) % 360) + 360) % 360;
   const totalDeg = spins * 360 + delta;
+  // dur matches WHEEL_SPIN_MS in src/server/api/actions.ts — the server holds
+  // roulette-result back that long, so the alert does not give the winner away.
   const startRot=rotation,endRot=startRot+totalDeg,dur=5000,t0=performance.now();
 
   function anim(now){

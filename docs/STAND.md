@@ -112,10 +112,9 @@ Rechner kopiert werden.
 - **#23** Der Lexikon-Umbau steht, aber **niemand hat die Overlays in OBS
   gesehen** — alle Prüfungen waren Kopfrenderings gegen einen Nachbau.
   Ebenfalls offen: die Meilenstein-Icons sind weiter neongrün, -pink und
-  -cyan und beißen sich mit dem Pergament, und `POST /roulette` verschickt
-  `roulette-spin` und `roulette-result` gleichzeitig — der Alert verrät den
-  Gewinner, während das Rad noch fünf Sekunden dreht. Beides ist eine
-  Design-Entscheidung, keine Fehlerbehebung.
+  -cyan und beißen sich mit dem Pergament — eine Design-Entscheidung.
+  (Erledigt: `roulette-result` kommt jetzt 5,5 s nach `roulette-spin`, der
+  Alert verrät den Gewinner nicht mehr, während das Rad dreht.)
 
 **Noch nie gemacht**
 
