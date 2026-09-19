@@ -4,6 +4,10 @@ import { useToast } from '../contexts/ToastContext';
 import CopyButton from '../components/CopyButton';
 
 const FONT_OPTIONS = [
+  // The two the Lexikon style runs on. Without them the current fonts cannot be
+  // picked back once someone changes them.
+  { value: "'Cormorant Garamond', Georgia, serif", label: 'Cormorant Garamond' },
+  { value: "'Source Serif 4', Georgia, serif", label: 'Source Serif 4' },
   { value: "'Bebas Neue', sans-serif", label: 'Bebas Neue' },
   { value: "'Inter', sans-serif", label: 'Inter' },
   { value: "'Roboto', sans-serif", label: 'Roboto' },
@@ -38,6 +42,25 @@ const OVERLAY_ICONS: Record<string, string> = {
 const TESTABLE_OVERLAYS = new Set(['alerts', 'song', 'poll', 'milestone', 'roulette', 'challenge', 'todos', 'progress', 'song-queue', 'reward-leaderboard', 'reward-rankchange', 'character']);
 
 const THEME_PRESETS: { name: string; label: string; color: string; values: Record<string, string> }[] = [
+  {
+    // What every overlay ships with (schema v20). First in the list, and the
+    // way back after trying any of the others.
+    name: 'lexikon',
+    label: 'Lexikon',
+    color: '#c9a45c',
+    values: {
+      '--color-primary': '#f4ead7',
+      '--color-secondary': '#b8a98c',
+      '--color-accent': '#c9a45c',
+      '--color-text': '#e1d6c2',
+      '--color-bg': '#0e0c0a',
+      '--color-bg-opacity': '0.95',
+      '--color-bg-secondary': '#282018',
+      '--font-display': "'Cormorant Garamond', Georgia, serif",
+      '--font-body': "'Source Serif 4', Georgia, serif",
+      '--font-size-base': '15px',
+    },
+  },
   {
     name: 'gaming',
     label: 'Gaming',
