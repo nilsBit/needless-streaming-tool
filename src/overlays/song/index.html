@@ -110,22 +110,30 @@
     const songRequester = document.getElementById('song-requester');
     const songArtwork = document.getElementById('song-artwork');
 
+    function showSong(data) {
+      song.classList.add('visible');
+      songTitle.textContent = data.title || 'Unknown';
+      songRequester.textContent = data.artist || '';
+      if (data.artworkUrl) {
+        songArtwork.src = data.artworkUrl;
+        songArtwork.classList.add('visible');
+      } else {
+        songArtwork.classList.remove('visible');
+      }
+    }
+
+    // Updates only come when the song changes — ask what is playing right now.
+    fetch(`${window.__overlayOrigin}/public/song`)
+      .then(r => r.json())
+      .then(({ song: current }) => { if (current) showSong(current); })
+      .catch(() => {});
+
     ws.onmessage = (msg) => {
       const { event, data } = JSON.parse(msg.data);
 
       if (event === 'overlay-config' && window.__applyOverlayConfig) window.__applyOverlayConfig(data);
 
-      if (event === 'song-update') {
-        song.classList.add('visible');
-        songTitle.textContent = data.title || 'Unknown';
-        songRequester.textContent = data.artist || '';
-        if (data.artworkUrl) {
-          songArtwork.src = data.artworkUrl;
-          songArtwork.classList.add('visible');
-        } else {
-          songArtwork.classList.remove('visible');
-        }
-      }
+      if (event === 'song-update') showSong(data);
 
       if (event === 'song-clear') {
         song.classList.remove('visible');

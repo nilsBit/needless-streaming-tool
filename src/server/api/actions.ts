@@ -55,18 +55,21 @@ router.post('/roulette', (_req, res) => {
 });
 
 // Song / Now Playing
-router.get('/song', (_req, res) => {
+
+/** What is playing now, or null. The overlay asks for it on load via /public/song. */
+export function currentSong(): { title: string; artist: string; source: string; artworkUrl?: string } | null {
   const row = getDb().prepare('SELECT value FROM settings WHERE key = ?').get('current_song') as { value: string } | undefined;
-  let song: { title: string; artist: string; source: string } | null = null;
-  if (row?.value) {
-    try {
-      song = JSON.parse(row.value);
-    } catch {
-      song = { title: row.value, artist: '', source: 'manual' };
-    }
+  if (!row?.value) return null;
+  try {
+    return JSON.parse(row.value);
+  } catch {
+    return { title: row.value, artist: '', source: 'manual' };
   }
+}
+
+router.get('/song', (_req, res) => {
   res.json({
-    song,
+    song: currentSong(),
     auto_detect: getAutoDetectSetting(),
     auto_detect_supported: isSMTCSupported(),
     auto_detect_running: isSMTCRunning(),

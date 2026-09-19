@@ -6,7 +6,9 @@ if (!parentPort) {
 
 const ACTIVE_INTERVAL_MS = 3000;   // 3s when music is playing
 const IDLE_INTERVAL_MS = 15000;    // 15s when no music detected
-let lastKey: string | null = null;
+// undefined until the first look, so that look always reports — a song left in
+// the database from the last run is cleared if nothing is playing now.
+let lastKey: string | null | undefined = undefined;
 let currentInterval: ReturnType<typeof setInterval> | null = null;
 let isActive = false;
 

@@ -10,7 +10,7 @@ import issuesRouter from './api/issues';
 import rewardsRouter from './api/rewards';
 import designsRouter from './api/designs';
 import settingsRouter from './api/settings';
-import actionsRouter from './api/actions';
+import actionsRouter, { currentSong } from './api/actions';
 import authRouter from './api/auth';
 import votingRouter from './api/voting';
 import progressRouter from './api/progress';
@@ -158,6 +158,11 @@ export function createApp(): express.Express {
 
   app.get('/public/overlay-config', (_req, res) => {
     res.json(getOverlayConfig());
+  });
+
+  // The song overlay only hears about changes; on load it asks what is playing.
+  app.get('/public/song', (_req, res) => {
+    res.json({ song: currentSong() });
   });
 
   app.get('/public/song-queue', (_req, res) => {
