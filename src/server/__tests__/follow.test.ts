@@ -24,6 +24,7 @@ const CONNECTION = path.join(os.tmpdir(), `wb-follow-${process.pid}.json`);
 const WORLD = [
   { id: 'e-mila', titel: 'Mila', art: 'Figur', reifegrad: 'Entwurf', zweitnamen: [], text: '', werte: { Kurzbeschreibung: 'Kartografin.' }, hatBild: false },
   { id: 'e-saldor', titel: 'Saldor', art: 'Region', reifegrad: 'Idee', zweitnamen: [], text: 'Eine Wüste.', werte: {}, hatBild: false },
+  { id: 'e-thoral', titel: 'Thoral', art: 'Figur', reifegrad: 'Verworfen', zweitnamen: [], text: 'Gestrichen.', werte: {}, hatBild: false },
 ];
 
 type Focus = { id: string; titel: string; art: string; seit: string } | null;
@@ -122,6 +123,15 @@ describe('follow mode', () => {
     focus = null;
 
     expect((await check()).outcome).toBe('nothing-open');
+    expect(await shownTitle()).toBe('Mila');
+  });
+
+  it('never follows onto a discarded entry — the last card stays', async () => {
+    focus = openFor('e-mila', 10);
+    await check();
+    focus = openFor('e-thoral', 10);
+
+    expect((await check()).outcome).toBe('discarded');
     expect(await shownTitle()).toBe('Mila');
   });
 

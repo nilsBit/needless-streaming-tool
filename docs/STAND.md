@@ -81,6 +81,12 @@ Rechner kopiert werden.
 - Glücksrad: Es blieb nie auf dem Gewinner stehen, den der Server gezogen
   hatte — `spins` war gebrochen, also drehte es sich um einen Zufallswinkel zu
   weit. Aufgefallen wäre es am Alert, der den richtigen Namen nannte.
+- **Beide Apps zusammen** (19. September, Windows, mit einer Prüfwelt): Arten,
+  Listen, Beziehungen und das Folgen kommen durch, die Karte rendert im
+  Browser. Dabei gefunden: ein **verworfener** Eintrag stand in der Liste im
+  Panel, im Stream-Deck-Durchlauf, und die Karte folgte ihm, sobald er im
+  Worldbuilder offen war. Jetzt lässt schon der Lader ihn weg, und das Folgen
+  bleibt auf der letzten Karte stehen (`discarded`).
 
 **Worldbuilder** (Tickets in `.scratch/stream-anbindung/`)
 
@@ -113,8 +119,9 @@ Rechner kopiert werden.
 
 **Noch nie gemacht**
 
-- Beide Apps **zusammen** laufen lassen. Getestet ist jede Seite gegen einen
-  Nachbau der anderen.
+- Beide Apps zusammen mit der **echten Welt** („Die Verborgene Stadt“) —
+  bisher nur mit einer Prüfwelt. Die `.welt`-Datei liegt noch auf dem alten
+  Rechner.
 - Die Panels **Welt** und **Erklär-Commands** in der laufenden App
   durchklicken.
 - Die Overlays als **Browser-Quelle in OBS** über echtem Videobild ansehen.

@@ -1,6 +1,6 @@
 import { getActiveEntry, pinEntry } from './active-entry';
 import { followState } from './follow-state';
-import { loadFocusFromWorld, loadWorldEntry } from './worldbuilder';
+import { isDiscarded, loadFocusFromWorld, loadWorldEntry } from './worldbuilder';
 
 /**
  * Follow Mode: the Entry Card follows the entry open in Worldbuilder.
@@ -16,6 +16,7 @@ export type FollowOutcome =
   | 'held'
   | 'unreachable'
   | 'nothing-open'
+  | 'discarded'
   | 'showing'
   | 'settling'
   | 'switched';
@@ -49,6 +50,8 @@ export async function followStep(now = Date.now()): Promise<FollowStep> {
 
   const entry = await loadWorldEntry(focus.id);
   if ('error' in entry) return { outcome: 'unreachable', focus: open };
+  // Open in Worldbuilder, but not the story: the last card stays.
+  if (isDiscarded({ reifegrad: entry.maturity })) return { outcome: 'discarded', focus: open };
 
   // Picked by hand while Worldbuilder was being asked: the hand wins.
   if (followState().held) return { outcome: 'held' };

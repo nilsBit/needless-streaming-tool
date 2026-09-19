@@ -102,11 +102,10 @@ async function entriesOf(art: string): Promise<EntryDetail[] | null> {
   const cached = index.get(art);
   if (cached && Date.now() - cached.at < INDEX_TTL_MS) return cached.entries;
 
-  const loaded = await loadEntriesFromWorld(art);
-  if (!Array.isArray(loaded)) return null;
+  // Discarded entries are already left out by the loader.
+  const entries = await loadEntriesFromWorld(art);
+  if (!Array.isArray(entries)) return null;
 
-  // Discarded ideas are not the story. They never reach chat.
-  const entries = loaded.filter((entry) => entry.reifegrad !== 'Verworfen');
   index.set(art, { at: Date.now(), entries });
   return entries;
 }

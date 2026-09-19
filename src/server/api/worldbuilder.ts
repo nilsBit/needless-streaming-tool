@@ -65,6 +65,11 @@ interface EntryListItem {
   reifegrad: string;
 }
 
+/** Verworfen is not the story. A discarded entry never appears on stream. */
+export function isDiscarded(entry: { reifegrad?: string | null }): boolean {
+  return entry.reifegrad === 'Verworfen';
+}
+
 /** A relationship as the Schaufenster gives it, read from this entry's side. */
 interface WorldRelation {
   bezeichnung: string;
@@ -195,6 +200,9 @@ export async function loadArtenFromWorld(): Promise<WorldArt[] | WorldFailure> {
  * For the dozens of entries an Art holds that is far below noticeable, and it
  * keeps the far side from having to ship the full text of a four-thousand-entry
  * world to answer a list request.
+ *
+ * Discarded entries are left out here, at the source, so no list, cycle or
+ * chat lookup can put one on stream.
  */
 export async function loadEntriesFromWorld(kind: string): Promise<EntryDetail[] | WorldFailure> {
   const connection = readConnection();
@@ -205,7 +213,7 @@ export async function loadEntriesFromWorld(kind: string): Promise<EntryDetail[] 
     if (res.status === 503) return NO_WORLD;
     if (!res.ok) return { error: 'worldbuilder_error', status: res.status };
 
-    const list = (await res.json()) as EntryListItem[];
+    const list = ((await res.json()) as EntryListItem[]).filter((item) => !isDiscarded(item));
     const details = await Promise.all(
       list.map(async (item) => {
         const one = await get(connection, `/eintrag/${item.id}`);
@@ -313,13 +321,12 @@ export function toEntry(
  * Relationships grouped by how they read from this entry — "gehört zu: Der
  * Orden", "Freund von: Mila, Rafe" — in the order the world gives them.
  *
- * A relationship to a discarded entry is left out: Verworfen is not the story,
- * the same rule Lookup Commands follow.
+ * A relationship to a discarded entry is left out, like the entry itself.
  */
 function relationsOf(beziehungen: WorldRelation[]): Entry['fields'] {
   const grouped = new Map<string, string[]>();
   for (const beziehung of beziehungen) {
-    if (beziehung.zu.reifegrad === 'Verworfen') continue;
+    if (isDiscarded(beziehung.zu)) continue;
     grouped.set(beziehung.bezeichnung, [...(grouped.get(beziehung.bezeichnung) ?? []), beziehung.zu.titel]);
   }
   return [...grouped].map(([name, titles]) => ({ name, value: titles.join(', ') }));

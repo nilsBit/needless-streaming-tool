@@ -40,6 +40,7 @@ const WORLD = [
     ],
   },
   { id: 'e-mila', titel: 'Mila', art: 'Figur', reifegrad: 'Entwurf', zweitnamen: [], text: '', werte: { Kurzbeschreibung: 'Kartografin.' }, hatBild: false },
+  { id: 'e-thoral', titel: 'Thoral', art: 'Figur', reifegrad: 'Verworfen', zweitnamen: [], text: 'Gestrichen.', werte: {}, hatBild: false },
   { id: 'e-saldor', titel: 'Saldor', art: 'Region', reifegrad: 'Idee', zweitnamen: [], text: 'Eine Wüste voller gerader Straßen.', werte: {}, hatBild: false },
 ];
 
@@ -128,6 +129,10 @@ describe('entries', () => {
       expect((aldric.fields as Array<{ name: string }>).map((field) => field.name)).toEqual([
         'Rolle', 'Alter', 'Kurzbeschreibung', 'Stärken', 'Schwächen',
       ]);
+    });
+
+    it('leaves out discarded entries, so they cannot be put on stream', async () => {
+      expect((await list('Figur')).map((entry) => entry.title)).toEqual(['Aldric', 'Mila']);
     });
 
     it('still reports a Notion source that is not set up', async () => {
@@ -263,9 +268,11 @@ describe('entries', () => {
     it('lets the Stream Deck cycle through the characters', async () => {
       const first = await request(app).post('/api/characters/cycle').set(auth()).expect(200);
       const second = await request(app).post('/api/characters/cycle').set(auth()).expect(200);
+      const third = await request(app).post('/api/characters/cycle').set(auth()).expect(200);
 
-      expect([first.body.character.name, second.body.character.name]).toEqual(['Aldric', 'Mila']);
-      expect((await card())?.title).toBe('Mila');
+      // Thoral is discarded: the cycle goes round without him.
+      expect([first, second, third].map((res) => res.body.character.name)).toEqual(['Aldric', 'Mila', 'Aldric']);
+      expect((await card())?.title).toBe('Aldric');
     });
   });
 });
