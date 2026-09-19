@@ -105,7 +105,7 @@ Alle Befehle lassen sich unter Settings → Chat Commands umbenennen. Antworten,
 
 **Was die Karte zeigt:** Titel, Zweitname und Rolle, die Kurzbeschreibung (sonst den Text), bis zu vier weitere Felder, bis zu zwei Beziehungen („Gehört zu: Die Goldene Hand“), den Namen der Welt und den Reifegrad. Beziehungen zu verworfenen Einträgen erscheinen nicht. Jede Beziehung hat im Panel ihren eigenen 👁-Schalter (↔).
 
-**Umgestalten:** Alle Farben, Schriften und Größen stehen als Variablen oben in der Datei. Über Settings → Overlays lässt sich eine eigene Kopie anlegen.`,
+**Umgestalten:** Farben und Schriften kommen aus Settings → Overlays → Design und gelten für alle Overlays zugleich; einzelne lassen sich dort übersteuern. Die Karte selbst nutzt den Lexikon-Stil aus /overlay/lexikon.css — dort liegen auch die drei Gewichte (voll, schlank, flüchtig), die alle Overlays teilen. Nur was dieser Karte allein gehört (Breite, das Wort „Lexikon“ über dem Titel) steht oben in ihrer Datei. Über Settings → Overlays lässt sich eine eigene Kopie anlegen.`,
   },
   {
     title: 'OBS verbinden',

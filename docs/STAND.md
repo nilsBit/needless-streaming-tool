@@ -70,6 +70,17 @@ Rechner kopiert werden.
   „Karte festpinnen“
 - #21 Hilfe-Seite passt wieder zum Code, `!uptime` zählt ab Stream-Start
 - Beziehungen auf der Karte („Gehört zu: …“)
+- #23 **Alle zwölf Overlays im Lexikon-Stil.** Ein gemeinsames `boot.js` und
+  ein `lexikon.css` statt einer Kopie des Boot-Blocks in jeder Datei; die
+  Palette liegt in der Datenbank (Migration v20), also erreicht sie die
+  Einstell-Seite. Drei Gewichte: voll (Eintragskarte, Bestenliste), schlank
+  (Song, Songliste, Tasks, Fortschritt, Meilenstein, Challenge, Umfrage),
+  flüchtig (Alerts, Platzwechsel, Glücksrad). Ein Test nennt beim Namen, wer
+  je aus dem System fällt. Plan und Begründung: `docs/overlay-lexikon-plan.md`
+  und `docs/overlay-lexikon-design.md`.
+- Glücksrad: Es blieb nie auf dem Gewinner stehen, den der Server gezogen
+  hatte — `spins` war gebrochen, also drehte es sich um einen Zufallswinkel zu
+  weit. Aufgefallen wäre es am Alert, der den richtigen Namen nannte.
 
 **Worldbuilder** (Tickets in `.scratch/stream-anbindung/`)
 
@@ -88,7 +99,17 @@ Rechner kopiert werden.
   die Plugin-Datei enthält. Unter Windows `npm run build:win` und
   `release/win-unpacked/resources/assets/`.
 - **#10** Hardware-Test am echten Stream Deck, inklusive „Karte festpinnen“.
-- **#22** Die Tests sind zweimal unter hoher Last gewackelt — Ursache offen.
+- **#22** Die Tests wackeln unter hoher Last — Ursache offen. Neu belegt: der
+  Fehler ist keine fehlgeschlagene Zusicherung, sondern
+  `Error: Parse Error: Expected HTTP/` in `entries.test.ts`, also
+  Transportebene. Allein läuft die Datei mit 16 von 16 durch.
+- **#23** Der Lexikon-Umbau steht, aber **niemand hat die Overlays in OBS
+  gesehen** — alle Prüfungen waren Kopfrenderings gegen einen Nachbau.
+  Ebenfalls offen: die Meilenstein-Icons sind weiter neongrün, -pink und
+  -cyan und beißen sich mit dem Pergament, und `POST /roulette` verschickt
+  `roulette-spin` und `roulette-result` gleichzeitig — der Alert verrät den
+  Gewinner, während das Rad noch fünf Sekunden dreht. Beides ist eine
+  Design-Entscheidung, keine Fehlerbehebung.
 
 **Noch nie gemacht**
 
@@ -96,6 +117,14 @@ Rechner kopiert werden.
   Nachbau der anderen.
 - Die Panels **Welt** und **Erklär-Commands** in der laufenden App
   durchklicken.
+- Die Overlays als **Browser-Quelle in OBS** über echtem Videobild ansehen.
+
+**Achtung beim Start**
+
+- Der Chat-Bot kam zuletzt nicht rein: `[Bot] Connection failed: Login
+  authentication failed`. Ohne Bot-Login antwortet kein einziger
+  Erklär-Command. Sieht nach abgelaufenem Twitch-Token aus — in den Settings
+  neu anmelden.
 
 **Einmal einstellen**
 
@@ -196,6 +225,17 @@ Auf diesem Rechner liegen die Projekte unter `D:\dev\stream-toolkit` und
 - Wo was steht: offene Arbeit in den **Issues** (hier) bzw. in `.scratch/`
   (Worldbuilder), Begriffe in `CONTEXT.md`, Regeln und Befehle in `CLAUDE.md`,
   der Worldbuilder-Stand in dessen `START.md`.
-- Vor jedem Commit: `npm run typecheck && npm test && npm run lint` — und die
-  Exit-Codes nicht durch `| grep` verschlucken. Genau so ist am 15. September
-  ein Typfehler auf `main` gelandet.
+- Vor jedem Commit: `npm run typecheck && npm test && npm run lint`.
+  **Den Exit-Code einzeln abholen, nicht auf `set -e` verlassen:**
+
+  ```bash
+  npm test > /tmp/test.log 2>&1; CODE=$?    # erst danach filtern
+  ```
+
+  Die Shell hier ist zsh, und dort bricht `set -e` bei einer Pipeline nicht
+  ab — auch mit `pipefail` nicht. `npm test 2>&1 | grep …` meldet den roten
+  Lauf brav auf dem Bildschirm und macht trotzdem weiter. So ist am
+  15. September ein Typfehler auf `main` gelandet, und später noch einmal ein
+  Commit durchgelaufen, während die Suite rot war. `npm test` selbst reicht
+  den Code 1 korrekt durch, auch durch Electron hindurch — der Fehler lag
+  jedes Mal an der Pipe.
