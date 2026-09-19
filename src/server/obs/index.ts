@@ -1,6 +1,7 @@
 import OBSWebSocket from 'obs-websocket-js';
 import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
+import { announceLive } from '../discord/live';
 
 let obs: OBSWebSocket | null = null;
 let connected = false;
@@ -89,6 +90,9 @@ export async function connectObs(): Promise<boolean> {
         broadcast('stream-state', getDb().prepare('SELECT * FROM stream_state WHERE id = 1').get());
       } catch (err) { console.error('[OBS] DB update failed:', err); }
       console.log(`[OBS] Stream ${isStreaming ? 'started' : 'stopped'}`);
+      // Only the real start — not "starting", and not the initial sync after a
+      // reconnect, which would announce a stream that has been running for an hour.
+      if (event.outputState === 'OBS_WEBSOCKET_OUTPUT_STARTED') void announceLive();
     });
 
     obs.on('RecordStateChanged', (event) => {

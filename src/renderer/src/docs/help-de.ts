@@ -108,6 +108,20 @@ Alle Befehle lassen sich unter Settings → Chat Commands umbenennen. Antworten,
 **Umgestalten:** Farben und Schriften kommen aus Settings → Overlays → Design und gelten für alle Overlays zugleich; einzelne lassen sich dort übersteuern. Die Karte selbst nutzt den Lexikon-Stil aus /overlay/lexikon.css — dort liegen auch die drei Gewichte (voll, schlank, flüchtig), die alle Overlays teilen. Nur was dieser Karte allein gehört (Breite, das Wort „Lexikon“ über dem Titel) steht oben in ihrer Datei. Über Settings → Overlays lässt sich eine eigene Kopie anlegen.`,
   },
   {
+    title: 'Discord: Live-Meldung',
+    content: `Wenn du in OBS den Stream startest, schreibt das Toolkit eine Nachricht in einen Discord-Channel — etwa „Jetzt live!“ mit dem Link zu deinem Twitch-Kanal.
+
+**Einrichten:**
+- In Discord: Channel bearbeiten → Integrationen → Webhooks → Neuer Webhook → Webhook-URL kopieren
+- Settings → Discord — Live-Meldung → URL einfügen, Text anpassen, Speichern
+- {channel} im Text wird zu deinem Twitch-Kanal
+
+**Gut zu wissen:**
+- Gemeldet wird nur ein echter Start in OBS. Bricht der Stream ab und startet innerhalb von 30 Minuten neu, kommt keine zweite Meldung — auch nicht, wenn das Toolkit mitten im Stream neu startet.
+- @everyone pingt die Meldung nie. Eine Rolle (etwa „Stream-Ping“) kannst du mit <@&Rollen-ID> im Text anpingen.
+- Die Webhook-URL ist ein Schreibrecht für den Channel. Sie wird nach dem Speichern nicht mehr angezeigt.`,
+  },
+  {
     title: 'OBS verbinden',
     content: `**In OBS:**
 - Tools → WebSocket Server Settings

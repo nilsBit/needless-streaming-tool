@@ -10,6 +10,7 @@ import fs from 'fs';
 import { DEFAULT_HOTKEYS } from '../../shared/types';
 import { listDatabases, listPages, createDatabase, healDatabase, checkDatabase } from './notion-sync';
 import { getSyncStatus, syncToRemoteManual, readSyncConfig, writeSyncConfig } from '../sync';
+import { getLiveSettings, saveLiveSettings } from '../discord/live';
 
 const router = Router();
 
@@ -187,6 +188,20 @@ router.post('/streamdeck/install', async (_req, res) => {
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Failed to open plugin', details: String(err) });
+  }
+});
+
+// Discord live announcement — the webhook URL goes in, never out
+router.get('/discord-live', (_req, res) => {
+  res.json(getLiveSettings());
+});
+
+router.post('/discord-live', (req, res) => {
+  try {
+    saveLiveSettings(req.body as { webhook_url?: string; message?: string });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(400).json({ error: err instanceof Error ? err.message : String(err) });
   }
 });
 

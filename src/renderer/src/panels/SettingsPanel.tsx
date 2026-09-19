@@ -28,6 +28,9 @@ export default function SettingsPanel() {
   }>('/settings/sync/status');
   const { data: autostartInfo, refetch: refetchAutostart } = useApi<{ enabled: boolean }>('/settings/autostart');
   const { data: commandsData, refetch: refetchCommands } = useApi<Record<string, string>>('/settings/commands');
+  const { data: discordLive, refetch: refetchDiscordLive } = useApi<{ configured: boolean; message: string }>('/settings/discord-live');
+  const [discordWebhook, setDiscordWebhook] = useState('');
+  const [discordMessage, setDiscordMessage] = useState<string | null>(null);
 
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
@@ -137,6 +140,21 @@ export default function SettingsPanel() {
     setObsPassword(''); setExpanded(null); refetchObs();
     const connectResult = await apiPost('/obs/connect', {});
     if (connectResult) refetchObsStatus();
+  };
+
+  const saveDiscordLive = async () => {
+    const body: { webhook_url?: string; message?: string } = {};
+    if (discordWebhook.trim() !== '') body.webhook_url = discordWebhook.trim();
+    if (discordMessage !== null) body.message = discordMessage;
+    const res = await apiFetch('/settings/discord-live', { method: 'POST', body: JSON.stringify(body) });
+    if (!res.ok) { toast.error((await res.json()).error || 'Aktion fehlgeschlagen'); return; }
+    setDiscordWebhook(''); setDiscordMessage(null); setExpanded(null); refetchDiscordLive();
+    toast.success('Discord gespeichert');
+  };
+
+  const removeDiscordLive = async () => {
+    await apiFetch('/settings/discord-live', { method: 'POST', body: JSON.stringify({ webhook_url: '' }) });
+    refetchDiscordLive();
   };
 
   const saveCommands = async () => {
@@ -249,6 +267,35 @@ export default function SettingsPanel() {
           <input type="text" placeholder="Notion Internal Integration Token (ntn_...)" value={notionToken} onChange={e => setNotionToken(e.target.value)} onKeyDown={e => e.key === 'Enter' && saveNotionToken()} />
           <button className="s-card-action primary" onClick={saveNotionToken}>Speichern</button>
           <NotionDatabasePicker compact />
+        </div>
+      </SettingsCard>
+
+      <SettingsCard
+        id="discord" icon="📣" title="Discord — Live-Meldung"
+        status={discordLive?.configured ? 'Meldet, wenn der Stream startet' : 'Nicht eingerichtet'}
+        statusColor={discordLive?.configured ? '#2ecc71' : '#888'}
+        action={discordLive?.configured ? 'Ändern' : 'Setup'}
+        actionColor={discordLive?.configured ? 'ghost' : 'primary'}
+        onAction={() => toggle('discord')}
+      >
+        <div className="s-card-inputs">
+          {/* The URL is a write permission for the channel: it goes in, never back out. */}
+          <input
+            type="password"
+            placeholder={discordLive?.configured ? 'Neue Webhook-URL (leer lassen = behalten)' : 'Discord-Webhook-URL (https://discord.com/api/webhooks/…)'}
+            value={discordWebhook}
+            onChange={e => setDiscordWebhook(e.target.value)}
+          />
+          <textarea
+            rows={3}
+            placeholder="Text — {channel} wird zum Twitch-Kanal"
+            value={discordMessage ?? discordLive?.message ?? ''}
+            onChange={e => setDiscordMessage(e.target.value)}
+          />
+          <button className="s-card-action primary" onClick={saveDiscordLive}>Speichern</button>
+          {discordLive?.configured && (
+            <button className="s-card-action danger" onClick={removeDiscordLive}>Webhook entfernen</button>
+          )}
         </div>
       </SettingsCard>
 
