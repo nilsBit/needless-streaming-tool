@@ -38,8 +38,9 @@ function stopServerTimer() {
   }
 }
 
-// Check on startup if timer should be running
-{
+// Resume a timer that was running when the app went down. Called by
+// startServer once the database is open; at import time it is not.
+export function restoreTimerState() {
   try {
     const state = getDb().prepare('SELECT timer_running FROM stream_state WHERE id = 1').get() as { timer_running: number } | undefined;
     if (state?.timer_running) startServerTimer();

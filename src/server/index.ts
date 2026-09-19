@@ -5,7 +5,7 @@ import { initWebSocket } from './websocket/index';
 import { initDatabase } from './db/index';
 import { generateApiToken, validateApiToken, getApiToken } from './auth-token';
 import { writeConnectionFile, deleteConnectionFile } from './connection-file';
-import streamStateRouter from './api/stream-state';
+import streamStateRouter, { restoreTimerState } from './api/stream-state';
 import issuesRouter from './api/issues';
 import rewardsRouter from './api/rewards';
 import designsRouter from './api/designs';
@@ -220,6 +220,7 @@ export async function startServer(): Promise<{ token: string; port: number }> {
   const app = createApp();
   const server = http.createServer(app);
   initWebSocket(server);
+  restoreTimerState();
 
   server.on('error', (err: NodeJS.ErrnoException) => {
     if (err.code === 'EADDRINUSE') {
