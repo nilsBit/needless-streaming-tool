@@ -43,7 +43,7 @@ Rechner kopiert werden.
   aber nicht mehr ausgebaut.
 - **Erklären im Chat: beides** — eigene Texte und Nachschlagen in der Welt.
 - **Einblendung: automatisch folgen und festpinnen.** Die Karte folgt dem
-  offenen Eintrag nach einer Wartezeit (Standard 3 s); wer per Hand auswählt,
+  offenen Eintrag nach einer Wartezeit (Standard 1 s); wer per Hand auswählt,
   pinnt fest.
 - **Karten für alle Arten**, nicht nur für Figuren.
 - **Design: Lexikon-Stil** (Variante C aus dem Prototyp — Codex-/Dark-Academia-

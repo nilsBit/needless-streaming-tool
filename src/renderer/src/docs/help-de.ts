@@ -98,7 +98,7 @@ Alle Befehle lassen sich unter Settings → Chat Commands umbenennen. Antworten,
 - Die Schalter bleiben gespeichert und sind im Backup enthalten.
 
 **Worldbuilder folgen:** Die Karte wechselt von selbst zu dem Eintrag, den du im Worldbuilder öffnest — auf der Karte zählt der Eintrag hinter der gewählten Markierung.
-- Erst wenn ein Eintrag die Wartezeit lang offen bleibt (Standard 3 s), springt die Karte um. Durch eine Liste klicken flackert nicht.
+- Erst wenn ein Eintrag die Wartezeit lang offen bleibt (Standard 1 s), springt die Karte um. Durch eine Liste klicken flackert nicht.
 - Ist nichts mehr offen, bleibt die letzte Karte stehen. Ebenso, wenn der offene Eintrag **Verworfen** ist — der kommt nie auf die Karte und steht auch nicht in der Liste im Panel.
 - **Festpinnen:** Wählst du im Panel einen Eintrag (▶) oder leerst das Overlay, bleibt die Karte stehen, egal was im Worldbuilder offen ist. „Wieder folgen“ — oder der Stream-Deck-Knopf „Karte festpinnen“ — lässt sie wieder folgen, und sie springt sofort zum offenen Eintrag.
 - Funktioniert nur mit Worldbuilder als Quelle. Der Worldbuilder muss das Schaufenster offen haben.

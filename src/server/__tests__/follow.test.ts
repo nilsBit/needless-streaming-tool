@@ -91,7 +91,7 @@ describe('follow mode', () => {
 
   it('is on by default once Worldbuilder is the source', async () => {
     const res = await request(app).get('/api/entries/follow').set(auth()).expect(200);
-    expect(res.body).toEqual({ enabled: true, held: false, settleSeconds: 3, available: true });
+    expect(res.body).toEqual({ enabled: true, held: false, settleSeconds: 1, available: true });
   });
 
   it('puts what is open on the Overlay once it has stayed open for the settle time', async () => {

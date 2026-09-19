@@ -21,7 +21,7 @@ export interface FollowState {
   available: boolean;
 }
 
-const DEFAULT_SETTLE_SECONDS = 3;
+const DEFAULT_SETTLE_SECONDS = 1;
 export const MAX_SETTLE_SECONDS = 30;
 
 function getSetting(key: string): string | null {
