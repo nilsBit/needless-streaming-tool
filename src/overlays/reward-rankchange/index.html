@@ -7,10 +7,7 @@
 <link rel="stylesheet" href="/overlay/lexikon.css">
 <style>
 .alert-container {
-  /* Absolute, not fixed. Inside a browser source the two are identical, but a
-     fixed layer can be left behind by Chromium when the surrounding page
-     scrolls — in the preview inside the app the alert showed up three times. */
-  position: absolute;
+  position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
