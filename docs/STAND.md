@@ -4,7 +4,7 @@ Einstieg für einen neuen Rechner oder eine neue Claude-Session. **Offene Arbeit
 steht in den GitHub Issues** (`gh issue list`) — dieses Dokument erklärt das
 Große Ganze, wie die beiden Projekte zusammenhängen und wo wir stehen.
 
-Stand: 15. September 2026.
+Stand: 20. September 2026.
 
 ## Worum es geht
 
@@ -35,7 +35,46 @@ Geschrieben wird in die Welt nie.
 
 **Die Welten liegen in keinem Repo.** Eine Welt ist eine `.welt`-Datei (z. B.
 `~/Documents/Die Verborgene Stadt.welt`) und muss von Hand auf den neuen
-Rechner kopiert werden.
+Rechner kopiert werden. Womit gearbeitet wird, ist seit dem 19. September
+**„Die Verborgene Stadt“** — 25 Einträge, aus Notion übernommen. Wo sie
+herkommt und wie man sie nachzieht, steht im Worldbuilder in `START.md`.
+
+**Der dritte Ort ist Discord.** Beide Apps schreiben seit dem 19. September
+nach draußen — der Worldbuilder das Lexikon, dieses Projekt die Live-Meldung.
+Siehe den nächsten Abschnitt.
+
+## Der dritte Ort: Discord
+
+Der Server **needless.studio** ist das Publikum der Welt: ein Nachschlagewerk
+zum Mitlesen und ein Ort für Vorschläge. Er gehört keinem Repo — was ihn
+einrichtet, liegt unter `~/Documents/discord-skripte/`.
+
+**Aufbau:** START HERE (welcome, rules, die-welt, faq) · ANNOUNCEMENTS ·
+LEXIKON (├neu-im-lexikon und die Foren ├figuren ├regionen ├gilden ├lore) ·
+COMMUNITY (allgemein, ├diskussion, ├vorschläge, fan-art) · STREAM (stream-chat,
+clips). In den Lexikon-Foren legt nur der Worldbuilder Beiträge an; **Antworten
+darunter sind Vorschläge zu genau diesem Eintrag**. Ganz neue Ideen gehören ins
+Forum ├vorschläge.
+
+**Wer schreibt was**
+
+- **Worldbuilder → Lexikon.** Kanon-Einträge werden als Forenbeitrag
+  veröffentlicht, je Art in ihren Channel, und wieder zurückgenommen, wenn ein
+  Eintrag den Kanon verliert. Neues und Geändertes meldet ├neu-im-lexikon.
+- **Dieses Projekt → ANNOUNCEMENTS.** Meldet der OBS-Stream den Start, postet
+  ein Webhook eine einstellbare Nachricht (`{channel}` wird der Twitch-Kanal).
+  Eine Meldung je Stream: ein Neustart innerhalb von 30 Minuten bleibt still.
+  Eingestellt unter *Settings → Discord — Live-Meldung*; die Webhook-URL wird
+  gespeichert, aber nie an die Oberfläche zurückgegeben. `@everyone` pingt nie.
+
+**Die Geheimnisse liegen außerhalb der Repos** und gehören auch nie hinein:
+Webhook-URLs in `~/.worldbuilder/discord-webhooks.json`, die Text-Webhooks der
+Info-Channels in `~/.worldbuilder/discord-texte.json`, der Token des Bots
+„Weltarchiv“ in `~/Documents/discord-token.txt`.
+
+**Grenzen der Webhooks:** Sie können Forum-Titel nicht umbenennen, Beiträge
+nicht ganz löschen und Tags nur beim Anlegen setzen. Was darüber hinausgeht,
+braucht den Bot.
 
 ## Entschieden
 
@@ -81,6 +120,10 @@ Rechner kopiert werden.
 - Glücksrad: Es blieb nie auf dem Gewinner stehen, den der Server gezogen
   hatte — `spins` war gebrochen, also drehte es sich um einen Zufallswinkel zu
   weit. Aufgefallen wäre es am Alert, der den richtigen Namen nannte.
+- **Live-Meldung nach Discord**, wenn OBS den Stream startet (siehe oben).
+- Der Stream-Timer lief nach einem Neustart der App wieder weiter, statt bei
+  null anzufangen.
+- Die Overlay-Palette steht auf „Lexikon“.
 - **Beide Apps zusammen** (19. September, Windows, mit einer Prüfwelt): Arten,
   Listen, Beziehungen und das Folgen kommen durch, die Karte rendert im
   Browser. Dabei gefunden: ein **verworfener** Eintrag stand in der Liste im
@@ -93,6 +136,14 @@ Rechner kopiert werden.
 - 01 Schaufenster lässt sich unter *Verwalten* öffnen
 - 02 `GET /fokus` — welcher Eintrag gerade offen ist
 - 03 Beziehungen eines Eintrags im Schaufenster
+
+**Worldbuilder** (Tickets in `.scratch/discord-veroeffentlichung/`)
+
+- 01–04 Veröffentlichen nach Discord: der Weg nach draußen, Ziele je Art,
+  Ändern statt Doppeln, Zurückziehen. Dazu der Knopf „Veröffentlichen“ am
+  Eintrag, *Verwalten → Veröffentlichen* und „Welt und Discord“,
+  `pnpm veroeffentlichen <welt> --alle` und die Meldungen in ├neu-im-lexikon.
+  Warum kein Sync: ADR-0023 im Worldbuilder.
 
 ## Wo wir stehen geblieben sind
 
@@ -118,11 +169,10 @@ Rechner kopiert werden.
 
 **Noch nie gemacht**
 
-- Beide Apps zusammen mit der **echten Welt** („Die Verborgene Stadt“) —
-  bisher nur mit einer Prüfwelt. Die `.welt`-Datei liegt noch auf dem alten
-  Rechner.
 - Die Panels **Welt** und **Erklär-Commands** in der laufenden App
   durchklicken.
+- Die **Live-Meldung an einem echten Stream** sehen — geprüft ist sie bisher
+  nur gegen einen nachgebauten Webhook.
 - Die Overlays als **Browser-Quelle in OBS** über echtem Videobild ansehen.
 
 **Achtung beim Start**
@@ -135,14 +185,22 @@ Rechner kopiert werden.
 **Einmal einstellen**
 
 - In *Projekt → Erklär-Commands → Aus der Welt nachschlagen* die Arten auf die
-  Welt anpassen. Für „Die Verborgene Stadt“: `!ort` → Region, `!gilde` → Gilde,
-  `!begriff` → Begriff.
-- In *Projekt → Welt* die Quelle auf **Worldbuilder** stellen.
+  Welt anpassen. Sie stehen noch auf den Notion-Arten und **greifen deshalb
+  ins Leere**: `!ort` → Ort, `!gilde` → Fraktion, `!begriff` → Konzept. „Die
+  Verborgene Stadt“ kennt stattdessen Region, Gilde und Begriff; nur `!figur`
+  → Figur passt schon.
+- Die **Erklär-Texte fehlen ganz** — `!story` und `!welt` gibt es noch nicht.
+  Der Text für beide lässt sich aus dem Discord-Channel ├die-welt ableiten.
+- In *Projekt → Welt* die Quelle auf **Worldbuilder** stellen — steht schon.
 
 **Später**
 
 - Design aller Overlays überarbeiten.
 - Im Worldbuilder: Branch `weltwerkzeug-ausbau` nach `main` bringen.
+- Auf dem Discord-Server: der alte doppelte Test-Beitrag „Saldor“ in
+  ├regionen muss weg, AutoMod und Regel-Bestätigung einschalten, Server-Icon,
+  Rolle „Stream-Ping“, Server-Guide. Ein Bot-Vorhaben liegt daneben:
+  Forum-Titel umbenennen und Beiträge ganz löschen, was Webhooks nicht können.
 - Der Prototyp mit den vier Kartenvarianten liegt nur lokal auf dem alten
   Rechner (Branch `prototype/eintragskarte`, bewusst nicht gepusht — er enthält
   Weltinhalte). Die Entscheidung steht in #19.
