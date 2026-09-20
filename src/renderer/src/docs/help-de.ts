@@ -187,6 +187,8 @@ Konfiguriere Mappings über die API:
 
 **Die Reihenfolge ist egal.** Startet OBS vor dem Toolkit, laden die Browser-Quellen ins Leere und bleiben leer — deshalb lädt das Toolkit jede Browser-Quelle, die auf localhost:4000 zeigt, selbst neu, sobald es OBS erreicht. Quellen anderer Dienste bleiben unangetastet.
 
+**Größe der Schrift:** Ein einziger Regler unter Settings → Overlays → Design stellt sie für alle Overlays zugleich — Titel, Kicker und Zahlen ziehen mit, nicht nur der Fließtext. Standard sind 18px. Wächst die Schrift, wächst auch der Kasten: Passt eine Browser-Quelle in OBS danach nicht mehr, gib ihr ein paar Pixel mehr Höhe.
+
 **Custom Overlays:**
 - Settings → Overlays → "Neues Overlay"
 - Aus Template erstellen oder eigene HTML-Datei hochladen

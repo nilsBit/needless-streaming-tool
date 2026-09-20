@@ -9,14 +9,14 @@
   /* Fallbacks only — boot.js overwrites these from the stored config. */
   --color-bg: #0e0c0a;
   --color-bg-secondary: #282018;
-  --color-bg-opacity: 0.95;
+  --color-bg-opacity: 1;
   --color-text: #e1d6c2;
   --color-primary: #f4ead7;
   --color-secondary: #b8a98c;
   --color-accent: #c9a45c;
   --font-display: 'Cormorant Garamond', Georgia, serif;
   --font-body: 'Source Serif 4', Georgia, serif;
-  --font-size-base: 15px;
+  --font-size-base: 18px;
 
   --lex-frame: color-mix(in srgb, var(--color-primary) 20%, transparent);
   /* The seal is a card's only ornament and always carried a stronger ring
@@ -33,6 +33,10 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+/* Every size below is a multiple of this one, so the single slider in the
+   settings panel moves all of it — titles, kickers and numbers included. */
+html { font-size: var(--font-size-base); }
+
 html, body {
   background: transparent !important;
   background-color: rgba(0, 0, 0, 0) !important;
@@ -44,7 +48,7 @@ html, body {
 .lex {
   color: var(--color-text);
   font-family: var(--font-body);
-  font-size: var(--font-size-base);
+  font-size: 1rem;
   line-height: 1.55;
 }
 
@@ -60,7 +64,7 @@ html, body {
   display: flex;
   align-items: center;
   gap: 14px;
-  font: 600 15px var(--font-display);
+  font: 600 1rem var(--font-display);
   letter-spacing: 0.28em;
   text-transform: uppercase;
   color: var(--color-secondary);
@@ -102,7 +106,7 @@ html, body {
   border: 1px solid var(--lex-frame-strong);
   border-radius: 50%;
   color: var(--art);
-  font: 600 26px var(--font-display);
+  font: 600 1.733rem var(--font-display);
 }
 
 /* ---- Weight: slim. One rule, serif, no frame. Song, todos, progress. ---- */

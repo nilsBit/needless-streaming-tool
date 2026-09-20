@@ -24,11 +24,11 @@
 
   /* Header */
   .header { margin-bottom: 4px; }
-  .header h1 { font-size: 18px; }
+  .header h1 { font-size: 1.2rem; }
   .header-sub {
     font-family: var(--font-body);
     font-style: italic;
-    font-size: 13px;
+    font-size: 0.867rem;
     color: var(--lex-faint);
     margin-top: 4px;
   }
@@ -44,7 +44,7 @@
 
   .progress-label {
     font-family: var(--font-display);
-    font-size: 14px;
+    font-size: 0.933rem;
     color: var(--color-secondary);
     letter-spacing: 0.28em;
     text-transform: uppercase;
@@ -52,7 +52,7 @@
 
   .progress-count {
     font-family: var(--font-display);
-    font-size: 20px;
+    font-size: 1.333rem;
     color: var(--color-primary);
   }
 
@@ -80,7 +80,7 @@
   .bar-pct {
     text-align: right;
     font-family: var(--font-display);
-    font-size: 14px;
+    font-size: 0.933rem;
     color: var(--color-secondary);
     margin-top: 4px;
   }
@@ -122,7 +122,7 @@
 
   .todo-text {
     flex: 1;
-    font-size: 16px;
+    font-size: 1.067rem;
     color: var(--color-text);
     line-height: 1.5;
     word-break: break-word;
@@ -139,7 +139,7 @@
     display: flex;
     justify-content: space-between;
     padding: 0 4px;
-    font: italic 13px var(--font-body);
+    font: italic 0.867rem var(--font-body);
     color: var(--lex-faint);
   }
 
@@ -148,7 +148,7 @@
     padding: 24px 0;
     font-family: var(--font-body);
     font-style: italic;
-    font-size: 15px;
+    font-size: 1rem;
     color: var(--lex-faint);
   }
 
@@ -255,7 +255,7 @@ function render() {
   if (total === 0) {
     list.innerHTML = ''
       + '<div class="empty-msg">'
-      + '<div style="font-family:var(--font-display);font-size:17px;letter-spacing:0.28em;text-transform:uppercase;color:var(--color-secondary);margin-bottom:10px;">Noch keine Sub-Tasks</div>'
+      + '<div style="font-family:var(--font-display);font-size:1.133rem;letter-spacing:0.28em;text-transform:uppercase;color:var(--color-secondary);margin-bottom:10px;">Noch keine Sub-Tasks</div>'
       + 'Füge welche in der App hinzu —<br/>sie erscheinen hier live.'
       + '</div>';
     return;

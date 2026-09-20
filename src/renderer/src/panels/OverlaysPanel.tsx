@@ -43,7 +43,7 @@ const TESTABLE_OVERLAYS = new Set(['alerts', 'song', 'poll', 'milestone', 'roule
 
 const THEME_PRESETS: { name: string; label: string; color: string; values: Record<string, string> }[] = [
   {
-    // What every overlay ships with (schema v20). First in the list, and the
+    // What every overlay ships with (schema v21). First in the list, and the
     // way back after trying any of the others.
     name: 'lexikon',
     label: 'Lexikon',
@@ -54,11 +54,11 @@ const THEME_PRESETS: { name: string; label: string; color: string; values: Recor
       '--color-accent': '#c9a45c',
       '--color-text': '#e1d6c2',
       '--color-bg': '#0e0c0a',
-      '--color-bg-opacity': '0.95',
+      '--color-bg-opacity': '1',
       '--color-bg-secondary': '#282018',
       '--font-display': "'Cormorant Garamond', Georgia, serif",
       '--font-body': "'Source Serif 4', Georgia, serif",
-      '--font-size-base': '15px',
+      '--font-size-base': '18px',
     },
   },
   {
@@ -71,11 +71,11 @@ const THEME_PRESETS: { name: string; label: string; color: string; values: Recor
       '--color-accent': '#39ff14',
       '--color-text': '#ffffff',
       '--color-bg': '#0a0a0a',
-      '--color-bg-opacity': '0.92',
+      '--color-bg-opacity': '1',
       '--color-bg-secondary': '#0d0d0d',
       '--font-display': "'Bebas Neue', sans-serif",
       '--font-body': "'Inter', sans-serif",
-      '--font-size-base': '14px',
+      '--font-size-base': '17px',
     },
   },
   {
@@ -88,11 +88,11 @@ const THEME_PRESETS: { name: string; label: string; color: string; values: Recor
       '--color-accent': '#ff6b35',
       '--color-text': '#ffffff',
       '--color-bg': '#0a0a0a',
-      '--color-bg-opacity': '0.95',
+      '--color-bg-opacity': '1',
       '--color-bg-secondary': '#0d0d0d',
       '--font-display': "'Fira Code', monospace",
       '--font-body': "'Fira Code', monospace",
-      '--font-size-base': '13px',
+      '--font-size-base': '16px',
     },
   },
   {
@@ -105,11 +105,11 @@ const THEME_PRESETS: { name: string; label: string; color: string; values: Recor
       '--color-accent': '#e67e22',
       '--color-text': '#ffffff',
       '--color-bg': '#111111',
-      '--color-bg-opacity': '0.9',
+      '--color-bg-opacity': '1',
       '--color-bg-secondary': '#1a1a1a',
       '--font-display': "'Inter', sans-serif",
       '--font-body': "'Inter', sans-serif",
-      '--font-size-base': '14px',
+      '--font-size-base': '17px',
     },
   },
   {
@@ -122,11 +122,11 @@ const THEME_PRESETS: { name: string; label: string; color: string; values: Recor
       '--color-accent': '#bde0fe',
       '--color-text': '#ffffff',
       '--color-bg': '#1a1a2e',
-      '--color-bg-opacity': '0.92',
+      '--color-bg-opacity': '1',
       '--color-bg-secondary': '#16213e',
       '--font-display': "'Poppins', sans-serif",
       '--font-body': "'Poppins', sans-serif",
-      '--font-size-base': '14px',
+      '--font-size-base': '17px',
     },
   },
 ];
@@ -617,8 +617,8 @@ export default function OverlaysPanel() {
                 </div>
                 <div className="config-row">
                   <label>Hintergrund-Transparenz</label>
-                  <input type="range" min="0" max="1" step="0.05" value={overlayConfig.global['--color-bg-opacity'] || '0.92'} onChange={e => updateGlobal('--color-bg-opacity', e.target.value)} />
-                  <span>{overlayConfig.global['--color-bg-opacity'] || '0.92'}</span>
+                  <input type="range" min="0" max="1" step="0.05" value={overlayConfig.global['--color-bg-opacity'] || '1'} onChange={e => updateGlobal('--color-bg-opacity', e.target.value)} />
+                  <span>{overlayConfig.global['--color-bg-opacity'] || '1'}</span>
                 </div>
               </div>
             </div>

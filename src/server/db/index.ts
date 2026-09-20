@@ -212,6 +212,41 @@ function runMigrations(from: number, to: number) {
     console.log('[DB] Migrated: overlay config set to the Lexikon palette');
   }
 
+  if (from < 21) {
+    // Bigger type, and cards that stand on their own instead of letting the
+    // video through. Same reason as v20: the stored value wins over the
+    // stylesheet, so raising only the fallback would change nothing. A value
+    // the user picked themselves is left alone — only the old defaults move.
+    const RAISED: Record<string, [string, string]> = {
+      '--font-size-base': ['15px', '18px'],
+      '--color-bg-opacity': ['0.95', '1'],
+    };
+
+    const row = db.prepare('SELECT value FROM settings WHERE key = ?').get('overlay_config') as
+      | { value: string }
+      | undefined;
+    if (row) {
+      try {
+        const config = JSON.parse(row.value) as { global?: Record<string, string>; overrides?: unknown };
+        const global = config.global ?? {};
+        let changed = false;
+        for (const [name, [old, raised]] of Object.entries(RAISED)) {
+          if (global[name] === old) {
+            global[name] = raised;
+            changed = true;
+          }
+        }
+        if (changed) {
+          db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run(
+            'overlay_config',
+            JSON.stringify({ global, overrides: config.overrides ?? {} }),
+          );
+          console.log('[DB] Migrated: overlay type raised to 18px, cards made opaque');
+        }
+      } catch { /* a config we cannot read is left as it is */ }
+    }
+  }
+
   // Safety check: ensure experiment_* columns were renamed to challenge_*
   // (can be missed if DB was copied from an older version after migration ran)
   try {
