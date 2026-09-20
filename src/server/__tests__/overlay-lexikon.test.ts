@@ -113,6 +113,18 @@ describe('overlay config after the Lexikon migration', () => {
   });
 
   /**
+   * The wheel has to turn over the list the server drew from. It used to build
+   * its segments from /public/issues alone and keep only the winner id out of
+   * the event — so a preview with no open issues spun an empty wheel, and a
+   * stale list could show names the draw never knew about.
+   */
+  it('lets the wheel turn over the issues that came with the draw', async () => {
+    const res = await request(app).get('/overlay/roulette/index.html').expect(200);
+
+    expect(res.text, 'the wheel drops the issues in roulette-spin').toMatch(/data\.issues/);
+  });
+
+  /**
    * A browser source in OBS stays open for hours; the server restarts under it.
    * An overlay that does not reconnect goes deaf and stays that way until
    * someone refreshes the source by hand.

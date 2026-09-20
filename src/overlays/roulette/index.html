@@ -211,28 +211,31 @@ function hideOverlay() {
   }, 800);
 }
 
+// Build the wheel from a list of issues
+function setSegments(openIssues) {
+  if (openIssues.length === 0) {
+    SEGMENTS = [{ id: 0, label: "Keine Issues", bg: 'var(--color-bg)', txt: 'var(--lex-faint)', title: "Keine offenen Issues" }];
+  } else {
+    SEGMENTS = openIssues.map((issue, i) => {
+      const style = PALETTE[i % PALETTE.length];
+      // Truncate long titles for the wheel
+      const label = issue.title.length > 12 ? issue.title.substring(0, 11) + '…' : issue.title;
+      return { id: issue.id, label, bg: style.bg, txt: style.txt, title: issue.title };
+    });
+  }
+
+  N = SEGMENTS.length;
+  ANG = 360 / N;
+  buildWheel();
+  buildOrbs();
+}
+
 // Fetch issues from API and build segments
 async function loadIssues() {
   try {
     const res = await fetch(`${window.__overlayOrigin}/public/issues`);
     const issues = await res.json();
-    const openIssues = issues.filter(b => b.status === 'open');
-
-    if (openIssues.length === 0) {
-      SEGMENTS = [{ id: 0, label: "Keine Issues", bg: 'var(--color-bg)', txt: 'var(--lex-faint)', title: "Keine offenen Issues" }];
-    } else {
-      SEGMENTS = openIssues.map((issue, i) => {
-        const style = PALETTE[i % PALETTE.length];
-        // Truncate long titles for the wheel
-        const label = issue.title.length > 12 ? issue.title.substring(0, 11) + '…' : issue.title;
-        return { id: issue.id, label, bg: style.bg, txt: style.txt, title: issue.title };
-      });
-    }
-
-    N = SEGMENTS.length;
-    ANG = 360 / N;
-    buildWheel();
-    buildOrbs();
+    setSegments(issues.filter(b => b.status === 'open'));
   } catch (err) {
     console.error('[Roulette] Failed to load issues:', err);
   }
@@ -254,6 +257,9 @@ ws.onmessage = (e) => {
 
     // Roulette triggered from dashboard/API — auto-spin to winner
     if (msg.event === 'roulette-spin' && !spinning) {
+      // The draw carries the list it drew from. Ours may be older — or empty,
+      // which is what a preview without open issues used to spin over.
+      if (Array.isArray(msg.data.issues) && msg.data.issues.length) setSegments(msg.data.issues);
       pendingWinnerId = msg.data.winner_id;
       spin();
     }
