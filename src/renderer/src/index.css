@@ -1431,7 +1431,9 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   margin-top: -6px;
 }
 
-.ov2-preview iframe { width: 100%; height: 280px; border: none; }
+/* Keeps the preview's painting to itself, so an animating overlay cannot
+   leave layers behind on the panel around it. */
+.ov2-preview iframe { width: 100%; height: 280px; border: none; contain: paint; }
 
 .ov2-test-btn {
   display: block;
