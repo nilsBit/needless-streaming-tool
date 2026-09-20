@@ -124,6 +124,13 @@ braucht den Bot.
 - Der Stream-Timer lief nach einem Neustart der App wieder weiter, statt bei
   null anzufangen.
 - Die Overlay-Palette steht auf „Lexikon“.
+- **Browser-Quellen in OBS laden sich selbst nach.** Startet OBS vor dem
+  Toolkit, laufen seine Browser-Quellen ins Leere und bleiben für immer leer —
+  eine Seite, die nie geladen hat, kann sich nicht neu verbinden, und OBS lädt
+  von sich aus nicht nach. Jetzt lädt das Toolkit jede Browser-Quelle, die auf
+  den eigenen Port zeigt, neu, sobald es OBS erreicht; Quellen anderer Dienste
+  bleiben unangetastet. Das deckt auch die nodemon-Neustarts beim Entwickeln
+  ab. Gefunden am 20. September, weil der Song nicht im Bild stand.
 - **Beide Apps zusammen** (19. September, Windows, mit einer Prüfwelt): Arten,
   Listen, Beziehungen und das Folgen kommen durch, die Karte rendert im
   Browser. Dabei gefunden: ein **verworfener** Eintrag stand in der Liste im
@@ -173,6 +180,10 @@ braucht den Bot.
   durchklicken.
 - Die **Live-Meldung an einem echten Stream** sehen — geprüft ist sie bisher
   nur gegen einen nachgebauten Webhook.
+
+**Am Rand gefunden:** Die Musik-Quelle hängt nur in der Szene „clip studio
+paint“. In „main“ gibt es sie nicht — dort bleibt der Song unsichtbar, egal was
+läuft.
 - Die Overlays als **Browser-Quelle in OBS** über echtem Videobild ansehen.
 
 **Achtung beim Start**

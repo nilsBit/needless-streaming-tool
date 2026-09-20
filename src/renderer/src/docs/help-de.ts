@@ -185,6 +185,8 @@ Konfiguriere Mappings über die API:
 3. Breite/Höhe anpassen
 4. Fertig
 
+**Die Reihenfolge ist egal.** Startet OBS vor dem Toolkit, laden die Browser-Quellen ins Leere und bleiben leer — deshalb lädt das Toolkit jede Browser-Quelle, die auf localhost:4000 zeigt, selbst neu, sobald es OBS erreicht. Quellen anderer Dienste bleiben unangetastet.
+
 **Custom Overlays:**
 - Settings → Overlays → "Neues Overlay"
 - Aus Template erstellen oder eigene HTML-Datei hochladen
@@ -451,7 +453,11 @@ Eine alte Instanz der App läuft noch. Beende sie im Task Manager oder starte de
 **Overlays zeigen nichts:**
 - Läuft die App? (http://localhost:4000/api/health testen)
 - Browser Source URL korrekt? Muss mit http://localhost:4000/overlay/ anfangen
-- Browser Source in OBS refreshen (Rechtsklick → Refresh)
+- Browser Source in OBS refreshen (Rechtsklick → Refresh). Nötig ist das
+  normalerweise nicht mehr: Das Toolkit lädt die eigenen Browser-Quellen neu,
+  sobald es OBS erreicht.
+- Liegt die Quelle überhaupt in der Szene, die du gerade zeigst? Eine Quelle
+  gehört zu einer Szene, nicht zum ganzen Profil.
 
 **Stream Deck Buttons zeigen "OFFLINE":**
 - Läuft die App?

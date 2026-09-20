@@ -2,6 +2,8 @@ import OBSWebSocket from 'obs-websocket-js';
 import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
 import { announceLive } from '../discord/live';
+import { refreshOwnBrowserSources } from './refresh-overlays';
+import { PORT } from '../index';
 
 let obs: OBSWebSocket | null = null;
 let connected = false;
@@ -121,6 +123,16 @@ export async function connectObs(): Promise<boolean> {
 
     console.log(`[OBS] Connected to ${url}`);
     broadcast('obs-status', { connected: true });
+
+    // OBS may have started before us: its browser sources then loaded into
+    // nothing and stay blank, because a page that never loaded cannot retry.
+    // Nobody else reloads them, so we do it — every time we reach OBS.
+    void refreshOwnBrowserSources(obs, PORT)
+      .then((names) => {
+        if (names.length) console.log(`[OBS] Reloaded overlay sources: ${names.join(', ')}`);
+      })
+      .catch((err) => console.error('[OBS] Reloading overlay sources failed:', err));
+
     return true;
   } catch (err) {
     console.error('[OBS] Connection failed:', err);
