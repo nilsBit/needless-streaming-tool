@@ -12,7 +12,9 @@
      * the settings panel. Only what is this overlay's own sits here.
      */
     :root {
-      --lex-width: 720px;
+      /* Never wider than its browser source — a card cut off at the right edge
+         loses its seal and its maturity line. */
+      --lex-width: min(720px, 100%);
       --lex-kicker: 'Lexikon';
     }
 
