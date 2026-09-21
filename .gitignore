@@ -11,3 +11,7 @@ data/character-images/
 .worktrees/
 .claude/
 .superpowers/
+design/captured/
+design/compare/
+figma-plugin/node_modules/
+figma-plugin/dist/
