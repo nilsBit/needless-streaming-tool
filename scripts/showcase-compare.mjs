@@ -80,8 +80,8 @@ try {
       failed++;
       console.log(`FAIL ${overlay} / ${state} — ${e.message}`);
     } finally {
-      if (page) await page.close();
-      if (sheet) await sheet.close();
+      // Each close is independent — a rejecting one must not skip the other or escape the loop.
+      await Promise.allSettled([page?.close(), sheet?.close()]);
     }
   }
 } finally {
