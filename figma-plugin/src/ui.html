@@ -44,5 +44,41 @@
     if (!msg) return;
     if (msg.type === 'token') $('token').value = msg.token;
     if (msg.type === 'log') log(msg.text);
+    if (msg.type === 'drafts') sendDrafts(msg.drafts);
   };
+
+  // Names the plugin does not know are not guessed: the user picks from the list.
+  async function sendDrafts(drafts) {
+    let known;
+    try {
+      known = (await api('/api/design/states')).overlays;
+    } catch {
+      log('Stream Tool nicht erreichbar — läuft `npm run dev`?');
+      return;
+    }
+    for (const d of drafts) {
+      let target = d.overlay && known[d.overlay] && known[d.overlay].states[d.state] ? `${d.overlay}/${d.state}` : null;
+      if (!target) {
+        const options = Object.entries(known).flatMap(([o, e]) => Object.keys(e.states).map((s) => `${o}/${s}`));
+        target = await pick(d.frameName, options);
+        if (!target) { log(`${d.frameName}: übersprungen`); continue; }
+      }
+      const [overlay, state] = target.split('/');
+      try {
+        const res = await api('/api/design/inbox', { method: 'POST', body: JSON.stringify({ overlay, state, draft: d.draft, image: d.image, image2x: d.image2x }) });
+        log(`${d.frameName} → ${res.saved} ✓`);
+      } catch (e) {
+        log(`${d.frameName}: ${e.message}`);
+      }
+    }
+  }
+
+  function pick(frameName, options) {
+    return new Promise((resolve) => {
+      const box = document.createElement('div');
+      box.innerHTML = `<label>„${frameName}" gehört zu:</label><select style="width:100%;margin-bottom:6px"><option value="">— überspringen —</option>${options.map((o) => `<option>${o}</option>`).join('')}</select><button>OK</button>`;
+      document.body.insertBefore(box, $('log'));
+      box.querySelector('button').onclick = () => { const v = box.querySelector('select').value; box.remove(); resolve(v || null); };
+    });
+  }
 </script>
