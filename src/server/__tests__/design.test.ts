@@ -56,6 +56,10 @@ describe('design round trip', () => {
     await request(app).get('/api/design/captures/poll/open').set(auth()).expect(404);
   });
 
+  it('answers 404, not 500, for an overlay name that shadows Object.prototype', async () => {
+    await request(app).get('/api/design/captures/constructor/x').set(auth()).expect(404);
+  });
+
   it('refuses names that are not in the state list', async () => {
     await request(app).get('/api/design/captures/..%2F..%2Fsecret/x').set(auth()).expect(404);
     const res = await request(app).post('/api/design/inbox').set(auth())

@@ -78,10 +78,12 @@ export function createApp(): express.Express {
     next();
   });
 
-  // Drafts carry two PNGs of a whole overlay; the global limit is for everything else.
-  app.use('/api/design/inbox', express.json({ limit: '30mb' }));
-
-  app.use(express.json({ limit: '100kb' }));
+  // Drafts posted to /api/design/inbox carry two PNGs of a whole overlay and
+  // can exceed this limit; design.ts's own POST /inbox route parses that body
+  // itself, behind auth, with a larger limit. The global parser must skip
+  // that one path rather than consume (and reject) the stream first.
+  const globalJson = express.json({ limit: '100kb' });
+  app.use((req, res, next) => (req.path === '/api/design/inbox' ? next() : globalJson(req, res, next)));
   app.use(rateLimit);
 
   // CSP für Overlays — dynamic based on request host

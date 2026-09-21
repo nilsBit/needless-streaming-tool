@@ -22,8 +22,14 @@ export function readStates(): ShowcaseStates {
 
 /** The only way a name from a request may become part of a path. */
 export function isKnownState(overlay: string, state: string): boolean {
-  const entry = readStates().overlays[overlay];
-  return entry !== undefined && Object.prototype.hasOwnProperty.call(entry.states, state);
+  const { overlays } = readStates();
+  // A plain property lookup on a request-supplied name (e.g. "constructor")
+  // returns an inherited Object.prototype value instead of undefined, which
+  // would then throw trying to read `.states` off it. hasOwnProperty rules
+  // that out before the value is ever touched.
+  if (!Object.prototype.hasOwnProperty.call(overlays, overlay)) return false;
+  const entry = overlays[overlay];
+  return Object.prototype.hasOwnProperty.call(entry.states, state);
 }
 
 /** Where captures and drafts live. Tests point it at a temp dir. */

@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import express, { Router } from 'express';
 import fs from 'fs';
 import path from 'path';
 import { designDir, isKnownState, readStates } from '../showcase';
@@ -48,7 +48,8 @@ router.get('/drafts/:overlay/:state', (req, res) => {
   res.json({ draft: JSON.parse(fs.readFileSync(path.join(dir, 'draft.json'), 'utf8')), images });
 });
 
-router.post('/inbox', (req, res) => {
+// Drafts carry two PNGs of a whole overlay; the global body limit is for everything else.
+router.post('/inbox', express.json({ limit: '30mb' }), (req, res) => {
   const { overlay, state, draft, image, image2x } = req.body ?? {};
   if (typeof overlay !== 'string' || typeof state !== 'string' || !isKnownState(overlay, state)) {
     res.status(400).json({ error: `unknown overlay/state: ${String(overlay)} / ${String(state)}` });

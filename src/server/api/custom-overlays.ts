@@ -57,7 +57,8 @@ router.get('/builtin', (req, res) => {
   try {
     const entries = fs.readdirSync(builtinPath, { withFileTypes: true });
     const overlays = entries
-      .filter((e) => e.isDirectory() && !e.name.startsWith('_'))
+      // `showcase` is the design-workflow's own preview harness, not a real overlay.
+      .filter((e) => e.isDirectory() && !e.name.startsWith('_') && e.name !== 'showcase')
       .map((e) => {
         const overridePath = path.join(overrideDir, e.name, 'index.html');
         return {
