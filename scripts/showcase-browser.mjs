@@ -21,20 +21,36 @@ export async function readStates() {
   return (await fetch(`${BASE}/overlay/showcase/states.json`)).json();
 }
 
-/** Opens one state at its OBS size and waits until boot.js has frozen it. */
+/**
+ * Opens one state at its OBS size and waits until boot.js has frozen it.
+ *
+ * boot.js freezes the page by turning `window.setTimeout` / `setInterval` /
+ * `requestAnimationFrame` into permanent no-ops once frozen — on purpose, so
+ * the capture is deterministic. That also starves any wait that polls from
+ * inside the page (e.g. `page.waitForFunction`, which schedules its own
+ * re-checks through those same globals). So this polls from Node instead,
+ * on Node's own timer, and only reads the page — never asks it to reschedule
+ * anything.
+ */
 export async function openState(browser, overlay, state, size) {
   const page = await browser.newPage({ viewport: { width: size.width, height: size.height } });
   const errors = [];
-  page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
+  // Chrome requests /favicon.ico on its own; the app serves none. Not the overlay's fault.
+  page.on('console', (m) => { if (m.type() === 'error' && !m.location().url.endsWith('/favicon.ico')) errors.push(m.text()); });
   page.on('pageerror', (e) => errors.push(String(e)));
   await page.goto(`${BASE}/overlay/${overlay}/index.html?state=${encodeURIComponent(state)}`);
-  await page.waitForFunction(
-    () => document.documentElement.hasAttribute('data-showcase-ready') ||
-          document.documentElement.hasAttribute('data-showcase-error'),
-    null,
-    { timeout: 15_000 },
-  );
-  const failure = await page.evaluate(() => document.documentElement.getAttribute('data-showcase-error'));
-  if (failure !== null) throw new Error(`${overlay} / ${state}: ${failure}`);
+
+  const deadline = Date.now() + 15_000;
+  let status;
+  for (;;) {
+    status = await page.evaluate(() => ({
+      ready: document.documentElement.hasAttribute('data-showcase-ready'),
+      error: document.documentElement.getAttribute('data-showcase-error'),
+    }));
+    if (status.ready || status.error !== null) break;
+    if (Date.now() >= deadline) throw new Error(`${overlay} / ${state}: not ready after 15 s`);
+    await new Promise((r) => setTimeout(r, 100));
+  }
+  if (status.error !== null) throw new Error(`${overlay} / ${state}: ${status.error}`);
   return { page, errors };
 }
