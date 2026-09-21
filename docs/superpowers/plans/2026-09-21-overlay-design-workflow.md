@@ -1166,7 +1166,7 @@ fs.copyFileSync('src/ui.html', 'dist/ui.html');
 console.log('figma-plugin gebaut → dist/');
 ```
 
-Dann: `npm --prefix figma-plugin install`
+Dann: `npm --prefix figma-plugin install` — überholt: siehe docs/design-workflow.md (cd figma-plugin && npm install)
 
 - [ ] **Step 2: `figma-plugin/src/import.ts`**
 
@@ -1659,7 +1659,7 @@ Spezifikation: `docs/superpowers/specs/2026-09-21-overlay-design-workflow-design
 
 ## Einmal einrichten
 
-1. `npm --prefix figma-plugin install` und `npm --prefix figma-plugin run build`.
+1. `npm --prefix figma-plugin install` und `npm --prefix figma-plugin run build`. — überholt: siehe docs/design-workflow.md (cd figma-plugin && npm install)
 2. Figma Desktop → *Plugins → Entwicklung → Plugin aus Manifest importieren…* →
    `figma-plugin/manifest.json`.
 3. Plugin „NST-Brücke" öffnen, das API-Token eintragen. Es steht beim Start des
@@ -1705,7 +1705,7 @@ git commit -m "feat(design): compare drafts with the rendered overlay; document 
 Kein Code im Voraus; diese Aufgabe führt der Controller mit dem Nutzer zusammen.
 
 - [ ] **Step 1:** Tool läuft? `npm run showcase:capture -- character` → drei `ok`-Zeilen.
-- [ ] **Step 2:** Nutzer richtet das Plugin ein (Anleitung oben) und liest ein. Rückmeldung einholen: Stimmt der Frame optisch mit der „Vorlage"-Ebene überein? Welche Schriften wurden ersetzt? Abweichungen, die das Weiterarbeiten stören, als Fix in `capture-dom.js` / `import.ts` beheben (eigener Commit je Fix).
+- [ ] **Step 2:** Nutzer richtet das Plugin ein (docs/design-workflow.md) und liest ein. Rückmeldung einholen: Stimmt der Frame optisch mit der „Vorlage"-Ebene überein? Welche Schriften wurden ersetzt? Abweichungen, die das Weiterarbeiten stören, als Fix in `capture-dom.js` / `import.ts` beheben (eigener Commit je Fix).
 - [ ] **Step 3:** Nutzer ändert etwas Sichtbares an `character / with-portrait` und sendet es. Prüfen: `design/drafts/character/with-portrait/` hat `draft.json`, `image.png`, `image@2x.png`; `draft.json` enthält an Variablen gebundene Füllungen (`"variable": "--color-…"`).
 - [ ] **Step 4:** Die Änderung im Overlay umsetzen, `npm run showcase:compare -- character`, das Vergleichsbild ansehen und nacharbeiten, bis `ok`. Dem Nutzer das Vergleichsbild zeigen.
 - [ ] **Step 5:** OBS-Quelle per Screenshot prüfen (OBS-WebSocket, `GetSourceScreenshot`). Keine Test-Ereignisse ohne Ansage.

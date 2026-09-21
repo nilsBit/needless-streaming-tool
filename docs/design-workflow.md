@@ -4,6 +4,10 @@ Spezifikation: `docs/superpowers/specs/2026-09-21-overlay-design-workflow-design
 
 ## Einmal einrichten
 
+Erfassen (`npm run showcase:capture`) und Abgleichen (`npm run showcase:compare`)
+brauchen Google Chrome unter `C:/Program Files/Google/Chrome/Application/chrome.exe`
+(überschreibbar mit der Umgebungsvariable `CHROME_PATH`).
+
 1. `cd figma-plugin`, dann `npm install` und `npm run build`.
 2. Figma Desktop → *Plugins → Entwicklung → Plugin aus Manifest importieren…* →
    `figma-plugin/manifest.json`.
@@ -21,7 +25,9 @@ Testdaten. Nichts davon erreicht OBS. Zustände und Größen stehen in
 ## Nach Figma
 
 1. Tool läuft (`npm run dev`).
-2. `npm run showcase:capture` (oder `-- <overlay>` für eins).
+2. `npm run showcase:capture` (oder `-- <overlay>` für eins). Die Overlays laden
+   ihre Schriften von Google Fonts — beim Erfassen online sein, sonst fällt
+   Chrome auf Georgia zurück.
 3. Im Plugin **Aus NST einlesen** — landet auf einer neuen Seite „Import …",
    Farben an die Variablen der Sammlung „NST" gebunden, das Originalbild als
    ausgeblendete Ebene „Vorlage" in jedem Frame.
@@ -29,6 +35,7 @@ Testdaten. Nichts davon erreicht OBS. Zustände und Größen stehen in
 ## Zurück
 
 1. Frames heißen `<overlay> / <zustand>` — genau so, wie der Import sie anlegt.
+   Die Frame-Füllung leer lassen (keine Farbe): der Abgleich zählt Transparenz mit.
 2. Frames markieren → **An NST senden**. Landet in
    `design/drafts/<overlay>/<zustand>/` (Entwurf, 1x- und 2x-Bild). Die
    ausgeblendete Ebene „Vorlage" wird dabei nie mit exportiert, auch wenn sie
