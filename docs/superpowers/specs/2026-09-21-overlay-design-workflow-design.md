@@ -193,3 +193,25 @@ Die Overlays selbst neu zu gestalten (das ist die Arbeit, die dieser Weg
 ermöglicht); Auto-Layout beim Einlesen; Figma-Komponenten aus den Overlays;
 Abgleich in beide Richtungen, bei dem der Code Figma-Frames aktualisiert;
 eigene Overlays unter `/overlay/custom/`.
+
+## Nachtrag beim Planen (21.09.)
+
+**Namen im Code sind englisch** (`CLAUDE.md`: Code in English). Schaukasten →
+`showcase` (`/overlay/showcase/`), `?zustand=` → `?state=`,
+`zustaende.js` → `src/overlays/showcase/states.json` (JSON, damit der Server
+sie lesen und prüfen kann), `design/erfasst/` → `design/captured/`,
+`design/entwuerfe/` → `design/drafts/` (`draft.json`, `image.png`,
+`image@2x.png`), `design/vergleich/` → `design/compare/`,
+`/api/design/eingang` → `/api/design/inbox`, `npm run schaukasten:erfassen`
+→ `npm run showcase:capture`, `schaukasten:vergleich` → `showcase:compare`.
+Die Oberfläche des Plugins bleibt deutsch.
+
+**Eine Prüfnaht.** `CLAUDE.md` erlaubt Tests nur an der HTTP-API; eine
+zweite Naht nur nach Absprache. Deshalb: Zustandsliste, Erfassungen und
+Eingang werden über HTTP geprüft; die Attrappe in `boot.js` und die
+Token-Erkennung prüft der Erfassungslauf (jeder Zustand muss fertig werden,
+ohne Konsolenfehler, und die Token-Treffer werden gezählt ausgegeben).
+
+**Plugin-Anfragen kommen mit Origin `null`.** CORS lässt `null` nur für
+`/api/design/*` zu, das hinter dem Token liegt. Der Eingang bekommt ein
+eigenes Größenlimit (30 MB) statt der globalen 100 kB.
