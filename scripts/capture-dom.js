@@ -16,25 +16,29 @@
     return v.endsWith('%') ? parseFloat(v) / 100 : Number(v);
   }
 
-  // Parses both the rgb()/rgba() form Chrome normally serializes computed
-  // colors as, and the color(srgb r g b [/ a]) form it uses for color-mix()
-  // results — every --lex-* tone in lexikon.css resolves through
-  // color-mix(), so this is the common case for frame/rule/soft/faint tones.
+  // Parses whichever color syntax occurs FIRST in the string: the rgb()/
+  // rgba() form Chrome normally serializes computed colors as, or the
+  // color(srgb r g b [/ a]) form it uses for color-mix() results (every
+  // --lex-* tone in lexikon.css resolves through color-mix()). Both
+  // alternatives live in one regex so the match is the leftmost one overall,
+  // not just the leftmost of whichever pattern happens to be tried first —
+  // that's what makes the gradient "first stop" approximation below actually
+  // pick the first stop, not whichever stop this function's own preference
+  // between the two syntaxes would otherwise have favoured.
   function color(css) {
     if (!css) return null;
-    let m = css.match(/rgba?\(([\d.]+)[ ,]+([\d.]+)[ ,]+([\d.]+)(?:[ ,/]+([\d.]+%?))?\)/);
-    if (m) {
+    const m = css.match(
+      /rgba?\(([\d.]+)[ ,]+([\d.]+)[ ,]+([\d.]+)(?:[ ,/]+([\d.]+%?))?\)|color\(srgb\s+([\d.]+%?)\s+([\d.]+%?)\s+([\d.]+%?)(?:\s*\/\s*([\d.]+%?))?\s*\)/,
+    );
+    if (!m) return null;
+    if (m[1] !== undefined) {
       const hex = '#' + [m[1], m[2], m[3]].map((v) => Math.round(Number(v)).toString(16).padStart(2, '0')).join('');
       const alpha = m[4] === undefined ? 1 : channel(m[4]);
       return withToken(hex, alpha);
     }
-    m = css.match(/color\(srgb\s+([\d.]+%?)\s+([\d.]+%?)\s+([\d.]+%?)(?:\s*\/\s*([\d.]+%?))?\s*\)/);
-    if (m) {
-      const hex = '#' + [m[1], m[2], m[3]].map((v) => Math.round(Math.min(1, Math.max(0, channel(v))) * 255).toString(16).padStart(2, '0')).join('');
-      const alpha = m[4] === undefined ? 1 : channel(m[4]);
-      return withToken(hex, alpha);
-    }
-    return null;
+    const hex = '#' + [m[5], m[6], m[7]].map((v) => Math.round(Math.min(1, Math.max(0, channel(v))) * 255).toString(16).padStart(2, '0')).join('');
+    const alpha = m[8] === undefined ? 1 : channel(m[8]);
+    return withToken(hex, alpha);
   }
 
   function border(style, side) {
