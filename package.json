@@ -18,7 +18,8 @@
     "test:watch": "cross-env ELECTRON_RUN_AS_NODE=1 electron ./node_modules/vitest/vitest.mjs",
     "lint": "eslint src/",
     "format": "prettier --write src/",
-    "showcase:capture": "node scripts/showcase-capture.mjs"
+    "showcase:capture": "node scripts/showcase-capture.mjs",
+    "showcase:compare": "node scripts/showcase-compare.mjs"
   },
   "dependencies": {
     "@coooookies/windows-smtc-monitor": "^1.0.12",

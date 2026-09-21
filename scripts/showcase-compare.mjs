@@ -1,0 +1,53 @@
+import fs from 'fs';
+import path from 'path';
+import { launch, openState, readStates, requireRunningTool } from './showcase-browser.mjs';
+
+// Draft left, overlay right, differences below. Usage: npm run showcase:compare -- <overlay>
+const overlay = process.argv[2];
+if (!overlay) { console.error('Aufruf: npm run showcase:compare -- <overlay>'); process.exit(1); }
+await requireRunningTool();
+const entry = (await readStates()).overlays[overlay];
+if (!entry) { console.error(`Unbekanntes Overlay: ${overlay}`); process.exit(1); }
+
+const browser = await launch();
+try {
+  for (const state of Object.keys(entry.states)) {
+    const draftFile = path.join(process.cwd(), 'design', 'drafts', overlay, state, 'image.png');
+    if (!fs.existsSync(draftFile)) { console.log(`--   ${overlay} / ${state} — kein Entwurf`); continue; }
+    const { page } = await openState(browser, overlay, state, entry.size);
+    const rendered = (await page.screenshot({ omitBackground: true })).toString('base64');
+    await page.close();
+    const draft = fs.readFileSync(draftFile).toString('base64');
+
+    // The diff is computed in a canvas, so no image library is needed.
+    const { width, height } = entry.size;
+    const sheet = await browser.newPage({ viewport: { width: width * 2 + 24, height: height * 2 + 24 } });
+    await sheet.setContent(`<body style="margin:0;background:#888"><canvas id="c" width="${width * 2 + 24}" height="${height * 2 + 24}"></canvas></body>`);
+    const percent = await sheet.evaluate(async ({ draft, rendered, width, height }) => {
+      const load = (b64) => new Promise((ok) => { const i = new Image(); i.onload = () => ok(i); i.src = 'data:image/png;base64,' + b64; });
+      const [a, b] = await Promise.all([load(draft), load(rendered)]);
+      const ctx = document.getElementById('c').getContext('2d');
+      ctx.drawImage(a, 0, 0, width, height);
+      ctx.drawImage(b, width + 24, 0, width, height);
+      const pa = ctx.getImageData(0, 0, width, height).data;
+      const pb = ctx.getImageData(width + 24, 0, width, height).data;
+      const diff = ctx.createImageData(width, height);
+      let off = 0;
+      for (let i = 0; i < pa.length; i += 4) {
+        const d = Math.abs(pa[i] - pb[i]) + Math.abs(pa[i + 1] - pb[i + 1]) + Math.abs(pa[i + 2] - pb[i + 2]) + Math.abs(pa[i + 3] - pb[i + 3]);
+        const bad = d > 48;
+        if (bad) off++;
+        diff.data[i] = bad ? 255 : pa[i] * 0.25; diff.data[i + 1] = bad ? 0 : pa[i + 1] * 0.25; diff.data[i + 2] = bad ? 80 : pa[i + 2] * 0.25; diff.data[i + 3] = 255;
+      }
+      ctx.putImageData(diff, 0, height + 24);
+      return (off / (width * height)) * 100;
+    }, { draft, rendered, width, height });
+    const out = path.join(process.cwd(), 'design', 'compare', overlay, `${state}.png`);
+    fs.mkdirSync(path.dirname(out), { recursive: true });
+    await sheet.screenshot({ path: out });
+    await sheet.close();
+    console.log(`${percent < 2 ? 'ok  ' : 'diff'} ${overlay} / ${state} — ${percent.toFixed(1)} % abweichend → ${path.relative(process.cwd(), out)}`);
+  }
+} finally {
+  await browser.close();
+}
