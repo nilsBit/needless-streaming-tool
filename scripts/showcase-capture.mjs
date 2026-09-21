@@ -20,7 +20,7 @@ try {
     for (const state of Object.keys(entry.states)) {
       try {
         const { page, errors } = await openState(browser, overlay, state, entry.size);
-        const nodes = await page.evaluate(`(${captureDom.trim().replace(/;$/, '')})(${JSON.stringify({ tokens })})`);
+        const { nodes, unreadable } = await page.evaluate(`(${captureDom.trim().replace(/;$/, '')})(${JSON.stringify({ tokens })})`);
         const preview = 'data:image/png;base64,' + (await page.screenshot({ omitBackground: true })).toString('base64');
         await page.close();
         if (errors.length) throw new Error('console errors: ' + errors.join(' | '));
@@ -31,7 +31,7 @@ try {
         const json = JSON.stringify(nodes);
         const bound = (json.match(/"token":/g) ?? []).length;
         const colors = (json.match(/"hex":/g) ?? []).length;
-        console.log(`ok   ${overlay} / ${state} — ${colors} Farben, davon ${bound} an Tokens`);
+        console.log(`ok   ${overlay} / ${state} — ${colors} Farben, davon ${bound} an Tokens, ${unreadable} unlesbar`);
       } catch (e) {
         failed++;
         console.log(`FAIL ${overlay} / ${state} — ${e.message}`);
