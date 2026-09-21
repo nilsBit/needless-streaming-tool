@@ -43,19 +43,22 @@
     parent.postMessage({ pluginMessage: { type: 'send-selection' } }, '*');
   };
 
+  let sending = false;
+
   onmessage = (event) => {
     const msg = event.data.pluginMessage;
     if (!msg) return;
     if (msg.type === 'token') $('token').value = msg.token;
-    if (msg.type === 'log') {
-      log(msg.text);
-      if (msg.text === 'Keinen Frame markiert.') $('send').disabled = false;
-    }
+    if (msg.type === 'log') log(msg.text);
     if (msg.type === 'drafts') sendDrafts(msg.drafts);
+    // code.ts always sends this once it is done handling send-selection — empty selection, success or
+    // error. Only release the button here if sendDrafts is not itself mid-run and will do it instead.
+    if (msg.type === 'send-done' && !sending) $('send').disabled = false;
   };
 
   // Names the plugin does not know are not guessed: the user picks from the list.
   async function sendDrafts(drafts) {
+    sending = true;
     try {
       let known;
       try {
@@ -80,6 +83,7 @@
         }
       }
     } finally {
+      sending = false;
       $('send').disabled = false;
     }
   }
