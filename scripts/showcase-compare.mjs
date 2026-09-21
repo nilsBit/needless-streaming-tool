@@ -9,8 +9,13 @@ await requireRunningTool();
 const entry = (await readStates()).overlays[overlay];
 if (!entry) { console.error(`Unbekanntes Overlay: ${overlay}`); process.exit(1); }
 
+const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+
 // A PNG's width/height live in the IHDR chunk, right after the 8-byte signature.
 function pngSize(buffer) {
+  if (buffer.length < 24 || !buffer.subarray(0, 8).equals(PNG_SIGNATURE)) {
+    throw new Error('Entwurf ist kein PNG');
+  }
   return { width: buffer.readUInt32BE(16), height: buffer.readUInt32BE(20) };
 }
 
@@ -20,24 +25,31 @@ try {
   for (const state of Object.keys(entry.states)) {
     const draftFile = path.join(process.cwd(), 'design', 'drafts', overlay, state, 'image.png');
     if (!fs.existsSync(draftFile)) { console.log(`--   ${overlay} / ${state} — kein Entwurf`); continue; }
+    let page;
+    let sheet;
     try {
-      const { page, errors } = await openState(browser, overlay, state, entry.size);
+      const opened = await openState(browser, overlay, state, entry.size);
+      page = opened.page;
       const rendered = (await page.screenshot({ omitBackground: true })).toString('base64');
-      await page.close();
-      if (errors.length) throw new Error('console errors: ' + errors.join(' | '));
+      if (opened.errors.length) throw new Error('console errors: ' + opened.errors.join(' | '));
       const draftBuffer = fs.readFileSync(draftFile);
       const draftSize = pngSize(draftBuffer);
       const draft = draftBuffer.toString('base64');
 
       // The diff is computed in a canvas, so no image library is needed.
       const { width, height } = entry.size;
-      const sheet = await browser.newPage({ viewport: { width: width * 2 + 24, height: height * 2 + 24 } });
+      sheet = await browser.newPage({ viewport: { width: width * 2 + 24, height: height * 2 + 24 } });
       await sheet.setContent(`<body style="margin:0;background:#888"><canvas id="c" width="${width * 2 + 24}" height="${height * 2 + 24}"></canvas></body>`);
       // Two thresholds: 48 is the summed per-channel delta below which a pixel counts
       // as unchanged (anti-aliasing noise), and 2 % of differing pixels is the cutoff
       // between "ok" and "diff" for the whole state.
       const percent = await sheet.evaluate(async ({ draft, rendered, width, height }) => {
-        const load = (b64) => new Promise((ok) => { const i = new Image(); i.onload = () => ok(i); i.src = 'data:image/png;base64,' + b64; });
+        const load = (b64) => new Promise((ok, reject) => {
+          const i = new Image();
+          i.onload = () => ok(i);
+          i.onerror = () => reject(new Error('Bild ließ sich nicht laden'));
+          i.src = 'data:image/png;base64,' + b64;
+        });
         const [a, b] = await Promise.all([load(draft), load(rendered)]);
         const ctx = document.getElementById('c').getContext('2d');
         ctx.drawImage(a, 0, 0, width, height);
@@ -58,7 +70,6 @@ try {
       const out = path.join(process.cwd(), 'design', 'compare', overlay, `${state}.png`);
       fs.mkdirSync(path.dirname(out), { recursive: true });
       await sheet.screenshot({ path: out });
-      await sheet.close();
       const rel = path.relative(process.cwd(), out);
       if (draftSize.width !== width || draftSize.height !== height) {
         console.log(`diff ${overlay} / ${state} — Entwurf ist ${draftSize.width}x${draftSize.height}, Overlay ist ${width}x${height} (Frame-Größe prüfen) — ${percent.toFixed(1)} % abweichend → ${rel}`);
@@ -68,6 +79,9 @@ try {
     } catch (e) {
       failed++;
       console.log(`FAIL ${overlay} / ${state} — ${e.message}`);
+    } finally {
+      if (page) await page.close();
+      if (sheet) await sheet.close();
     }
   }
 } finally {
