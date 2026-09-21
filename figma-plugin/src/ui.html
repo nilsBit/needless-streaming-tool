@@ -21,6 +21,7 @@
   async function api(path, init) {
     const res = await fetch(BASE + path, { ...init, headers: headers() });
     if (res.status === 401) throw new Error('Token falsch — im Log des Stream Tools nachsehen.');
+    if (res.status === 413) throw new Error('Entwurf zu groß (über 30 MB).');
     if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || res.statusText);
     return res.json();
   }
@@ -37,46 +38,57 @@
     }
   };
 
-  $('send').onclick = () => parent.postMessage({ pluginMessage: { type: 'send-selection' } }, '*');
+  $('send').onclick = () => {
+    $('send').disabled = true;
+    parent.postMessage({ pluginMessage: { type: 'send-selection' } }, '*');
+  };
 
   onmessage = (event) => {
     const msg = event.data.pluginMessage;
     if (!msg) return;
     if (msg.type === 'token') $('token').value = msg.token;
-    if (msg.type === 'log') log(msg.text);
+    if (msg.type === 'log') {
+      log(msg.text);
+      if (msg.text === 'Keinen Frame markiert.') $('send').disabled = false;
+    }
     if (msg.type === 'drafts') sendDrafts(msg.drafts);
   };
 
   // Names the plugin does not know are not guessed: the user picks from the list.
   async function sendDrafts(drafts) {
-    let known;
     try {
-      known = (await api('/api/design/states')).overlays;
-    } catch {
-      log('Stream Tool nicht erreichbar — läuft `npm run dev`?');
-      return;
-    }
-    for (const d of drafts) {
-      let target = d.overlay && known[d.overlay] && known[d.overlay].states[d.state] ? `${d.overlay}/${d.state}` : null;
-      if (!target) {
-        const options = Object.entries(known).flatMap(([o, e]) => Object.keys(e.states).map((s) => `${o}/${s}`));
-        target = await pick(d.frameName, options);
-        if (!target) { log(`${d.frameName}: übersprungen`); continue; }
-      }
-      const [overlay, state] = target.split('/');
+      let known;
       try {
-        const res = await api('/api/design/inbox', { method: 'POST', body: JSON.stringify({ overlay, state, draft: d.draft, image: d.image, image2x: d.image2x }) });
-        log(`${d.frameName} → ${res.saved} ✓`);
+        known = (await api('/api/design/states')).overlays;
       } catch (e) {
-        log(`${d.frameName}: ${e.message}`);
+        log(e.message === 'Failed to fetch' ? 'Stream Tool nicht erreichbar — läuft `npm run dev`?' : 'Fehler: ' + e.message);
+        return;
       }
+      for (const d of drafts) {
+        let target = d.overlay && known[d.overlay] && known[d.overlay].states[d.state] ? `${d.overlay}/${d.state}` : null;
+        if (!target) {
+          const options = Object.entries(known).flatMap(([o, e]) => Object.keys(e.states).map((s) => `${o}/${s}`));
+          target = await pick(d.frameName, options);
+          if (!target) { log(`${d.frameName}: übersprungen`); continue; }
+        }
+        const [overlay, state] = target.split('/');
+        try {
+          const res = await api('/api/design/inbox', { method: 'POST', body: JSON.stringify({ overlay, state, draft: d.draft, image: d.image, image2x: d.image2x }) });
+          log(`${d.frameName} → ${res.saved} ✓`);
+        } catch (e) {
+          log(`${d.frameName}: ${e.message === 'Failed to fetch' ? 'Stream Tool nicht erreichbar — läuft `npm run dev`?' : e.message}`);
+        }
+      }
+    } finally {
+      $('send').disabled = false;
     }
   }
 
   function pick(frameName, options) {
     return new Promise((resolve) => {
       const box = document.createElement('div');
-      box.innerHTML = `<label>„${frameName}" gehört zu:</label><select style="width:100%;margin-bottom:6px"><option value="">— überspringen —</option>${options.map((o) => `<option>${o}</option>`).join('')}</select><button>OK</button>`;
+      box.innerHTML = `<label></label><select style="width:100%;margin-bottom:6px"><option value="">— überspringen —</option>${options.map((o) => `<option>${o}</option>`).join('')}</select><button>OK</button>`;
+      box.querySelector('label').textContent = `„${frameName}" gehört zu:`;
       document.body.insertBefore(box, $('log'));
       box.querySelector('button').onclick = () => { const v = box.querySelector('select').value; box.remove(); resolve(v || null); };
     });
