@@ -22,6 +22,7 @@ import customOverlaysRouter from './api/custom-overlays';
 import statsRouter from './api/stats';
 import rewardStatsRouter from './api/reward-stats';
 import backupRouter from './api/backup';
+import designRouter from './api/design';
 import overlayConfigRouter, { getOverlayConfig } from './api/overlay-config';
 import songRequestsRouter, { getActiveQueue } from './api/song-requests';
 import charactersRouter from './api/characters';
@@ -63,7 +64,10 @@ export function createApp(): express.Express {
   // CORS — muss VOR allen anderen Middleware kommen
   app.use((req, res, next) => {
     const origin = req.headers.origin || '';
-    const allowed = !origin || origin.startsWith('http://localhost:') || origin.startsWith('file://') ||
+    // The Figma plugin runs in a sandboxed iframe and sends `Origin: null`.
+    // Allowed only where the plugin talks — everything there needs the token.
+    const figmaPlugin = origin === 'null' && req.path.startsWith('/api/design/');
+    const allowed = figmaPlugin || !origin || origin.startsWith('http://localhost:') || origin.startsWith('file://') ||
       (HOST === '0.0.0.0' && /^https?:\/\/\d+\.\d+\.\d+\.\d+/.test(origin));
     if (allowed) {
       res.header('Access-Control-Allow-Origin', origin || '*');
@@ -73,6 +77,9 @@ export function createApp(): express.Express {
     if (req.method === 'OPTIONS') { res.sendStatus(204); return; }
     next();
   });
+
+  // Drafts carry two PNGs of a whole overlay; the global limit is for everything else.
+  app.use('/api/design/inbox', express.json({ limit: '30mb' }));
 
   app.use(express.json({ limit: '100kb' }));
   app.use(rateLimit);
@@ -140,6 +147,7 @@ export function createApp(): express.Express {
   app.use('/api/text-commands', textCommandsRouter);
   app.use('/api/lookup-commands', lookupCommandsRouter);
   app.use('/api/chat', chatRouter);
+  app.use('/api/design', designRouter);
 
   // Twitch OAuth callback redirect (no auth needed)
   app.get('/auth/twitch/callback', (req, res) => res.redirect('/api/auth/twitch/callback'));
