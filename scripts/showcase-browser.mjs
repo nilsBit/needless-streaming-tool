@@ -48,9 +48,15 @@ export async function openState(browser, overlay, state, size) {
       error: document.documentElement.getAttribute('data-showcase-error'),
     }));
     if (status.ready || status.error !== null) break;
-    if (Date.now() >= deadline) throw new Error(`${overlay} / ${state}: not ready after 15 s`);
+    if (Date.now() >= deadline) {
+      await page.close().catch(() => {});
+      throw new Error(`${overlay} / ${state}: not ready after 15 s`);
+    }
     await new Promise((r) => setTimeout(r, 100));
   }
-  if (status.error !== null) throw new Error(`${overlay} / ${state}: ${status.error}`);
+  if (status.error !== null) {
+    await page.close().catch(() => {});
+    throw new Error(`${overlay} / ${state}: ${status.error}`);
+  }
   return { page, errors };
 }

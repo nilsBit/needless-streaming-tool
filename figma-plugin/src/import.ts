@@ -7,7 +7,7 @@ export type CaptureNode = {
   radii?: [number, number, number, number];
   shadow?: { x: number; y: number; blur: number; spread: number; color: Color };
   text?: { content: string; family: string; size: number; weight: number; italic: boolean; color: Color;
-           lineHeight: number; letterSpacing: number; align: 'LEFT' | 'CENTER' | 'RIGHT' | 'JUSTIFIED' };
+           lineHeight: number; letterSpacing: number; align: 'LEFT' | 'CENTER' | 'RIGHT' | 'JUSTIFIED'; transform?: string };
   image?: { dataUrl: string }; svg?: { source: string }; children?: CaptureNode[];
 };
 export type Capture = { overlay: string; state: string; width: number; height: number;
@@ -56,6 +56,8 @@ function resolveSvgTokens(source: string, tokens: Record<string, string>): strin
     .replace(/var\(\s*(--[\w-]+)\s*(?:,\s*([^)]+))?\)/g, resolveVar)
     .replace(/currentColor/g, () => tokens['--color-text'] ?? '');
 }
+
+const CASE_BY_TRANSFORM: Record<string, TextCase> = { uppercase: 'UPPER', lowercase: 'LOWER', capitalize: 'TITLE' };
 
 const STYLE_BY_WEIGHT: Record<number, string> = { 300: 'Light', 400: 'Regular', 500: 'Medium', 600: 'SemiBold', 700: 'Bold', 800: 'ExtraBold' };
 
@@ -142,6 +144,9 @@ async function build(node: CaptureNode, parent: FrameNode, ctx: BuildContext): P
       t.textAlignHorizontal = node.text.align;
       t.fills = [paint(node.text.color, ctx.variables)];
       t.opacity = node.opacity;
+      // Set before any width is measured/auto-resized below — text-transform
+      // changes the rendered (and therefore auto-resized) width.
+      t.textCase = CASE_BY_TRANSFORM[node.text.transform ?? ''] ?? 'ORIGINAL';
       if (node.height < 1.5 * node.text.lineHeight) {
         // Single line: let the box hug the text and keep its anchored edge in place.
         t.textAutoResize = 'WIDTH_AND_HEIGHT';
