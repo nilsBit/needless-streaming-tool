@@ -54,4 +54,10 @@ describe('showcase state list', () => {
     const res = await request(app).get('/overlay/boot.js').expect(200);
     expect(res.text).toContain('data-showcase-ready');
   });
+
+  it('serves the showcase page', async () => {
+    const res = await request(app).get('/overlay/showcase/').expect(200);
+    expect(res.text).toContain('states.json');
+    expect(res.text).toContain('?state=');
+  });
 });
