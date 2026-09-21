@@ -1,0 +1,14 @@
+{
+  "name": "NST-Brücke",
+  "id": "nst-bridge-local",
+  "api": "1.0.0",
+  "main": "dist/code.js",
+  "ui": "dist/ui.html",
+  "editorType": ["figma"],
+  "documentAccess": "dynamic-page",
+  "networkAccess": {
+    "allowedDomains": ["none"],
+    "devAllowedDomains": ["http://localhost:4000"],
+    "reasoning": "Spricht nur mit dem Needless Streaming Tool auf diesem Rechner."
+  }
+}

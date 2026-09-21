@@ -1,0 +1,48 @@
+<style>
+  body { font: 12px/1.4 Inter, system-ui, sans-serif; margin: 12px; }
+  label { display: block; margin-bottom: 4px; color: #666; }
+  input { width: 100%; box-sizing: border-box; padding: 6px; margin-bottom: 10px; }
+  button { width: 100%; padding: 8px; margin-bottom: 8px; cursor: pointer; }
+  #log { white-space: pre-wrap; background: #f5f5f5; padding: 8px; height: 180px; overflow: auto; }
+</style>
+<label for="token">API-Token des Stream Tools (steht im Log als „Fixed API token")</label>
+<input id="token" type="password" placeholder="Token">
+<button id="import">Aus NST einlesen</button>
+<button id="send">An NST senden</button>
+<div id="log"></div>
+<script>
+  const BASE = 'http://localhost:4000';
+  const $ = (id) => document.getElementById(id);
+  const log = (t) => { $('log').textContent += t + '\n'; $('log').scrollTop = 1e9; };
+  const headers = () => ({ Authorization: 'Bearer ' + $('token').value.trim(), 'Content-Type': 'application/json' });
+
+  $('token').addEventListener('change', () => parent.postMessage({ pluginMessage: { type: 'save-token', token: $('token').value.trim() } }, '*'));
+
+  async function api(path, init) {
+    const res = await fetch(BASE + path, { ...init, headers: headers() });
+    if (res.status === 401) throw new Error('Token falsch — im Log des Stream Tools nachsehen.');
+    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || res.statusText);
+    return res.json();
+  }
+
+  $('import').onclick = async () => {
+    try {
+      const list = await api('/api/design/captures');
+      log(`${list.length} Erfassungen gefunden, lade …`);
+      const captures = [];
+      for (const { overlay, state } of list) captures.push(await api(`/api/design/captures/${overlay}/${state}`));
+      parent.postMessage({ pluginMessage: { type: 'import', captures } }, '*');
+    } catch (e) {
+      log(e.message === 'Failed to fetch' ? 'Stream Tool nicht erreichbar — läuft `npm run dev`?' : 'Fehler: ' + e.message);
+    }
+  };
+
+  $('send').onclick = () => parent.postMessage({ pluginMessage: { type: 'send-selection' } }, '*');
+
+  onmessage = (event) => {
+    const msg = event.data.pluginMessage;
+    if (!msg) return;
+    if (msg.type === 'token') $('token').value = msg.token;
+    if (msg.type === 'log') log(msg.text);
+  };
+</script>

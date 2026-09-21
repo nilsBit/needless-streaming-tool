@@ -1,0 +1,7 @@
+{
+  "compilerOptions": {
+    "target": "ES2017", "module": "ESNext", "moduleResolution": "bundler", "strict": true,
+    "lib": ["ES2017"], "typeRoots": ["./node_modules/@figma"], "noEmit": true
+  },
+  "include": ["src/**/*.ts"]
+}
