@@ -4,7 +4,7 @@ Einstieg für einen neuen Rechner oder eine neue Claude-Session. **Offene Arbeit
 steht in den GitHub Issues** (`gh issue list`) — dieses Dokument erklärt das
 Große Ganze, wie die beiden Projekte zusammenhängen und wo wir stehen.
 
-Stand: 20. September 2026.
+Stand: 21. September 2026.
 
 ## Worum es geht
 
@@ -153,6 +153,62 @@ braucht den Bot.
   Warum kein Sync: ADR-0023 im Worldbuilder.
 
 ## Wo wir stehen geblieben sind
+
+**Overlays in Figma gestalten — Branch `overlay-design-workflow` (21.09.)**
+
+Die Arbeit liegt auf dem Branch, **nicht in `main`**: `git checkout
+overlay-design-workflow`. Gebaut und geprüft ist der ganze Rundweg; er ist nur
+noch nie in Figma gelaufen.
+
+- **Showcase** `http://localhost:4000/overlay/showcase/` — alle 12 Overlays in
+  25 Zuständen mit Testdaten (`src/overlays/showcase/states.json`, ein Zustand
+  einzeln: `/overlay/<name>/index.html?state=<zustand>`). Erreicht OBS nicht.
+- **Erfassen** `npm run showcase:capture` → `design/captured/` (nicht
+  eingecheckt). Braucht Chrome und Internet (Google Fonts).
+- **Figma-Plugin „NST-Brücke“** in `figma-plugin/`: einlesen (neue Seite,
+  Frames, Variablensammlung „NST“, ausgeblendete Ebene „Vorlage“) und „An NST
+  senden“ → `design/drafts/<overlay>/<zustand>/` (eingecheckt).
+- **Vergleich** `npm run showcase:compare -- <overlay>` → `design/compare/`.
+- Anleitung: `docs/design-workflow.md`. Entwurf und Plan:
+  `docs/superpowers/specs/2026-09-21-overlay-design-workflow-design.md`,
+  `docs/superpowers/plans/2026-09-21-overlay-design-workflow.md`.
+
+Festgelegt: Nils gestaltet selbst in **Figma Desktop**, Figma-Tarif ist
+**kostenlos** — deshalb kein Figma-MCP und keine REST-API (dort nur wenige
+Aufrufe im Monat), sondern das eigene Plugin. Plugin einrichten mit
+`cd figma-plugin && npm install && npm run build` — **nicht**
+`npm --prefix figma-plugin install`, das installiert das ganze Tool in den
+Plugin-Ordner.
+
+Bewusst so entschieden (Kosten, falls falsch, in Klammern):
+
+- Die Showcase-Seite friert nach dem Abspielen komplett ein; die Skripte
+  fragen von außen ab, ob sie fertig ist (keine).
+- Verläufe kommen als flache Farbe des ersten Farbstopps, der Doppelrahmen als
+  zusätzliche Ebene `::outline` (flacherer Look; die „Vorlage“ zeigt das
+  Original).
+- SVG-Farben aus Variablen, die kein Token sind (z. B. Glücksrad), bekommen
+  in Figma die Textfarbe (dort nachfärben).
+- Geparkt: Die Figma-Variablen nehmen die Werte der ersten Erfassung — hat ein
+  Overlay eigene Farben, zeigen gebundene Flächen die globale Farbe. Heute
+  ohne Wirkung, alle Erfassungen teilen einen Wertesatz.
+
+**Als Nächstes: der Pilot mit der Eintragskarte (`character`)**
+
+1. Tool starten (`npm run dev`), Token aus dem Log (`[Auth] Fixed API token:
+   …`).
+2. Plugin einrichten und in Figma Desktop über *Plugins → Entwicklung → Plugin
+   aus Manifest importieren…* `figma-plugin/manifest.json` wählen.
+3. `npm run showcase:capture -- character`, im Plugin einlesen. Prüfen: Passt
+   der Frame zur „Vorlage“? Welche Schriften wurden ersetzt? Kommt das Plugin
+   an `localhost:4000` (Netzwerkzugriff)?
+4. An `character / with-portrait` etwas Sichtbares ändern, senden, im Overlay
+   umsetzen, `npm run showcase:compare -- character`, OBS-Quelle ansehen.
+5. Erst dann die übrigen elf — und danach den Branch nach `main` (vorher
+   fragen).
+
+Nebenbei aufgefallen: Die Eintragskarte läuft bei längerem Text unten aus der
+568×497-Quelle heraus (Showcase-Zustand `long-text`) — Stoff für den Entwurf.
 
 **Offen (GitHub Issues)**
 
