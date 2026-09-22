@@ -209,13 +209,18 @@
           item.className = 'sr-next-item';
           item.innerHTML =
             '<span class="sr-next-pos">' + (i + 1) + '.</span>' +
-            '<span class="sr-next-title">' + s.title + (s.artist ? ' — ' + s.artist : '') + '</span>' +
-            '<span class="sr-next-user">@' + s.requested_by + '</span>';
+            '<span class="sr-next-title">' + escapeHtml(s.title) + (s.artist ? ' — ' + escapeHtml(s.artist) : '') + '</span>' +
+            '<span class="sr-next-user">@' + escapeHtml(s.requested_by) + '</span>';
           nextEl.appendChild(item);
         });
       } else {
         nextEl.classList.remove('visible');
       }
+    }
+
+    // Titles and names come from viewers' requests — text, never markup.
+    function escapeHtml(str) {
+      return String(str ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     }
 
     // --- Initial fetch for queue ---
