@@ -219,9 +219,12 @@ Szene, nicht die Größe, in der die Browser-Quelle rendert. Bei 568×497 lief
 schon die gewöhnliche Karte unten heraus, bei 800×700 passt sie. **In OBS
 gegenprüfen:** Eigenschaften der Browser-Quelle, Breite × Höhe.
 
-Nebenbei aufgefallen: Die Eintragskarte läuft bei längerem Text auch bei
-800×700 noch 143 px unten heraus (Showcase-Zustand `long-text`) — Stoff für den
-Entwurf.
+Lange Einträge liefen auch bei 800×700 noch 143 px unten heraus. Seit 22.09.
+hat die Karte Obergrenzen statt Wachstum: Titel höchstens zwei Zeilen (kleiner,
+wenn länger), Zweitname eine Zeile, Beschreibung vier Zeilen, Felder und
+Beziehungen zusammen drei, je einzeilig. Die längste mögliche Karte ist 663 px
+hoch und endet bei 687 von 700. Ein Sich-selbst-Verkleinern der ganzen Karte
+wurde verworfen: In OBS läuft sie ohnehin auf 71 %.
 
 **Offen (GitHub Issues)**
 

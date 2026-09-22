@@ -40,14 +40,32 @@
     .kicker::before { content: var(--lex-kicker); }
     .kicker .art { color: var(--art); }
 
-    .title { margin-top: 14px; padding-right: 60px; font-size: 4rem; }
+    /* Two lines at most. A longer title gets smaller type (see fitTitle), and
+       what still doesn't fit is cut — the card must stay inside its source. */
+    .title {
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      overflow: hidden;
+      margin-top: 14px;
+      padding-right: 60px;
+      font-size: 4rem;
+    }
+    .title.long { font-size: 3rem; }
     .has-portrait .kicker, .has-portrait .title { padding-right: 130px; }
-    .alias { margin-top: 4px; font: italic 500 1.733rem var(--font-display); color: var(--lex-soft); }
+    .alias {
+      margin-top: 4px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      font: italic 500 1.733rem var(--font-display);
+      color: var(--lex-soft);
+    }
 
     .body {
       display: -webkit-box;
       -webkit-box-orient: vertical;
-      -webkit-line-clamp: 6;
+      -webkit-line-clamp: 4;
       overflow: hidden;
       margin-top: 18px;
       font: 400 1.467rem/1.55 var(--font-body);
@@ -65,7 +83,7 @@
       font: 400 1.2rem/1.45 var(--font-body);
     }
     dt { font: italic 600 1.2rem var(--font-body); color: var(--color-secondary); }
-    dd { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+    dd { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; overflow: hidden; }
 
     .foot { display: flex; justify-content: space-between; gap: 24px; margin-top: 16px; font: italic 1.067rem var(--font-body); color: var(--lex-faint); }
   </style>
@@ -73,10 +91,12 @@
 <body>
   <script src="/overlay/boot.js" data-overlay="character"></script>
   <script>
-    /** Facts beyond this many would push the page past a glance. */
-    const MAX_FACTS = 4;
-    /** Relationships come after the facts, and only the first few. */
-    const MAX_RELATIONS = 2;
+    /**
+     * Facts and relationships together, one line each. More would push the
+     * card out of its 800×700 source. Relationships come after the facts, and
+     * one always gets a place when the entry has any.
+     */
+    const MAX_ROWS = 3;
 
     // A glyph for the Arten a world usually has; any other Art gets initials.
     const BOOK = '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"><path d="M6 10 C14 8 20 9 24 13 C28 9 34 8 42 10 V38 C34 36 28 37 24 41 C20 37 14 36 6 38 Z"/><path d="M24 13 V41"/></svg>';
@@ -106,10 +126,8 @@
     const capitalise = (label) => label.charAt(0).toUpperCase() + label.slice(1);
 
     function render(card) {
-      const facts = [
-        ...card.facts.slice(0, MAX_FACTS),
-        ...(card.relations || []).slice(0, MAX_RELATIONS).map((r) => ({ name: capitalise(r.name), value: r.value })),
-      ];
+      const relations = (card.relations || []).map((r) => ({ name: capitalise(r.name), value: r.value }));
+      const facts = [...card.facts.slice(0, MAX_ROWS - Math.min(relations.length, 1)), ...relations].slice(0, MAX_ROWS);
       const maturity = card.maturity ? `Stand: ${card.maturity}` : '';
       return `<div class="card lex lex-voll${card.image ? ' has-portrait' : ''}">
         ${seal(card)}
@@ -124,6 +142,20 @@
 
     let current = null;
 
+    /** A title that runs past two lines at full size gets the smaller size. */
+    function fitTitle(slot) {
+      const title = slot.querySelector('.title');
+      if (!title) return;
+      title.classList.remove('long');
+      const lines = Math.round(title.scrollHeight / parseFloat(getComputedStyle(title).lineHeight));
+      if (lines > 2) title.classList.add('long');
+    }
+
+    // Measured in the fallback font until the real one arrives.
+    document.fonts.ready.then(() => {
+      if (current) fitTitle(current);
+    });
+
     /**
      * Shows a card, crossfading from the one before. The same entry again —
      * a field switched off mid-stream — changes in place, without a flash.
@@ -132,6 +164,7 @@
       if (card && current && current.dataset.id === card.id) {
         current.style.setProperty('--art', card.artColor || 'var(--color-accent)');
         current.innerHTML = render(card);
+        fitTitle(current);
         return;
       }
 
@@ -150,6 +183,7 @@
       if (card.artColor) slot.style.setProperty('--art', card.artColor);
       slot.innerHTML = render(card);
       stage.appendChild(slot);
+      fitTitle(slot);
       requestAnimationFrame(() => requestAnimationFrame(() => slot.classList.add('in')));
       current = slot;
     }
