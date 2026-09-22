@@ -4,7 +4,7 @@ Einstieg für einen neuen Rechner oder eine neue Claude-Session. **Offene Arbeit
 steht in den GitHub Issues** (`gh issue list`) — dieses Dokument erklärt das
 Große Ganze, wie die beiden Projekte zusammenhängen und wo wir stehen.
 
-Stand: 21. September 2026.
+Stand: 22. September 2026.
 
 ## Worum es geht
 
@@ -210,19 +210,50 @@ Bewusst so entschieden (Kosten, falls falsch, in Klammern):
   Overlay eigene Farben, zeigen gebundene Flächen die globale Farbe. Heute
   ohne Wirkung, alle Erfassungen teilen einen Wertesatz.
 
-**Als Nächstes: der Pilot mit der Eintragskarte (`character`)**
+**Als Nächstes: der Pilot mit der Eintragskarte (`character`)** — Stand 22.09. abends
 
-1. Tool starten (`npm run dev`), Token aus dem Log (`[Auth] Figma token: …` —
-   gilt nur für die Figma-Routen).
-2. Plugin einrichten und in Figma Desktop über *Plugins → Entwicklung → Plugin
-   aus Manifest importieren…* `figma-plugin/manifest.json` wählen.
-3. `npm run showcase:capture -- character`, im Plugin einlesen. Prüfen: Passt
-   der Frame zur „Vorlage“? Welche Schriften wurden ersetzt? Kommt das Plugin
-   an `localhost:4000` (Netzwerkzugriff)?
-4. An `character / with-portrait` etwas Sichtbares ändern, senden, im Overlay
-   umsetzen, `npm run showcase:compare -- character`, OBS-Quelle ansehen.
-5. Erst dann die übrigen elf — und danach den Branch nach `main` (vorher
-   fragen).
+Am 22.09. (auf dem Mac) erledigt:
+- Der Rundweg läuft bis Figma: runde Porträt-Maske, Initiale, Kicker-Linie,
+  eine Notiz unter jedem Frame (Bewegung und „Wünsche:“). Die Karte ist
+  800×700 groß und hat Obergrenzen, sodass sie nie aus der Quelle läuft.
+- Senden übernimmt Eindeutiges sofort (Palette, Farben, Schrift, Rahmen,
+  Ecken, Deckkraft) als vorläufige Überschreibung. Der Rest wartet im Reiter
+  *Settings → Overlays → Figma*; dort startet **„Umsetzen lassen“** Claude
+  (nur in der Entwicklungsversion).
+- Showcase-Knöpfe in der App, Ansicht in Bewegung mit „↻ Nochmal“ und
+  Aktionen (abhaken, drehen …).
+- Sicherheits- und Fehlerprüfung des ganzen Branches, alle Befunde behoben.
+  Der `%2e%2e`-Löschfehler (Datenordner) ist auch auf `main` behoben
+  (`dcb368e`).
+
+Noch nie in echt passiert: ein Senden aus Figma mit dem neuen Plugin
+(Figma-Token, Import mit Schnappschüssen) und der Knopf mit echten Änderungen.
+
+1. `npm run dev`. Im Plugin „NST-Brücke“ das **Figma-Token** eintragen (Log:
+   `[Auth] Figma token: …`; das „Fixed API token“ gilt dort nicht mehr), dann
+   **Aus NST einlesen**. Alte Import-Seiten lassen sich nicht vergleichen —
+   löschen. Wurden Overlays geändert, vorher `npm run showcase:capture`.
+2. An `character / with-portrait` etwas Eindeutiges ändern (z. B.
+   Titelgröße), senden: Die Änderung muss ohne Claude im Showcase stehen.
+3. Etwas am Aufbau ändern oder einen Wunsch in die Notiz schreiben, senden,
+   **Umsetzen lassen**, Ergebnis im Showcase ansehen,
+   `npm run showcase:compare -- character`.
+4. Dann die übrigen elf. Danach den Branch nach `main` (vorher fragen). Dabei
+   entsteht ein Konflikt in `src/server/__tests__/custom-overlays.test.ts`,
+   weil beide Seiten die Datei angelegt haben: die Blöcke zusammenführen.
+
+Offen am Rand:
+- Die OBS-Quelle auf 800×700 prüfen (Windows-Rechner).
+- Das Glücksrad wird gedreht erfasst (als umschließender Kasten, 526 statt
+  320 px) und kommt in Figma verzerrt an.
+- Der Bot-Login ist abgelaufen.
+- #22: Ursache belegt (Port-Kollision zwischen supertest und den Stubs),
+  Behebung offen.
+- Dass die Plugin-Oberfläche nur Nachrichten von Figma annimmt
+  (`event.source === parent`), ist in Figma noch nicht bestätigt. Meldet sie
+  „Nachricht aus unbekannter Quelle ignoriert“, ist die Prüfung falsch.
+- Die unabhängige Prüfung des Umsetzen-Commits `b9a63ed` ist hängen
+  geblieben. Sie sollte wiederholt werden, bevor der Branch nach `main` geht.
 
 Die Eintragskarte wird mit **800×700** erfasst, nicht mehr mit 568×497 (22.09.).
 568×497 ist genau 800×700 mal 0,71 — offenbar die verkleinerte Anzeige in der
