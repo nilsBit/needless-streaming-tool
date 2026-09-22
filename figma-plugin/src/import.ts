@@ -49,7 +49,10 @@ export async function ensureVariables(tokens: Record<string, string>): Promise<M
 function paint(color: Color, variables: Map<string, Variable>): SolidPaint {
   const solid: SolidPaint = { type: 'SOLID', color: rgb(color.hex), opacity: color.alpha };
   const v = color.token ? variables.get(color.token) : undefined;
-  return v ? figma.variables.setBoundVariableForPaint(solid, 'color', v) : solid;
+  if (!v) return solid;
+  // Binding takes the variable's colour and drops the paint's own opacity —
+  // a 15 % rule would come out solid. Put it back.
+  return { ...figma.variables.setBoundVariableForPaint(solid, 'color', v), opacity: color.alpha };
 }
 
 /** Replaces `var(--x)` / `var(--x, fallback)` and `currentColor` in an SVG source with literal values, since Figma's SVG importer cannot resolve CSS custom properties. */
