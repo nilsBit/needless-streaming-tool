@@ -21,7 +21,7 @@ const PALETTE = {
 };
 
 // The selectors a capture of these states produced — the only ones a draft may name.
-const CAPTURED = ['div.title.lex-title', 'div.kicker.lex-kicker', 'div.card.lex.lex-voll.has-portrait > dl:not([class])', 'p.body', 'div.card.lex.lex-voll.has-portrait'];
+const CAPTURED = ['div.title.lex-title', 'div.kicker.lex-kicker', 'div.card.lex.lex-voll.has-portrait > dl:not([class])', 'p.body', 'div.card.lex.lex-voll.has-portrait', '#\\31 23'];
 
 describe('drafts from Figma', () => {
   let app: Express;
@@ -32,7 +32,7 @@ describe('drafts from Figma', () => {
     dir = fs.mkdtempSync(path.join(os.tmpdir(), 'nst-apply-'));
     process.env.NST_DESIGN_DIR = dir;
     fs.mkdirSync(path.join(dir, 'captured', 'character'), { recursive: true });
-    const nodes = [{ selector: CAPTURED[4], children: CAPTURED.slice(0, 4).map((selector) => ({ selector })) }];
+    const nodes = [{ selector: CAPTURED[4], children: [...CAPTURED.slice(0, 4), CAPTURED[5]].map((selector) => ({ selector })) }];
     for (const state of ['with-portrait', 'long-text']) {
       fs.writeFileSync(path.join(dir, 'captured', 'character', `${state}.json`), JSON.stringify({ nodes }));
     }
@@ -136,6 +136,27 @@ describe('drafts from Figma', () => {
       expect(await css()).toBe('div.title.lex-title { font-size: 4.5rem; }');
     });
 
+    it('clears what an earlier send left waiting once a later send settles it', async () => {
+      const family = change('fontFamily', 'Cormorant Garamond', 'Inter');
+      await sendChanges({ nodes: [family] });
+      await send({ note: 'Wünsche:\n' });
+      expect((await status()).drafts[0].pending).toHaveLength(2);
+      await request(app).post('/api/overlay-config').set(auth()).send({ global: { ...PALETTE, '--font-display': "'Inter', sans-serif" } }).expect(200);
+      const res = await sendChanges({ nodes: [family] });
+      expect(res.body.applied).toHaveLength(1);
+      expect(res.body.pending).toEqual([]);
+      expect((await status()).drafts[0].done).toBe(true);
+    });
+
+    it('books nothing for a palette value that is already the palette after it was kept', async () => {
+      const accent = { variables: { '--color-accent': { before: '#c9a45c', after: '#8fb07a' } } };
+      await sendChanges(accent);
+      await request(app).post(`/api/design/applied/${(await status()).applied[0].id}/keep`).set(auth()).expect(200);
+      const res = await sendChanges(accent);
+      expect(res.body.applied).toEqual([]);
+      expect((await status()).applied).toEqual([]);
+    });
+
     it('keeps what still waits when a later send of the frame no longer mentions it', async () => {
       await sendChanges({ added: ['Rectangle 3'] });
       await sendChanges({ nodes: [titleSize] });
@@ -231,6 +252,12 @@ describe('drafts from Figma', () => {
       ] });
       expect(res.body.applied).toEqual([]);
       expect(await css()).toBeUndefined();
+    });
+
+    it('reports a captured selector it would not serve as waiting, not as applied', async () => {
+      const res = await sendChanges({ nodes: [{ ...titleSize, selector: CAPTURED[5], type: 'FRAME', property: 'opacity', before: 1, after: 0.5 }] });
+      expect(res.body.applied).toEqual([]);
+      expect(res.body.pending).toHaveLength(1);
     });
 
     it('applies no colour that is not a plain hex, and no variable name as CSS', async () => {

@@ -22,6 +22,8 @@ export type Snap = {
   fill?: PaintSnap; stroke?: PaintSnap; strokeWeights?: number[]; radii?: number[]; effects?: string;
   fontSize?: number | string; fontFamily?: string; fontStyle?: string; textAlign?: string;
   letterSpacing?: Unit | string; lineHeight?: Unit | string; textCase?: string; characters?: string;
+  /** Leaves only: what the SVG's own layers look like — a recolour inside has nothing else to show. */
+  content?: string;
 };
 
 type Child = { uid: string; label: string };
@@ -50,7 +52,15 @@ async function paintSnap(paints: readonly Paint[] | typeof figma.mixed): Promise
 
 const mixed = <T>(value: T | typeof figma.mixed): T | string => (value === figma.mixed ? 'mixed' : value);
 
-export async function snapshot(node: SceneNode): Promise<Snap> {
+/** The look of an imported SVG's layers, as one comparable string. */
+function contentOf(node: SceneNode): string {
+  if (!('findAll' in node)) return '';
+  return JSON.stringify(node.findAll(() => true).map((n) => [
+    n.name, 'fills' in n ? n.fills : null, 'strokes' in n ? n.strokes : null, Math.round(n.width), Math.round(n.height),
+  ]));
+}
+
+export async function snapshot(node: SceneNode, leaf = false): Promise<Snap> {
   const snap: Snap = { x: node.x, y: node.y, visible: node.visible };
   // A text box that hugs its text resizes with it; its size says nothing the text doesn't.
   if (node.type !== 'TEXT' || node.textAutoResize !== 'WIDTH_AND_HEIGHT') snap.width = node.width;
@@ -72,6 +82,7 @@ export async function snapshot(node: SceneNode): Promise<Snap> {
     snap.textCase = mixed(node.textCase);
     snap.characters = node.characters;
   }
+  if (leaf) snap.content = contentOf(node);
   return snap;
 }
 
@@ -93,7 +104,7 @@ const labelOf = (s: Stored | null, node: BaseNode) => (s?.selector ? `${s.select
  * they are neither remembered nor compared.
  */
 export async function remember(node: SceneNode, selector: string | undefined, role: 'outline' | undefined, leaf = false): Promise<void> {
-  const own: Stored = { uid: Math.random().toString(36).slice(2) + Date.now().toString(36), selector, role, snap: await snapshot(node), ...(leaf ? { leaf } : {}) };
+  const own: Stored = { uid: Math.random().toString(36).slice(2) + Date.now().toString(36), selector, role, snap: await snapshot(node, leaf), ...(leaf ? { leaf } : {}) };
   if ('children' in node && !leaf) {
     own.children = [];
     for (const c of node.children) {
@@ -153,21 +164,27 @@ async function variableChanges(): Promise<Changes['variables']> {
   return changed;
 }
 
-/** Everything the designer changed in this frame since the import — or null for a frame from an import that kept no snapshots. */
+/**
+ * Everything the designer changed in this frame since the import — or null
+ * for a frame that can't be compared: no snapshots, or snapshots from before
+ * layers had uids.
+ */
 export async function changesIn(frame: FrameNode): Promise<Changes | null> {
-  if (!stored(frame)) return null;
+  if (!stored(frame)?.uid) return null;
   const changes: Changes = { nodes: [], added: [], removed: [], variables: await variableChanges() };
   const seen = new Set<string>();
 
-  async function walk(node: SceneNode, isRoot: boolean): Promise<void> {
+  // `expected`: the uids the parent was built with. A layer pasted in from
+  // another frame carries its source's uid — not one of these, so it is new.
+  async function walk(node: SceneNode, isRoot: boolean, expected: Set<string> | null): Promise<void> {
     const s = stored(node);
-    // No snapshot, or a uid this frame already had: new in Figma. Not descended — it counts once.
-    if (!s || seen.has(s.uid)) {
+    // No snapshot, a uid this frame already had, or one its parent never had: new in Figma. Not descended — it counts once.
+    if (!s?.uid || seen.has(s.uid) || (expected && !expected.has(s.uid))) {
       changes.added.push(node.name);
       return;
     }
     seen.add(s.uid);
-    const now = await snapshot(node);
+    const now = await snapshot(node, s.leaf);
     for (const key of new Set([...Object.keys(s.snap), ...Object.keys(now)]) as Set<keyof Snap>) {
       // The frame itself sits wherever it was put on the page; only its size matters.
       if (isRoot && (key === 'x' || key === 'y')) continue;
@@ -181,9 +198,10 @@ export async function changesIn(frame: FrameNode): Promise<Changes | null> {
     if (!('children' in node) || s.leaf) return;
     const present = new Set(node.children.map((c) => stored(c)?.uid).filter(Boolean));
     for (const child of s.children ?? []) if (!present.has(child.uid)) changes.removed.push(child.label);
-    for (const child of node.children) if (!(isRoot && child.name === 'Vorlage')) await walk(child, false);
+    const own = new Set((s.children ?? []).map((c) => c.uid));
+    for (const child of node.children) if (!(isRoot && child.name === 'Vorlage')) await walk(child, false, own);
   }
 
-  await walk(frame, true);
+  await walk(frame, true, null);
   return changes;
 }

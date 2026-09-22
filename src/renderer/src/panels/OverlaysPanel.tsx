@@ -41,6 +41,27 @@ const OVERLAY_ICONS: Record<string, string> = {
   character: '👥',
 };
 
+type PaletteConfig = { global: Record<string, string>; overrides: Record<string, Record<string, string>> };
+
+/**
+ * The server's config, with what was edited here since the last sync on top:
+ * a key that differs from `synced` was changed here (or removed here) and wins.
+ */
+function mergeConfig(local: PaletteConfig, synced: PaletteConfig, server: PaletteConfig): PaletteConfig {
+  const pick = (l: Record<string, string> = {}, s: Record<string, string> = {}, v: Record<string, string> = {}) => {
+    const out = { ...v };
+    for (const k of Object.keys(l)) if (l[k] !== s[k]) out[k] = l[k];
+    for (const k of Object.keys(s)) if (!(k in l)) delete out[k];
+    return out;
+  };
+  const overrides: PaletteConfig['overrides'] = {};
+  for (const name of new Set([...Object.keys(server.overrides ?? {}), ...Object.keys(local.overrides ?? {})])) {
+    const merged = pick(local.overrides?.[name], synced.overrides?.[name], server.overrides?.[name]);
+    if (Object.keys(merged).length) overrides[name] = merged;
+  }
+  return { global: pick(local.global, synced.global, server.global), overrides };
+}
+
 const TESTABLE_OVERLAYS = new Set(['alerts', 'song', 'poll', 'milestone', 'roulette', 'challenge', 'todos', 'progress', 'song-queue', 'reward-leaderboard', 'reward-rankchange', 'character']);
 
 const THEME_PRESETS: { name: string; label: string; color: string; values: Record<string, string> }[] = [
@@ -170,31 +191,49 @@ export default function OverlaysPanel() {
   }>({ global: {}, overrides: {} });
   const [selectedOverride, setSelectedOverride] = useState<string>('');
 
+  // The palette as the server last had it, and as it is here now. A save
+  // posts the whole config, so it must never carry values the server has
+  // since changed from elsewhere (a Figma draft) that weren't edited here.
+  const syncedRef = useRef<typeof overlayConfig>({ global: {}, overrides: {} });
+  const latestRef = useRef(overlayConfig);
+  useEffect(() => { latestRef.current = overlayConfig; }, [overlayConfig]);
+
   useEffect(() => {
-    apiFetch('/overlay-config').then(r => r.json()).then(setOverlayConfig).catch(() => {});
+    apiFetch('/overlay-config').then(r => r.json()).then((config) => {
+      syncedRef.current = config;
+      setOverlayConfig(config);
+    }).catch(() => {});
   }, []);
 
-  // Auto-save with debounce
+  // Auto-save with debounce — of whatever is current when it fires.
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cancelSave = () => {
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = null;
+  };
 
-  const autoSave = useCallback((config: typeof overlayConfig) => {
+  const autoSave = useCallback((_config: typeof overlayConfig) => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(async () => {
       saveTimerRef.current = null;
+      const config = latestRef.current;
       const result = await apiPost('/overlay-config', config);
-      if (result) toast.success('Design gespeichert');
+      if (result) { syncedRef.current = config; toast.success('Design gespeichert'); }
       else toast.error('Aktion fehlgeschlagen');
     }, 600);
   }, [toast]);
 
-  // Every draft from Figma is followed by an overlay-config broadcast. It may
-  // have changed the palette — take that in, or the next slider move here
-  // would save the old values back over it. Not while an edit here waits to
-  // be saved: that one is newer.
+  // Every draft from Figma is followed by an overlay-config broadcast that may
+  // have changed the palette. Take the server's values, except for keys edited
+  // here since the last sync — those are newer, and a pending save keeps them.
   useWebSocket((event) => {
     if (event !== 'overlay-config') return;
     refetchDesign();
-    if (!saveTimerRef.current) apiFetch('/overlay-config').then((r) => r.json()).then(setOverlayConfig).catch(() => {});
+    apiFetch('/overlay-config').then((r) => r.json()).then((server: typeof overlayConfig) => {
+      const merged = mergeConfig(latestRef.current, syncedRef.current, server);
+      syncedRef.current = server;
+      setOverlayConfig(merged);
+    }).catch(() => {});
   });
 
   const updateGlobal = (key: string, value: string) => {
@@ -218,18 +257,21 @@ export default function OverlaysPanel() {
 
   const resetConfig = async () => {
     try {
+      cancelSave();
       await apiFetch('/overlay-config', { method: 'DELETE' });
+      syncedRef.current = { global: {}, overrides: {} };
       setOverlayConfig({ global: {}, overrides: {} });
       toast.success('Design gespeichert');
     } catch { toast.error('Aktion fehlgeschlagen'); }
   };
 
   const applyTheme = async (theme: typeof THEME_PRESETS[0]) => {
-    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    cancelSave();
     const newConfig = { ...overlayConfig, global: { ...theme.values } };
     setOverlayConfig(newConfig);
     const result = await apiPost('/overlay-config', newConfig);
     if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
+    syncedRef.current = newConfig;
     toast.success(`${theme.label} angewendet`);
   };
 
@@ -253,9 +295,11 @@ export default function OverlaysPanel() {
       const text = await file.text();
       const imported = JSON.parse(text);
       if (imported.global) {
+        cancelSave();
         setOverlayConfig(imported);
         const result = await apiPost('/overlay-config', imported);
         if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
+        syncedRef.current = imported;
         toast.success('Theme importiert');
       }
     } catch {

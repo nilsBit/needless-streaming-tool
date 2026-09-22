@@ -51,9 +51,10 @@
       padding-right: 60px;
       font-size: 4rem;
     }
-    /* More specific than a Figma override on div.title.lex-title (tag + two
-       classes), so a long title still shrinks after the size was changed there. */
-    .card .title.long { font-size: 3rem; }
+    /* A long title shrinks whatever size the title was given — also one set
+       from Figma, whose override carries the whole path to the title and would
+       outrank any class rule here. */
+    .title.long { font-size: 3rem !important; }
     .has-portrait .kicker, .has-portrait .title { padding-right: 130px; }
     .alias {
       margin-top: 4px;

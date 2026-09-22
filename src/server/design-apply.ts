@@ -85,12 +85,16 @@ export interface DraftStatus {
   pending: PendingItem[];
   wishes: string;
   done: boolean;
+  /** Only on a fresh result, never stored: keys of earlier pending items this send settled. */
+  resolved?: string[];
 }
 
 // A draft is a few dozen changes; these only stop a flood.
 const MAX_NODES = 2000;
 const MAX_LIST = 500;
 const MAX_TEXT = 300;
+// Selectors carry the path from the nearest id or from body.
+const MAX_SELECTOR = 600;
 const MAX_NOTE = 20_000;
 const MAX_LOG = 5000;
 
@@ -145,7 +149,7 @@ const SAFE_VALUE = /^[a-zA-Z0-9#%.,()\s-]+$/;
 function safeRule(change: AppliedChange): boolean {
   return change.kind === 'style' && typeof change.target === 'string' && typeof change.value === 'string'
     && typeof change.overlay === 'string' && /^[a-z0-9-]+$/.test(change.overlay) && CSS_PROPERTIES.has(change.property)
-    && SAFE_SELECTOR.test(change.target) && !change.target.includes('/*') && change.target.length <= MAX_TEXT
+    && SAFE_SELECTOR.test(change.target) && !change.target.includes('/*') && change.target.length <= MAX_SELECTOR
     && SAFE_VALUE.test(change.value) && change.value.length <= MAX_TEXT;
 }
 
@@ -163,9 +167,10 @@ export function designStyles(): Record<string, string> {
     rules.set(change.overlay, bySelector);
   }
   // No !important: an animation or a value the overlay's script sets inline
-  // must still win. The selectors carry tag and classes, which outranks the
-  // overlay's own class rules; a state rule that must beat an override needs
-  // more specificity than that (see `.card .title.long` in the Entry Card).
+  // must still win. The selectors carry the whole path with its state
+  // classes, about as specific as the overlay's own state rules; a rule that
+  // must beat an override whatever it says is marked !important in the
+  // overlay itself (see `.title.long` in the Entry Card).
   const css: Record<string, string> = {};
   for (const [overlay, bySelector] of rules) {
     css[overlay] = [...bySelector]
@@ -339,6 +344,8 @@ function show(value: unknown): string {
 
 function nodeLabel(change: NodeChange): string {
   const who = change.selector ? `${change.selector}${change.role === 'outline' ? ' (Innenrahmen)' : ''}` : change.name;
+  // An SVG's inner layers: their before/after is a wall of JSON, not worth showing.
+  if (change.property === 'content') return clean(`${who}: Inhalt der Grafik geändert`, MAX_TEXT * 2);
   const what = change.property === 'fill' && change.type === 'TEXT' ? 'Textfarbe' : PROPERTY_LABEL[change.property] ?? change.property;
   return clean(`${who}: ${what} ${show(change.before)} → ${show(change.after)}`, MAX_TEXT * 2);
 }
@@ -379,7 +386,7 @@ function asNodeChange(value: unknown): NodeChange | null {
   const c = value as Record<string, unknown>;
   if (typeof c.property !== 'string' || typeof c.type !== 'string') return null;
   return {
-    selector: typeof c.selector === 'string' ? clean(c.selector, MAX_TEXT) : undefined,
+    selector: typeof c.selector === 'string' ? clean(c.selector, MAX_SELECTOR) : undefined,
     role: c.role === 'outline' ? 'outline' : undefined,
     name: clean(c.name, MAX_TEXT), type: clean(c.type, 40), property: clean(c.property, 40),
     before: c.before, after: c.after,
@@ -475,10 +482,12 @@ function readStatus(overlay: string, state: string): DraftStatus | null {
  */
 export function writeStatus(overlay: string, state: string, status: DraftStatus): DraftStatus {
   const previous = readStatus(overlay, state);
+  const settled = new Set(status.resolved ?? []);
   const pending = new Map<string, PendingItem>();
-  if (previous && !previous.done) for (const item of previous.pending) pending.set(item.key, item);
+  if (previous && !previous.done) for (const item of previous.pending) if (!settled.has(item.key)) pending.set(item.key, item);
   for (const item of status.pending) pending.set(item.key, item);
-  const merged = { ...status, overlay, state, pending: [...pending.values()].slice(0, MAX_LIST) };
+  const merged: DraftStatus = { ...status, overlay, state, pending: [...pending.values()].slice(0, MAX_LIST) };
+  delete merged.resolved;
   merged.done = merged.pending.length === 0 && merged.wishes === '';
   fs.writeFileSync(statusFile(overlay, state), JSON.stringify(merged, null, 2));
   return merged;
@@ -522,6 +531,7 @@ export function applyDraft(overlay: string, state: string, draft: { changes?: un
   let log = readLog();
   const applied: AppliedChange[] = [];
   const pending: PendingItem[] = [];
+  const resolved: string[] = [];
   let paletteChanged = false;
 
   const variables = typeof changes.variables === 'object' && changes.variables !== null ? changes.variables as Record<string, unknown> : {};
@@ -535,11 +545,14 @@ export function applyDraft(overlay: string, state: string, draft: { changes?: un
     }
     // One entry per palette key: sent with several frames it is still one change, undone to where it started.
     const earlier = log.find((c) => c.kind === 'variable' && c.target === key);
+    // Already the palette's value and not on the list (kept, or set here since): nothing to book.
+    if (!earlier && config.global[key] === after) { resolved.push(`var|${key}`); continue; }
     log = log.filter((c) => c !== earlier);
     applied.push({
       id: crypto.randomUUID(), overlay, state, at, kind: 'variable', target: key, property: key, value: after,
       before: earlier ? earlier.before : config.global[key], label,
     });
+    resolved.push(`var|${key}`);
     config.global[key] = after;
     paletteChanged = true;
   }
@@ -548,15 +561,20 @@ export function applyDraft(overlay: string, state: string, draft: { changes?: un
     const change = asNodeChange(raw);
     if (!change) continue;
     const css = change.selector && allowed.has(change.selector) ? toCss(change, tokens) : null;
-    if (!css || log.length + applied.length + css.length > MAX_LOG) {
+    const entries = (css ?? []).map(([property, value]): AppliedChange => ({
+      id: crypto.randomUUID(), overlay, state, at, kind: 'style', target: change.selector!, property, value, label: nodeLabel(change),
+    }));
+    // Booked only if it will also be served — never reported as applied and then filtered out.
+    if (!css || !entries.every(safeRule) || log.length + applied.length + entries.length > MAX_LOG) {
       pending.push({ key: nodeKey(change), label: nodeLabel(change) });
       continue;
     }
-    for (const [property, value] of css) {
+    for (const entry of entries) {
       // The same property of the same element, changed again: the new value replaces the old one.
-      log = log.filter((c) => !(c.kind === 'style' && c.overlay === overlay && c.target === change.selector && c.property === property));
-      applied.push({ id: crypto.randomUUID(), overlay, state, at, kind: 'style', target: change.selector!, property, value, label: nodeLabel(change) });
+      log = log.filter((c) => !(c.kind === 'style' && c.overlay === overlay && c.target === entry.target && c.property === entry.property));
+      applied.push(entry);
     }
+    resolved.push(nodeKey(change));
   }
   for (const name of list(changes.added, MAX_LIST)) pending.push({ key: `added|${clean(name, MAX_TEXT)}`, label: `Neu in Figma: ${clean(name, MAX_TEXT)}` });
   for (const name of list(changes.removed, MAX_LIST)) pending.push({ key: `removed|${clean(name, MAX_TEXT)}`, label: `In Figma entfernt: ${clean(name, MAX_TEXT)}` });
@@ -573,5 +591,7 @@ export function applyDraft(overlay: string, state: string, draft: { changes?: un
     applied: [...new Set(applied.map((c) => c.label))],
     pending, wishes,
     done: pending.length === 0 && wishes === '',
+    // What this send settled: pending items of earlier sends with these keys go.
+    resolved: [...resolved, 'baseline'],
   };
 }

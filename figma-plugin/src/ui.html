@@ -72,7 +72,8 @@
         return;
       }
       for (const d of drafts) {
-        let target = d.overlay && known[d.overlay] && known[d.overlay].states[d.state] ? `${d.overlay}/${d.state}` : null;
+        const own = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+        let target = d.overlay && own(known, d.overlay) && own(known[d.overlay].states, d.state) ? `${d.overlay}/${d.state}` : null;
         if (!target) {
           const options = Object.entries(known).flatMap(([o, e]) => Object.keys(e.states).map((s) => `${o}/${s}`));
           target = await pick(d.frameName, options);

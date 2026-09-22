@@ -76,8 +76,9 @@
 
   // Figma's SVG import knows neither CSS variables nor currentColor. Both are
   // resolved here, where the browser knows what they are: colours through a
-  // probe element (color-mix() and all), everything else as the variable's
-  // computed text. Alpha is dropped — an SVG attribute has no place for it.
+  // probe element (color-mix() and all), as hex or rgba() when translucent;
+  // everything else as the variable's computed text, with double quotes made
+  // single so it stays inside the attribute it lands in.
   function resolvedSvg(svg) {
     const style = getComputedStyle(svg);
     const probe = document.createElement('span');
@@ -86,11 +87,14 @@
       probe.style.color = 'rgb(1, 2, 3)';
       probe.style.color = value;
       const c = probe.style.color === 'rgb(1, 2, 3)' && value.trim() !== 'rgb(1, 2, 3)' ? null : color(getComputedStyle(probe).color);
-      return c ? c.hex : null;
+      if (!c) return null;
+      if (c.alpha >= 1) return c.hex;
+      const n = parseInt(c.hex.slice(1), 16);
+      return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${Number(c.alpha.toFixed(3))})`;
     };
     const resolve = (name, fallback) => {
       const value = style.getPropertyValue(name).trim() || (fallback ?? '').trim();
-      return asColor(value) ?? value;
+      return asColor(value) ?? value.replace(/"/g, "'");
     };
     const source = svg.outerHTML
       .replace(/var\(\s*(--[\w-]+)\s*(?:,\s*([^)]+))?\)/g, (_m, name, fallback) => resolve(name, fallback))
@@ -118,19 +122,29 @@
     return radii.some((r) => r > 0) ? radii : null;
   }
 
-  // Where a change made in Figma lands in CSS: the element's id, else its tag
-  // and classes, else its class-less tag under its parent's selector (never a
-  // bare tag — that would reach every such element in the overlay). State
-  // classes (`in`, `visible` …) stay in, so a change made to one state applies
-  // wherever that state's classes do. Class-less siblings share one selector:
-  // restyling one row of a list restyles every row.
-  function selectorOf(el) {
-    if (el.id) return '#' + CSS.escape(el.id);
+  // Where a change made in Figma lands in CSS: the element's path from the
+  // nearest ancestor with an id (or from body), each step with tag, id and
+  // classes — state classes included (`in`, `visible`, `rank-1` …). That keeps
+  // a change to the state it was made in, and gives the rule about the
+  // specificity of the overlay's own state rules, so it neither loses to them
+  // unseen nor spreads to other states. A class-less step is
+  // `tag:not([class])`; class-less siblings share it — restyling one row of a
+  // list restyles every row.
+  function stepOf(el) {
     const tag = el.tagName.toLowerCase();
-    if (el.classList.length) return tag + [...el.classList].map((c) => '.' + CSS.escape(c)).join('');
-    const parent = el.parentElement;
-    const context = !parent || parent === document.body ? 'body' : selectorOf(parent);
-    return `${context} > ${tag}:not([class])`;
+    const id = el.id ? '#' + CSS.escape(el.id) : '';
+    const classes = [...el.classList].map((c) => '.' + CSS.escape(c)).join('');
+    if (classes || id) return tag + id + classes;
+    return el.hasAttribute('class') ? tag : `${tag}:not([class])`;
+  }
+
+  function selectorOf(el) {
+    const steps = [];
+    for (let e = el; e && e !== document.body; e = e.parentElement) {
+      steps.unshift(stepOf(e));
+      if (e.id) return steps.join(' > ');
+    }
+    return ['body', ...steps].join(' > ');
   }
 
   function textNode(name, content, r, style, rect, opacity, selector) {

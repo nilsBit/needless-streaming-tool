@@ -71,7 +71,12 @@ unter `actions` in `states.json`: neue Testdaten (`public`) und Ereignisse
    dem Browser — was nur zwischen Figma und Browser verschieden aussieht, zählt
    nicht. Die Änderungen liegen als Überschreibungen in der Datenbank
    (`design_applied`), `boot.js` spielt sie live ein — ohne `!important`, damit
-   Animationen und vom Skript gesetzte Werte weiter gewinnen.
+   Animationen und vom Skript gesetzte Werte weiter gewinnen. Der Selektor ist
+   der Pfad vom nächsten Element mit id (oder von `body`) samt Zustandsklassen:
+   Eine Änderung gilt für den Zustand, in dem sie gemacht wurde, und ist etwa so
+   spezifisch wie die eigenen Zustandsregeln des Overlays. Muss eine Regel des
+   Overlays jede Überschreibung schlagen (die Verkleinerung langer Titel), trägt
+   sie selbst `!important`.
 
    **Was ein Entwurf darf:** Nur Selektoren, die die Erfassung dieses
    Zustands erzeugt hat; Farben nur als `#rrggbb` oder als Palettenvariable,
