@@ -77,16 +77,83 @@
     return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0 && Number(style.opacity) > 0;
   }
 
-  // Pseudo-elements have no DOM node, so getBoundingClientRect() can't tell
-  // us their real box — there is nothing to call it on. Width for a text
-  // pseudo is estimated with canvas measureText() (accurate enough for a
-  // single run of text in the resolved font); a box pseudo's box is only
-  // emitted when the author gave it an explicit width/height, which computed
-  // style does report even without a node.
-  let _measureCtx;
-  function measureCtx() {
-    if (!_measureCtx) _measureCtx = document.createElement('canvas').getContext('2d');
-    return _measureCtx;
+  // Figma fills are flat; a gradient comes through as its first stop.
+  function fillOf(style) {
+    let fill = color(style.backgroundColor);
+    if ((!fill || fill.alpha === 0) && /gradient/.test(style.backgroundImage)) fill = color(style.backgroundImage) ?? fill;
+    return fill && fill.alpha > 0 ? fill : null;
+  }
+
+  // Computed style keeps a percentage radius as `50%`; Figma needs pixels.
+  function radiiOf(style, width, height) {
+    const side = Math.min(width, height);
+    const radii = [style.borderTopLeftRadius, style.borderTopRightRadius, style.borderBottomRightRadius, style.borderBottomLeftRadius]
+      .map((r) => (r.endsWith('%') ? (parseFloat(r) / 100) * side : parseFloat(r) || 0));
+    return radii.some((r) => r > 0) ? radii : null;
+  }
+
+  function textNode(name, content, r, style, rect, opacity) {
+    const size = parseFloat(style.fontSize);
+    const lineHeight = style.lineHeight === 'normal' ? size * 1.2 : parseFloat(style.lineHeight);
+    let textColor = color(style.color);
+    if (!textColor) {
+      textColor = { hex: '#000000', alpha: 1 };
+      unreadable++;
+    }
+    return {
+      kind: 'text', name,
+      x: r.left - rect.left, y: r.top - rect.top, width: r.width, height: r.height, opacity,
+      text: {
+        content,
+        family: style.fontFamily.split(',')[0].replace(/["']/g, '').trim(),
+        size, weight: Number(style.fontWeight) || 400,
+        italic: style.fontStyle === 'italic', color: textColor,
+        lineHeight, letterSpacing: parseFloat(style.letterSpacing) || 0, align: align(style.textAlign),
+        transform: style.textTransform,
+      },
+    };
+  }
+
+  function rangeRect(node, start, end) {
+    const range = document.createRange();
+    range.setStart(node, start);
+    range.setEnd(node, end);
+    return range.getBoundingClientRect();
+  }
+
+  // A styled ::first-letter (the Lexikon drop cap) is part of the text node,
+  // so it comes out as a text layer of its own. Figma text cannot flow around
+  // it: the lines beside the cap and the lines below it become two more
+  // layers, split where the browser wrapped them.
+  function firstLetterNodes(el, style, child, rect) {
+    const fl = getComputedStyle(el, '::first-letter');
+    if (fl.float === 'none' && fl.fontSize === style.fontSize && fl.color === style.color) return null;
+    const text = child.textContent;
+    const start = text.length - text.trimStart().length;
+    const letter = text.slice(start).match(/^\p{P}*\S/u);
+    if (!letter) return null;
+    const end = start + letter[0].length;
+    const capRect = rangeRect(child, start, end);
+    if (capRect.width === 0) return null;
+
+    // A drop cap's line height is tighter than its glyph box. CSS centers the
+    // line box on the glyphs, and so does Figma — place it the same way.
+    const cap = textNode('::first-letter', letter[0], capRect, fl, rect, 1);
+    cap.height = cap.text.lineHeight;
+    cap.y = capRect.top + capRect.height / 2 - cap.height / 2 - rect.top;
+
+    let split = text.length;
+    for (let i = end; i < text.length; i++) {
+      if (/\s/.test(text[i])) continue;
+      const r = rangeRect(child, i, i + 1);
+      if (r.width > 0 && r.left < capRect.right - 0.5) { split = i; break; }
+    }
+    const nodes = [cap];
+    for (const [a, b] of [[end, split], [split, text.length]]) {
+      const content = text.slice(a, b).replace(/\s+/g, ' ').trim();
+      if (content) nodes.push(textNode('#text', content, rangeRect(child, a, b), style, rect, 1));
+    }
+    return nodes;
   }
 
   /** The literal string a `content: '…'` / `content: "…"` computed value holds, or null for anything else (none, normal, url(), counter(), attr(), …). */
@@ -101,71 +168,58 @@
     return style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity) > 0;
   }
 
-  // ::before sits at the element's content-box top-left, like a first child.
-  // ::after is approximated at the content-box right edge, top-aligned — the
-  // real end of text flow around any siblings can't be read without a DOM
-  // node for the pseudo box, so this can overshoot for wide ::after text or
-  // one that follows other content. Both are a starting point for Figma
-  // editing, not a pixel-exact placement.
+  // Pseudo-elements have no DOM node, so getBoundingClientRect() has nothing
+  // to measure. For a moment a stand-in element carries the pseudo's computed
+  // style in its place, with the real pseudo hidden — the browser lays it out
+  // exactly where the pseudo sits, flex-grown rules and all.
+  let hidePseudos;
+  function pseudoRect(el, side, style, text) {
+    if (!hidePseudos) {
+      hidePseudos = document.createElement('style');
+      hidePseudos.textContent = '[data-capture-hide="::before"]::before, [data-capture-hide="::after"]::after { display: none !important; }';
+      document.head.appendChild(hidePseudos);
+    }
+    const standIn = document.createElement('capture-pseudo');
+    for (const prop of style) if (prop !== 'content') standIn.style.setProperty(prop, style.getPropertyValue(prop));
+    standIn.textContent = text;
+    el.setAttribute('data-capture-hide', side);
+    if (side === '::before') el.insertBefore(standIn, el.firstChild);
+    else el.appendChild(standIn);
+    const r = standIn.getBoundingClientRect();
+    standIn.remove();
+    el.removeAttribute('data-capture-hide');
+    return r;
+  }
+
   function pseudoText(el, side, rect) {
     const style = getComputedStyle(el, side);
     const text = pseudoContent(style);
     if (!text || !pseudoVisible(style)) return null;
-
-    const paddingLeft = parseFloat(style.paddingLeft) || 0;
-    const paddingRight = parseFloat(style.paddingRight) || 0;
-    const paddingTop = parseFloat(style.paddingTop) || 0;
-    const borderLeft = parseFloat(style.borderLeftWidth) || 0;
-    const borderRight = parseFloat(style.borderRightWidth) || 0;
-    const borderTop = parseFloat(style.borderTopWidth) || 0;
-
-    const family = style.fontFamily.split(',')[0].replace(/["']/g, '').trim();
-    const size = parseFloat(style.fontSize);
-    const weight = Number(style.fontWeight) || 400;
-    const italic = style.fontStyle === 'italic';
-    const lineHeight = style.lineHeight === 'normal' ? size * 1.2 : parseFloat(style.lineHeight);
-    let textColor = color(style.color);
-    if (!textColor) { textColor = { hex: '#000000', alpha: 1 }; unreadable++; }
-
-    const ctx = measureCtx();
-    ctx.font = `${italic ? 'italic ' : ''}${weight} ${size}px ${family}`;
-    const width = Math.max(ctx.measureText(text).width, 1);
-    const x = side === '::before' ? paddingLeft + borderLeft : Math.max(0, rect.width - paddingRight - borderRight - width);
-    const y = paddingTop + borderTop;
-
-    return {
-      kind: 'text', name: side, x, y, width, height: lineHeight, opacity: Number(style.opacity),
-      text: {
-        content: text, family, size, weight, italic, color: textColor,
-        lineHeight, letterSpacing: parseFloat(style.letterSpacing) || 0, align: align(style.textAlign),
-        transform: style.textTransform,
-      },
-    };
+    const r = pseudoRect(el, side, style, text);
+    return r.width > 0 ? textNode(side, text, r, style, rect, Number(style.opacity)) : null;
   }
 
-  /** Only emitted when the pseudo has an explicit, non-zero size and something visible to draw. */
+  /** Only emitted when the pseudo has something visible to draw. */
   function pseudoBox(el, side, rect) {
     const style = getComputedStyle(el, side);
-    if (pseudoContent(style) === null || !pseudoVisible(style)) return null;
+    const text = pseudoContent(style);
+    if (text === null || !pseudoVisible(style)) return null;
 
-    const width = parseFloat(style.width) || 0;
-    const height = parseFloat(style.height) || 0;
-    if (width <= 0 || height <= 0) return null;
-
-    const fill = color(style.backgroundColor);
+    const fill = fillOf(style);
     const borders = { top: border(style, 'Top'), right: border(style, 'Right'), bottom: border(style, 'Bottom'), left: border(style, 'Left') };
     const hasBorder = Object.values(borders).some((b) => b.width > 0);
-    const hasFill = fill && fill.alpha > 0;
-    if (!hasFill && !hasBorder) return null;
+    if (!fill && !hasBorder) return null;
 
+    const r = pseudoRect(el, side, style, text);
+    if (r.width <= 0 || r.height <= 0) return null;
     const node = {
       kind: 'box', name: side, opacity: Number(style.opacity),
-      x: side === '::before' ? 0 : Math.max(0, rect.width - width), y: 0, width, height,
+      x: r.left - rect.left, y: r.top - rect.top, width: r.width, height: r.height,
     };
-    if (hasFill) node.fill = fill;
+    if (fill) node.fill = fill;
     if (hasBorder) node.borders = borders;
-    const radii = [style.borderTopLeftRadius, style.borderTopRightRadius, style.borderBottomRightRadius, style.borderBottomLeftRadius].map((r) => parseFloat(r) || 0);
-    if (radii.some((r) => r > 0)) node.radii = radii;
+    const radii = radiiOf(style, r.width, r.height);
+    if (radii) node.radii = radii;
     return node;
   }
 
@@ -208,47 +262,34 @@
     }
 
     const node = { kind: 'box', ...base };
-    let fill = color(style.backgroundColor);
-    if ((!fill || fill.alpha === 0) && /gradient/.test(style.backgroundImage)) {
-      // Figma fills are flat; approximate a gradient with its first stop.
-      fill = color(style.backgroundImage) ?? fill;
-    }
-    if (fill && fill.alpha > 0) node.fill = fill;
+    const fill = fillOf(style);
+    if (fill) node.fill = fill;
     const borders = { top: border(style, 'Top'), right: border(style, 'Right'), bottom: border(style, 'Bottom'), left: border(style, 'Left') };
     if (Object.values(borders).some((b) => b.width > 0)) node.borders = borders;
-    const radii = [style.borderTopLeftRadius, style.borderTopRightRadius, style.borderBottomRightRadius, style.borderBottomLeftRadius].map((r) => parseFloat(r) || 0);
-    if (radii.some((r) => r > 0)) node.radii = radii;
+    const radii = radiiOf(style, rect.width, rect.height);
+    if (radii) node.radii = radii;
     const sh = shadow(style.boxShadow);
     if (sh) node.shadow = sh;
+    // What overflows here is cut off in the browser — the round portrait
+    // seal, a line-clamped paragraph. Figma cuts it off the same way.
+    if (style.overflowX !== 'visible' || style.overflowY !== 'visible') node.clips = true;
 
     const children = [];
+    let first = true;
     for (const child of el.childNodes) {
       if (child.nodeType === Node.TEXT_NODE && child.textContent.trim() !== '') {
-        const range = document.createRange();
-        range.selectNodeContents(child);
-        const r = range.getBoundingClientRect();
+        const r = rangeRect(child, 0, child.length);
         if (r.width === 0) continue;
-        const lineHeight = style.lineHeight === 'normal' ? parseFloat(style.fontSize) * 1.2 : parseFloat(style.lineHeight);
-        let textColor = color(style.color);
-        if (!textColor) {
-          textColor = { hex: '#000000', alpha: 1 };
-          unreadable++;
-        }
-        children.push({
-          kind: 'text', name: '#text',
-          x: r.left - rect.left, y: r.top - rect.top, width: r.width, height: r.height, opacity: 1,
-          text: {
-            content: child.textContent.replace(/\s+/g, ' ').trim(),
-            family: style.fontFamily.split(',')[0].replace(/["']/g, '').trim(),
-            size: parseFloat(style.fontSize), weight: Number(style.fontWeight) || 400,
-            italic: style.fontStyle === 'italic', color: textColor,
-            lineHeight, letterSpacing: parseFloat(style.letterSpacing) || 0, align: align(style.textAlign),
-            transform: style.textTransform,
-          },
-        });
+        const dropCap = first ? firstLetterNodes(el, style, child, rect) : null;
+        if (dropCap) children.push(...dropCap);
+        else children.push(textNode('#text', child.textContent.replace(/\s+/g, ' ').trim(), r, style, rect, 1));
+        first = false;
       } else if (child.nodeType === Node.ELEMENT_NODE) {
         const c = read(child, rect);
-        if (c) children.push(c);
+        if (c) {
+          children.push(c);
+          first = false;
+        }
       }
     }
     // Rendered before any real content, like the browser paints it. The text
@@ -273,5 +314,6 @@
   const bodyRect = document.body.getBoundingClientRect();
   const origin = { left: 0, top: 0, width: bodyRect.width, height: bodyRect.height };
   const nodes = [...document.body.children].map((el) => read(el, origin)).filter(Boolean);
+  hidePseudos?.remove();
   return { nodes, unreadable };
 });

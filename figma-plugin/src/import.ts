@@ -4,7 +4,7 @@ export type CaptureNode = {
   kind: 'box' | 'text' | 'image' | 'svg';
   name: string; x: number; y: number; width: number; height: number; opacity: number;
   fill?: Color; borders?: { top: Border; right: Border; bottom: Border; left: Border };
-  radii?: [number, number, number, number];
+  radii?: [number, number, number, number]; clips?: boolean;
   shadow?: { x: number; y: number; blur: number; spread: number; color: Color };
   text?: { content: string; family: string; size: number; weight: number; italic: boolean; color: Color;
            lineHeight: number; letterSpacing: number; align: 'LEFT' | 'CENTER' | 'RIGHT' | 'JUSTIFIED'; transform?: string };
@@ -164,7 +164,7 @@ async function build(node: CaptureNode, parent: FrameNode, ctx: BuildContext): P
     }
     const f = figma.createFrame();
     f.name = node.name; f.x = node.x; f.y = node.y; f.resize(Math.max(node.width, 0.01), Math.max(node.height, 0.01));
-    f.clipsContent = false;
+    f.clipsContent = node.clips ?? false;
     f.opacity = node.opacity;
     f.fills = node.fill ? [paint(node.fill, ctx.variables)] : [];
     if (node.borders) {

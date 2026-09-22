@@ -23,7 +23,7 @@
       }
     },
     "character": {
-      "size": { "width": 568, "height": 497 },
+      "size": { "width": 800, "height": 700 },
       "states": {
         "with-portrait": {
           "public": { "/public/entry": { "card": { "id": "showcase-1", "title": "Aldric", "art": "Figur", "artColor": "#6f8fb0", "maturity": "Kanon", "alias": "Sturmklinge", "role": "Protagonist", "aliasLine": "genannt Sturmklinge · Protagonist", "body": "Ein Wanderer ohne Erinnerung, der eine Klinge trägt, die ihn besser kennt als er sich selbst.", "facts": [{ "name": "Stärken", "value": "Zäh, geduldig" }, { "name": "Schwächen", "value": "Vergisst, wem er vertraut hat" }], "relations": [{ "name": "gehört zu", "value": "Der Orden der Klinge" }], "image": "/overlay/showcase/portrait.svg", "world": "Die Verborgene Stadt" } } },

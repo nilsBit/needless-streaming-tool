@@ -207,8 +207,15 @@ Bewusst so entschieden (Kosten, falls falsch, in Klammern):
 5. Erst dann die übrigen elf — und danach den Branch nach `main` (vorher
    fragen).
 
-Nebenbei aufgefallen: Die Eintragskarte läuft bei längerem Text unten aus der
-568×497-Quelle heraus (Showcase-Zustand `long-text`) — Stoff für den Entwurf.
+Die Eintragskarte wird mit **800×700** erfasst, nicht mehr mit 568×497 (22.09.).
+568×497 ist genau 800×700 mal 0,71 — offenbar die verkleinerte Anzeige in der
+Szene, nicht die Größe, in der die Browser-Quelle rendert. Bei 568×497 lief
+schon die gewöhnliche Karte unten heraus, bei 800×700 passt sie. **In OBS
+gegenprüfen:** Eigenschaften der Browser-Quelle, Breite × Höhe.
+
+Nebenbei aufgefallen: Die Eintragskarte läuft bei längerem Text auch bei
+800×700 noch 143 px unten heraus (Showcase-Zustand `long-text`) — Stoff für den
+Entwurf.
 
 **Offen (GitHub Issues)**
 
