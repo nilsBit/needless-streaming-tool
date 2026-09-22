@@ -32,7 +32,11 @@ process.stdin.on('end', () => {
     if (process.env.FAKE_APPEND) fs.appendFileSync(process.env.FAKE_APPEND, process.env.FAKE_TEXT);
     if (process.env.FAKE_NEW) fs.writeFileSync(process.env.FAKE_NEW, process.env.FAKE_TEXT);
     if (process.env.FAKE_MODE === 'silent') { process.stdout.write(JSON.stringify({ result: 'nothing' })); return; }
-    const result = { done: data.drafts.map((d) => ({ overlay: d.overlay, state: d.state })), baked: data.overridesToBake.map((o) => o.id), notes: 'Erledigt.' };
+    const script = process.env.FAKE_SCRIPT ? data.drafts.map((d) => ({ overlay: d.overlay, state: d.state, items: [process.env.FAKE_SCRIPT] })) : [];
+    const result = {
+      done: process.env.FAKE_SCRIPT ? [] : data.drafts.map((d) => ({ overlay: d.overlay, state: d.state })),
+      baked: data.overridesToBake.map((o) => o.id), needsScript: script, notes: 'Erledigt.',
+    };
     process.stdout.write(JSON.stringify({ result: 'Did it.\\nNST-RESULT: ' + JSON.stringify(result) }));
   }, Number(process.env.FAKE_DELAY || 30));
 });
@@ -57,7 +61,7 @@ describe('the Umsetzen button', () => {
     fs.writeFileSync(fake, FAKE);
     process.env.NST_CLAUDE_BIN = fake;
     process.env.NST_DEV = '1';
-    for (const key of ['FAKE_MODE', 'FAKE_DELAY', 'FAKE_APPEND', 'FAKE_NEW', 'FAKE_TEXT']) delete process.env[key];
+    for (const key of ['FAKE_MODE', 'FAKE_DELAY', 'FAKE_APPEND', 'FAKE_NEW', 'FAKE_TEXT', 'FAKE_SCRIPT']) delete process.env[key];
     initDatabase(':memory:');
     token = generateApiToken();
     app = createApp();
@@ -157,6 +161,23 @@ describe('the Umsetzen button', () => {
     const now = await design();
     expect(now.drafts[0].done).toBe(false);
     expect(now.applied).toHaveLength(1);
+  });
+
+  it('keeps what needs a script on the draft, and clears it on the next run', async () => {
+    process.env.FAKE_SCRIPT = 'Der Titel steht im Skript.';
+    await sendDraft();
+    await start();
+    const run = await settled();
+    expect(run).toMatchObject({ state: 'done', done: [], needsScript: [{ draft: 'character / with-portrait', items: ['Der Titel steht im Skript.'] }] });
+    let now = await design();
+    expect(now.drafts[0]).toMatchObject({ done: false, needsScript: ['Der Titel steht im Skript.'] });
+
+    // A later run that gets it done takes the note away again.
+    delete process.env.FAKE_SCRIPT;
+    await start();
+    expect((await settled()).done).toEqual(['character / with-portrait']);
+    now = await design();
+    expect(now.drafts[0].needsScript).toBeUndefined();
   });
 
   it('leaves a draft open that was sent again during the run', async () => {

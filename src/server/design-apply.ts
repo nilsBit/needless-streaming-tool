@@ -85,6 +85,8 @@ export interface DraftStatus {
   pending: PendingItem[];
   wishes: string;
   done: boolean;
+  /** What the last "Umsetzen" run left alone because it would need a script change. */
+  needsScript?: string[];
   /** Only on a fresh result, never stored: keys of earlier pending items this send settled. */
   resolved?: string[];
 }
@@ -455,9 +457,11 @@ function normalizeStatus(overlay: string, state: string, raw: unknown): DraftSta
     const item = p as Record<string, unknown> | null;
     return item && typeof item.label === 'string' ? [{ key: clean(item.key ?? item.label, MAX_TEXT * 2), label: clean(item.label, MAX_TEXT * 2) }] : [];
   });
+  const needsScript = list(s.needsScript, MAX_LIST).map((x) => clean(x, MAX_TEXT * 2)).filter((x) => x !== '');
   return {
     // Names come from the caller, never from the file: a status names no path.
     overlay, state,
+    ...(needsScript.length ? { needsScript } : {}),
     receivedAt: typeof s.receivedAt === 'string' ? s.receivedAt : new Date(0).toISOString(),
     applied: list(s.applied, MAX_LIST).map((a) => clean(a, MAX_TEXT * 2)),
     pending,
@@ -509,6 +513,22 @@ export function markDone(overlay: string, state: string, receivedAt?: string): b
   if (!status) return false;
   if (receivedAt !== undefined && status.receivedAt !== receivedAt) return false;
   fs.writeFileSync(statusFile(overlay, state), JSON.stringify({ ...status, done: true }, null, 2));
+  return true;
+}
+
+/**
+ * Notes what a run could not do without changing a script, so it survives the
+ * next run and the next session. Each run replaces the list; a new send of the
+ * frame clears it, since it may be about layout that just changed.
+ */
+export function setNeedsScript(overlay: string, state: string, items: string[], receivedAt?: string): boolean {
+  const status = readStatus(overlay, state);
+  if (!status) return false;
+  if (receivedAt !== undefined && status.receivedAt !== receivedAt) return false;
+  const next: DraftStatus = { ...status };
+  if (items.length) next.needsScript = items;
+  else delete next.needsScript;
+  fs.writeFileSync(statusFile(overlay, state), JSON.stringify(next, null, 2));
   return true;
 }
 

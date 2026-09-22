@@ -100,7 +100,12 @@ unter `actions` in `states.json`: neue Testdaten (`public`) und Ereignisse
    Kopie, keine Befehle, kein Web, keine Rückfragen
    (`src/server/design-implement.ts`). Claude setzt die offenen Punkte und
    Wünsche um und schreibt die vorläufigen Überschreibungen fest ins
-   Overlay-CSS — nur Markup und CSS, Skripte bleiben unverändert. Danach prüft
+   Overlay-CSS — nur Markup und CSS, Skripte bleiben unverändert. Was ohne
+   Skriptänderung nicht geht, bleibt liegen und erscheint als eigene Liste
+   („Braucht eine Skriptänderung“) unter dem Lauf **und** am Entwurf, wo sie
+   bis zum nächsten Lauf oder bis zum nächsten Versand stehen bleibt. Das
+   betrifft vor allem die fünf Overlays, die ihren Inhalt im Skript bauen:
+   Eintragskarte, Alerts, Bestenliste, Platzwechsel und Glücksrad. Danach prüft
    das Tool jede Änderung gegen eine Positivliste (`src/server/design-guard.ts`:
    Skripte byte-gleich, schlichte Tags und Attribute, nur lokale Adressen, kein
    `@import`, `states.json` unverändert, nichts gelöscht, neu nur CSS und

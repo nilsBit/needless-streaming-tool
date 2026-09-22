@@ -19,6 +19,7 @@ export interface DraftStatus {
   pending: { key: string; label: string }[];
   wishes: string;
   done: boolean;
+  needsScript?: string[];
 }
 
 export interface DesignStatus {
@@ -35,6 +36,7 @@ export interface ImplementStatus {
   notes?: string;
   done?: string[];
   baked?: number;
+  needsScript?: { draft: string; items: string[] }[];
   reverted?: string[];
   kept?: string;
   error?: string;
@@ -109,6 +111,14 @@ export default function FigmaDrafts({ status, refetch, implement, refetchImpleme
             Fertig ({when(implement.finishedAt ?? '')}): {count(implement.done?.length ?? 0, 'Entwurf', 'Entwürfe')} erledigt,{' '}
             {count(implement.baked ?? 0, 'Änderung', 'Änderungen')} fest ins CSS übernommen.
             {implement.notes && <p className="figma-wishes">{implement.notes}</p>}
+            {(implement.needsScript?.length ?? 0) > 0 && (
+              <>
+                <p className="figma-wishes">Liegen geblieben, weil sie eine Skriptänderung brauchen:</p>
+                <ul className="figma-list">
+                  {implement.needsScript!.flatMap((n, i) => n.items.map((item, j) => <li key={`${i}-${j}`}>{n.draft}: {item}</li>))}
+                </ul>
+              </>
+            )}
           </div>
         )}
         {implement?.available && implement.state === 'failed' && (
@@ -129,6 +139,12 @@ export default function FigmaDrafts({ status, refetch, implement, refetchImpleme
                   <span className="ov2-card-url">gesendet {when(d.receivedAt)}</span>
                   {d.pending.length > 0 && <ul className="figma-list">{d.pending.map((p, i) => <li key={`${i}-${p.key}`}>{p.label}</li>)}</ul>}
                   {d.wishes && <p className="figma-wishes">Wünsche: {d.wishes}</p>}
+                  {(d.needsScript?.length ?? 0) > 0 && (
+                    <>
+                      <p className="figma-wishes">Braucht eine Skriptänderung — für eine Claude-Sitzung:</p>
+                      <ul className="figma-list">{d.needsScript!.map((item, i) => <li key={i}>{item}</li>)}</ul>
+                    </>
+                  )}
                 </div>
                 <button className="ov2-small-btn" onClick={() => done(d)} title="Aus der Liste nehmen — umgesetzt oder verworfen">Erledigt</button>
               </div>
