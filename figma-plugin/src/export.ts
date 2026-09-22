@@ -1,4 +1,5 @@
 import { NOTE_SUFFIX } from './import';
+import { changesIn } from './baseline';
 
 type Json = Record<string, unknown>;
 
@@ -94,7 +95,11 @@ export async function exportSelection(log: (text: string) => void): Promise<Draf
     } finally {
       templates.forEach((c, i) => { c.visible = wasVisible[i]; });
     }
-    const draft = { ...(await tree(frame, true)), variables, note: noteFor(frame) };
+    // What changed since the import. A frame from an older import kept no
+    // snapshots — sent as is, nothing gets applied; it wants a fresh import.
+    const changes = await changesIn(frame);
+    if (!changes) log(`${frame.name}: stammt aus einem älteren Import — nichts wird übernommen. Bitte neu einlesen und dort ändern.`);
+    const draft = { ...(await tree(frame, true)), variables, note: noteFor(frame), ...(changes ? { changes } : {}) };
     drafts.push({ frameId: frame.id, frameName: frame.name, overlay: m ? m[1] : null, state: m ? m[2] : null, draft, image, image2x });
   }
   return drafts;

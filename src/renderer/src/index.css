@@ -1369,6 +1369,12 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .ov2-section h4 { color: var(--muted); font-size: 12px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
 .ov2-section-desc { color: var(--muted); font-size: 12px; margin-bottom: 12px; }
 .ov2-showcase { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 12px; }
+.figma-card { align-items: flex-start; gap: 12px; }
+.figma-card-body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.figma-card-body .ov2-card-url { max-width: none; }
+.figma-list { margin: 6px 0 0; padding-left: 18px; color: var(--text-secondary); font-size: 12px; }
+.figma-list li { margin: 2px 0; word-break: break-word; }
+.figma-wishes { margin: 6px 0 0; color: var(--text-secondary); font-size: 12px; white-space: pre-wrap; }
 .ov2-showcase .ov2-section-desc { flex: 1; margin: 0; }
 
 .ov2-card-list { display: flex; flex-direction: column; gap: 6px; }

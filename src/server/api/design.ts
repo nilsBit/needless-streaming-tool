@@ -2,6 +2,8 @@ import express, { Router } from 'express';
 import fs from 'fs';
 import path from 'path';
 import { designDir, isKnownState, readStates } from '../showcase';
+import { appliedChanges, applyDraft, draftStatuses, markDone, publicOverlayConfig, undoApplied, writeStatus } from '../design-apply';
+import { broadcast } from '../websocket/index';
 
 /**
  * The Figma round trip: captures go out to the plugin, finished frames come
@@ -65,7 +67,30 @@ router.post('/inbox', express.json({ limit: '30mb' }), (req, res) => {
   fs.writeFileSync(path.join(dir, 'draft.json'), JSON.stringify(draft, null, 2));
   fs.writeFileSync(path.join(dir, 'image.png'), one);
   fs.writeFileSync(path.join(dir, 'image@2x.png'), two);
-  res.status(201).json({ saved: `design/drafts/${overlay}/${state}` });
+
+  // What has a CSS equivalent goes live now; the rest waits in status.json.
+  const status = applyDraft(overlay, state, draft);
+  writeStatus(status);
+  broadcast('overlay-config', publicOverlayConfig());
+  res.status(201).json({ saved: `design/drafts/${overlay}/${state}`, applied: status.applied, pending: status.pending, wishes: status.wishes });
+});
+
+/** For the app: what was applied from Figma, and which drafts still wait. */
+router.get('/status', (_req, res) => {
+  res.json({ applied: appliedChanges(), drafts: draftStatuses() });
+});
+
+router.post('/applied/:id/undo', (req, res) => {
+  if (!undoApplied(req.params.id)) { res.status(404).json({ error: 'not applied' }); return; }
+  broadcast('overlay-config', publicOverlayConfig());
+  res.json({ success: true });
+});
+
+/** A draft whose pending part has been implemented (or dismissed). */
+router.post('/drafts/:overlay/:state/done', (req, res) => {
+  const { overlay, state } = req.params;
+  if (!isKnownState(overlay, state) || !markDone(overlay, state)) { res.status(404).json({ error: 'no draft' }); return; }
+  res.json({ success: true });
 });
 
 export default router;

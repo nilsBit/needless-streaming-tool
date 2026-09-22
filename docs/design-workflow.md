@@ -61,7 +61,28 @@ unter `actions` in `states.json`: neue Testdaten (`public`) und Ereignisse
    Text. Die Notiz reist beim Senden mit (`note` in `draft.json`); sie selbst
    wird nicht als Entwurf gesendet, auch wenn sie mit markiert ist. Gestaltet
    wird bei Animationen das Aussehen, bei Einblendungen der Endzustand.
-4. Bescheid sagen: „character ist fertig". Umgesetzt wird mit
-   `npm run showcase:compare -- <overlay>` als Abgleich; die Wünsche stehen
-   dort mit in der Ausgabe. Animierte Stellen weichen dabei immer ein wenig
-   ab, weil der angehaltene Moment nie ganz derselbe ist.
+4. Beim Eingang übernimmt das Stream Tool **sofort**, was eine eindeutige
+   CSS-Entsprechung hat: Palette (Variablen der Sammlung „NST"), Textfarbe,
+   Schriftgröße (in `rem`, der Regler wirkt weiter), Schriftschnitt, eine der
+   beiden Palettenschriften, Laufweite, Zeilenhöhe, Groß-/Kleinschreibung,
+   Füllung, Rahmenfarbe und -stärke, Ecken, Deckkraft. Das Plugin vergleicht
+   dafür jede Ebene mit dem Stand beim Import (Plugin-Daten `nst`), nicht mit
+   dem Browser — was nur zwischen Figma und Browser verschieden aussieht, zählt
+   nicht. Die Änderungen liegen als Überschreibungen in der Datenbank
+   (`design_applied`), `boot.js` spielt sie live ein.
+5. Alles andere **wartet**: Verschieben, Größen, neue oder entfernte Ebenen,
+   Sichtbarkeit, Schatten, geänderter Text, fremde Schriften und die Wünsche.
+   Es steht in `design/drafts/<overlay>/<zustand>/status.json` (`done: false`)
+   und in der App unter *Settings → Overlays → Figma*. Dort lässt sich auch
+   jede übernommene Änderung zurücknehmen. Denselben Frame erneut senden
+   ersetzt, was er vorher übernommen hatte.
+6. Umgesetzt wird in einer Claude-Sitzung — läuft eine, beobachtet sie
+   `design/drafts` und fängt von selbst an. Dabei wandern die vorläufigen
+   Überschreibungen fest ins Overlay-CSS und werden zurückgenommen, danach
+   `POST /api/design/drafts/<overlay>/<zustand>/done`. Abgleich mit
+   `npm run showcase:compare -- <overlay>`; die Wünsche stehen dort mit in der
+   Ausgabe. Animierte Stellen weichen immer ein wenig ab, weil der angehaltene
+   Moment nie ganz derselbe ist.
+
+Frames aus einem Import vor dem 22.09. haben keinen gespeicherten Stand; das
+Plugin sagt das beim Senden, und nichts wird übernommen. Neu einlesen hilft.

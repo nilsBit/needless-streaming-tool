@@ -26,7 +26,22 @@
     return r + ' ' + g + ' ' + b;
   }
 
+  // What was applied from Figma drafts for this overlay (see design-apply.ts).
+  // Only a config that carries `styles` touches them — the Design panel
+  // broadcasts the palette alone.
+  function applyStyles(config) {
+    if (!config.styles) return;
+    var el = document.getElementById('nst-design-styles');
+    if (!el) {
+      el = document.createElement('style');
+      el.id = 'nst-design-styles';
+      document.head.appendChild(el);
+    }
+    el.textContent = config.styles[name] || '';
+  }
+
   function apply(config) {
+    applyStyles(config);
     var vars = Object.assign({}, config.global || {}, (config.overrides || {})[name] || {});
     var root = document.documentElement;
     Object.keys(vars).forEach(function (k) {

@@ -169,6 +169,14 @@ noch nie in Figma gelaufen.
   Frames, Variablensammlung „NST“, ausgeblendete Ebene „Vorlage“) und „An NST
   senden“ → `design/drafts/<overlay>/<zustand>/` (eingecheckt).
 - **Vergleich** `npm run showcase:compare -- <overlay>` → `design/compare/`.
+- **Übernahme ohne Sitzung (22.09.):** Was aus Figma kommt und eine eindeutige
+  CSS-Entsprechung hat (Palette, Farben, Schrift, Rahmen, Ecken, Deckkraft),
+  übernimmt das Stream Tool beim Senden selbst — vorläufig, in der Datenbank.
+  Der Rest wartet in `design/drafts/*/*/status.json` und in der App unter
+  *Settings → Overlays → Figma*. **Eine neue Claude-Sitzung arbeitet diese
+  Liste zuerst ab** und schreibt die vorläufigen Änderungen fest ins CSS.
+  Claude automatisch im Hintergrund starten wurde verworfen: das Tool hinge an
+  einem bezahlten Dienst, und Overlays änderten sich ohne Zutun.
 - **Bewegung:** Figma kennt nur Standbilder. Unter jedem Frame legt der Import
   eine Notiz an, die in Worten sagt, was sich im Code bewegt, mit Platz für
   „Wünsche:“; sie reist beim Senden mit. Ansehen in Bewegung:
@@ -359,6 +367,12 @@ Auf diesem Rechner liegen die Projekte unter `D:\dev\stream-toolkit` und
   „Worldbuilder folgen“ ist an.
 
 ## Für Claude in einer neuen Session
+
+- **Zuerst die offenen Figma-Entwürfe:** `design/drafts/*/*/status.json` mit
+  `"done": false` umsetzen, vorläufige Überschreibungen ins Overlay-CSS
+  übernehmen und zurücknehmen, Entwurf als erledigt markieren (Ablauf in
+  `CLAUDE.md` unter „Active work“). Während der Sitzung `design/drafts`
+  beobachten und neue Entwürfe ungefragt angehen.
 
 - Auf **Deutsch** schreiben, mit echten Umlauten (ä, ö, ü, ß — nie
   ae, oe, ue, ss).

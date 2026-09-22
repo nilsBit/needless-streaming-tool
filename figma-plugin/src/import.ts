@@ -1,8 +1,12 @@
 export type Color = { hex: string; alpha: number; token?: string };
 type Border = { width: number; style: string; color: Color };
+import { remember, rememberVariables } from './baseline';
+
 export type CaptureNode = {
   kind: 'box' | 'text' | 'image' | 'svg';
   name: string; x: number; y: number; width: number; height: number; opacity: number;
+  /** Where a change to this layer lands in CSS; `outline` means the element's inset outline. */
+  selector?: string; role?: 'outline';
   fill?: Color; borders?: { top: Border; right: Border; bottom: Border; left: Border };
   radii?: [number, number, number, number]; clips?: boolean;
   shadow?: { x: number; y: number; blur: number; spread: number; color: Color };
@@ -130,6 +134,7 @@ async function build(node: CaptureNode, parent: FrameNode, ctx: BuildContext): P
       svg.name = node.name; svg.x = node.x; svg.y = node.y; svg.resize(Math.max(node.width, 0.01), Math.max(node.height, 0.01));
       svg.opacity = node.opacity;
       parent.appendChild(svg);
+      await remember(svg, node.selector, node.role, true);
       return;
     }
     if (node.kind === 'image' && node.image) {
@@ -139,6 +144,7 @@ async function build(node: CaptureNode, parent: FrameNode, ctx: BuildContext): P
       rect.fills = [{ type: 'IMAGE', scaleMode: 'FILL', imageHash: figma.createImage(bytesOf(node.image.dataUrl)).hash }];
       rect.opacity = node.opacity;
       parent.appendChild(rect);
+      await remember(rect, node.selector, node.role);
       return;
     }
     if (node.kind === 'text' && node.text) {
@@ -167,6 +173,7 @@ async function build(node: CaptureNode, parent: FrameNode, ctx: BuildContext): P
         t.x = node.x; t.y = node.y;
       }
       parent.appendChild(t);
+      await remember(t, node.selector, node.role);
       return;
     }
     const f = figma.createFrame();
@@ -194,6 +201,7 @@ async function build(node: CaptureNode, parent: FrameNode, ctx: BuildContext): P
     }
     parent.appendChild(f);
     for (const child of node.children ?? []) await build(child, f, ctx);
+    await remember(f, node.selector, node.role);
   } catch (e) {
     ctx.log(`Übersprungen: ${ctx.frameName} › ${node.name} (${e instanceof Error ? e.message : String(e)})`);
   }
@@ -245,6 +253,7 @@ async function addNote(capture: Capture, frame: FrameNode, fonts: Font[]): Promi
 export async function importCaptures(captures: Capture[], log: (text: string) => void): Promise<void> {
   if (captures.length === 0) { log('Keine Erfassungen gefunden. Erst `npm run showcase:capture` laufen lassen.'); return; }
   const variables = await ensureVariables(captures[0].tokens);
+  rememberVariables(captures[0].tokens);
   const fonts = await figma.listAvailableFontsAsync();
   const page = figma.createPage();
   const now = new Date();
@@ -272,6 +281,7 @@ export async function importCaptures(captures: Capture[], log: (text: string) =>
 
     const ctx: BuildContext = { variables, tokens: capture.tokens, fonts, frameName: frame.name, log, missing, styleFallbacks };
     for (const node of capture.nodes) await build(node, frame, ctx);
+    await remember(frame, undefined, undefined);
     const note = await addNote(capture, frame, fonts);
     log(`${frame.name} ✓`);
     x += Math.max(capture.width, note.width) + 120;

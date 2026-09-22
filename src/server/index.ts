@@ -23,7 +23,8 @@ import statsRouter from './api/stats';
 import rewardStatsRouter from './api/reward-stats';
 import backupRouter from './api/backup';
 import designRouter from './api/design';
-import overlayConfigRouter, { getOverlayConfig } from './api/overlay-config';
+import overlayConfigRouter from './api/overlay-config';
+import { publicOverlayConfig } from './design-apply';
 import songRequestsRouter, { getActiveQueue } from './api/song-requests';
 import charactersRouter from './api/characters';
 import entriesRouter from './api/entries';
@@ -166,8 +167,9 @@ export function createApp(): express.Express {
     res.json(issues);
   });
 
+  // The palette plus what was applied from Figma drafts (see design-apply.ts).
   app.get('/public/overlay-config', (_req, res) => {
-    res.json(getOverlayConfig());
+    res.json(publicOverlayConfig());
   });
 
   // The song overlay only hears about changes; on load it asks what is playing.

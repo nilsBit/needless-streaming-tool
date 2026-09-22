@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useApi, apiPost, apiFetch, getServerPort } from '../hooks/useApi';
 import { useToast } from '../contexts/ToastContext';
 import CopyButton from '../components/CopyButton';
+import FigmaDrafts, { type DesignStatus } from '../components/FigmaDrafts';
+import { useWebSocket } from '../hooks/useWebSocket';
 
 const FONT_OPTIONS = [
   // The two the Lexikon style runs on. Without them the current fonts cannot be
@@ -150,7 +152,11 @@ export default function OverlaysPanel() {
   const { data: builtinOverlays, loading: loadingBuiltin, refetch: refetchBuiltin } = useApi<OverlayInfo[]>('/overlays/builtin');
   const { data: customOverlays, loading: loadingCustom, refetch: refetchCustom } = useApi<OverlayInfo[]>('/overlays');
 
-  const [subTab, setSubTab] = useState<'overlays' | 'design'>('overlays');
+  const [subTab, setSubTab] = useState<'overlays' | 'design' | 'figma'>('overlays');
+  const { data: designStatus, refetch: refetchDesign } = useApi<DesignStatus>('/design/status');
+  // Every draft from Figma is followed by an overlay-config broadcast.
+  useWebSocket((event) => { if (event === 'overlay-config') refetchDesign(); });
+  const waitingDrafts = (designStatus?.drafts ?? []).filter((d) => !d.done).length;
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showUpload, setShowUpload] = useState(false);
   const [newName, setNewName] = useState('');
@@ -444,7 +450,12 @@ export default function OverlaysPanel() {
         <button className={`ov2-tab ${subTab === 'design' ? 'ov2-tab--active' : ''}`} onClick={() => setSubTab('design')}>
           Design
         </button>
+        <button className={`ov2-tab ${subTab === 'figma' ? 'ov2-tab--active' : ''}`} onClick={() => setSubTab('figma')}>
+          Figma{waitingDrafts > 0 ? ` (${waitingDrafts} offen)` : ''}
+        </button>
       </div>
+
+      {subTab === 'figma' && <FigmaDrafts status={designStatus} refetch={refetchDesign} />}
 
       {subTab === 'overlays' && (
         <>

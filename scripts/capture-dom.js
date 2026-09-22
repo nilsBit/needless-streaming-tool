@@ -93,7 +93,19 @@
     return radii.some((r) => r > 0) ? radii : null;
   }
 
-  function textNode(name, content, r, style, rect, opacity) {
+  // Where a change made in Figma lands in CSS: the element's tag and classes,
+  // or — without classes — its tag under the nearest parent that has some.
+  // State classes (`in`, `visible` …) stay in, so a change made to one state
+  // applies wherever that state's classes do. Class-less siblings share one
+  // selector: restyling one row of a list restyles every row.
+  function selectorOf(el) {
+    const own = el.tagName.toLowerCase() + [...el.classList].map((c) => '.' + CSS.escape(c)).join('');
+    const parent = el.parentElement;
+    if (el.classList.length || !parent || parent === document.body) return own;
+    return `${selectorOf(parent)} > ${own}`;
+  }
+
+  function textNode(name, content, r, style, rect, opacity, selector) {
     const size = parseFloat(style.fontSize);
     const lineHeight = style.lineHeight === 'normal' ? size * 1.2 : parseFloat(style.lineHeight);
     let textColor = color(style.color);
@@ -102,7 +114,7 @@
       unreadable++;
     }
     return {
-      kind: 'text', name,
+      kind: 'text', name, selector,
       x: r.left - rect.left, y: r.top - rect.top, width: r.width, height: r.height, opacity,
       text: {
         content,
@@ -139,7 +151,7 @@
 
     // A drop cap's line height is tighter than its glyph box. CSS centers the
     // line box on the glyphs, and so does Figma — place it the same way.
-    const cap = textNode('::first-letter', letter[0], capRect, fl, rect, 1);
+    const cap = textNode('::first-letter', letter[0], capRect, fl, rect, 1, selectorOf(el) + '::first-letter');
     cap.height = cap.text.lineHeight;
     cap.y = capRect.top + capRect.height / 2 - cap.height / 2 - rect.top;
 
@@ -152,7 +164,7 @@
     const nodes = [cap];
     for (const [a, b] of [[end, split], [split, text.length]]) {
       const content = text.slice(a, b).replace(/\s+/g, ' ').trim();
-      if (content) nodes.push(textNode('#text', content, rangeRect(child, a, b), style, rect, 1));
+      if (content) nodes.push(textNode('#text', content, rangeRect(child, a, b), style, rect, 1, selectorOf(el)));
     }
     return nodes;
   }
@@ -197,7 +209,7 @@
     const text = pseudoContent(style);
     if (!text || !pseudoVisible(style)) return null;
     const r = pseudoRect(el, side, style, text);
-    return r.width > 0 ? textNode(side, text, r, style, rect, Number(style.opacity)) : null;
+    return r.width > 0 ? textNode(side, text, r, style, rect, Number(style.opacity), selectorOf(el) + side) : null;
   }
 
   /** Only emitted when the pseudo has something visible to draw. */
@@ -214,7 +226,7 @@
     const r = pseudoRect(el, side, style, text);
     if (r.width <= 0 || r.height <= 0) return null;
     const node = {
-      kind: 'box', name: side, opacity: Number(style.opacity),
+      kind: 'box', name: side, selector: selectorOf(el) + side, opacity: Number(style.opacity),
       x: r.left - rect.left, y: r.top - rect.top, width: r.width, height: r.height,
     };
     if (fill) node.fill = fill;
@@ -227,7 +239,7 @@
   // The Lexikon double frame (`.lex-voll`'s inset `outline`) has no Figma
   // stroke equivalent that sits independently of the element's own border,
   // so it comes through as its own borders-only child box.
-  function outlineNode(style, rect) {
+  function outlineNode(el, style, rect) {
     const width = parseFloat(style.outlineWidth) || 0;
     if (width === 0 || style.outlineStyle === 'none') return null;
     const offset = parseFloat(style.outlineOffset) || 0;
@@ -235,7 +247,7 @@
     const grow = 2 * (offset + width);
     const side = { width, style: style.outlineStyle, color: color(style.outlineColor) ?? { hex: '#000000', alpha: 0 } };
     return {
-      kind: 'box', name: '::outline', opacity: 1,
+      kind: 'box', name: '::outline', selector: selectorOf(el), role: 'outline', opacity: 1,
       x: pos, y: pos, width: rect.width + grow, height: rect.height + grow,
       borders: { top: side, right: side, bottom: side, left: side },
     };
@@ -252,6 +264,7 @@
     if (!visible(el, style, rect)) return null;
     const base = {
       name: el.tagName.toLowerCase() + (el.classList.length ? '.' + [...el.classList].join('.') : ''),
+      selector: selectorOf(el),
       x: rect.left - origin.left, y: rect.top - origin.top, width: rect.width, height: rect.height,
       opacity: Number(style.opacity),
     };
@@ -283,7 +296,7 @@
         if (r.width === 0) continue;
         const dropCap = first ? firstLetterNodes(el, style, child, rect) : null;
         if (dropCap) children.push(...dropCap);
-        else children.push(textNode('#text', child.textContent.replace(/\s+/g, ' ').trim(), r, style, rect, 1));
+        else children.push(textNode('#text', child.textContent.replace(/\s+/g, ' ').trim(), r, style, rect, 1, selectorOf(el)));
         first = false;
       } else if (child.nodeType === Node.ELEMENT_NODE) {
         const c = read(child, rect);
@@ -304,7 +317,7 @@
     if (afterBox) children.push(afterBox);
     const afterText = pseudoText(el, '::after', rect);
     if (afterText) children.push(afterText);
-    const outline = outlineNode(style, rect);
+    const outline = outlineNode(el, style, rect);
     if (outline) children.push(outline);
     if (children.length) node.children = children;
     // A box with nothing to draw and nothing inside is noise in Figma.

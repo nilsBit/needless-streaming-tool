@@ -149,6 +149,14 @@ Open work lives in **GitHub Issues** (`gh issue list`) — that is the single so
 truth, available on any machine without a `git pull`. Per-machine memory under
 `~/.claude/projects/.../memory/` may be out of sync and never overrides an issue.
 
+**Figma drafts come first.** `design/drafts/*/*/status.json` with `"done": false`
+is design work Nils sent from Figma that could not be applied on its own — see
+`docs/design-workflow.md`. Implement it, move the provisional overrides of that
+overlay (`GET /api/design/status` → `applied`) into its own CSS and undo them
+(`POST /api/design/applied/<id>/undo`), then mark the draft done
+(`POST /api/design/drafts/<overlay>/<state>/done`). While a session runs, watch
+`design/drafts` for new drafts and start without being asked.
+
 The big picture — the goal, the decisions made so far, how this app connects to
 Worldbuilder, and how to set both up on a new machine — is in `docs/STAND.md`.
 Read it first in a session on a machine without memory.
