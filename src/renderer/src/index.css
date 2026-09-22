@@ -1368,6 +1368,8 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .ov2-section h3 { color: #e67e22; font-size: 13px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
 .ov2-section h4 { color: var(--muted); font-size: 12px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
 .ov2-section-desc { color: var(--muted); font-size: 12px; margin-bottom: 12px; }
+.ov2-showcase { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 12px; }
+.ov2-showcase .ov2-section-desc { flex: 1; margin: 0; }
 
 .ov2-card-list { display: flex; flex-direction: column; gap: 6px; }
 

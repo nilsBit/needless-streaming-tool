@@ -185,6 +185,8 @@ Konfiguriere Mappings über die API:
 3. Breite/Höhe anpassen
 4. Fertig
 
+**Showcase:** Über den eingebauten Overlays öffnet **🖼️ Showcase** jedes Overlay in jedem Zustand mit Testdaten — zum Ansehen und Gestalten, ohne dass etwas in OBS erscheint. Die Seite hält jeden Zustand an, so wie ihn das Erfassen für Figma sieht; **▶ In Bewegung** zeigt dasselbe mit laufenden Animationen. Direkt erreichbar unter http://localhost:4000/overlay/showcase/. Wie ein Overlay in Figma gestaltet und zurückgeholt wird, steht in docs/design-workflow.md.
+
 **Die Reihenfolge ist egal.** Startet OBS vor dem Toolkit, laden die Browser-Quellen ins Leere und bleiben leer — deshalb lädt das Toolkit jede Browser-Quelle, die auf localhost:4000 zeigt, selbst neu, sobald es OBS erreicht. Quellen anderer Dienste bleiben unangetastet.
 
 **Größe der Schrift:** Ein einziger Regler unter Settings → Overlays → Design stellt sie für alle Overlays zugleich — Titel, Kicker und Zahlen ziehen mit, nicht nur der Fließtext. Standard sind 18px. Wächst die Schrift, wächst auch der Kasten: Passt eine Browser-Quelle in OBS danach nicht mehr, gib ihr ein paar Pixel mehr Höhe.

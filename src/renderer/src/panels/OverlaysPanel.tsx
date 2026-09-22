@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useApi, apiPost, apiFetch } from '../hooks/useApi';
+import { useApi, apiPost, apiFetch, getServerPort } from '../hooks/useApi';
 import { useToast } from '../contexts/ToastContext';
 import CopyButton from '../components/CopyButton';
 
@@ -355,6 +355,12 @@ export default function OverlaysPanel() {
     }
   };
 
+  // Every overlay in every state with test data — frozen as the Figma capture
+  // sees it, or live to judge the motion. Nothing of it reaches OBS.
+  const openShowcase = (live: boolean) => {
+    window.open(`http://localhost:${getServerPort()}/overlay/showcase/${live ? '?live' : ''}`, '_blank', 'width=1400,height=900');
+  };
+
   const renderOverlayCard = (o: OverlayInfo, isBuiltin: boolean) => {
     const icon = OVERLAY_ICONS[o.name] || '🔲';
     const isPreview = previewUrl === o.url;
@@ -445,6 +451,11 @@ export default function OverlaysPanel() {
           {/* Built-in Overlays */}
           <div className="ov2-section">
             <h3>Eingebaute Overlays</h3>
+            <div className="ov2-showcase">
+              <span className="ov2-section-desc">Alle Overlays in allen Zuständen, mit Testdaten — erreicht OBS nicht.</span>
+              <button className="ov2-small-btn" onClick={() => openShowcase(false)}>🖼️ Showcase</button>
+              <button className="ov2-small-btn" onClick={() => openShowcase(true)}>▶ In Bewegung</button>
+            </div>
             <div className="ov2-card-list">
               {builtinOverlays?.map((o) => renderOverlayCard(o, true))}
             </div>
