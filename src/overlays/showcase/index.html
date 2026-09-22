@@ -20,6 +20,12 @@
       background: repeating-conic-gradient(#2a2723 0 25%, #221f1b 0 50%) 0 0 / 20px 20px;
     }
     .stage iframe { position: absolute; top: 0; left: 0; border: 0; transform-origin: 0 0; background: transparent; }
+    .actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .actions button {
+      padding: 3px 9px; border: 1px solid #3a372f; border-radius: 4px; background: #2a2723;
+      color: #e1d6c2; font: 12px system-ui, sans-serif; cursor: pointer;
+    }
+    .actions button:hover { border-color: #9b9484; }
   </style>
 </head>
 <body>
@@ -33,7 +39,26 @@
     // Frozen like the capture sees it, or `?live` — everything keeps moving.
     const live = new URLSearchParams(location.search).has('live');
     const mode = document.getElementById('mode');
-    mode.textContent = live ? 'Angehalten ansehen' : 'In Bewegung ansehen';
+    mode.textContent = live ? 'Angehalten ansehen' : 'In Bewegung ansehen und ausprobieren';
+
+    // Live only: play a state again from the start, or act on it — the
+    // overlay's actions from states.json, played in by boot.js.
+    function actionBar(iframe, src, actions, width) {
+      const bar = document.createElement('div');
+      bar.className = 'actions';
+      bar.style.maxWidth = width + 'px';
+      const add = (label, run) => {
+        const button = document.createElement('button');
+        button.textContent = label;
+        button.onclick = run;
+        bar.appendChild(button);
+      };
+      add('↻ Nochmal', () => { iframe.src = src; });
+      for (const action of actions) {
+        add(action.label, () => iframe.contentWindow.postMessage({ type: 'nst-showcase-action', action }, location.origin));
+      }
+      return bar;
+    }
     mode.href = live ? '?' : '?live';
 
     fetch('/overlay/showcase/states.json')
@@ -55,6 +80,7 @@
                   style="transform:scale(${scale})" title="${name} / ${state}"></iframe>
               </div>
               <figcaption><a href="${src}" target="_blank">${name} / ${state}</a>${scale < 1 ? ` · ${Math.round(scale * 100)} %` : ''}</figcaption>`;
+            if (live) figure.appendChild(actionBar(figure.querySelector('iframe'), src, entry.actions ?? [], entry.size.width * scale));
             states.appendChild(figure);
           }
           section.appendChild(states);

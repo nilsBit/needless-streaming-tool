@@ -7,8 +7,19 @@ export interface ShowcaseState {
   freezeAfterMs: number;
 }
 
+/** Something to try on a live overlay in the showcase: new test data, then events. */
+export interface ShowcaseAction {
+  label: string;
+  public?: Record<string, unknown>;
+  events?: { afterMs?: number; event: string; data: unknown }[];
+}
+
 export interface ShowcaseStates {
-  overlays: Record<string, { size: { width: number; height: number }; states: Record<string, ShowcaseState> }>;
+  overlays: Record<string, {
+    size: { width: number; height: number };
+    actions?: ShowcaseAction[];
+    states: Record<string, ShowcaseState>;
+  }>;
 }
 
 export function overlaysDir(): string {

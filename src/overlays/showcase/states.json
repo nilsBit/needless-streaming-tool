@@ -2,6 +2,11 @@
   "overlays": {
     "alerts": {
       "size": { "width": 1920, "height": 1080 },
+      "actions": [
+        { "label": "Glücksrad-Reward", "events": [{ "event": "reward-redeemed", "data": { "reward_type": "roulette", "user_name": "Lesezeichen42" }}]},
+        { "label": "Vorschlag", "events": [{ "event": "reward-redeemed", "data": { "reward_type": "feature_request", "user_name": "Kartograph" }}]},
+        { "label": "Glücksrad-Ergebnis", "events": [{ "event": "roulette-result", "data": { "title": "Die Karte der Unterstadt zeichnen" }}]}
+      ],
       "states": {
         "reward-roulette": { "events": [{ "afterMs": 0, "event": "reward-redeemed", "data": { "reward_type": "roulette", "user_name": "Lesezeichen42" } }], "freezeAfterMs": 900 },
         "reward-feature": { "events": [{ "afterMs": 0, "event": "reward-redeemed", "data": { "reward_type": "feature_request", "user_name": "Kartograph" } }], "freezeAfterMs": 900 },
@@ -10,6 +15,12 @@
     },
     "challenge": {
       "size": { "width": 800, "height": 200 },
+      "actions": [
+        { "label": "Pause", "events": [{ "event": "stream-state", "data": { "challenge_title": "Das Siegel der Zunft entwerfen", "challenge_status": "in_progress", "timer_seconds": 3723, "timer_running": false, "is_live": true}}]},
+        { "label": "Weiter", "events": [{ "event": "stream-state", "data": { "challenge_title": "Das Siegel der Zunft entwerfen", "challenge_status": "in_progress", "timer_seconds": 3723, "timer_running": true, "is_live": true}}]},
+        { "label": "Geschafft", "events": [{ "event": "stream-state", "data": { "challenge_title": "Das Siegel der Zunft entwerfen", "challenge_status": "done", "timer_seconds": 3723, "timer_running": false, "is_live": true}}]},
+        { "label": "Nicht geschafft", "events": [{ "event": "stream-state", "data": { "challenge_title": "Das Siegel der Zunft entwerfen", "challenge_status": "failed", "timer_seconds": 3723, "timer_running": false, "is_live": true}}]}
+      ],
       "states": {
         "running": {
           "public": { "/public/stream-state": { "challenge_title": "Das Siegel der Zunft entwerfen", "challenge_status": "in_progress", "timer_seconds": 3723, "timer_running": 1, "is_live": 1 } },
@@ -24,6 +35,11 @@
     },
     "character": {
       "size": { "width": 800, "height": 700 },
+      "actions": [
+        { "label": "Figur zeigen", "events": [{ "event": "entry-changed", "data": { "id": "showcase-1", "title": "Aldric", "art": "Figur", "artColor": "#6f8fb0", "maturity": "Kanon", "alias": "Sturmklinge", "role": "Protagonist", "aliasLine": "genannt Sturmklinge · Protagonist", "body": "Ein Wanderer ohne Erinnerung, der eine Klinge trägt, die ihn besser kennt als er sich selbst.", "facts": [{ "name": "Stärken", "value": "Zäh, geduldig" }, { "name": "Schwächen", "value": "Vergisst, wem er vertraut hat" }], "relations": [{ "name": "gehört zu", "value": "Der Orden der Klinge" }], "image": "/overlay/showcase/portrait.svg", "world": "Die Verborgene Stadt" }}]},
+        { "label": "Gilde zeigen", "events": [{ "event": "entry-changed", "data": { "id": "showcase-2", "title": "Die Goldene Hand", "art": "Gilde", "artColor": "#b07a6f", "maturity": "Entwurf", "alias": null, "role": null, "aliasLine": "", "body": "Eine Gilde von Händlern, die jede Münze der Stadt zweimal zählt.", "facts": [{ "name": "Sitz", "value": "Am Alten Markt" }], "relations": [], "image": null, "world": "Die Verborgene Stadt" }}]},
+        { "label": "Langen Eintrag zeigen", "events": [{ "event": "entry-changed", "data": { "id": "showcase-3", "title": "Der Zirkel des Wissens", "art": "Gilde", "artColor": "#b07a6f", "maturity": "Idee", "alias": "Die Stillen", "role": "Hüter", "aliasLine": "genannt Die Stillen · Hüter", "body": "Ein Kreis von Gelehrten, der jedes Buch der Stadt katalogisiert, bevor es gelesen werden darf. Wer ein Buch ohne ihren Stempel besitzt, verliert es — und manchmal mehr. Niemand weiß, wie viele Mitglieder der Zirkel hat, und wer fragt, wird selten ein zweites Mal gesehen. In den Kellern unter der Bibliothek sollen Bände lagern, die älter sind als die Stadt selbst.", "facts": [{ "name": "Gegründet", "value": "Vor dem Großen Brand" }, { "name": "Zeichen", "value": "Ein Auge über einem geschlossenen Buch" }, { "name": "Feinde", "value": "Die Schar der Sucher" }], "relations": [{ "name": "wacht über", "value": "Die Arche" }, { "name": "verfeindet mit", "value": "Die Schar der Sucher" }], "image": "/overlay/showcase/portrait.svg", "world": "Die Verborgene Stadt" }}]}
+      ],
       "states": {
         "with-portrait": {
           "public": { "/public/entry": { "card": { "id": "showcase-1", "title": "Aldric", "art": "Figur", "artColor": "#6f8fb0", "maturity": "Kanon", "alias": "Sturmklinge", "role": "Protagonist", "aliasLine": "genannt Sturmklinge · Protagonist", "body": "Ein Wanderer ohne Erinnerung, der eine Klinge trägt, die ihn besser kennt als er sich selbst.", "facts": [{ "name": "Stärken", "value": "Zäh, geduldig" }, { "name": "Schwächen", "value": "Vergisst, wem er vertraut hat" }], "relations": [{ "name": "gehört zu", "value": "Der Orden der Klinge" }], "image": "/overlay/showcase/portrait.svg", "world": "Die Verborgene Stadt" } } },
@@ -41,6 +57,11 @@
     },
     "milestone": {
       "size": { "width": 1920, "height": 1080 },
+      "actions": [
+        { "label": "Klein", "events": [{ "event": "milestone-trigger", "data": { "level": "minor", "title": "Erste Figur im Kanon", "message": "Aldric ist offiziell Teil der Welt." }}]},
+        { "label": "Groß", "events": [{ "event": "milestone-trigger", "data": { "level": "major", "title": "Zehn Einträge", "message": "Die Verborgene Stadt wächst." }}]},
+        { "label": "Episch", "events": [{ "event": "milestone-trigger", "data": { "level": "epic", "title": "Die Karte ist fertig", "message": "Jede Gasse hat einen Namen." }}]}
+      ],
       "states": {
         "minor": { "events": [{ "afterMs": 0, "event": "milestone-trigger", "data": { "level": "minor", "title": "Erste Figur im Kanon", "message": "Aldric ist offiziell Teil der Welt." } }], "freezeAfterMs": 1400 },
         "major": { "events": [{ "afterMs": 0, "event": "milestone-trigger", "data": { "level": "major", "title": "Zehn Einträge", "message": "Die Verborgene Stadt wächst." } }], "freezeAfterMs": 1400 },
@@ -49,6 +70,10 @@
     },
     "poll": {
       "size": { "width": 300, "height": 400 },
+      "actions": [
+        { "label": "Stimmen kommen rein", "events": [{ "afterMs": 0, "event": "poll-update", "data": { "title": "Wohin geht Aldric?", "options": [{ "label": "Zur Arche", "votes": 13}, { "label": "In die Unterstadt", "votes": 8}, { "label": "Zum Zirkel", "votes": 15}]}}, { "afterMs": 700, "event": "poll-update", "data": { "title": "Wohin geht Aldric?", "options": [{ "label": "Zur Arche", "votes": 13}, { "label": "In die Unterstadt", "votes": 10}, { "label": "Zum Zirkel", "votes": 15}]}}, { "afterMs": 1400, "event": "poll-update", "data": { "title": "Wohin geht Aldric?", "options": [{ "label": "Zur Arche", "votes": 16}, { "label": "In die Unterstadt", "votes": 10}, { "label": "Zum Zirkel", "votes": 16}]}}]},
+        { "label": "Schließen", "events": [{ "event": "poll-close", "data": {}}]}
+      ],
       "states": {
         "open": { "events": [{ "afterMs": 0, "event": "poll-update", "data": { "title": "Wohin geht Aldric?", "options": [{ "label": "Zur Arche", "votes": 12 }, { "label": "In die Unterstadt", "votes": 8 }, { "label": "Zum Zirkel", "votes": 15 }] } }], "freezeAfterMs": 900 },
         "closed": { "events": [{ "afterMs": 0, "event": "poll-update", "data": { "title": "Wohin geht Aldric?", "options": [{ "label": "Zur Arche", "votes": 12 }, { "label": "In die Unterstadt", "votes": 8 }, { "label": "Zum Zirkel", "votes": 15 }] } }, { "afterMs": 300, "event": "poll-close", "data": {} }], "freezeAfterMs": 1200 }
@@ -56,6 +81,9 @@
     },
     "progress": {
       "size": { "width": 420, "height": 600 },
+      "actions": [
+        { "label": "Todo abhaken", "public": { "/public/progress": { "project_name": "Kapitel 3: Die Unterstadt", "items": [{ "id": 1, "title": "Karte der Unterstadt", "status": "in_progress", "sort_order": 0, "time_spent": 2700, "todos": [{ "id": 11, "title": "Kanäle einzeichnen", "done": 1, "sort_order": 0, "parent_id": 1}, { "id": 12, "title": "Märkte benennen", "done": 1, "sort_order": 1, "parent_id": 1}]}, { "id": 2, "title": "Die Goldene Hand ausarbeiten", "status": "pending", "sort_order": 1, "time_spent": 0, "todos": []}, { "id": 3, "title": "Aldrics Herkunft", "status": "done", "sort_order": 2, "time_spent": 3600, "todos": []}]}}, "events": [{ "event": "progress-update", "data": {}}]}
+      ],
       "states": {
         "in-progress": {
           "public": { "/public/progress": { "project_name": "Kapitel 3: Die Unterstadt", "items": [
@@ -80,6 +108,9 @@
     },
     "reward-rankchange": {
       "size": { "width": 1920, "height": 1080 },
+      "actions": [
+        { "label": "Überholen", "events": [{ "event": "reward-leaderboard-update", "data": { "type": "all", "leaderboard": [{ "rank": 1, "userName": "Kartograph", "count": 43, "previousRank": 2}, { "rank": 2, "userName": "Lesezeichen42", "count": 42, "previousRank": 1}, { "rank": 3, "userName": "Tintenfass", "count": 15, "previousRank": null}], "changes": [{ "userName": "Kartograph", "from": 2, "to": 1, "changeType": "up" }, { "userName": "Lesezeichen42", "from": 1, "to": 2, "changeType": "down" }], "entered": [{ "userName": "Tintenfass", "rank": 3}], "exited": [{ "userName": "Nachtschwärmer", "previousRank": 3}]}}]}
+      ],
       "states": {
         "overtake": {
           "events": [{ "afterMs": 0, "event": "reward-leaderboard-update", "data": { "type": "all", "leaderboard": [{ "rank": 1, "userName": "Kartograph", "count": 43, "previousRank": 2 }, { "rank": 2, "userName": "Lesezeichen42", "count": 42, "previousRank": 1 }, { "rank": 3, "userName": "Tintenfass", "count": 15, "previousRank": null }], "changes": [{ "userName": "Kartograph", "from": 2, "to": 1, "changeType": "up" }, { "userName": "Lesezeichen42", "from": 1, "to": 2, "changeType": "down" }], "entered": [{ "userName": "Tintenfass", "rank": 3 }], "exited": [{ "userName": "Nachtschwärmer", "previousRank": 3 }] } }],
@@ -89,6 +120,10 @@
     },
     "roulette": {
       "size": { "width": 400, "height": 500 },
+      "actions": [
+        { "label": "Drehen", "events": [{ "event": "roulette-spin", "data": { "issues": [{ "id": 1, "title": "Karte der Unterstadt" }, { "id": 2, "title": "Wappen der Goldenen Hand" }, { "id": 3, "title": "Aldrics Klinge" }, { "id": 4, "title": "Die Arche von innen" }], "winner_id": 2}}]},
+        { "label": "Drehen, anderer Gewinner", "events": [{ "event": "roulette-spin", "data": { "issues": [{ "id": 1, "title": "Karte der Unterstadt" }, { "id": 2, "title": "Wappen der Goldenen Hand" }, { "id": 3, "title": "Aldrics Klinge" }, { "id": 4, "title": "Die Arche von innen" }], "winner_id": 3}}]}
+      ],
       "states": {
         "waiting": { "public": { "/public/issues": [{ "id": 1, "title": "Karte der Unterstadt", "status": "open" }, { "id": 2, "title": "Wappen der Goldenen Hand", "status": "open" }, { "id": 3, "title": "Aldrics Klinge", "status": "open" }, { "id": 4, "title": "Die Arche von innen", "status": "open" }] }, "freezeAfterMs": 900 },
         "spinning": {
@@ -105,6 +140,10 @@
     },
     "song": {
       "size": { "width": 350, "height": 110 },
+      "actions": [
+        { "label": "Nächster Song", "events": [{ "event": "song-update", "data": { "title": "Lanterns Below", "artist": "Lorewalker", "source": "spotify" }}]},
+        { "label": "Musik aus", "events": [{ "event": "song-clear", "data": {}}]}
+      ],
       "states": {
         "playing": { "public": { "/public/song": { "song": { "title": "Ashes of the Old City", "artist": "Lorewalker", "source": "spotify" } } }, "freezeAfterMs": 1000 }
       }
@@ -122,6 +161,9 @@
     },
     "todos": {
       "size": { "width": 420, "height": 600 },
+      "actions": [
+        { "label": "Punkt abhaken", "public": { "/public/progress": { "project_name": "Kapitel 3: Die Unterstadt", "items": [{ "id": 1, "title": "Karte der Unterstadt", "status": "in_progress", "sort_order": 0, "time_spent": 2700, "todos": [{ "id": 11, "title": "Kanäle einzeichnen", "done": 1, "sort_order": 0, "parent_id": 1}, { "id": 12, "title": "Märkte benennen", "done": 1, "sort_order": 1, "parent_id": 1}, { "id": 13, "title": "Stadttore setzen", "done": 0, "sort_order": 2, "parent_id": 1}]}]}}, "events": [{ "event": "progress-update", "data": {}}]}
+      ],
       "states": {
         "open-todos": {
           "public": { "/public/progress": { "project_name": "Kapitel 3: Die Unterstadt", "items": [

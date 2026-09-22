@@ -84,7 +84,8 @@
    * reaches OBS and nothing reads the database. Once the state has played, the
    * page is frozen — animations paused, timers cleared — and
    * `data-showcase-ready` marks it for the capture script. `&live` skips the
-   * freeze, so the state keeps moving — for judging an animation by eye.
+   * freeze, so the state keeps moving — for judging an animation by eye —
+   * and lets the showcase page play the overlay's actions into it.
    */
   var params = new URLSearchParams(window.location.search);
   var showcaseState = params.get('state');
@@ -168,26 +169,52 @@
       });
     }
 
+    var sockets = [];
+
+    function play(socket, events) {
+      (events || []).forEach(function (e) {
+        realSetTimeout(function () {
+          if (!frozen && !socket.closed && socket.onmessage) {
+            socket.onmessage({ data: JSON.stringify({ event: e.event, data: e.data }) });
+          }
+        }, e.afterMs || 0);
+      });
+    }
+
     function FakeSocket() {
       var socket = this;
       socket.readyState = 0;
+      sockets.push(socket);
       realSetTimeout(function () {
         socket.readyState = 1;
         if (socket.onopen) socket.onopen({});
         statePromise.then(function (state) {
-          (state.events || []).forEach(function (e) {
-            realSetTimeout(function () {
-              if (!frozen && socket.onmessage) {
-                socket.onmessage({ data: JSON.stringify({ event: e.event, data: e.data }) });
-              }
-            }, e.afterMs || 0);
-          });
+          play(socket, state.events);
           if (!live) realSetTimeout(freeze, state.freezeAfterMs || 0);
         });
       }, 0);
     }
     FakeSocket.prototype.send = function () {};
-    FakeSocket.prototype.close = function () {};
+    FakeSocket.prototype.close = function () {
+      this.closed = true;
+    };
+
+    // Live, the showcase page can act on the overlay — tick off a todo, spin
+    // the wheel: an action swaps in new test data, then plays its events.
+    // Only the page this one is framed in may ask.
+    if (live) {
+      window.addEventListener('message', function (msg) {
+        if (msg.source !== window.parent || msg.origin !== window.location.origin) return;
+        if (!msg.data || msg.data.type !== 'nst-showcase-action') return;
+        var action = msg.data.action || {};
+        statePromise.then(function (state) {
+          state.public = Object.assign({}, state.public, action.public);
+          sockets.forEach(function (socket) {
+            play(socket, action.events);
+          });
+        });
+      });
+    }
     FakeSocket.prototype.addEventListener = function (type, fn) {
       this['on' + type] = fn;
     };

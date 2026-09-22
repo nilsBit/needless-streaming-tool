@@ -45,6 +45,17 @@ describe('showcase state list', () => {
     }
   });
 
+  it('gives every action a label and something to do', async () => {
+    const res = await request(app).get('/overlay/showcase/states.json').expect(200);
+    for (const [name, entry] of Object.entries<{ actions?: { label: string; public?: object; events?: { event: string }[] }[] }>(res.body.overlays)) {
+      for (const action of entry.actions ?? []) {
+        expect(action.label, `action without label in ${name}`).toMatch(/\S/);
+        expect(Boolean(action.public) || (action.events ?? []).length > 0, `${name} › ${action.label} does nothing`).toBe(true);
+        for (const e of action.events ?? []) expect(e.event, `${name} › ${action.label}`).toMatch(/^[a-z-]+$/);
+      }
+    }
+  });
+
   it('lists no overlay that does not exist', async () => {
     const res = await request(app).get('/overlay/showcase/states.json').expect(200);
     for (const name of Object.keys(res.body.overlays)) expect(overlayDirs).toContain(name);

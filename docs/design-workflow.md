@@ -26,7 +26,12 @@ Testdaten. Nichts davon erreicht OBS. Zustände und Größen stehen in
 
 Beides friert nach dem Abspielen ein, so wie das Erfassen es sieht. Mit
 `?live` (Showcase: `/overlay/showcase/?live`, einzeln `&live` anhängen) läuft
-alles weiter — so lässt sich eine Animation mit den Augen beurteilen.
+alles weiter — so lässt sich eine Animation mit den Augen beurteilen. In der
+Showcase-Ansicht in Bewegung hat jeder Zustand **↻ Nochmal** (spielt ihn von
+vorn, etwa wenn sich ein Alert schon ausgeblendet hat) und die Aktionen seines
+Overlays — Punkt abhaken, Rad drehen, Song wechseln … Sie stehen je Overlay
+unter `actions` in `states.json`: neue Testdaten (`public`) und Ereignisse
+(`events`), die `boot.js` in das Overlay spielt.
 
 ## Nach Figma
 
