@@ -91,7 +91,7 @@ export function createApp(): express.Express {
   // CSP für Overlays — dynamic based on request host
   app.use('/overlay', (req, res, next) => {
     const host = req.headers.host || `localhost:${PORT}`;
-    res.setHeader('Content-Security-Policy', `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' https://i.scdn.co data:; connect-src ws://${host} http://${host} wss://${host} https://${host}`);
+    res.setHeader('Content-Security-Policy', `default-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' https://i.scdn.co data:; connect-src ws://${host} http://${host} wss://${host} https://${host}`);
     next();
   });
 

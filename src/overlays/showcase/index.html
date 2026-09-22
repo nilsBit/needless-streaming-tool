@@ -66,21 +66,24 @@
       .then(({ overlays }) => {
         const list = document.getElementById('list');
         for (const [name, entry] of Object.entries(overlays)) {
+          // Numbers only — the sizes end up in markup.
+          const width = Number(entry.size.width) || 0;
+          const height = Number(entry.size.height) || 0;
           const section = document.createElement('section');
-          section.innerHTML = `<h2>${name} <small>${entry.size.width}×${entry.size.height}</small></h2>`;
+          section.innerHTML = `<h2>${name} <small>${width}×${height}</small></h2>`;
           const states = document.createElement('div');
           states.className = 'states';
           for (const state of Object.keys(entry.states)) {
-            const scale = Math.min(1, MAX_WIDTH / entry.size.width);
+            const scale = Math.min(1, MAX_WIDTH / width);
             const src = `/overlay/${name}/index.html?state=${encodeURIComponent(state)}${live ? '&live' : ''}`;
             const figure = document.createElement('figure');
             figure.innerHTML = `
-              <div class="stage" style="width:${entry.size.width * scale}px;height:${entry.size.height * scale}px">
-                <iframe src="${src}" width="${entry.size.width}" height="${entry.size.height}"
+              <div class="stage" style="width:${width * scale}px;height:${height * scale}px">
+                <iframe src="${src}" width="${width}" height="${height}"
                   style="transform:scale(${scale})" title="${name} / ${state}"></iframe>
               </div>
               <figcaption><a href="${src}" target="_blank">${name} / ${state}</a>${scale < 1 ? ` · ${Math.round(scale * 100)} %` : ''}</figcaption>`;
-            if (live) figure.appendChild(actionBar(figure.querySelector('iframe'), src, entry.actions ?? [], entry.size.width * scale));
+            if (live) figure.appendChild(actionBar(figure.querySelector('iframe'), src, entry.actions ?? [], width * scale));
             states.appendChild(figure);
           }
           section.appendChild(states);

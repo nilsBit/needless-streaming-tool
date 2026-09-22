@@ -95,15 +95,22 @@ unter `actions` in `states.json`: neue Testdaten (`public`) und Ereignisse
    späterer Versand desselben Frames es nicht mehr enthält.
 6. Umgesetzt wird mit **„Umsetzen lassen“** im Reiter *Figma* (nur in der
    Entwicklungsversion; `POST /api/dev/implement`): Das Tool startet Claude
-   Code im Hintergrund mit festem Auftrag — `--restricted`, nur Lese-Werkzeuge
-   und Schreiben unter `src/overlays/**`, keine Befehle, kein Web, keine
-   Rückfragen (`src/server/design-implement.ts`). Claude setzt die offenen
-   Punkte und Wünsche um und schreibt die vorläufigen Überschreibungen fest ins
-   Overlay-CSS; das Tool verbucht danach, was Claude als erledigt meldet
-   (Entwurf erledigt, Überschreibung zurückgenommen). Wächst dabei eine
-   Overlay-Datei um Skripte, Event-Handler, externe Adressen, Netzwerk-Aufrufe,
-   `eval`, Navigation oder `@import`, wird sie zurückgesetzt und nichts vom Lauf
-   verbucht. Ein Lauf zur Zeit, höchstens 20 Minuten. Nutzt Nils' Claude-Abo —
+   Code im Hintergrund mit festem Auftrag an einer **Kopie** von `src/overlays`
+   im Temp-Ordner — `--restricted`, nur Lese-Werkzeuge und Schreiben in der
+   Kopie, keine Befehle, kein Web, keine Rückfragen
+   (`src/server/design-implement.ts`). Claude setzt die offenen Punkte und
+   Wünsche um und schreibt die vorläufigen Überschreibungen fest ins
+   Overlay-CSS — nur Markup und CSS, Skripte bleiben unverändert. Danach prüft
+   das Tool jede Änderung gegen eine Positivliste (`src/server/design-guard.ts`:
+   Skripte byte-gleich, schlichte Tags und Attribute, nur lokale Adressen, kein
+   `@import`, `states.json` unverändert, nichts gelöscht, neu nur CSS und
+   echte Bilder). Nur wenn alles passt und niemand dieselben Dateien inzwischen
+   angefasst hat, wird die Kopie übernommen — ganz oder gar nicht; sonst bleibt
+   sie zum Ansehen liegen. Verbucht wird nur, was die Dateien belegen: ein
+   Entwurf ist erledigt, wenn sich sein Overlay geändert hat und er nicht
+   inzwischen neu gesendet wurde; eine Überschreibung ist übernommen, wenn ihr
+   Wert jetzt im CSS des Overlays steht. Ein Lauf zur Zeit, höchstens 20
+   Minuten. Nutzt Nils' Claude-Abo —
    bewusst nur fürs Entwickeln, die fertige App bietet den Knopf nicht an.
    Von Hand in einer Claude-Sitzung geht es genauso (Ablauf in `CLAUDE.md`).
    Abgleich mit

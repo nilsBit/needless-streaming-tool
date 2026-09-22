@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { getDb } from './db/index';
 import { getOverlayConfig, isOverlayVar, saveOverlayConfig } from './api/overlay-config';
-import { designDir, readStates } from './showcase';
+import { designDir, stateNames } from './showcase';
 
 /**
  * What happens to a draft that comes back from Figma.
@@ -496,18 +496,18 @@ export function writeStatus(overlay: string, state: string, status: DraftStatus)
 /** Every draft that has a status, newest first. */
 export function draftStatuses(): DraftStatus[] {
   const found: DraftStatus[] = [];
-  for (const [overlay, entry] of Object.entries(readStates().overlays)) {
-    for (const state of Object.keys(entry.states)) {
-      const status = readStatus(overlay, state);
-      if (status) found.push(status);
-    }
+  for (const { overlay, state } of stateNames()) {
+    const status = readStatus(overlay, state);
+    if (status) found.push(status);
   }
   return found.sort((a, b) => b.receivedAt.localeCompare(a.receivedAt));
 }
 
-export function markDone(overlay: string, state: string): boolean {
+/** With `receivedAt`, only that send — a draft sent again since stays open. */
+export function markDone(overlay: string, state: string, receivedAt?: string): boolean {
   const status = readStatus(overlay, state);
   if (!status) return false;
+  if (receivedAt !== undefined && status.receivedAt !== receivedAt) return false;
   fs.writeFileSync(statusFile(overlay, state), JSON.stringify({ ...status, done: true }, null, 2));
   return true;
 }

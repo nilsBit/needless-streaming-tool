@@ -22,8 +22,9 @@ export interface ShowcaseStates {
   }>;
 }
 
+/** Tests point it at a copy. */
 export function overlaysDir(): string {
-  return path.join(process.cwd(), 'src', 'overlays');
+  return process.env.NST_OVERLAYS_DIR ?? path.join(process.cwd(), 'src', 'overlays');
 }
 
 /** Read fresh each time — the file is edited while the tool runs. */
@@ -31,8 +32,13 @@ export function readStates(): ShowcaseStates {
   return JSON.parse(fs.readFileSync(path.join(overlaysDir(), 'showcase', 'states.json'), 'utf8'));
 }
 
+const SAFE_NAME = /^[a-z0-9][a-z0-9-]*$/;
+
 /** The only way a name from a request may become part of a path. */
 export function isKnownState(overlay: string, state: string): boolean {
+  // The file lies under src/overlays and could be edited to name anything —
+  // a name that becomes a path must also look like one, never like `..`.
+  if (!SAFE_NAME.test(overlay) || !SAFE_NAME.test(state)) return false;
   const { overlays } = readStates();
   // A plain property lookup on a request-supplied name (e.g. "constructor")
   // returns an inherited Object.prototype value instead of undefined, which
@@ -41,6 +47,13 @@ export function isKnownState(overlay: string, state: string): boolean {
   if (!Object.prototype.hasOwnProperty.call(overlays, overlay)) return false;
   const entry = overlays[overlay];
   return Object.prototype.hasOwnProperty.call(entry.states, state);
+}
+
+/** Every overlay/state pair of the showcase whose names are safe to use in a path. */
+export function stateNames(): { overlay: string; state: string }[] {
+  return Object.entries(readStates().overlays)
+    .flatMap(([overlay, entry]) => Object.keys(entry.states).map((state) => ({ overlay, state })))
+    .filter(({ overlay, state }) => SAFE_NAME.test(overlay) && SAFE_NAME.test(state));
 }
 
 /** Where captures and drafts live. Tests point it at a temp dir. */

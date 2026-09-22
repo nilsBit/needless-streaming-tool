@@ -271,6 +271,9 @@ ws.onclose = () => setTimeout(() => location.reload(), 3000);
 function p2c(cx,cy,r,d){const a=(d-90)*Math.PI/180;return{x:cx+r*Math.cos(a),y:cy+r*Math.sin(a)};}
 function ap(cx,cy,r,s,e){const sp=p2c(cx,cy,r,s),ep=p2c(cx,cy,r,e);return`M${cx},${cy} L${sp.x},${sp.y} A${r},${r} 0 ${e-s>180?1:0} 1 ${ep.x},${ep.y} Z`;}
 
+// Labels are issue titles and colours come from settings — text, never markup.
+function escapeHtml(str){return String(str ?? '').replace(/[&<>"']/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
 function buildWheel(){
   if (!SEGMENTS.length) return;
 
@@ -281,11 +284,11 @@ function buildWheel(){
   SEGMENTS.forEach((s,i)=>{
     const sd=i*ANG,ed=(i+1)*ANG,md=sd+ANG/2,lp=p2c(CX,CY,labelRadius,md);
     // Flat segment fill
-    segs+=`<path d="${ap(CX,CY,R,sd,ed)}" style="fill:${s.bg}"/>`;
+    segs+=`<path d="${ap(CX,CY,R,sd,ed)}" style="fill:${escapeHtml(s.bg)}"/>`;
     // Segment divider
     segs+=`<path d="${ap(CX,CY,R,sd,ed)}" style="fill:none;stroke:var(--lex-rule)" stroke-width="1"/>`;
     // Label
-    segs+=`<g transform="translate(${lp.x},${lp.y}) rotate(${md})"><text text-anchor="middle" dominant-baseline="central" style="fill:${s.txt};font-family:var(--font-body)" font-size="${fontSize}">${s.label}</text></g>`;
+    segs+=`<g transform="translate(${lp.x},${lp.y}) rotate(${md})"><text text-anchor="middle" dominant-baseline="central" style="fill:${escapeHtml(s.txt)};font-family:var(--font-body)" font-size="${fontSize}">${escapeHtml(s.label)}</text></g>`;
   });
 
   document.getElementById('wheel').innerHTML=`<svg width="320" height="320" viewBox="0 0 320 320">${segs}<circle cx="${CX}" cy="${CY}" r="${R}" style="fill:none;stroke:var(--lex-frame)" stroke-width="1"/><circle cx="${CX}" cy="${CY}" r="18" style="fill:var(--color-bg);stroke:var(--lex-frame)" stroke-width="1"/><circle cx="${CX}" cy="${CY}" r="4" style="fill:var(--art)"/></svg>`;

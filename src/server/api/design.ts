@@ -1,7 +1,7 @@
 import express, { Router } from 'express';
 import fs from 'fs';
 import path from 'path';
-import { designDir, isKnownState, readStates } from '../showcase';
+import { designDir, isKnownState, readStates, stateNames } from '../showcase';
 import { appliedChanges, applyDraft, draftStatuses, keepApplied, markDone, publicOverlayConfig, uncomparedDraft, undoApplied, writeStatus } from '../design-apply';
 import { broadcast } from '../websocket/index';
 import { getOverlayConfig } from './overlay-config';
@@ -31,14 +31,7 @@ router.get('/palette', (_req, res) => {
 });
 
 router.get('/captures', (_req, res) => {
-  const found: { overlay: string; state: string }[] = [];
-  const { overlays } = readStates();
-  for (const [overlay, entry] of Object.entries(overlays)) {
-    for (const state of Object.keys(entry.states)) {
-      if (fs.existsSync(path.join(designDir(), 'captured', overlay, `${state}.json`))) found.push({ overlay, state });
-    }
-  }
-  res.json(found);
+  res.json(stateNames().filter(({ overlay, state }) => fs.existsSync(path.join(designDir(), 'captured', overlay, `${state}.json`))));
 });
 
 router.get('/captures/:overlay/:state', (req, res) => {

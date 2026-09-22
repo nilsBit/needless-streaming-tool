@@ -174,9 +174,9 @@ noch nie in Figma gelaufen.
   übernimmt das Stream Tool beim Senden selbst — vorläufig, in der Datenbank.
   Der Rest wartet in `design/drafts/*/*/status.json` und in der App unter
   *Settings → Overlays → Figma*. Dort startet **„Umsetzen lassen“** Claude Code
-  im Hintergrund (nur in der Entwicklungsversion, eng begrenzt: nur
-  `src/overlays/**`, keine Befehle, kein Web; Nachkontrolle auf Skripte und
-  externe Adressen). Entschieden am 22.09.: Ausnahme von „alles kostenlos“,
+  im Hintergrund (nur in der Entwicklungsversion, eng begrenzt: arbeitet an
+  einer Kopie der Overlays, keine Befehle, kein Web; übernommen wird erst
+  nach einer Positivlisten-Prüfung, ganz oder gar nicht). Entschieden am 22.09.: Ausnahme von „alles kostenlos“,
   weil es ein Entwickler-Werkzeug ist, das die fertige App nicht enthält.
   Automatisch ohne Knopf wurde verworfen — Overlays sollen sich nicht ohne
   Zutun ändern.
@@ -252,8 +252,10 @@ Offen am Rand:
 - Dass die Plugin-Oberfläche nur Nachrichten von Figma annimmt
   (`event.source === parent`), ist in Figma noch nicht bestätigt. Meldet sie
   „Nachricht aus unbekannter Quelle ignoriert“, ist die Prüfung falsch.
-- Die unabhängige Prüfung des Umsetzen-Commits `b9a63ed` ist hängen
-  geblieben. Sie sollte wiederholt werden, bevor der Branch nach `main` geht.
+- Die unabhängige Prüfung des Umsetzen-Commits `b9a63ed` ist am 22.09.
+  wiederholt worden; ihre Befunde sind behoben (Arbeit an einer Kopie,
+  Positivliste statt Musterzählen, Prompt über stdin, Buchung nur mit Beleg).
+  Seitdem darf der Lauf keine Skripte mehr ändern.
 
 Die Eintragskarte wird mit **800×700** erfasst, nicht mehr mit 568×497 (22.09.).
 568×497 ist genau 800×700 mal 0,71 — offenbar die verkleinerte Anzeige in der

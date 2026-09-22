@@ -36,6 +36,7 @@ export interface ImplementStatus {
   done?: string[];
   baked?: number;
   reverted?: string[];
+  kept?: string;
   error?: string;
 }
 
@@ -99,7 +100,7 @@ export default function FigmaDrafts({ status, refetch, implement, refetchImpleme
             <span className="ov2-section-desc">
               {running
                 ? `läuft seit ${when(implement.startedAt ?? '')} — das Ergebnis erscheint hier und im Showcase.`
-                : 'Startet Claude im Hintergrund: nur die offenen Entwürfe, nur Overlay-Dateien. Nur in der Entwicklungsversion, nutzt dein Claude-Abo.'}
+                : 'Startet Claude im Hintergrund an einer Kopie der Overlays: nur Markup und CSS, übernommen erst nach Prüfung. Nur in der Entwicklungsversion, nutzt dein Claude-Abo.'}
             </span>
           </div>
         )}
@@ -113,7 +114,8 @@ export default function FigmaDrafts({ status, refetch, implement, refetchImpleme
         {implement?.available && implement.state === 'failed' && (
           <div className="figma-result figma-result--failed">
             {implement.error}
-            {(implement.reverted?.length ?? 0) > 0 && <ul className="figma-list">{implement.reverted!.map((f) => <li key={f}>zurückgenommen: {f}</li>)}</ul>}
+            {(implement.reverted?.length ?? 0) > 0 && <ul className="figma-list">{implement.reverted!.map((f, i) => <li key={i}>abgelehnt: {f}</li>)}</ul>}
+            {implement.kept && <p className="ov2-section-desc">Die Arbeitskopie des Laufs liegt zum Ansehen in {implement.kept}</p>}
           </div>
         )}
         {waiting.length === 0 ? (
