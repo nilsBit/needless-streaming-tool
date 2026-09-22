@@ -14,6 +14,27 @@ function getBuiltinDir(): string {
   return path.join(process.cwd(), 'src', 'overlays');
 }
 
+/**
+ * The built-in overlays: folders under src/overlays, minus templates (`_…`)
+ * and the design workflow's `showcase` harness. A name from a request must be
+ * one of these before it becomes part of a path — Express decodes `%2e%2e`
+ * into `..`, and `path.join(overrideDir, '..')` handed to rmSync would take
+ * the whole data folder with it.
+ */
+function builtinNames(): string[] {
+  try {
+    return fs.readdirSync(getBuiltinDir(), { withFileTypes: true })
+      .filter((e) => e.isDirectory() && !e.name.startsWith('_') && e.name !== 'showcase')
+      .map((e) => e.name);
+  } catch {
+    return [];
+  }
+}
+
+function isBuiltin(name: string): boolean {
+  return builtinNames().includes(name);
+}
+
 function getCustomOverlayDir(): string {
   return getUserDataPath('custom-overlays');
 }
@@ -52,21 +73,14 @@ router.get('/', (req, res) => {
 // Get builtin overlays list (with override status)
 router.get('/builtin', (req, res) => {
   const host = req.headers.host || `localhost:${PORT}`;
-  const builtinPath = getBuiltinDir();
   const overrideDir = getOverrideDir();
   try {
-    const entries = fs.readdirSync(builtinPath, { withFileTypes: true });
-    const overlays = entries
-      .filter((e) => e.isDirectory() && !e.name.startsWith('_'))
-      .map((e) => {
-        const overridePath = path.join(overrideDir, e.name, 'index.html');
-        return {
-          name: e.name,
-          url: `http://${host}/overlay/${e.name}/index.html`,
-          builtin: true,
-          customized: fs.existsSync(overridePath),
-        };
-      });
+    const overlays = builtinNames().map((name) => ({
+      name,
+      url: `http://${host}/overlay/${name}/index.html`,
+      builtin: true,
+      customized: fs.existsSync(path.join(overrideDir, name, 'index.html')),
+    }));
     res.json(overlays);
   } catch {
     res.json([]);
@@ -76,6 +90,7 @@ router.get('/builtin', (req, res) => {
 // Get builtin overlay source (current = override if exists, otherwise original)
 router.get('/builtin/:name/source', (req, res) => {
   const name = req.params.name;
+  if (!isBuiltin(name)) { res.status(404).json({ error: 'Overlay not found' }); return; }
   const overridePath = path.join(getOverrideDir(), name, 'index.html');
   const builtinPath = path.join(getBuiltinDir(), name, 'index.html');
 
@@ -92,6 +107,7 @@ router.get('/builtin/:name/source', (req, res) => {
 // Get builtin overlay DEFAULT source (always the original)
 router.get('/builtin/:name/default', (req, res) => {
   const name = req.params.name;
+  if (!isBuiltin(name)) { res.status(404).json({ error: 'Overlay not found' }); return; }
   const builtinPath = path.join(getBuiltinDir(), name, 'index.html');
 
   if (!fs.existsSync(builtinPath)) {
@@ -115,7 +131,7 @@ router.put('/builtin/:name', (req, res) => {
 
   // Verify it's a real builtin overlay
   const builtinPath = path.join(getBuiltinDir(), name, 'index.html');
-  if (!fs.existsSync(builtinPath)) {
+  if (!isBuiltin(name) || !fs.existsSync(builtinPath)) {
     res.status(404).json({ error: 'Builtin overlay not found' });
     return;
   }
@@ -132,6 +148,7 @@ router.put('/builtin/:name', (req, res) => {
 // Reset a builtin overlay to default
 router.delete('/builtin/:name/override', (req, res) => {
   const name = req.params.name;
+  if (!isBuiltin(name)) { res.status(404).json({ error: 'Builtin overlay not found' }); return; }
   const overrideDir = path.join(getOverrideDir(), name);
 
   if (fs.existsSync(overrideDir)) {
