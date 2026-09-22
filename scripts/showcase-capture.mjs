@@ -16,13 +16,18 @@ let failed = 0;
 try {
   for (const [overlay, entry] of Object.entries(states.overlays)) {
     if (only && overlay !== only) continue;
-    const tokens = { ...(config.global ?? {}), ...(config.overrides?.[overlay] ?? {}) };
+    // What the overlay shows (palette plus its own overrides) — and what may be
+    // bound to the NST variables in Figma: only global keys it doesn't override,
+    // since the variables hold the global palette.
+    const own = config.overrides?.[overlay] ?? {};
+    const tokens = { ...(config.global ?? {}), ...own };
+    const bindable = Object.fromEntries(Object.entries(config.global ?? {}).filter(([key]) => !(key in own)));
     for (const state of Object.keys(entry.states)) {
       let page;
       try {
         const opened = await openState(browser, overlay, state, entry.size);
         page = opened.page;
-        const { nodes, unreadable, motion } = await page.evaluate(`(${captureDom.trim().replace(/;$/, '')})(${JSON.stringify({ tokens })})`);
+        const { nodes, unreadable, motion } = await page.evaluate(`(${captureDom.trim().replace(/;$/, '')})(${JSON.stringify({ tokens: bindable })})`);
         const preview = 'data:image/png;base64,' + (await page.screenshot({ omitBackground: true })).toString('base64');
         if (opened.errors.length) throw new Error('console errors: ' + opened.errors.join(' | '));
         const file = path.join(outDir, overlay, `${state}.json`);

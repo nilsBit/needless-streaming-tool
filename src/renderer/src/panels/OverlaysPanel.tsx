@@ -154,8 +154,6 @@ export default function OverlaysPanel() {
 
   const [subTab, setSubTab] = useState<'overlays' | 'design' | 'figma'>('overlays');
   const { data: designStatus, refetch: refetchDesign } = useApi<DesignStatus>('/design/status');
-  // Every draft from Figma is followed by an overlay-config broadcast.
-  useWebSocket((event) => { if (event === 'overlay-config') refetchDesign(); });
   const waitingDrafts = (designStatus?.drafts ?? []).filter((d) => !d.done).length;
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showUpload, setShowUpload] = useState(false);
@@ -182,11 +180,22 @@ export default function OverlaysPanel() {
   const autoSave = useCallback((config: typeof overlayConfig) => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(async () => {
+      saveTimerRef.current = null;
       const result = await apiPost('/overlay-config', config);
       if (result) toast.success('Design gespeichert');
       else toast.error('Aktion fehlgeschlagen');
     }, 600);
   }, [toast]);
+
+  // Every draft from Figma is followed by an overlay-config broadcast. It may
+  // have changed the palette — take that in, or the next slider move here
+  // would save the old values back over it. Not while an edit here waits to
+  // be saved: that one is newer.
+  useWebSocket((event) => {
+    if (event !== 'overlay-config') return;
+    refetchDesign();
+    if (!saveTimerRef.current) apiFetch('/overlay-config').then((r) => r.json()).then(setOverlayConfig).catch(() => {});
+  });
 
   const updateGlobal = (key: string, value: string) => {
     setOverlayConfig(prev => {
@@ -364,7 +373,7 @@ export default function OverlaysPanel() {
   // Every overlay in every state with test data — frozen as the Figma capture
   // sees it, or live to judge the motion. Nothing of it reaches OBS.
   const openShowcase = (live: boolean) => {
-    window.open(`http://localhost:${getServerPort()}/overlay/showcase/${live ? '?live' : ''}`, '_blank', 'width=1400,height=900');
+    window.open(`http://localhost:${getServerPort()}/overlay/showcase/${live ? '?live' : ''}`, '_blank', 'noopener,width=1400,height=900');
   };
 
   const renderOverlayCard = (o: OverlayInfo, isBuiltin: boolean) => {

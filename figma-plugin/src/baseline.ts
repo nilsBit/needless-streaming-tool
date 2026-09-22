@@ -6,19 +6,26 @@
  * The import stores a snapshot in each layer's plugin data; sending takes a
  * new one and reports every property that moved. What the server makes of a
  * change is its business (design-apply.ts); here it is only "before / after".
+ *
+ * Layers are known by a uid of their own, not by Figma's node id: duplicating
+ * a whole frame or page copies the plugin data, and the copy should compare
+ * like the original. A uid met twice within one frame is a duplicated layer —
+ * new in Figma.
  */
 
-export type PaintSnap = { hex: string; alpha: number; variable?: string } | null;
+/** A solid paint, null for none, or a marker for what the server must not guess at (mixed, gradient, image). */
+export type PaintSnap = { hex: string; alpha: number; variable?: string } | { kind: string; imageHash?: string | null } | null;
 type Unit = { unit: string; value: number };
 
 export type Snap = {
   x: number; y: number; width?: number; height?: number; visible: boolean; opacity?: number;
   fill?: PaintSnap; stroke?: PaintSnap; strokeWeights?: number[]; radii?: number[]; effects?: string;
-  fontSize?: number | string; fontFamily?: string; fontStyle?: string;
+  fontSize?: number | string; fontFamily?: string; fontStyle?: string; textAlign?: string;
   letterSpacing?: Unit | string; lineHeight?: Unit | string; textCase?: string; characters?: string;
 };
 
-type Stored = { id: string; selector?: string; role?: 'outline'; snap: Snap; leaf?: boolean; children?: { id: string; name: string }[] };
+type Child = { uid: string; label: string };
+type Stored = { uid: string; selector?: string; role?: 'outline'; snap: Snap; leaf?: boolean; children?: Child[] };
 
 export type NodeChange = { selector?: string; role?: 'outline'; name: string; type: string; property: string; before: unknown; after: unknown };
 export type Changes = { nodes: NodeChange[]; added: string[]; removed: string[]; variables: Record<string, { before: string; after: string }> };
@@ -26,22 +33,28 @@ export type Changes = { nodes: NodeChange[]; added: string[]; removed: string[];
 const KEY = 'nst';
 const VARIABLES_KEY = 'nst-variables';
 
+function hex(c: RGB | RGBA): string {
+  return '#' + [c.r, c.g, c.b].map((v) => Math.round(v * 255).toString(16).padStart(2, '0')).join('');
+}
+
 async function paintSnap(paints: readonly Paint[] | typeof figma.mixed): Promise<PaintSnap> {
-  if (paints === figma.mixed) return null;
-  const p = paints.find((x): x is SolidPaint => x.type === 'SOLID' && x.visible !== false);
+  if (paints === figma.mixed) return { kind: 'mixed' };
+  // Figma draws the last paint on top — that one is what shows.
+  const p = [...paints].reverse().find((x) => x.visible !== false);
   if (!p) return null;
-  const hex = '#' + [p.color.r, p.color.g, p.color.b].map((v) => Math.round(v * 255).toString(16).padStart(2, '0')).join('');
+  if (p.type !== 'SOLID') return { kind: p.type, ...(p.type === 'IMAGE' ? { imageHash: p.imageHash } : {}) };
   const id = p.boundVariables?.color?.id;
   const variable = id ? (await figma.variables.getVariableByIdAsync(id))?.name : undefined;
-  return { hex, alpha: p.opacity ?? 1, ...(variable ? { variable } : {}) };
+  return { hex: hex(p.color), alpha: p.opacity ?? 1, ...(variable ? { variable } : {}) };
 }
 
 const mixed = <T>(value: T | typeof figma.mixed): T | string => (value === figma.mixed ? 'mixed' : value);
 
 export async function snapshot(node: SceneNode): Promise<Snap> {
   const snap: Snap = { x: node.x, y: node.y, visible: node.visible };
-  // A text box resizes with its text; its size says nothing the text doesn't.
-  if (node.type !== 'TEXT') { snap.width = node.width; snap.height = node.height; }
+  // A text box that hugs its text resizes with it; its size says nothing the text doesn't.
+  if (node.type !== 'TEXT' || node.textAutoResize !== 'WIDTH_AND_HEIGHT') snap.width = node.width;
+  if (node.type !== 'TEXT' || (node.textAutoResize !== 'WIDTH_AND_HEIGHT' && node.textAutoResize !== 'HEIGHT')) snap.height = node.height;
   if ('opacity' in node) snap.opacity = node.opacity;
   if ('fills' in node) snap.fill = await paintSnap(node.fills);
   if ('strokes' in node) snap.stroke = await paintSnap(node.strokes);
@@ -53,6 +66,7 @@ export async function snapshot(node: SceneNode): Promise<Snap> {
     snap.fontSize = mixed(node.fontSize);
     snap.fontFamily = typeof font === 'string' ? font : font.family;
     snap.fontStyle = typeof font === 'string' ? font : font.style;
+    snap.textAlign = node.textAlignHorizontal;
     snap.letterSpacing = mixed(node.letterSpacing) as Unit | string;
     snap.lineHeight = mixed(node.lineHeight) as Unit | string;
     snap.textCase = mixed(node.textCase);
@@ -61,19 +75,38 @@ export async function snapshot(node: SceneNode): Promise<Snap> {
   return snap;
 }
 
+function stored(node: BaseNode): Stored | null {
+  try {
+    const raw = node.getPluginData(KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** How a layer is named in a pending item: its CSS home if it has one, its layer name otherwise. */
+const labelOf = (s: Stored | null, node: BaseNode) => (s?.selector ? `${s.selector}${s.role === 'outline' ? ' (Innenrahmen)' : ''}` : node.name);
+
 /**
  * Called by the import once a layer (and, for a frame, everything in it) is
  * built. A leaf — an imported SVG — has layers Figma made, not the import;
  * they are neither remembered nor compared.
  */
 export async function remember(node: SceneNode, selector: string | undefined, role: 'outline' | undefined, leaf = false): Promise<void> {
-  const stored: Stored = { id: node.id, selector, role, snap: await snapshot(node), ...(leaf ? { leaf } : {}) };
-  if ('children' in node && !leaf) stored.children = node.children.filter((c) => c.name !== 'Vorlage').map((c) => ({ id: c.id, name: c.name }));
-  node.setPluginData(KEY, JSON.stringify(stored));
+  const own: Stored = { uid: Math.random().toString(36).slice(2) + Date.now().toString(36), selector, role, snap: await snapshot(node), ...(leaf ? { leaf } : {}) };
+  if ('children' in node && !leaf) {
+    own.children = [];
+    for (const c of node.children) {
+      const s = c.name === 'Vorlage' ? null : stored(c);
+      if (s) own.children.push({ uid: s.uid, label: labelOf(s, c) });
+    }
+  }
+  node.setPluginData(KEY, JSON.stringify(own));
 }
 
-export function rememberVariables(tokens: Record<string, string>): void {
-  figma.root.setPluginData(VARIABLES_KEY, JSON.stringify(tokens));
+/** The palette the NST variables were set to at import — the live one, not a capture's. */
+export function rememberVariables(palette: Record<string, string>): void {
+  figma.root.setPluginData(VARIABLES_KEY, JSON.stringify(palette));
 }
 
 const GEOMETRY = new Set(['x', 'y', 'width', 'height']);
@@ -81,21 +114,23 @@ const GEOMETRY = new Set(['x', 'y', 'width', 'height']);
 function same(key: string, a: unknown, b: unknown): boolean {
   if (typeof a === 'number' && typeof b === 'number') return Math.abs(a - b) < (GEOMETRY.has(key) ? 0.5 : 0.005);
   // A layer bound to a variable follows the variable's value — only the binding counts.
-  const pa = a as PaintSnap; const pb = b as PaintSnap;
-  if (pa && pb && typeof pa === 'object' && typeof pb === 'object' && 'hex' in pa && 'hex' in pb && pa.variable && pb.variable) {
+  const pa = a as { variable?: string; alpha?: number } | null;
+  const pb = b as { variable?: string; alpha?: number } | null;
+  if (pa?.variable && pb?.variable && typeof pa.alpha === 'number' && typeof pb.alpha === 'number') {
     return pa.variable === pb.variable && Math.abs(pa.alpha - pb.alpha) < 0.005;
   }
   const round = (v: unknown): unknown => JSON.parse(JSON.stringify(v ?? null, (_k, x) => (typeof x === 'number' ? Math.round(x * 100) / 100 : x)));
   return JSON.stringify(round(a)) === JSON.stringify(round(b));
 }
 
-function hex(c: RGB | RGBA): string {
-  return '#' + [c.r, c.g, c.b].map((v) => Math.round(v * 255).toString(16).padStart(2, '0')).join('');
-}
-
 /** Palette values changed in the collection "NST" since the import, in the tokens' own notation. */
 async function variableChanges(): Promise<Changes['variables']> {
-  const baseline: Record<string, string> = JSON.parse(figma.root.getPluginData(VARIABLES_KEY) || '{}');
+  let baseline: Record<string, string> = {};
+  try {
+    baseline = JSON.parse(figma.root.getPluginData(VARIABLES_KEY) || '{}');
+  } catch {
+    return {};
+  }
   const collection = (await figma.variables.getLocalVariableCollectionsAsync()).find((c) => c.name === 'NST');
   const changed: Changes['variables'] = {};
   if (!collection) return changed;
@@ -103,12 +138,16 @@ async function variableChanges(): Promise<Changes['variables']> {
   for (const id of collection.variableIds) {
     const v = await figma.variables.getVariableByIdAsync(id);
     const before = v ? baseline[v.name] : undefined;
-    if (!v || before === undefined) continue;
+    if (!v || typeof before !== 'string') continue;
     const raw = v.valuesByMode[modeId];
-    let after: string;
-    if (typeof raw === 'object' && raw !== null && 'r' in raw) after = hex(raw);
-    else if (typeof raw === 'number') after = before.endsWith('px') ? `${raw}px` : String(raw);
-    else after = String(raw);
+    if (typeof raw === 'number') {
+      // Figma keeps numbers as 32-bit floats: 0.85 comes back as 0.8500000238…
+      const value = Math.round(raw * 1000) / 1000;
+      if (Math.abs(value - parseFloat(before)) < 0.001) continue;
+      changed[v.name] = { before, after: before.endsWith('px') ? `${value}px` : String(value) };
+      continue;
+    }
+    const after = typeof raw === 'object' && raw !== null && 'r' in raw ? hex(raw) : String(raw);
     if (after.toLowerCase() !== before.toLowerCase()) changed[v.name] = { before, after };
   }
   return changed;
@@ -116,28 +155,32 @@ async function variableChanges(): Promise<Changes['variables']> {
 
 /** Everything the designer changed in this frame since the import — or null for a frame from an import that kept no snapshots. */
 export async function changesIn(frame: FrameNode): Promise<Changes | null> {
-  if (!frame.getPluginData(KEY)) return null;
+  if (!stored(frame)) return null;
   const changes: Changes = { nodes: [], added: [], removed: [], variables: await variableChanges() };
+  const seen = new Set<string>();
 
   async function walk(node: SceneNode, isRoot: boolean): Promise<void> {
-    const raw = node.getPluginData(KEY);
-    const stored: Stored | null = raw ? JSON.parse(raw) : null;
-    // No snapshot, or one copied along by duplicating a layer: new in Figma.
-    if (!stored || stored.id !== node.id) {
+    const s = stored(node);
+    // No snapshot, or a uid this frame already had: new in Figma. Not descended — it counts once.
+    if (!s || seen.has(s.uid)) {
       changes.added.push(node.name);
       return;
     }
+    seen.add(s.uid);
     const now = await snapshot(node);
-    for (const key of new Set([...Object.keys(stored.snap), ...Object.keys(now)]) as Set<keyof Snap>) {
+    for (const key of new Set([...Object.keys(s.snap), ...Object.keys(now)]) as Set<keyof Snap>) {
       // The frame itself sits wherever it was put on the page; only its size matters.
       if (isRoot && (key === 'x' || key === 'y')) continue;
-      if (!same(key, stored.snap[key], now[key])) {
-        changes.nodes.push({ selector: stored.selector, role: stored.role, name: node.name, type: node.type, property: key, before: stored.snap[key] ?? null, after: now[key] ?? null });
+      if (same(key, s.snap[key], now[key])) continue;
+      changes.nodes.push({ selector: s.selector, role: s.role, name: node.name, type: node.type, property: key, before: s.snap[key] ?? null, after: now[key] ?? null });
+      // A stroke drawn where there was none: its weights belong with it, changed or not.
+      if (key === 'stroke' && s.snap.stroke === null && now.strokeWeights && same('strokeWeights', s.snap.strokeWeights, now.strokeWeights)) {
+        changes.nodes.push({ selector: s.selector, role: s.role, name: node.name, type: node.type, property: 'strokeWeights', before: s.snap.strokeWeights ?? null, after: now.strokeWeights });
       }
     }
-    if (!('children' in node) || stored.leaf) return;
-    const present = new Set(node.children.map((c) => c.id));
-    for (const child of stored.children ?? []) if (!present.has(child.id)) changes.removed.push(child.name);
+    if (!('children' in node) || s.leaf) return;
+    const present = new Set(node.children.map((c) => stored(c)?.uid).filter(Boolean));
+    for (const child of s.children ?? []) if (!present.has(child.uid)) changes.removed.push(child.label);
     for (const child of node.children) if (!(isRoot && child.name === 'Vorlage')) await walk(child, false);
   }
 

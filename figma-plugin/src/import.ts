@@ -20,6 +20,7 @@ export type Capture = { overlay: string; state: string; width: number; height: n
 /** The note under each frame is found again by this name when the frame is sent back. */
 export const NOTE_SUFFIX = ' · Notiz';
 export const WISHES = 'Wünsche:';
+export const NOTE_GENERATED = 'nst-note';
 
 const COLLECTION = 'NST';
 const FLOAT_TOKENS = ['--color-bg-opacity', '--font-size-base'];
@@ -233,13 +234,10 @@ async function addNote(capture: Capture, frame: FrameNode, fonts: Font[]): Promi
   text.fontSize = 13;
   text.lineHeight = { unit: 'PERCENT', value: 140 };
   text.fills = [{ type: 'SOLID', color: { r: 0.17, g: 0.15, b: 0.12 } }];
-  text.characters = [
-    motion.length ? 'So bewegt es sich jetzt:' : 'Hier bewegt sich nichts.',
-    ...motion,
-    '',
-    WISHES,
-    '',
-  ].join('\n');
+  const generated = [motion.length ? 'So bewegt es sich jetzt:' : 'Hier bewegt sich nichts.', ...motion].join('\n');
+  text.characters = [generated, '', WISHES, ''].join('\n');
+  // Kept to tell, when sending, whether the part above "Wünsche:" was edited too.
+  note.setPluginData(NOTE_GENERATED, generated);
   note.appendChild(text);
   text.layoutSizingHorizontal = 'FILL';
   text.textAutoResize = 'HEIGHT';
@@ -250,10 +248,14 @@ async function addNote(capture: Capture, frame: FrameNode, fonts: Font[]): Promi
 }
 
 /** One new page per import — never touches frames already designed. */
-export async function importCaptures(captures: Capture[], log: (text: string) => void): Promise<void> {
+/**
+ * `palette` is the live one from the server: the NST variables are shared by
+ * the whole file, and a capture's copy may be older than a change made since.
+ */
+export async function importCaptures(captures: Capture[], palette: Record<string, string>, log: (text: string) => void): Promise<void> {
   if (captures.length === 0) { log('Keine Erfassungen gefunden. Erst `npm run showcase:capture` laufen lassen.'); return; }
-  const variables = await ensureVariables(captures[0].tokens);
-  rememberVariables(captures[0].tokens);
+  const variables = await ensureVariables(palette);
+  rememberVariables(palette);
   const fonts = await figma.listAvailableFontsAsync();
   const page = figma.createPage();
   const now = new Date();

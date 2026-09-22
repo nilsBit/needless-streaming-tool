@@ -126,8 +126,10 @@
         return r.json();
       })
       .then(function (all) {
-        var entry = all.overlays[overlay];
-        var state = entry && entry.states[stateName];
+        // Own keys only: `?state=__proto__` must not reach Object.prototype.
+        var own = Object.prototype.hasOwnProperty;
+        var entry = own.call(all.overlays, overlay) ? all.overlays[overlay] : null;
+        var state = entry && own.call(entry.states, stateName) ? entry.states[stateName] : null;
         if (!state) throw new Error('unknown state ' + overlay + ' / ' + stateName);
         return state;
       });

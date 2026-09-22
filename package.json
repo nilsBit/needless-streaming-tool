@@ -5,7 +5,7 @@
   "author": "nilsBit",
   "main": "dist/main/main.js",
   "scripts": {
-    "dev": "concurrently \"npm run dev:renderer\" \"npm run dev:main\"",
+    "dev": "concurrently --kill-others-on-fail \"npm run dev:renderer\" \"npm run dev:main\"",
     "dev:main": "nodemon",
     "dev:renderer": "vite",
     "build:plugin": "npm --prefix streamdeck-plugin run package",

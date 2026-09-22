@@ -78,7 +78,9 @@ try {
       }
       // What the image can't show — motion above all — stands in the note sent along with the frame.
       const note = JSON.parse(fs.readFileSync(path.join(path.dirname(draftFile), 'draft.json'), 'utf8')).note;
-      const wishes = typeof note === 'string' ? note.split('Wünsche:')[1]?.trim() : '';
+      // The note is text from Figma: no escape sequences into the terminal.
+      // eslint-disable-next-line no-control-regex
+      const wishes = typeof note === 'string' ? note.split('Wünsche:')[1]?.replace(/[\u0000-\u0009\u000b-\u001f\u007f-\u009f]/g, '').trim() : '';
       if (wishes) console.log(`     Wünsche: ${wishes.replace(/\n/g, '\n              ')}`);
     } catch (e) {
       failed++;

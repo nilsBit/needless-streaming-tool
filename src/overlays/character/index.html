@@ -51,7 +51,9 @@
       padding-right: 60px;
       font-size: 4rem;
     }
-    .title.long { font-size: 3rem; }
+    /* More specific than a Figma override on div.title.lex-title (tag + two
+       classes), so a long title still shrinks after the size was changed there. */
+    .card .title.long { font-size: 3rem; }
     .has-portrait .kicker, .has-portrait .title { padding-right: 130px; }
     .alias {
       margin-top: 4px;
@@ -151,8 +153,10 @@
       if (lines > 2) title.classList.add('long');
     }
 
-    // Measured in the fallback font until the real one arrives.
-    document.fonts.ready.then(() => {
+    // Measured in the fallback font until the real one arrives. boot.js adds
+    // the web fonts only once the config is in, after this runs — so wait for
+    // each finished load, not for a `ready` that has nothing to wait on yet.
+    document.fonts.addEventListener('loadingdone', () => {
       if (current) fitTitle(current);
     });
 

@@ -2,8 +2,9 @@ import express, { Router } from 'express';
 import fs from 'fs';
 import path from 'path';
 import { designDir, isKnownState, readStates } from '../showcase';
-import { appliedChanges, applyDraft, draftStatuses, markDone, publicOverlayConfig, undoApplied, writeStatus } from '../design-apply';
+import { appliedChanges, applyDraft, draftStatuses, keepApplied, markDone, publicOverlayConfig, uncomparedDraft, undoApplied, writeStatus } from '../design-apply';
 import { broadcast } from '../websocket/index';
+import { getOverlayConfig } from './overlay-config';
 
 /**
  * The Figma round trip: captures go out to the plugin, finished frames come
@@ -22,6 +23,11 @@ function png(base64: unknown): Buffer | null {
 
 router.get('/states', (_req, res) => {
   res.json(readStates());
+});
+
+/** The live palette — what the plugin sets its NST variables to on import, not a capture's older copy. */
+router.get('/palette', (_req, res) => {
+  res.json(getOverlayConfig().global);
 });
 
 router.get('/captures', (_req, res) => {
@@ -62,17 +68,25 @@ router.post('/inbox', express.json({ limit: '30mb' }), (req, res) => {
   const two = png(image2x);
   if (!one || !two) { res.status(400).json({ error: 'image and image2x must be PNG (base64)' }); return; }
 
+  // What has a CSS equivalent goes live now; the rest waits in status.json.
+  // A draft without `changes` could not be compared (older import, copied
+  // frame) — it applies nothing and takes nothing back.
+  const result = 'changes' in draft ? applyDraft(overlay, state, draft) : uncomparedDraft(overlay, state, draft);
+
   const dir = path.join(designDir(), 'drafts', overlay, state);
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, 'draft.json'), JSON.stringify(draft, null, 2));
   fs.writeFileSync(path.join(dir, 'image.png'), one);
   fs.writeFileSync(path.join(dir, 'image@2x.png'), two);
+  const status = writeStatus(overlay, state, result);
 
-  // What has a CSS equivalent goes live now; the rest waits in status.json.
-  const status = applyDraft(overlay, state, draft);
-  writeStatus(status);
   broadcast('overlay-config', publicOverlayConfig());
-  res.status(201).json({ saved: `design/drafts/${overlay}/${state}`, applied: status.applied, pending: status.pending, wishes: status.wishes });
+  res.status(201).json({
+    saved: `design/drafts/${overlay}/${state}`,
+    applied: result.applied,
+    pending: status.pending.map((p) => p.label),
+    wishes: status.wishes,
+  });
 });
 
 /** For the app: what was applied from Figma, and which drafts still wait. */
@@ -82,6 +96,15 @@ router.get('/status', (_req, res) => {
 
 router.post('/applied/:id/undo', (req, res) => {
   if (!undoApplied(req.params.id)) { res.status(404).json({ error: 'not applied' }); return; }
+  broadcast('overlay-config', publicOverlayConfig());
+  res.json({ success: true });
+});
+
+/** A palette change that stays: off the list, value untouched. */
+router.post('/applied/:id/keep', (req, res) => {
+  const result = keepApplied(req.params.id);
+  if (result === 'not-found') { res.status(404).json({ error: 'not applied' }); return; }
+  if (result === 'not-palette') { res.status(400).json({ error: 'only palette changes can be kept — style overrides move into the overlay CSS' }); return; }
   broadcast('overlay-config', publicOverlayConfig());
   res.json({ success: true });
 });

@@ -9,10 +9,10 @@ void figma.clientStorage.getAsync('token').then((token) => {
   figma.ui.postMessage({ type: 'token', token: typeof token === 'string' ? token : '' });
 });
 
-figma.ui.onmessage = async (msg: { type: string; token?: string; captures?: Capture[] }) => {
+figma.ui.onmessage = async (msg: { type: string; token?: string; captures?: Capture[]; palette?: Record<string, string> }) => {
   try {
     if (msg.type === 'save-token') await figma.clientStorage.setAsync('token', msg.token ?? '');
-    if (msg.type === 'import') await importCaptures(msg.captures ?? [], log);
+    if (msg.type === 'import') await importCaptures(msg.captures ?? [], msg.palette ?? {}, log);
     if (msg.type === 'send-selection') {
       try {
         const drafts = await exportSelection(log);

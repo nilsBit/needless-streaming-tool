@@ -5,7 +5,7 @@
   button { width: 100%; padding: 8px; margin-bottom: 8px; cursor: pointer; }
   #log { white-space: pre-wrap; background: #f5f5f5; padding: 8px; height: 180px; overflow: auto; }
 </style>
-<label for="token">API-Token des Stream Tools (steht im Log als „Fixed API token")</label>
+<label for="token">Figma-Token des Stream Tools (steht im Log als „Figma token")</label>
 <input id="token" type="password" placeholder="Token">
 <button id="import">Aus NST einlesen</button>
 <button id="send">An NST senden</button>
@@ -31,8 +31,9 @@
       const list = await api('/api/design/captures');
       log(`${list.length} Erfassungen gefunden, lade …`);
       const captures = [];
-      for (const { overlay, state } of list) captures.push(await api(`/api/design/captures/${overlay}/${state}`));
-      parent.postMessage({ pluginMessage: { type: 'import', captures } }, '*');
+      for (const { overlay, state } of list) captures.push(await api(`/api/design/captures/${encodeURIComponent(overlay)}/${encodeURIComponent(state)}`));
+      const palette = await api('/api/design/palette');
+      parent.postMessage({ pluginMessage: { type: 'import', captures, palette } }, '*');
     } catch (e) {
       log(e.message === 'Failed to fetch' ? 'Stream Tool nicht erreichbar — läuft `npm run dev`?' : 'Fehler: ' + e.message);
     }
@@ -45,9 +46,12 @@
 
   let sending = false;
 
+  // Only Figma, which hosts this window, talks to it. Another frame posting a
+  // "drafts" message would otherwise be sent to NST with the saved token.
   onmessage = (event) => {
-    const msg = event.data.pluginMessage;
+    const msg = event.data && event.data.pluginMessage;
     if (!msg) return;
+    if (event.source !== parent) { log('Nachricht aus unbekannter Quelle ignoriert.'); return; }
     if (msg.type === 'token') $('token').value = msg.token;
     if (msg.type === 'log') log(msg.text);
     if (msg.type === 'drafts') sendDrafts(msg.drafts);
@@ -93,11 +97,23 @@
 
   function pick(frameName, options) {
     return new Promise((resolve) => {
+      // Built node by node: names come from the server and are never parsed as HTML.
       const box = document.createElement('div');
-      box.innerHTML = `<label></label><select style="width:100%;margin-bottom:6px"><option value="">— überspringen —</option>${options.map((o) => `<option>${o}</option>`).join('')}</select><button>OK</button>`;
-      box.querySelector('label').textContent = `„${frameName}" gehört zu:`;
+      const label = document.createElement('label');
+      label.textContent = `„${frameName}" gehört zu:`;
+      const select = document.createElement('select');
+      select.style.cssText = 'width:100%;margin-bottom:6px';
+      for (const [value, text] of [['', '— überspringen —'], ...options.map((o) => [o, o])]) {
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = text;
+        select.appendChild(option);
+      }
+      const ok = document.createElement('button');
+      ok.textContent = 'OK';
+      box.append(label, select, ok);
       document.body.insertBefore(box, $('log'));
-      box.querySelector('button').onclick = () => { const v = box.querySelector('select').value; box.remove(); resolve(v || null); };
+      ok.onclick = () => { const v = select.value; box.remove(); resolve(v || null); };
     });
   }
 </script>

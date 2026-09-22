@@ -3,7 +3,7 @@ import http from 'http';
 import path from 'path';
 import { initWebSocket } from './websocket/index';
 import { initDatabase } from './db/index';
-import { generateApiToken, validateApiToken, getApiToken } from './auth-token';
+import { generateApiToken, validateApiToken, validateDesignToken, getApiToken } from './auth-token';
 import { writeConnectionFile, deleteConnectionFile } from './connection-file';
 import streamStateRouter, { restoreTimerState } from './api/stream-state';
 import issuesRouter from './api/issues';
@@ -107,7 +107,10 @@ export function createApp(): express.Express {
     const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
     const queryToken = req.query.token as string | undefined;
 
-    if (!validateApiToken(bearerToken || queryToken)) {
+    const token = bearerToken || queryToken;
+    // The Figma plugin's token opens its own routes and nothing else.
+    const designRoute = req.path.startsWith('/design/') && validateDesignToken(token);
+    if (!designRoute && !validateApiToken(token)) {
       res.status(401).json({ error: 'Unauthorized — invalid API token' });
       return;
     }

@@ -74,6 +74,31 @@
     }
   }
 
+  // Figma's SVG import knows neither CSS variables nor currentColor. Both are
+  // resolved here, where the browser knows what they are: colours through a
+  // probe element (color-mix() and all), everything else as the variable's
+  // computed text. Alpha is dropped — an SVG attribute has no place for it.
+  function resolvedSvg(svg) {
+    const style = getComputedStyle(svg);
+    const probe = document.createElement('span');
+    svg.parentElement.appendChild(probe);
+    const asColor = (value) => {
+      probe.style.color = 'rgb(1, 2, 3)';
+      probe.style.color = value;
+      const c = probe.style.color === 'rgb(1, 2, 3)' && value.trim() !== 'rgb(1, 2, 3)' ? null : color(getComputedStyle(probe).color);
+      return c ? c.hex : null;
+    };
+    const resolve = (name, fallback) => {
+      const value = style.getPropertyValue(name).trim() || (fallback ?? '').trim();
+      return asColor(value) ?? value;
+    };
+    const source = svg.outerHTML
+      .replace(/var\(\s*(--[\w-]+)\s*(?:,\s*([^)]+))?\)/g, (_m, name, fallback) => resolve(name, fallback))
+      .replace(/currentColor/g, () => asColor(style.color) ?? style.color);
+    probe.remove();
+    return source;
+  }
+
   function visible(el, style, rect) {
     return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0 && Number(style.opacity) > 0;
   }
@@ -93,16 +118,19 @@
     return radii.some((r) => r > 0) ? radii : null;
   }
 
-  // Where a change made in Figma lands in CSS: the element's tag and classes,
-  // or — without classes — its tag under the nearest parent that has some.
-  // State classes (`in`, `visible` …) stay in, so a change made to one state
-  // applies wherever that state's classes do. Class-less siblings share one
-  // selector: restyling one row of a list restyles every row.
+  // Where a change made in Figma lands in CSS: the element's id, else its tag
+  // and classes, else its class-less tag under its parent's selector (never a
+  // bare tag — that would reach every such element in the overlay). State
+  // classes (`in`, `visible` …) stay in, so a change made to one state applies
+  // wherever that state's classes do. Class-less siblings share one selector:
+  // restyling one row of a list restyles every row.
   function selectorOf(el) {
-    const own = el.tagName.toLowerCase() + [...el.classList].map((c) => '.' + CSS.escape(c)).join('');
+    if (el.id) return '#' + CSS.escape(el.id);
+    const tag = el.tagName.toLowerCase();
+    if (el.classList.length) return tag + [...el.classList].map((c) => '.' + CSS.escape(c)).join('');
     const parent = el.parentElement;
-    if (el.classList.length || !parent || parent === document.body) return own;
-    return `${selectorOf(parent)} > ${own}`;
+    const context = !parent || parent === document.body ? 'body' : selectorOf(parent);
+    return `${context} > ${tag}:not([class])`;
   }
 
   function textNode(name, content, r, style, rect, opacity, selector) {
@@ -269,7 +297,7 @@
       opacity: Number(style.opacity),
     };
 
-    if (el.tagName === 'svg') return { kind: 'svg', ...base, svg: { source: el.outerHTML } };
+    if (el.tagName === 'svg') return { kind: 'svg', ...base, svg: { source: resolvedSvg(el) } };
     if (el.tagName === 'IMG') {
       const dataUrl = imageData(el);
       return dataUrl ? { kind: 'image', ...base, image: { dataUrl } } : null;

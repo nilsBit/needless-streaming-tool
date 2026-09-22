@@ -13,9 +13,10 @@ brauchen Google Chrome am üblichen Ort des Systems — unter Windows
 1. `cd figma-plugin`, dann `npm install` und `npm run build`.
 2. Figma Desktop → *Plugins → Entwicklung → Plugin aus Manifest importieren…* →
    `figma-plugin/manifest.json`.
-3. Plugin „NST-Brücke" öffnen, das API-Token eintragen. Es steht beim Start des
-   Tools im Log: `[Auth] Fixed API token: …`. Ein falsches Token meldet das
-   Plugin als „Token falsch".
+3. Plugin „NST-Brücke" öffnen, das **Figma-Token** eintragen. Es steht beim
+   Start des Tools im Log: `[Auth] Figma token: …`. Es gilt nur für
+   `/api/design/*` — nicht das „Fixed API token“ nehmen, das öffnet die ganze
+   API. Ein falsches Token meldet das Plugin als „Token falsch".
 
 ## Ansehen
 
@@ -69,13 +70,24 @@ unter `actions` in `states.json`: neue Testdaten (`public`) und Ereignisse
    dafür jede Ebene mit dem Stand beim Import (Plugin-Daten `nst`), nicht mit
    dem Browser — was nur zwischen Figma und Browser verschieden aussieht, zählt
    nicht. Die Änderungen liegen als Überschreibungen in der Datenbank
-   (`design_applied`), `boot.js` spielt sie live ein.
+   (`design_applied`), `boot.js` spielt sie live ein — ohne `!important`, damit
+   Animationen und vom Skript gesetzte Werte weiter gewinnen.
+
+   **Was ein Entwurf darf:** Nur Selektoren, die die Erfassung dieses
+   Zustands erzeugt hat; Farben nur als `#rrggbb` oder als Palettenvariable,
+   Zahlen nur als Zahlen, Palettenwerte nur in ihrer Schreibweise. Alles
+   andere wartet. Beim Ausliefern wird das CSS noch einmal gegen eine enge
+   Zeichenliste geprüft — die Datenbank kommt auch über Backups zurück.
 5. Alles andere **wartet**: Verschieben, Größen, neue oder entfernte Ebenen,
    Sichtbarkeit, Schatten, geänderter Text, fremde Schriften und die Wünsche.
    Es steht in `design/drafts/<overlay>/<zustand>/status.json` (`done: false`)
    und in der App unter *Settings → Overlays → Figma*. Dort lässt sich auch
-   jede übernommene Änderung zurücknehmen. Denselben Frame erneut senden
-   ersetzt, was er vorher übernommen hatte.
+   jede übernommene Änderung zurücknehmen, eine Palettenänderung auch
+   „behalten“ (von der Liste, Wert bleibt). Jede Änderung ist ein Paar aus
+   Element und Eigenschaft: Wer dieselbe Eigenschaft erneut ändert, ersetzt
+   den alten Wert; sonst nimmt ein neuer Versand nichts zurück — Zurücknehmen
+   geht nur in der App. Was noch wartet, bleibt auf der Liste, auch wenn ein
+   späterer Versand desselben Frames es nicht mehr enthält.
 6. Umgesetzt wird in einer Claude-Sitzung — läuft eine, beobachtet sie
    `design/drafts` und fängt von selbst an. Dabei wandern die vorläufigen
    Überschreibungen fest ins Overlay-CSS und werden zurückgenommen, danach
@@ -84,5 +96,9 @@ unter `actions` in `states.json`: neue Testdaten (`public`) und Ereignisse
    Ausgabe. Animierte Stellen weichen immer ein wenig ab, weil der angehaltene
    Moment nie ganz derselbe ist.
 
+Neu einlesen ist jederzeit sicher: Die Erfassung zeigt das Overlay mit allen
+übernommenen Änderungen, die Palette kommt live vom Server
+(`/api/design/palette`), und ein neuer Frame vergleicht nur mit sich selbst.
 Frames aus einem Import vor dem 22.09. haben keinen gespeicherten Stand; das
-Plugin sagt das beim Senden, und nichts wird übernommen. Neu einlesen hilft.
+Plugin sagt das, der Server nimmt nichts zurück und vermerkt den Versand als
+offen.

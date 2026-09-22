@@ -1,4 +1,4 @@
-import { NOTE_SUFFIX } from './import';
+import { NOTE_GENERATED, NOTE_SUFFIX, WISHES } from './import';
 import { changesIn } from './baseline';
 
 type Json = Record<string, unknown>;
@@ -64,10 +64,14 @@ async function variableValues(): Promise<Json> {
 }
 
 /** The text of the note the import put under this frame, if it is still there. */
-function noteFor(frame: FrameNode): string | undefined {
+/** The note the import put under this frame, if it is still there — and whether its generated part was edited. */
+function noteFor(frame: FrameNode): { note?: string; noteChanged?: boolean } {
   const note = figma.currentPage.findOne((n) => n.name === frame.name + NOTE_SUFFIX);
   const text = note && 'findOne' in note ? note.findOne((n) => n.type === 'TEXT') : null;
-  return text?.type === 'TEXT' ? text.characters : undefined;
+  if (!note || text?.type !== 'TEXT') return {};
+  const generated = note.getPluginData(NOTE_GENERATED);
+  const upper = text.characters.split(WISHES)[0].trim();
+  return { note: text.characters, noteChanged: generated !== '' && upper !== generated.trim() };
 }
 
 export type Draft = { frameId: string; frameName: string; overlay: string | null; state: string | null; draft: Json; image: string; image2x: string };
@@ -99,7 +103,7 @@ export async function exportSelection(log: (text: string) => void): Promise<Draf
     // snapshots — sent as is, nothing gets applied; it wants a fresh import.
     const changes = await changesIn(frame);
     if (!changes) log(`${frame.name}: stammt aus einem älteren Import — nichts wird übernommen. Bitte neu einlesen und dort ändern.`);
-    const draft = { ...(await tree(frame, true)), variables, note: noteFor(frame), ...(changes ? { changes } : {}) };
+    const draft = { ...(await tree(frame, true)), variables, ...noteFor(frame), ...(changes ? { changes } : {}) };
     drafts.push({ frameId: frame.id, frameName: frame.name, overlay: m ? m[1] : null, state: m ? m[2] : null, draft, image, image2x });
   }
   return drafts;
