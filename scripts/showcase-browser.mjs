@@ -1,7 +1,11 @@
 import { chromium } from 'playwright-core';
 
 export const BASE = 'http://localhost:4000';
-const CHROME = process.env.CHROME_PATH ?? 'C:/Program Files/Google/Chrome/Application/chrome.exe';
+const CHROME_BY_PLATFORM = {
+  win32: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
+  darwin: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+};
+const CHROME = process.env.CHROME_PATH ?? CHROME_BY_PLATFORM[process.platform] ?? '/usr/bin/google-chrome';
 
 export async function requireRunningTool() {
   try {

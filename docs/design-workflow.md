@@ -5,8 +5,10 @@ Spezifikation: `docs/superpowers/specs/2026-09-21-overlay-design-workflow-design
 ## Einmal einrichten
 
 Erfassen (`npm run showcase:capture`) und Abgleichen (`npm run showcase:compare`)
-brauchen Google Chrome unter `C:/Program Files/Google/Chrome/Application/chrome.exe`
-(überschreibbar mit der Umgebungsvariable `CHROME_PATH`).
+brauchen Google Chrome am üblichen Ort des Systems — unter Windows
+`C:/Program Files/Google/Chrome/Application/chrome.exe`, unter macOS
+`/Applications/Google Chrome.app` (überschreibbar mit der Umgebungsvariable
+`CHROME_PATH`).
 
 1. `cd figma-plugin`, dann `npm install` und `npm run build`.
 2. Figma Desktop → *Plugins → Entwicklung → Plugin aus Manifest importieren…* →
