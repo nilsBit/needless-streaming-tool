@@ -23,6 +23,7 @@ import statsRouter from './api/stats';
 import rewardStatsRouter from './api/reward-stats';
 import backupRouter from './api/backup';
 import designRouter from './api/design';
+import devRouter from './api/dev';
 import overlayConfigRouter from './api/overlay-config';
 import { publicOverlayConfig } from './design-apply';
 import songRequestsRouter, { getActiveQueue } from './api/song-requests';
@@ -154,6 +155,7 @@ export function createApp(): express.Express {
   app.use('/api/lookup-commands', lookupCommandsRouter);
   app.use('/api/chat', chatRouter);
   app.use('/api/design', designRouter);
+  app.use('/api/dev', devRouter);
 
   // Twitch OAuth callback redirect (no auth needed)
   app.get('/auth/twitch/callback', (req, res) => res.redirect('/api/auth/twitch/callback'));

@@ -26,15 +26,41 @@ export interface DesignStatus {
   drafts: DraftStatus[];
 }
 
+/** The "Umsetzen" run (development only): a Claude Code run over what waits. */
+export interface ImplementStatus {
+  available: boolean;
+  state: 'idle' | 'running' | 'done' | 'failed';
+  startedAt?: string;
+  finishedAt?: string;
+  notes?: string;
+  done?: string[];
+  baked?: number;
+  reverted?: string[];
+  error?: string;
+}
+
+const count = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+
 const when = (iso: string) => new Date(iso).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 
 /**
  * What came back from Figma. Colours, type, borders and the palette are
  * applied at once; the rest waits here until a Claude session implements it.
  */
-export default function FigmaDrafts({ status, refetch }: { status: DesignStatus | null; refetch: () => void }) {
+export default function FigmaDrafts({ status, refetch, implement, refetchImplement }: {
+  status: DesignStatus | null;
+  refetch: () => void;
+  implement: ImplementStatus | null;
+  refetchImplement: () => void;
+}) {
   const { toast } = useToast();
   const waiting = (status?.drafts ?? []).filter((d) => !d.done);
+  const running = implement?.state === 'running';
+
+  const startImplement = async () => {
+    if (!(await apiPost('/dev/implement', {}))) toast.error('Umsetzen ließ sich nicht starten');
+    refetchImplement();
+  };
 
   // One change in Figma can be two declarations (weight and style); they go together.
   const groups = new Map<string, AppliedChange[]>();
@@ -64,8 +90,32 @@ export default function FigmaDrafts({ status, refetch }: { status: DesignStatus 
         <h3>Wartet auf Umsetzung</h3>
         <p className="ov2-section-desc">
           Was sich nicht eindeutig in CSS übersetzen lässt — Verschieben, Größen, neue oder entfernte Ebenen, deine Wünsche aus der Notiz.
-          Die nächste Claude-Sitzung arbeitet diese Liste zuerst ab.
         </p>
+        {implement?.available && (
+          <div className="figma-implement">
+            <button className="ov2-small-btn figma-implement-btn" disabled={running || waiting.length === 0} onClick={startImplement}>
+              {running ? 'Claude setzt um …' : 'Umsetzen lassen'}
+            </button>
+            <span className="ov2-section-desc">
+              {running
+                ? `läuft seit ${when(implement.startedAt ?? '')} — das Ergebnis erscheint hier und im Showcase.`
+                : 'Startet Claude im Hintergrund: nur die offenen Entwürfe, nur Overlay-Dateien. Nur in der Entwicklungsversion, nutzt dein Claude-Abo.'}
+            </span>
+          </div>
+        )}
+        {implement?.available && implement.state === 'done' && (
+          <div className="figma-result">
+            Fertig ({when(implement.finishedAt ?? '')}): {count(implement.done?.length ?? 0, 'Entwurf', 'Entwürfe')} erledigt,{' '}
+            {count(implement.baked ?? 0, 'Änderung', 'Änderungen')} fest ins CSS übernommen.
+            {implement.notes && <p className="figma-wishes">{implement.notes}</p>}
+          </div>
+        )}
+        {implement?.available && implement.state === 'failed' && (
+          <div className="figma-result figma-result--failed">
+            {implement.error}
+            {(implement.reverted?.length ?? 0) > 0 && <ul className="figma-list">{implement.reverted!.map((f) => <li key={f}>zurückgenommen: {f}</li>)}</ul>}
+          </div>
+        )}
         {waiting.length === 0 ? (
           <p className="ov2-section-desc">Nichts offen.</p>
         ) : (

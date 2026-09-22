@@ -13,6 +13,8 @@ let apiToken: string = '';
 let appPort: number = 4000;
 
 const isDev = !app.isPackaged;
+// Development-only tools on the server (the Figma "Umsetzen" button) look for this.
+if (isDev) process.env.NST_DEV = '1';
 
 function createWindow() {
   const iconPath = isDev

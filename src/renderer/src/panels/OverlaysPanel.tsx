@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useApi, apiPost, apiFetch, getServerPort } from '../hooks/useApi';
 import { useToast } from '../contexts/ToastContext';
 import CopyButton from '../components/CopyButton';
-import FigmaDrafts, { type DesignStatus } from '../components/FigmaDrafts';
+import FigmaDrafts, { type DesignStatus, type ImplementStatus } from '../components/FigmaDrafts';
 import { useWebSocket } from '../hooks/useWebSocket';
 
 const FONT_OPTIONS = [
@@ -175,6 +175,7 @@ export default function OverlaysPanel() {
 
   const [subTab, setSubTab] = useState<'overlays' | 'design' | 'figma'>('overlays');
   const { data: designStatus, refetch: refetchDesign } = useApi<DesignStatus>('/design/status');
+  const { data: implementStatus, refetch: refetchImplement } = useApi<ImplementStatus>('/dev/implement');
   const waitingDrafts = (designStatus?.drafts ?? []).filter((d) => !d.done).length;
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showUpload, setShowUpload] = useState(false);
@@ -227,6 +228,7 @@ export default function OverlaysPanel() {
   // have changed the palette. Take the server's values, except for keys edited
   // here since the last sync — those are newer, and a pending save keeps them.
   useWebSocket((event) => {
+    if (event === 'design-implement') { refetchImplement(); refetchDesign(); return; }
     if (event !== 'overlay-config') return;
     refetchDesign();
     apiFetch('/overlay-config').then((r) => r.json()).then((server: typeof overlayConfig) => {
@@ -508,7 +510,9 @@ export default function OverlaysPanel() {
         </button>
       </div>
 
-      {subTab === 'figma' && <FigmaDrafts status={designStatus} refetch={refetchDesign} />}
+      {subTab === 'figma' && (
+        <FigmaDrafts status={designStatus} refetch={refetchDesign} implement={implementStatus} refetchImplement={refetchImplement} />
+      )}
 
       {subTab === 'overlays' && (
         <>

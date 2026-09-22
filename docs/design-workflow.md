@@ -93,10 +93,20 @@ unter `actions` in `states.json`: neue Testdaten (`public`) und Ereignisse
    den alten Wert; sonst nimmt ein neuer Versand nichts zurück — Zurücknehmen
    geht nur in der App. Was noch wartet, bleibt auf der Liste, auch wenn ein
    späterer Versand desselben Frames es nicht mehr enthält.
-6. Umgesetzt wird in einer Claude-Sitzung — läuft eine, beobachtet sie
-   `design/drafts` und fängt von selbst an. Dabei wandern die vorläufigen
-   Überschreibungen fest ins Overlay-CSS und werden zurückgenommen, danach
-   `POST /api/design/drafts/<overlay>/<zustand>/done`. Abgleich mit
+6. Umgesetzt wird mit **„Umsetzen lassen“** im Reiter *Figma* (nur in der
+   Entwicklungsversion; `POST /api/dev/implement`): Das Tool startet Claude
+   Code im Hintergrund mit festem Auftrag — `--restricted`, nur Lese-Werkzeuge
+   und Schreiben unter `src/overlays/**`, keine Befehle, kein Web, keine
+   Rückfragen (`src/server/design-implement.ts`). Claude setzt die offenen
+   Punkte und Wünsche um und schreibt die vorläufigen Überschreibungen fest ins
+   Overlay-CSS; das Tool verbucht danach, was Claude als erledigt meldet
+   (Entwurf erledigt, Überschreibung zurückgenommen). Wächst dabei eine
+   Overlay-Datei um Skripte, Event-Handler, externe Adressen, Netzwerk-Aufrufe,
+   `eval`, Navigation oder `@import`, wird sie zurückgesetzt und nichts vom Lauf
+   verbucht. Ein Lauf zur Zeit, höchstens 20 Minuten. Nutzt Nils' Claude-Abo —
+   bewusst nur fürs Entwickeln, die fertige App bietet den Knopf nicht an.
+   Von Hand in einer Claude-Sitzung geht es genauso (Ablauf in `CLAUDE.md`).
+   Abgleich mit
    `npm run showcase:compare -- <overlay>`; die Wünsche stehen dort mit in der
    Ausgabe. Animierte Stellen weichen immer ein wenig ab, weil der angehaltene
    Moment nie ganz derselbe ist.
