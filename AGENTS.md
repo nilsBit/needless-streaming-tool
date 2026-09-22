@@ -37,7 +37,7 @@ src/
   main/          — Electron main process (entry: main.ts)
   server/        — Express backend (entry: index.ts)
     db/          — SQLite setup + schema (schema.ts)
-  renderer/      — React UI (Vite dev on :5173)
+  renderer/      — React UI (Vite dev on :5273)
   overlays/      — Browser source overlays served via Express
   shared/        — Shared types (types.ts) used across all layers
 data/
@@ -56,7 +56,7 @@ data/
 | Port | Service |
 |------|---------|
 | 4000 | Express server (API + overlays) |
-| 5173 | Vite dev server (renderer) |
+| 5273 | Vite dev server (renderer) — not 5173, Worldbuilder's dev server uses that |
 
 **Do NOT use ports 3001 or 3336** — occupied by other projects on this machine.
 
@@ -114,7 +114,7 @@ avoid — it fails on the occupied port and leaves a dead Electron window behind
 
 ```bash
 lsof -nP -iTCP:4000 -sTCP:LISTEN   # Express
-lsof -nP -iTCP:5173 -sTCP:LISTEN   # Vite
+lsof -nP -iTCP:5273 -sTCP:LISTEN   # Vite
 ```
 
 - Either port in use → the app is up. Use it. Do **not** start another one.

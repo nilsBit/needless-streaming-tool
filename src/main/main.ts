@@ -43,7 +43,7 @@ function createWindow() {
 
   // Pass API token to renderer via URL hash (not visible in server logs)
   if (isDev) {
-    mainWindow.loadURL(`http://localhost:5173#token=${apiToken}&port=${appPort}`);
+    mainWindow.loadURL(`http://localhost:5273#token=${apiToken}&port=${appPort}`);
   } else {
     mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'), {
       hash: `token=${apiToken}&port=${appPort}`,
