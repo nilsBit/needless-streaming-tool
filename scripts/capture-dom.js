@@ -1,5 +1,6 @@
 /* Runs inside the overlay page. Turns the rendered DOM into the node tree
-   the Figma plugin rebuilds. Only what Figma can hold is read. */
+   the Figma plugin rebuilds. Only what Figma can hold is read — and what
+   moves, written out for the note under the frame. */
 (({ tokens }) => {
   const tokenByHex = {};
   for (const [name, value] of Object.entries(tokens)) {
@@ -311,9 +312,94 @@
     return node;
   }
 
+  // Figma holds still images only, so what moves is written out instead —
+  // the plugin puts it into the note under each frame.
+  function seconds(v) {
+    return parseFloat(v).toLocaleString('de-DE') + ' s';
+  }
+
+  /** The i-th entry of a comma-separated computed list; commas inside cubic-bezier(…) don't count. */
+  function nth(list, i) {
+    const parts = list.split(/,\s*(?![^()]*\))/);
+    return parts[i % parts.length];
+  }
+
+  function keyframeRules() {
+    const byName = {};
+    const walk = (rules) => {
+      for (const rule of rules) {
+        if (rule instanceof CSSKeyframesRule) byName[rule.name] = rule;
+        else if (rule.cssRules) walk(rule.cssRules);
+      }
+    };
+    for (const sheet of document.styleSheets) {
+      try {
+        walk(sheet.cssRules);
+      } catch {
+        // A cross-origin sheet (Google Fonts) can't be read — it holds no motion.
+      }
+    }
+    return byName;
+  }
+
+  const DIRECTION = { alternate: 'hin und zurück', reverse: 'rückwärts', 'alternate-reverse': 'hin und zurück, rückwärts' };
+
+  function motion() {
+    const keyframes = keyframeRules();
+    const groups = new Map();
+    // Same element kind and same motion make one line — even when each gets
+    // its own duration or delay (staggered bars, randomly timed sparkles).
+    const add = (key, head, rest, detail, duration, delay) => {
+      const group = groups.get(key) ?? { head, rest, detail, durations: [], delays: [] };
+      group.durations.push(duration);
+      group.delays.push(delay);
+      groups.set(key, group);
+    };
+    for (const el of document.body.querySelectorAll('*')) {
+      for (const side of ['', '::before', '::after']) {
+        const s = getComputedStyle(el, side || null);
+        const label = el.tagName.toLowerCase() + (el.classList.length ? '.' + [...el.classList].join('.') : '') + side;
+        if (s.animationName !== 'none') {
+          s.animationName.split(/,\s*/).forEach((name, i) => {
+            if (name === 'none') return;
+            const iterations = nth(s.animationIterationCount, i);
+            const parts = [iterations === 'infinite' ? 'endlos' : iterations === '1' ? 'einmal' : `${iterations} ×`];
+            const direction = DIRECTION[nth(s.animationDirection, i)];
+            if (direction) parts.push(direction);
+            parts.push(nth(s.animationTimingFunction, i));
+            const rule = keyframes[name];
+            const detail = rule
+              ? [...rule.cssRules].map((k) => `${k.keyText}: ${[...k.style].map((p) => `${p} ${k.style.getPropertyValue(p)}`).join(', ')}`).join(' → ')
+              : '';
+            add(`${label}|${name}|${parts}`, `${label} — ${name}: `, `, ${parts.join(', ')}`, detail, nth(s.animationDuration, i), nth(s.animationDelay, i));
+          });
+        }
+        if (s.transitionDuration.split(/,\s*/).some((d) => parseFloat(d) > 0)) {
+          const list = s.transitionProperty.split(/,\s*/)
+            .map((p, i) => `${p} ${seconds(nth(s.transitionDuration, i))} ${nth(s.transitionTimingFunction, i)}`).join(', ');
+          add(`${label}|transition|${list}`, `${label} — Übergang: ${list}`, '', '', null, nth(s.transitionDelay, 0));
+        }
+      }
+    }
+    // One value as is, a handful listed, more than that as a range.
+    const spread = (values) => {
+      const distinct = [...new Set(values)];
+      if (distinct.length === 1) return seconds(distinct[0]);
+      if (values.length <= 6) return values.map(seconds).join(' / ');
+      const sorted = distinct.map(parseFloat).sort((a, b) => a - b);
+      return `${seconds(sorted[0]).replace(' s', '')}–${seconds(sorted.at(-1))}`;
+    };
+    return [...groups.values()].map(({ head, rest, detail, durations, delays }) => {
+      const duration = durations[0] === null ? '' : spread(durations);
+      const staggered = new Set(delays).size > 1;
+      const delay = staggered ? `, versetzt ${spread(delays)}` : parseFloat(delays[0]) ? `, nach ${seconds(delays[0])}` : '';
+      return `• ${delays.length > 1 ? delays.length + ' × ' : ''}${head}${duration}${rest}${delay}${detail ? '\n   ' + detail : ''}`;
+    });
+  }
+
   const bodyRect = document.body.getBoundingClientRect();
   const origin = { left: 0, top: 0, width: bodyRect.width, height: bodyRect.height };
   const nodes = [...document.body.children].map((el) => read(el, origin)).filter(Boolean);
   hidePseudos?.remove();
-  return { nodes, unreadable };
+  return { nodes, unreadable, motion: motion() };
 });

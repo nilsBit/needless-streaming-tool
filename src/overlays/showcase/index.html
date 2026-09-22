@@ -7,6 +7,7 @@
     body { margin: 0; padding: 24px; background: #1b1916; color: #e1d6c2; font: 14px/1.4 system-ui, sans-serif; }
     h1 { font-size: 20px; margin: 0 0 4px; }
     p.hint { margin: 0 0 24px; color: #9b9484; }
+    p.hint a { color: #e1d6c2; margin-left: 8px; }
     section { margin-bottom: 40px; }
     h2 { font-size: 16px; margin: 0 0 12px; }
     .states { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
@@ -23,11 +24,17 @@
 </head>
 <body>
   <h1>Showcase</h1>
-  <p class="hint">Jedes Overlay in jedem Zustand, mit Testdaten. Nichts hiervon erreicht OBS.</p>
+  <p class="hint">Jedes Overlay in jedem Zustand, mit Testdaten. Nichts hiervon erreicht OBS.
+    <a id="mode" href="?live"></a></p>
   <main id="list"></main>
   <script>
     // Anything wider than this is shown scaled down; the caption says by how much.
     const MAX_WIDTH = 760;
+    // Frozen like the capture sees it, or `?live` — everything keeps moving.
+    const live = new URLSearchParams(location.search).has('live');
+    const mode = document.getElementById('mode');
+    mode.textContent = live ? 'Angehalten ansehen' : 'In Bewegung ansehen';
+    mode.href = live ? '?' : '?live';
 
     fetch('/overlay/showcase/states.json')
       .then((r) => r.json())
@@ -40,7 +47,7 @@
           states.className = 'states';
           for (const state of Object.keys(entry.states)) {
             const scale = Math.min(1, MAX_WIDTH / entry.size.width);
-            const src = `/overlay/${name}/index.html?state=${encodeURIComponent(state)}`;
+            const src = `/overlay/${name}/index.html?state=${encodeURIComponent(state)}${live ? '&live' : ''}`;
             const figure = document.createElement('figure');
             figure.innerHTML = `
               <div class="stage" style="width:${entry.size.width * scale}px;height:${entry.size.height * scale}px">

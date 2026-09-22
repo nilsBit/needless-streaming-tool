@@ -76,6 +76,10 @@ try {
       } else {
         console.log(`${percent < 2 ? 'ok  ' : 'diff'} ${overlay} / ${state} — ${percent.toFixed(1)} % abweichend → ${rel}`);
       }
+      // What the image can't show — motion above all — stands in the note sent along with the frame.
+      const note = JSON.parse(fs.readFileSync(path.join(path.dirname(draftFile), 'draft.json'), 'utf8')).note;
+      const wishes = typeof note === 'string' ? note.split('Wünsche:')[1]?.trim() : '';
+      if (wishes) console.log(`     Wünsche: ${wishes.replace(/\n/g, '\n              ')}`);
     } catch (e) {
       failed++;
       console.log(`FAIL ${overlay} / ${state} — ${e.message}`);

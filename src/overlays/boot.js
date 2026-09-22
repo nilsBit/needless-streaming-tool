@@ -83,12 +83,14 @@
    * /overlay/showcase/states.json instead of listening to the server. Nothing
    * reaches OBS and nothing reads the database. Once the state has played, the
    * page is frozen — animations paused, timers cleared — and
-   * `data-showcase-ready` marks it for the capture script.
+   * `data-showcase-ready` marks it for the capture script. `&live` skips the
+   * freeze, so the state keeps moving — for judging an animation by eye.
    */
-  var showcaseState = new URLSearchParams(window.location.search).get('state');
-  if (showcaseState) installShowcase(name, showcaseState);
+  var params = new URLSearchParams(window.location.search);
+  var showcaseState = params.get('state');
+  if (showcaseState) installShowcase(name, showcaseState, params.has('live'));
 
-  function installShowcase(overlay, stateName) {
+  function installShowcase(overlay, stateName, live) {
     var root = document.documentElement;
     var realFetch = window.fetch.bind(window);
     var realSetTimeout = window.setTimeout.bind(window);
@@ -180,7 +182,7 @@
               }
             }, e.afterMs || 0);
           });
-          realSetTimeout(freeze, state.freezeAfterMs || 0);
+          if (!live) realSetTimeout(freeze, state.freezeAfterMs || 0);
         });
       }, 0);
     }

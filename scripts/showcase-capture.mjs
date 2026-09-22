@@ -22,12 +22,12 @@ try {
       try {
         const opened = await openState(browser, overlay, state, entry.size);
         page = opened.page;
-        const { nodes, unreadable } = await page.evaluate(`(${captureDom.trim().replace(/;$/, '')})(${JSON.stringify({ tokens })})`);
+        const { nodes, unreadable, motion } = await page.evaluate(`(${captureDom.trim().replace(/;$/, '')})(${JSON.stringify({ tokens })})`);
         const preview = 'data:image/png;base64,' + (await page.screenshot({ omitBackground: true })).toString('base64');
         if (opened.errors.length) throw new Error('console errors: ' + opened.errors.join(' | '));
         const file = path.join(outDir, overlay, `${state}.json`);
         fs.mkdirSync(path.dirname(file), { recursive: true });
-        const capture = { overlay, state, width: entry.size.width, height: entry.size.height, tokens, preview, nodes };
+        const capture = { overlay, state, width: entry.size.width, height: entry.size.height, tokens, preview, nodes, motion };
         fs.writeFileSync(file, JSON.stringify(capture));
         const json = JSON.stringify(nodes);
         const bound = (json.match(/"token":/g) ?? []).length;

@@ -1,3 +1,5 @@
+import { NOTE_SUFFIX } from './import';
+
 type Json = Record<string, unknown>;
 
 async function variableName(id: string | undefined): Promise<string | undefined> {
@@ -60,6 +62,13 @@ async function variableValues(): Promise<Json> {
   return values;
 }
 
+/** The text of the note the import put under this frame, if it is still there. */
+function noteFor(frame: FrameNode): string | undefined {
+  const note = figma.currentPage.findOne((n) => n.name === frame.name + NOTE_SUFFIX);
+  const text = note && 'findOne' in note ? note.findOne((n) => n.type === 'TEXT') : null;
+  return text?.type === 'TEXT' ? text.characters : undefined;
+}
+
 export type Draft = { frameId: string; frameName: string; overlay: string | null; state: string | null; draft: Json; image: string; image2x: string };
 
 /** Exports every FRAME in the current selection as a Draft: a JSON tree plus 1x/2x PNGs.
@@ -67,7 +76,7 @@ export type Draft = { frameId: string; frameName: string; overlay: string | null
  *  visible again while designing) is hidden for the PNG export and its visibility restored afterwards,
  *  whatever happens during export. */
 export async function exportSelection(log: (text: string) => void): Promise<Draft[]> {
-  const frames = figma.currentPage.selection.filter((n): n is FrameNode => n.type === 'FRAME');
+  const frames = figma.currentPage.selection.filter((n): n is FrameNode => n.type === 'FRAME' && !n.name.endsWith(NOTE_SUFFIX));
   if (frames.length === 0) return [];
   log(`Exportiere ${frames.length} Frame${frames.length === 1 ? '' : 's'} …`);
   const variables = await variableValues();
@@ -85,7 +94,7 @@ export async function exportSelection(log: (text: string) => void): Promise<Draf
     } finally {
       templates.forEach((c, i) => { c.visible = wasVisible[i]; });
     }
-    const draft = { ...(await tree(frame, true)), variables };
+    const draft = { ...(await tree(frame, true)), variables, note: noteFor(frame) };
     drafts.push({ frameId: frame.id, frameName: frame.name, overlay: m ? m[1] : null, state: m ? m[2] : null, draft, image, image2x });
   }
   return drafts;

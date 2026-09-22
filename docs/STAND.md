@@ -169,6 +169,10 @@ noch nie in Figma gelaufen.
   Frames, Variablensammlung „NST“, ausgeblendete Ebene „Vorlage“) und „An NST
   senden“ → `design/drafts/<overlay>/<zustand>/` (eingecheckt).
 - **Vergleich** `npm run showcase:compare -- <overlay>` → `design/compare/`.
+- **Bewegung:** Figma kennt nur Standbilder. Unter jedem Frame legt der Import
+  eine Notiz an, die in Worten sagt, was sich im Code bewegt, mit Platz für
+  „Wünsche:“; sie reist beim Senden mit. Ansehen in Bewegung:
+  `/overlay/showcase/?live` (22.09.).
 - Anleitung: `docs/design-workflow.md`. Entwurf und Plan:
   `docs/superpowers/specs/2026-09-21-overlay-design-workflow-design.md`,
   `docs/superpowers/plans/2026-09-21-overlay-design-workflow.md`.

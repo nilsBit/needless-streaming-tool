@@ -11,7 +11,11 @@ export type CaptureNode = {
   image?: { dataUrl: string }; svg?: { source: string }; children?: CaptureNode[];
 };
 export type Capture = { overlay: string; state: string; width: number; height: number;
-  tokens: Record<string, string>; preview: string; nodes: CaptureNode[] };
+  tokens: Record<string, string>; preview: string; nodes: CaptureNode[]; motion?: string[] };
+
+/** The note under each frame is found again by this name when the frame is sent back. */
+export const NOTE_SUFFIX = ' · Notiz';
+export const WISHES = 'Wünsche:';
 
 const COLLECTION = 'NST';
 const FLOAT_TOKENS = ['--color-bg-opacity', '--font-size-base'];
@@ -192,6 +196,48 @@ async function build(node: CaptureNode, parent: FrameNode, ctx: BuildContext): P
   }
 }
 
+/**
+ * Figma holds still images, so the note says in words what moves — as the
+ * code does it now — and leaves room for what should change. It is a frame
+ * of its own so it grows while typing; sending skips it as a draft and
+ * carries its text along with the frame it belongs to.
+ */
+async function addNote(capture: Capture, frame: FrameNode, fonts: Font[]): Promise<FrameNode> {
+  const font = findFont(fonts, 'Inter', 'Regular');
+  if (!font) throw new Error('Inter Regular fehlt — Figma-Installation prüfen.');
+  await figma.loadFontAsync(font);
+  const motion = capture.motion ?? [];
+  const note = figma.createFrame();
+  note.name = frame.name + NOTE_SUFFIX;
+  // Width first: resizing an auto-layout frame would pin its height as well.
+  note.resize(Math.min(Math.max(capture.width, 360), 800), 100);
+  note.layoutMode = 'VERTICAL';
+  note.primaryAxisSizingMode = 'AUTO';
+  note.counterAxisSizingMode = 'FIXED';
+  note.paddingTop = note.paddingBottom = note.paddingLeft = note.paddingRight = 16;
+  note.cornerRadius = 6;
+  note.fills = [{ type: 'SOLID', color: { r: 1, g: 0.95, b: 0.75 } }];
+  const text = figma.createText();
+  text.fontName = font;
+  text.fontSize = 13;
+  text.lineHeight = { unit: 'PERCENT', value: 140 };
+  text.fills = [{ type: 'SOLID', color: { r: 0.17, g: 0.15, b: 0.12 } }];
+  text.characters = [
+    motion.length ? 'So bewegt es sich jetzt:' : 'Hier bewegt sich nichts.',
+    ...motion,
+    '',
+    WISHES,
+    '',
+  ].join('\n');
+  note.appendChild(text);
+  text.layoutSizingHorizontal = 'FILL';
+  text.textAutoResize = 'HEIGHT';
+  note.x = frame.x;
+  note.y = frame.y + frame.height + 24;
+  frame.parent?.appendChild(note);
+  return note;
+}
+
 /** One new page per import — never touches frames already designed. */
 export async function importCaptures(captures: Capture[], log: (text: string) => void): Promise<void> {
   if (captures.length === 0) { log('Keine Erfassungen gefunden. Erst `npm run showcase:capture` laufen lassen.'); return; }
@@ -223,9 +269,10 @@ export async function importCaptures(captures: Capture[], log: (text: string) =>
 
     const ctx: BuildContext = { variables, tokens: capture.tokens, fonts, frameName: frame.name, log, missing, styleFallbacks };
     for (const node of capture.nodes) await build(node, frame, ctx);
+    const note = await addNote(capture, frame, fonts);
     log(`${frame.name} ✓`);
-    x += capture.width + 120;
-    rowHeight = Math.max(rowHeight, capture.height);
+    x += Math.max(capture.width, note.width) + 120;
+    rowHeight = Math.max(rowHeight, capture.height + 24 + note.height);
   }
   if (missing.size) log(`Ersetzt durch Inter (Schrift fehlt in Figma): ${[...missing].join(', ')}`);
   if (styleFallbacks.size) log(`Schriftschnitt angepasst (nicht verfügbar): ${[...styleFallbacks].join(', ')}`);

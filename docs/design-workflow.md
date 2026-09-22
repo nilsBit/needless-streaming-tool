@@ -24,6 +24,10 @@ Testdaten. Nichts davon erreicht OBS. Zustände und Größen stehen in
 `src/overlays/showcase/states.json`; ein Zustand einzeln:
 `/overlay/<name>/index.html?state=<zustand>`.
 
+Beides friert nach dem Abspielen ein, so wie das Erfassen es sieht. Mit
+`?live` (Showcase: `/overlay/showcase/?live`, einzeln `&live` anhängen) läuft
+alles weiter — so lässt sich eine Animation mit den Augen beurteilen.
+
 ## Nach Figma
 
 1. Tool läuft (`npm run dev`).
@@ -33,6 +37,11 @@ Testdaten. Nichts davon erreicht OBS. Zustände und Größen stehen in
 3. Im Plugin **Aus NST einlesen** — landet auf einer neuen Seite „Import …",
    Farben an die Variablen der Sammlung „NST" gebunden, das Originalbild als
    ausgeblendete Ebene „Vorlage" in jedem Frame.
+4. Unter jedem Frame liegt eine gelbe **Notiz** (`<overlay> / <zustand> · Notiz`).
+   Figma kennt nur Standbilder: Ein animierter Balken steht im Frame in
+   irgendeinem angehaltenen Moment. Die Notiz sagt deshalb in Worten, was sich
+   im Code gerade bewegt — Dauer, Wiederholung, Verzögerung, Schlüsselbilder —
+   und hat darunter Platz unter **Wünsche:**.
 
 ## Zurück
 
@@ -42,5 +51,12 @@ Testdaten. Nichts davon erreicht OBS. Zustände und Größen stehen in
    `design/drafts/<overlay>/<zustand>/` (Entwurf, 1x- und 2x-Bild). Die
    ausgeblendete Ebene „Vorlage" wird dabei nie mit exportiert, auch wenn sie
    sichtbar geschaltet wurde.
-3. Bescheid sagen: „character ist fertig". Umgesetzt wird mit
-   `npm run showcase:compare -- <overlay>` als Abgleich.
+3. Was das Bild nicht zeigt, gehört in die Notiz unter **Wünsche:** — Bewegung
+   („Balken ruhiger, nie ganz flach"), Einblendungen, Verhalten bei langem
+   Text. Die Notiz reist beim Senden mit (`note` in `draft.json`); sie selbst
+   wird nicht als Entwurf gesendet, auch wenn sie mit markiert ist. Gestaltet
+   wird bei Animationen das Aussehen, bei Einblendungen der Endzustand.
+4. Bescheid sagen: „character ist fertig". Umgesetzt wird mit
+   `npm run showcase:compare -- <overlay>` als Abgleich; die Wünsche stehen
+   dort mit in der Ausgabe. Animierte Stellen weichen dabei immer ein wenig
+   ab, weil der angehaltene Moment nie ganz derselbe ist.
