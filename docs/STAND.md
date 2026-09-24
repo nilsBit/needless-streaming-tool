@@ -169,6 +169,17 @@ braucht den Bot.
   Nachrichten, ohne Befehle und Bot-Antworten; was Mods löschen, verschwindet
   auch dort. In OBS als Quelle „chat“ in *clip studio paint* bei 480/776,
   480×304 — der Platz aus dem Entwurf.
+- **Alle OBS-Szenen gefüllt** (Quellen werden zwischen den Szenen geteilt):
+  *main* = der Entwurf — oben der Hauptbildschirm, unten Kamera | Chat
+  (540/777) | `karteKompakt` (neue Quelle, 530×304, die Karte weicht der
+  niedrigen Quelle aus und lässt die Fakten weg) | Songliste (1565/797, ×0,875);
+  Todos oben links, Einblendungen darüber. *Camera* = Kamera, Chat rechts unten,
+  Musik links unten, Einblendungen. *brb* = neues Pausenbild `/overlay/pause/`
+  („Gleich zurück.“ + zuletzt aufgeschlagener Eintrag), Chat und Musik rechts;
+  das leere StreamElements-Overlay „pauseChat“ ist raus.
+- **Fund:** Der Test-Knopf der Songliste legt drei Einträge an und löscht sie
+  nach 8 s — startet der Server in der Zeit neu, bleiben sie liegen (drei vom
+  19.09. standen noch in der echten Liste, am 24.09. von Hand entfernt).
 
 **Hier aufgehört (24.09., abends auf dem Mac)**
 
