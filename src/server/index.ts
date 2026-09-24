@@ -44,6 +44,7 @@ import { startSMTC, getAutoDetectSetting } from './integrations/smtc';
 import { getDb } from './db/index';
 import { rateLimit, publicRateLimit } from './middleware/rate-limit';
 import { getUserDataPath } from './paths';
+import { recentChat } from './bot/chat-feed';
 
 const parsedPort = parseInt(process.env.NST_PORT || '4000', 10);
 if (isNaN(parsedPort) || parsedPort < 1 || parsedPort > 65535) {
@@ -89,10 +90,10 @@ export function createApp(): express.Express {
   app.use((req, res, next) => (req.path === '/api/design/inbox' ? next() : globalJson(req, res, next)));
   app.use(rateLimit);
 
-  // CSP für Overlays — dynamic based on request host
+  // CSP für Overlays — dynamic based on request host. Images: Spotify covers, Twitch emotes (chat).
   app.use('/overlay', (req, res, next) => {
     const host = req.headers.host || `localhost:${PORT}`;
-    res.setHeader('Content-Security-Policy', `default-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' https://i.scdn.co data:; connect-src ws://${host} http://${host} wss://${host} https://${host}`);
+    res.setHeader('Content-Security-Policy', `default-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' https://i.scdn.co https://static-cdn.jtvnw.net data:; connect-src ws://${host} http://${host} wss://${host} https://${host}`);
     next();
   });
 
@@ -182,6 +183,11 @@ export function createApp(): express.Express {
   // The song overlay only hears about changes; on load it asks what is playing.
   app.get('/public/song', (_req, res) => {
     res.json({ song: currentSong() });
+  });
+
+  // The chat overlay hears new lines as they come; on load it asks for the last ones.
+  app.get('/public/chat', (_req, res) => {
+    res.json(recentChat());
   });
 
   app.get('/public/song-queue', (_req, res) => {

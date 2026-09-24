@@ -71,7 +71,7 @@ describe('overlay config after the Lexikon migration', () => {
     const names = [
       'alerts', 'challenge', 'character', 'milestone', 'poll', 'progress',
       'reward-leaderboard', 'reward-rankchange', 'roulette', 'song',
-      'song-queue', 'todos', '_template',
+      'song-queue', 'todos', 'chat', '_template',
     ];
 
     for (const name of names) {
@@ -92,7 +92,7 @@ describe('overlay config after the Lexikon migration', () => {
     const names = [
       'alerts', 'challenge', 'character', 'milestone', 'poll', 'progress',
       'reward-leaderboard', 'reward-rankchange', 'roulette', 'song',
-      'song-queue', 'todos', '_template',
+      'song-queue', 'todos', 'chat', '_template',
     ];
 
     for (const name of names) {
@@ -133,7 +133,7 @@ describe('overlay config after the Lexikon migration', () => {
     const names = [
       'alerts', 'challenge', 'character', 'milestone', 'poll', 'progress',
       'reward-leaderboard', 'reward-rankchange', 'roulette', 'song',
-      'song-queue', 'todos', '_template',
+      'song-queue', 'todos', 'chat', '_template',
     ];
 
     for (const name of names) {

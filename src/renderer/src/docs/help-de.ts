@@ -176,6 +176,7 @@ Konfiguriere Mappings über die API:
 | Alerts | /overlay/alerts/index.html | Raids, Rewards, Events |
 | Song | /overlay/song/index.html | Aktueller Song |
 | Song Queue | /overlay/song-queue/index.html | Aktueller Song und Song-Wünsche |
+| Chat | /overlay/chat/index.html | Die letzten acht Chat-Nachrichten, ohne Befehle; was Mods löschen, verschwindet auch hier |
 | Reward Leaderboard | /overlay/reward-leaderboard/index.html | Wer die meisten Rewards eingelöst hat |
 | Reward Rank Change | /overlay/reward-rankchange/index.html | Einblendung, wenn sich die Rangliste ändert |
 | Todos | /overlay/todos/index.html | Todo-Liste |
@@ -300,6 +301,7 @@ Auth-Header: Authorization: Bearer <token>
 - GET /public/issues
 - GET /public/progress — Projekt, Items und ihre Todos
 - GET /public/song-queue — aktueller Song und Warteschlange
+- GET /public/chat — die letzten Chat-Nachrichten
 - GET /public/reward-stats/top — Rangliste (?type=all&limit=3)
 - GET /public/overlay-config — Farben und Schriften
 - GET /public/entry — die Eintragskarte, ohne ausgeblendete Felder

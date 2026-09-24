@@ -24,7 +24,7 @@ const FONT_OPTIONS = [
   { value: "'Fira Code', monospace", label: 'Fira Code' },
 ];
 
-const OVERLAY_NAMES = ['challenge', 'todos', 'progress', 'milestone', 'song', 'song-queue', 'alerts', 'poll', 'roulette', 'reward-leaderboard', 'reward-rankchange', 'character'];
+const OVERLAY_NAMES = ['challenge', 'todos', 'progress', 'milestone', 'song', 'song-queue', 'alerts', 'poll', 'roulette', 'reward-leaderboard', 'reward-rankchange', 'character', 'chat'];
 
 const OVERLAY_ICONS: Record<string, string> = {
   challenge: '🎯',
@@ -39,6 +39,7 @@ const OVERLAY_ICONS: Record<string, string> = {
   'reward-leaderboard': '🏅',
   'reward-rankchange': '🔄',
   character: '👥',
+  chat: '💬',
 };
 
 type PaletteConfig = { global: Record<string, string>; overrides: Record<string, Record<string, string>> };
@@ -62,7 +63,7 @@ function mergeConfig(local: PaletteConfig, synced: PaletteConfig, server: Palett
   return { global: pick(local.global, synced.global, server.global), overrides };
 }
 
-const TESTABLE_OVERLAYS = new Set(['alerts', 'song', 'poll', 'milestone', 'roulette', 'challenge', 'todos', 'progress', 'song-queue', 'reward-leaderboard', 'reward-rankchange', 'character']);
+const TESTABLE_OVERLAYS = new Set(['alerts', 'song', 'poll', 'milestone', 'roulette', 'challenge', 'todos', 'progress', 'song-queue', 'reward-leaderboard', 'reward-rankchange', 'character', 'chat']);
 
 const THEME_PRESETS: { name: string; label: string; color: string; values: Record<string, string> }[] = [
   {

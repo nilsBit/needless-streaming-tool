@@ -35,6 +35,7 @@
     - reward-leaderboard-update                   Rangliste geändert
     - song-update / song-clear                    Song anzeigen / ausblenden
     - sr-update                                   Song-Wünsche geändert
+    - chat-message / chat-remove                  Chat-Nachricht neu / von Mods entfernt ({ ids })
     - poll-update / poll-close / vote-result      Abstimmungen
     - design-created / design-updated / design-deleted
     - compile-pray                                Hype Moment ausgelöst
@@ -49,6 +50,7 @@
     - GET /public/issues            → [ { id, title, status, ... }, ... ]
     - GET /public/progress          → { project_name, items: [ { ..., todos: [...] } ] }
     - GET /public/song-queue        → aktueller Song und Warteschlange
+    - GET /public/chat              → die letzten Chat-Nachrichten
     - GET /public/reward-stats/top  → Rangliste (?type=all&limit=3)
     - GET /public/entry             → { card } — die Eintragskarte
     - GET /public/overlay-config    → Farben und Schriften

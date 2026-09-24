@@ -211,6 +211,17 @@ function getTestEvents(name: string): { event: string; data: unknown }[] {
     return [{ event: 'progress-update', data: {} }];
   }
 
+  // Three lines as if from chat; taken back after a while like a moderator would.
+  if (name === 'chat') {
+    const lines = [
+      ['test-1', 'TestViewer', 'Hallo aus dem Chat!'],
+      ['test-2', 'Kartograph', 'wer hat eigentlich die Portale gebaut?'],
+      ['test-3', 'Lesezeichen42', 'die Farben sind so gut 😍'],
+    ].map(([id, user, text]) => ({ id, login: user.toLowerCase(), user, color: null, parts: [{ type: 'text', text }] }));
+    setTimeout(() => broadcast('chat-remove', { ids: lines.map((l) => l.id) }), 8000);
+    return lines.map((line) => ({ event: 'chat-message', data: line }));
+  }
+
   if (name === 'song-queue') {
     const db = getDb();
     // Insert a temporary test song request

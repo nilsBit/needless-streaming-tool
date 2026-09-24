@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="/overlay/lexikon.css">
+  <style>
+    /* A fixed list: the last lines stay, a new one pushes the oldest out at the top. */
+    .chat {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-sizing: border-box;
+    }
+
+    .chat-kicker { font-size: 0.733rem; }
+
+    .chat-lines {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .chat-line {
+      display: flex;
+      flex-direction: column;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--lex-rule);
+      animation: chatIn 0.3s ease-out;
+    }
+    .chat-line:last-child { border-bottom: none; padding-bottom: 0; }
+
+    @keyframes chatIn {
+      0% { opacity: 0; transform: translateY(8px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .chat-user {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 0.933rem;
+      color: var(--art);
+      line-height: 1.2;
+    }
+
+    .chat-text {
+      font-size: 1rem;
+      line-height: 1.4;
+      color: var(--color-text);
+      overflow-wrap: anywhere;
+    }
+
+    .chat-emote {
+      height: 1.6em;
+      vertical-align: middle;
+      margin: -0.2em 0;
+    }
+
+    .chat-empty {
+      font-size: 0.867rem;
+      font-style: italic;
+      color: var(--lex-faint);
+    }
+    .chat-empty.hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="chat lex lex-schlank" id="chat">
+    <div class="lex-kicker chat-kicker">Chat</div>
+    <p class="chat-empty" id="chat-empty">Noch still hier.</p>
+    <ul class="chat-lines" id="chat-lines"></ul>
+  </div>
+
+  <script src="/overlay/boot.js" data-overlay="chat"></script>
+  <script>
+    // How many lines stand in the box; the server keeps a few more.
+    const SHOWN = 8;
+    const chat = document.getElementById('chat');
+    const list = document.getElementById('chat-lines');
+    const empty = document.getElementById('chat-empty');
+
+    // Text goes in as text, never as HTML — this is what anyone in chat can type.
+    function lineElement(line) {
+      const li = document.createElement('li');
+      li.className = 'chat-line';
+      li.dataset.id = line.id;
+
+      const user = document.createElement('span');
+      user.className = 'chat-user';
+      user.textContent = line.user;
+
+      const text = document.createElement('span');
+      text.className = 'chat-text';
+      for (const part of line.parts) {
+        if (part.type === 'emote') {
+          const img = document.createElement('img');
+          img.className = 'chat-emote';
+          img.alt = part.name;
+          img.src = `https://static-cdn.jtvnw.net/emoticons/v2/${encodeURIComponent(part.id)}/default/dark/2.0`;
+          text.appendChild(img);
+        } else {
+          text.appendChild(document.createTextNode(part.text));
+        }
+      }
+
+      li.append(user, text);
+      return li;
+    }
+
+    function update() {
+      while (list.children.length > SHOWN) list.firstElementChild.remove();
+      // Long messages can outgrow the browser source — then the oldest go, so
+      // the newest line is never the one cut off at the bottom.
+      while (list.children.length > 1 && chat.getBoundingClientRect().height > window.innerHeight) {
+        list.firstElementChild.remove();
+      }
+      empty.classList.toggle('hidden', list.children.length > 0);
+    }
+
+    function add(line) {
+      list.appendChild(lineElement(line));
+      update();
+    }
+
+    function remove(ids) {
+      for (const li of Array.from(list.children)) {
+        if (ids.includes(li.dataset.id)) li.remove();
+      }
+      update();
+    }
+
+    // Updates only bring new lines — on load, ask for the last ones.
+    function load() {
+      fetch(`${window.__overlayOrigin}/public/chat`)
+        .then(r => r.json())
+        .then((lines) => {
+          list.replaceChildren(...lines.slice(-SHOWN).map(lineElement));
+          update();
+        })
+        .catch(() => {});
+    }
+
+    // Reconnects on its own, and catches up on whatever changed meanwhile.
+    function connect() {
+      const ws = new WebSocket(`${window.__overlayWs}?overlay=1`);
+      ws.onopen = load;
+      ws.onmessage = (msg) => {
+        const { event, data } = JSON.parse(msg.data);
+
+        if (event === 'overlay-config' && window.__applyOverlayConfig) window.__applyOverlayConfig(data);
+
+        if (event === 'chat-message') add(data);
+
+        if (event === 'chat-remove') remove(data.ids);
+      };
+      ws.onclose = () => setTimeout(connect, 2000);
+      ws.onerror = () => ws.close();
+    }
+
+    // The web font arrives after the first lines and can make them taller.
+    document.fonts.ready.then(update);
+    window.addEventListener('resize', update);
+
+    update();
+    connect();
+  </script>
+</body>
+</html>
