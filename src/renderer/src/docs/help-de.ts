@@ -83,7 +83,7 @@ Alle Befehle lassen sich unter Settings → Chat Commands umbenennen. Antworten,
   },
   {
     title: 'Welt & Eintragskarte',
-    content: `Die Eintragskarte zeigt im Stream, woran du gerade arbeitest — eine Figur, einen Ort, eine Gilde, einen Begriff — als Seite aus dem Lexikon deiner Welt.
+    content: `Die Eintragskarte zeigt im Stream, woran du gerade arbeitest — eine Figur, einen Ort, eine Gilde, einen Begriff — als Seite aus dem Kompendium deiner Welt.
 
 **In OBS:** Browser-Quelle mit http://localhost:4000/overlay/character/index.html (dieselbe URL wie früher das Figuren-Overlay), etwa 800 × 700 groß.
 
@@ -110,7 +110,7 @@ Alle Befehle lassen sich unter Settings → Chat Commands umbenennen. Antworten,
 
 **Damit sie immer in ihre Quelle passt,** auch bei langen Einträgen: Der Titel hat höchstens zwei Zeilen und wird kleiner, wenn er länger ist; Zweitname und Rolle eine Zeile; die Beschreibung höchstens vier Zeilen; Felder und Beziehungen zusammen höchstens drei, jede einzeilig — hat der Eintrag Beziehungen, ist mindestens eine davon dabei. Was darüber hinausgeht, endet mit „…“. Den ganzen Text gibt es mit !figur im Chat. Beziehungen zu verworfenen Einträgen erscheinen nicht. Jede Beziehung hat im Panel ihren eigenen 👁-Schalter (↔).
 
-**Umgestalten:** Farben und Schriften kommen aus Settings → Overlays → Design und gelten für alle Overlays zugleich; einzelne lassen sich dort übersteuern. Die Karte selbst nutzt den Lexikon-Stil aus /overlay/lexikon.css — dort liegen auch die drei Gewichte (voll, schlank, flüchtig), die alle Overlays teilen. Nur was dieser Karte allein gehört (Breite, das Wort „Lexikon“ über dem Titel) steht oben in ihrer Datei. Über Settings → Overlays lässt sich eine eigene Kopie anlegen.`,
+**Umgestalten:** Farben und Schriften kommen aus Settings → Overlays → Design und gelten für alle Overlays zugleich; einzelne lassen sich dort übersteuern. Die Karte selbst nutzt den Kompendium-Stil aus /overlay/lexikon.css — dort liegen auch die drei Gewichte (voll, schlank, flüchtig), die alle Overlays teilen. Nur was dieser Karte allein gehört (Breite, das Wort „Kompendium“ über dem Titel) steht oben in ihrer Datei. Über Settings → Overlays lässt sich eine eigene Kopie anlegen.`,
   },
   {
     title: 'Discord: Live-Meldung',

@@ -67,8 +67,26 @@ const TESTABLE_OVERLAYS = new Set(['alerts', 'song', 'poll', 'milestone', 'roule
 
 const THEME_PRESETS: { name: string; label: string; color: string; values: Record<string, string> }[] = [
   {
-    // What every overlay ships with (schema v21). First in the list, and the
-    // way back after trying any of the others.
+    // What every overlay ships with (schema v23) — the layout draft of 23.09.
+    // First in the list, and the way back after trying any of the others.
+    name: 'kompendium',
+    label: 'Kompendium',
+    color: '#e0201b',
+    values: {
+      '--color-primary': '#f3ecdd',
+      '--color-secondary': '#a79f90',
+      '--color-accent': '#e0201b',
+      '--color-text': '#e9e1d1',
+      '--color-bg': '#141210',
+      '--color-bg-opacity': '1',
+      '--color-bg-secondary': '#1d1a17',
+      '--font-display': "'JetBrains Mono', ui-monospace, monospace",
+      '--font-body': "'JetBrains Mono', ui-monospace, monospace",
+      '--font-size-base': '18px',
+    },
+  },
+  {
+    // The look before the Kompendium (schema v20/v21): serif, gold.
     name: 'lexikon',
     label: 'Lexikon',
     color: '#c9a45c',

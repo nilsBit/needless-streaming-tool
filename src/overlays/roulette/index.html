@@ -66,8 +66,8 @@
     color: var(--lex-faint);
     font-family: var(--font-display);
     font-size: 1.83vmin;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
+    letter-spacing: 0;
+    font-style: italic;
   }
 
   .wheel-wrapper {
@@ -113,9 +113,9 @@
     color: var(--color-secondary);
     font-family: var(--font-display);
     font-size: 2vmin;
-    letter-spacing: 0.28em;
+    letter-spacing: 0;
     margin-bottom: 1vmin;
-    text-transform: uppercase;
+    font-style: italic;
   }
 
   .result-value {
@@ -293,7 +293,7 @@ function buildWheel(){
 
   document.getElementById('wheel').innerHTML=`<svg width="320" height="320" viewBox="0 0 320 320">${segs}<circle cx="${CX}" cy="${CY}" r="${R}" style="fill:none;stroke:var(--lex-frame)" stroke-width="1"/><circle cx="${CX}" cy="${CY}" r="18" style="fill:var(--color-bg);stroke:var(--lex-frame)" stroke-width="1"/><circle cx="${CX}" cy="${CY}" r="4" style="fill:var(--art)"/></svg>`;
 
-  document.getElementById('totalPts').textContent = N + ' ISSUES';
+  document.getElementById('totalPts').textContent = N + ' Issues';
 }
 
 function buildOrbs(){

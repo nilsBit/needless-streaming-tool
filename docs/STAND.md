@@ -123,7 +123,7 @@ braucht den Bot.
 - **Live-Meldung nach Discord**, wenn OBS den Stream startet (siehe oben).
 - Der Stream-Timer lief nach einem Neustart der App wieder weiter, statt bei
   null anzufangen.
-- Die Overlay-Palette steht auf „Lexikon“.
+- Die Overlay-Palette steht auf „Kompendium“ (bis 24.09.: „Lexikon“).
 - **Browser-Quellen in OBS laden sich selbst nach.** Startet OBS vor dem
   Toolkit, laufen seine Browser-Quellen ins Leere und bleiben für immer leer —
   eine Seite, die nie geladen hat, kann sich nicht neu verbinden, und OBS lädt
@@ -153,6 +153,22 @@ braucht den Bot.
   Warum kein Sync: ADR-0023 im Worldbuilder.
 
 ## Wo wir stehen geblieben sind
+
+**Dazu am 24.09. abends (Windows):**
+
+- **Kompendium-Stil für alle 13 Overlays** — nach dem Layout-Entwurf des
+  Streamers vom 23.09. (Kamera | Chat | Kompendium-Karte | Werbefläche, unten
+  im Bild): JetBrains Mono, Creme auf fast Schwarz, Rot als einziger Akzent,
+  flache Flächen ohne Rahmen, Kicker kursiv. Schema v23 stellt die gespeicherte
+  Palette um (Schriftgröße und Einstellungen einzelner Overlays bleiben);
+  „Kompendium“ ist die erste Vorlage, Lexikon bleibt wählbar. Die Eintragskarte
+  heißt „Kompendium · Art“, Art und Initiale rot statt in der Art-Farbe, kein
+  Siegel mehr (nur ein Porträt). Gilt ab jetzt immer — der Lexikon-Stil war
+  der Zwischenstand. `lexikon.css` und die `lex-*`-Klassen behalten ihre Namen.
+- **Chat-Overlay** `/overlay/chat/` (`97a7909`): feste Liste der letzten acht
+  Nachrichten, ohne Befehle und Bot-Antworten; was Mods löschen, verschwindet
+  auch dort. In OBS als Quelle „chat“ in *clip studio paint* bei 480/776,
+  480×304 — der Platz aus dem Entwurf.
 
 **Hier aufgehört (24.09., abends auf dem Mac)**
 

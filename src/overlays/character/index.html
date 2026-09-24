@@ -5,8 +5,10 @@
   <link rel="stylesheet" href="/overlay/lexikon.css">
   <style>
     /*
-     * The Entry Card in the "Lexikon" style (#19): whatever is being worked on
-     * right now, as a page out of the world's lexicon.
+     * The Entry Card in the Kompendium style (the layout draft of 23.09.):
+     * whatever is being worked on right now, as a page out of the Kompendium.
+     * The Art and the initial are in the one accent, red — not in the Art's own
+     * colour, which the draft does not know.
      *
      * Colors, fonts and the derived tones come from /overlay/lexikon.css and
      * the settings panel. Only what is this overlay's own sits here.
@@ -15,7 +17,7 @@
       /* Never wider than its browser source — a card cut off at the right edge
          loses its seal and its maturity line. */
       --lex-width: min(720px, 100%);
-      --lex-kicker: 'Lexikon';
+      --lex-kicker: 'Kompendium';
     }
 
     .slot {
@@ -32,13 +34,11 @@
     /* Frame, background and seal come from .lex-voll and .lex-seal. */
     .card { width: var(--lex-width); }
 
-    .seal svg { width: 34px; height: 34px; }
-    .seal.portrait { width: 104px; height: 104px; border: 2px solid var(--art); }
+    .seal.portrait { width: 104px; height: 104px; }
     .seal img { width: 100%; height: 100%; object-fit: cover; }
 
-    .kicker { padding-right: 90px; }
     .kicker::before { content: var(--lex-kicker); }
-    .kicker .art { color: var(--art); }
+    .kicker .art { color: var(--color-accent); font-style: normal; }
 
     /* Two lines at most. A longer title gets smaller type (see fitTitle), and
        what still doesn't fit is cut — the card must stay inside its source. */
@@ -47,21 +47,21 @@
       -webkit-box-orient: vertical;
       -webkit-line-clamp: 2;
       overflow: hidden;
-      margin-top: 14px;
-      padding-right: 60px;
-      font-size: 4rem;
+      margin-top: 16px;
+      font-size: 2.667rem;
+      line-height: 1.15;
     }
     /* A long title shrinks whatever size the title was given — also one set
        from Figma, whose override carries the whole path to the title and would
        outrank any class rule here. */
-    .title.long { font-size: 3rem !important; }
+    .title.long { font-size: 2rem !important; }
     .has-portrait .kicker, .has-portrait .title { padding-right: 130px; }
     .alias {
       margin-top: 4px;
       overflow: hidden;
       white-space: nowrap;
       text-overflow: ellipsis;
-      font: italic 500 1.733rem var(--font-display);
+      font: italic 400 1rem var(--font-display);
       color: var(--lex-soft);
     }
 
@@ -70,10 +70,12 @@
       -webkit-box-orient: vertical;
       -webkit-line-clamp: 4;
       overflow: hidden;
-      margin-top: 18px;
-      font: 400 1.467rem/1.55 var(--font-body);
+      margin-top: 20px;
+      font: 400 1.2rem/1.45 var(--font-body);
     }
-    .body:not(.empty)::first-letter { float: left; padding: 8px 10px 0 0; font: 600 5.067rem/.8 var(--font-display); color: var(--art); }
+    /* An element, not the first-letter pseudo-element — OBS's browser leaves that
+       out inside a clamped box, and the initial never reached the stream. */
+    .initial { float: left; padding: 4px 8px 0 0; font: 700 3.2rem/.8 var(--font-display); color: var(--color-accent); }
     .body.empty { font-style: italic; color: var(--lex-faint); }
 
     dl {
@@ -83,12 +85,12 @@
       margin-top: 18px;
       padding-top: 14px;
       border-top: 1px solid var(--lex-rule);
-      font: 400 1.2rem/1.45 var(--font-body);
+      font: 400 1rem/1.45 var(--font-body);
     }
-    dt { font: italic 600 1.2rem var(--font-body); color: var(--color-secondary); }
+    dt { font: italic 400 1rem var(--font-body); color: var(--color-secondary); }
     dd { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; overflow: hidden; }
 
-    .foot { display: flex; justify-content: space-between; gap: 24px; margin-top: 16px; font: italic 1.067rem var(--font-body); color: var(--lex-faint); }
+    .foot { display: flex; justify-content: space-between; gap: 24px; margin-top: 18px; font: italic 0.933rem var(--font-body); color: var(--lex-soft); }
   </style>
 </head>
 <body>
@@ -101,28 +103,18 @@
      */
     const MAX_ROWS = 3;
 
-    // A glyph for the Arten a world usually has; any other Art gets initials.
-    const BOOK = '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"><path d="M6 10 C14 8 20 9 24 13 C28 9 34 8 42 10 V38 C34 36 28 37 24 41 C20 37 14 36 6 38 Z"/><path d="M24 13 V41"/></svg>';
-    const MOUNTAIN = '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"><path d="M4 38 L18 16 L26 28 L32 20 L44 38 Z"/><circle cx="35" cy="10" r="4"/></svg>';
-    const BANNER = '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"><path d="M12 5 V43"/><path d="M12 8 H38 L32 17 L38 26 H12"/></svg>';
-    const GLYPHS = { region: MOUNTAIN, ort: MOUNTAIN, gilde: BANNER, fraktion: BANNER, begriff: BOOK, konzept: BOOK };
-
     const stage = document.body;
     const esc = (value) => String(value).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
-    function initials(title) {
-      const words = title
-        .replace(/„[^“]*“/g, ' ')
-        .replace(/\b(Die|Der|Das|und)\b|Dr\./g, ' ')
-        .split(/\s+/)
-        .filter(Boolean);
-      if (words.length === 0) return '?';
-      return (words.length > 1 ? words[0][0] + words[words.length - 1][0] : words[0][0]).toUpperCase();
+    // Only a portrait sits in the corner; the draft has no emblem for an entry without one.
+    function seal(card) {
+      return card.image ? `<div class="seal lex-seal portrait"><img src="${esc(card.image)}" alt=""></div>` : '';
     }
 
-    function seal(card) {
-      if (card.image) return `<div class="seal lex-seal portrait"><img src="${esc(card.image)}" alt=""></div>`;
-      return `<div class="seal lex-seal">${GLYPHS[card.art.toLowerCase()] || esc(initials(card.title))}</div>`;
+    /** The first character as the red initial, the rest as text. */
+    function initialed(text) {
+      const [first, ...rest] = Array.from(text);
+      return `<span class="initial">${esc(first)}</span>${esc(rest.join(''))}`;
     }
 
     /** Relationships read like facts ("Gehört zu"), capitalised the way a lexicon would. */
@@ -137,7 +129,7 @@
         <div class="kicker lex-kicker"><span class="art">${esc(card.art)}</span></div>
         <div class="title lex-title">${esc(card.title)}</div>
         ${card.aliasLine ? `<div class="alias">${esc(card.aliasLine)}</div>` : ''}
-        <p class="body${card.body ? '' : ' empty'}">${card.body ? esc(card.body) : 'Dieses Blatt ist noch leer.'}</p>
+        <p class="body${card.body ? '' : ' empty'}">${card.body ? initialed(card.body) : 'Dieses Blatt ist noch leer.'}</p>
         ${facts.length ? `<dl>${facts.map((f) => `<dt>${esc(f.name)}</dt><dd>${esc(f.value)}</dd>`).join('')}</dl>` : ''}
         ${card.world || maturity ? `<div class="foot"><span>${esc(card.world || '')}</span><span>${esc(maturity)}</span></div>` : ''}
       </div>`;
@@ -167,7 +159,6 @@
      */
     function show(card) {
       if (card && current && current.dataset.id === card.id) {
-        current.style.setProperty('--art', card.artColor || 'var(--color-accent)');
         current.innerHTML = render(card);
         fitTitle(current);
         return;
@@ -185,7 +176,6 @@
       const slot = document.createElement('div');
       slot.className = 'slot';
       slot.dataset.id = card.id;
-      if (card.artColor) slot.style.setProperty('--art', card.artColor);
       slot.innerHTML = render(card);
       stage.appendChild(slot);
       fitTitle(slot);

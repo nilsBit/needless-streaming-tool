@@ -1,5 +1,9 @@
 # Alle Overlays im Lexikon-Stil
 
+> **Abgelöst am 24.09.2026** durch den Kompendium-Stil (Layout-Entwurf des
+> Streamers vom 23.09., siehe `docs/STAND.md`). Aufbau, Gewichte und Namen
+> (`lexikon.css`, `lex-*`) gelten weiter, Farben, Schrift und Rahmen nicht mehr.
+
 Entwurf vom 15. September 2026.
 
 Dieses Dokument beschreibt, wie die elf übrigen Overlays auf das Design der

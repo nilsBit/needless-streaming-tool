@@ -256,6 +256,42 @@ function runMigrations(from: number, to: number) {
     }
   }
 
+  if (from < 23) {
+    // The Kompendium look — the streamer's layout draft of 23.09.: a mono face,
+    // cream on near-black, red as the one accent. Same reason as v20: the stored
+    // value beats the stylesheet. The type size is the streamer's own and stays;
+    // so does whatever was set per overlay.
+    const KOMPENDIUM: Record<string, string> = {
+      '--color-bg': '#141210',
+      '--color-bg-secondary': '#1d1a17',
+      '--color-bg-opacity': '1',
+      '--color-text': '#e9e1d1',
+      '--color-primary': '#f3ecdd',
+      '--color-secondary': '#a79f90',
+      '--color-accent': '#e0201b',
+      '--font-display': "'JetBrains Mono', ui-monospace, monospace",
+      '--font-body': "'JetBrains Mono', ui-monospace, monospace",
+    };
+
+    const row = db.prepare('SELECT value FROM settings WHERE key = ?').get('overlay_config') as
+      | { value: string }
+      | undefined;
+    let config: { global?: Record<string, string>; overrides?: unknown } = {};
+    if (row) {
+      try {
+        config = JSON.parse(row.value);
+      } catch {
+        config = {};
+      }
+    }
+    const global = { '--font-size-base': '18px', ...(config.global ?? {}), ...KOMPENDIUM };
+    db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run(
+      'overlay_config',
+      JSON.stringify({ global, overrides: config.overrides ?? {} }),
+    );
+    console.log('[DB] Migrated: overlay config set to the Kompendium palette');
+  }
+
   // Safety check: ensure experiment_* columns were renamed to challenge_*
   // (can be missed if DB was copied from an older version after migration ran)
   try {
