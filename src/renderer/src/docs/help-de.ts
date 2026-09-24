@@ -177,6 +177,7 @@ Konfiguriere Mappings über die API:
 | Song | /overlay/song/index.html | Aktueller Song |
 | Song Queue | /overlay/song-queue/index.html | Aktueller Song und Song-Wünsche |
 | Chat | /overlay/chat/index.html | Die letzten acht Chat-Nachrichten, ohne Befehle; was Mods löschen, verschwindet auch hier |
+| Pause | /overlay/pause/index.html | Ganzes Bild für die Pausen-Szene: „Gleich zurück.“ und der zuletzt aufgeschlagene Eintrag |
 | Reward Leaderboard | /overlay/reward-leaderboard/index.html | Wer die meisten Rewards eingelöst hat |
 | Reward Rank Change | /overlay/reward-rankchange/index.html | Einblendung, wenn sich die Rangliste ändert |
 | Todos | /overlay/todos/index.html | Todo-Liste |

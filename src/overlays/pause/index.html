@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="/overlay/lexikon.css">
+  <style>
+    /*
+     * The pause screen (scene "brb"), a whole page of the Kompendium: nothing
+     * to look at but where the story stood when the stream paused.
+     */
+    .page {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 12vw;
+      background: color-mix(in srgb, var(--color-bg) calc(var(--color-bg-opacity) * 100%), transparent);
+    }
+
+    .kicker { font-size: 1.2rem; max-width: 900px; }
+    .kicker .what { color: var(--color-accent); font-style: normal; }
+
+    .title { margin-top: 28px; font-size: 6rem; line-height: 1; }
+
+    .line {
+      margin-top: 28px;
+      font: italic 400 1.333rem var(--font-body);
+      color: var(--lex-soft);
+    }
+    .line .entry { color: var(--color-primary); font-style: normal; }
+    .line.hidden { display: none; }
+
+    .foot {
+      position: absolute;
+      left: 12vw;
+      right: 12vw;
+      bottom: 64px;
+      display: flex;
+      justify-content: space-between;
+      font: italic 400 1rem var(--font-body);
+      color: var(--lex-faint);
+    }
+  </style>
+</head>
+<body>
+  <div class="page lex">
+    <div class="kicker lex-kicker">Kompendium&nbsp;<span class="what">Pause</span></div>
+    <div class="title lex-title">Gleich zurück.</div>
+    <p class="line hidden" id="line">Zuletzt aufgeschlagen: <span class="entry" id="entry"></span></p>
+    <div class="foot"><span id="world"></span><span>twitch.tv/chain_des</span></div>
+  </div>
+
+  <script src="/overlay/boot.js" data-overlay="pause"></script>
+  <script>
+    const line = document.getElementById('line');
+    const entry = document.getElementById('entry');
+    const world = document.getElementById('world');
+
+    // The card that was up when the stream paused — as text, never as HTML.
+    function show(card) {
+      line.classList.toggle('hidden', !card);
+      entry.textContent = card ? card.title : '';
+      world.textContent = card && card.world ? card.world : '';
+    }
+
+    function load() {
+      fetch(`${window.__overlayOrigin}/public/entry`)
+        .then((r) => r.json())
+        .then((d) => show(d.card))
+        .catch(() => {});
+    }
+
+    // Reconnects on its own, and catches up on whatever changed meanwhile.
+    function connect() {
+      const ws = new WebSocket(`${window.__overlayWs}?overlay=1`);
+      ws.onopen = load;
+      ws.onmessage = (msg) => {
+        const { event, data } = JSON.parse(msg.data);
+
+        if (event === 'overlay-config' && window.__applyOverlayConfig) window.__applyOverlayConfig(data);
+
+        if (event === 'entry-changed') show(data);
+      };
+      ws.onclose = () => setTimeout(connect, 2000);
+      ws.onerror = () => ws.close();
+    }
+
+    connect();
+  </script>
+</body>
+</html>

@@ -24,7 +24,7 @@ const FONT_OPTIONS = [
   { value: "'Fira Code', monospace", label: 'Fira Code' },
 ];
 
-const OVERLAY_NAMES = ['challenge', 'todos', 'progress', 'milestone', 'song', 'song-queue', 'alerts', 'poll', 'roulette', 'reward-leaderboard', 'reward-rankchange', 'character', 'chat'];
+const OVERLAY_NAMES = ['challenge', 'todos', 'progress', 'milestone', 'song', 'song-queue', 'alerts', 'poll', 'roulette', 'reward-leaderboard', 'reward-rankchange', 'character', 'chat', 'pause'];
 
 const OVERLAY_ICONS: Record<string, string> = {
   challenge: '🎯',
@@ -40,6 +40,7 @@ const OVERLAY_ICONS: Record<string, string> = {
   'reward-rankchange': '🔄',
   character: '👥',
   chat: '💬',
+  pause: '⏸️',
 };
 
 type PaletteConfig = { global: Record<string, string>; overrides: Record<string, Record<string, string>> };

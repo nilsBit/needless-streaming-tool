@@ -89,3 +89,19 @@ describe('the Entry Card initial', () => {
     expect(res.text).toContain('class="initial"');
   });
 });
+
+describe('the Entry Card in a low source', () => {
+  /**
+   * The strip at the bottom of the draft is 304px high — the full card with its
+   * facts is not. In a low source the card drops the facts, like the draft.
+   */
+  it('gives way to a low browser source instead of being cut off', async () => {
+    initDatabase(':memory:');
+    const res = await request(createApp()).get('/overlay/character/index.html').expect(200);
+    const low = /@media \(max-height: (\d+)px\) \{([\s\S]*?)\n    \}/.exec(res.text);
+
+    expect(low, 'no rule for a low source').not.toBeNull();
+    expect(Number(low![1])).toBeGreaterThanOrEqual(304);
+    expect(low![2]).toMatch(/dl \{ display: none; \}/);
+  });
+});
