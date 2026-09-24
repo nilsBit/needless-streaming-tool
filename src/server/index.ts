@@ -31,6 +31,7 @@ import charactersRouter from './api/characters';
 import entriesRouter from './api/entries';
 import { activeCard, activeCharacter, CHARACTER_IMAGE_DIR } from './api/active-entry';
 import { startFollowing } from './api/follow';
+import commandsRouter from './api/commands';
 import textCommandsRouter from './api/text-commands';
 import lookupCommandsRouter from './api/lookup-commands';
 import chatRouter from './api/chat';
@@ -151,6 +152,7 @@ export function createApp(): express.Express {
   app.use('/api/song-requests', songRequestsRouter);
   app.use('/api/characters', charactersRouter);
   app.use('/api/entries', entriesRouter);
+  app.use('/api/commands', commandsRouter);
   app.use('/api/text-commands', textCommandsRouter);
   app.use('/api/lookup-commands', lookupCommandsRouter);
   app.use('/api/chat', chatRouter);

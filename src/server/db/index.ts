@@ -38,6 +38,15 @@ export function initDatabase(dbPath?: string): Database.Database {
 }
 
 function runMigrations(from: number, to: number) {
+  if (from < 22) {
+    // A sentence per command, for `!befehle <name>`, the app's list and the
+    // Twitch panel. Empty means "derive one" (see bot/command-list.ts), so
+    // nothing has to be filled in.
+    try { db.exec('ALTER TABLE text_commands ADD COLUMN description TEXT'); } catch { /* already there */ }
+    try { db.exec('ALTER TABLE lookup_commands ADD COLUMN description TEXT'); } catch { /* already there */ }
+    console.log('[DB] Migrated: commands can carry a description');
+  }
+
   if (from < 4) {
     // Milestones: add title, status, completed_at columns (idempotent)
     try { db.exec('ALTER TABLE milestones ADD COLUMN title TEXT NOT NULL DEFAULT \'\''); } catch {}

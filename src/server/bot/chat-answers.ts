@@ -1,6 +1,7 @@
 import { getDb } from '../db/index';
 import { getStreamTimecodes } from '../obs/index';
 import { splitForChat, type ChatAnswer } from './chat-message';
+import { describeCommand } from './command-list';
 import { getCommandNames, triggerOf, VIEWER_COMMAND_KEYS } from './command-names';
 import { answerLookupCommand } from './lookup-commands';
 import { answerTextCommand } from './text-commands';
@@ -17,7 +18,15 @@ export async function answerChatMessage(message: string, privileged: boolean): P
   const trigger = triggerOf(message);
   const names = getCommandNames();
 
-  if (trigger === names.commands) return { replies: splitForChat(commandListReply(names)) };
+  if (trigger === names.commands) {
+    // `!befehle <name>` explains one command instead of naming them all.
+    const wanted = message.trim().split(/\s+/).slice(1).join(' ');
+    if (wanted) {
+      const command = describeCommand(wanted);
+      return { replies: splitForChat(command ? `${command.trigger} — ${command.description}` : `❓ „${wanted.slice(0, 40)}“ kenne ich nicht. ${commandListReply(names)}`) };
+    }
+    return { replies: splitForChat(commandListReply(names)) };
+  }
   if (trigger === names.uptime) return { replies: [await uptimeReply()] };
   if (Object.values(names).includes(trigger)) return { replies: null, reason: 'builtin' };
 
@@ -39,7 +48,7 @@ function commandListReply(names: Record<string, string>): string {
     VIEWER_COMMAND_KEYS.map((key) => names[key]).filter(Boolean),
   ].filter((group) => group.length > 0);
 
-  return `📜 Befehle: ${groups.map((group) => group.join(' ')).join(' · ')}`;
+  return `📜 Befehle: ${groups.map((group) => group.join(' ')).join(' · ')} — was einer macht: ${names.commands} <Name>`;
 }
 
 /**

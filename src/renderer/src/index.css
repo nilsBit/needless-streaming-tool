@@ -1375,6 +1375,19 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .figma-list { margin: 6px 0 0; padding-left: 18px; color: var(--text-secondary); font-size: 12px; }
 .figma-list li { margin: 2px 0; word-break: break-word; }
 .figma-wishes { margin: 6px 0 0; color: var(--text-secondary); font-size: 12px; white-space: pre-wrap; }
+.command-overview { margin-top: 24px; }
+.command-overview-actions { display: flex; gap: 8px; }
+.command-overview-panel {
+  margin: 0 0 12px; padding: 10px 12px; max-height: 220px; overflow: auto;
+  background: #151515; border: 1px solid var(--border-subtle); border-radius: 8px;
+  color: var(--text-secondary); font-size: 12px; white-space: pre-wrap;
+}
+.command-overview-group { margin-bottom: 14px; }
+.command-overview-group h4 { margin: 0 0 6px; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+.command-overview-group h4 small { text-transform: none; letter-spacing: 0; margin-left: 8px; }
+.command-overview-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.command-overview-row input { flex: 1; min-width: 0; }
+
 .figma-implement { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 12px; }
 .figma-implement .ov2-section-desc { flex: 1; margin: 0; }
 .figma-implement-btn { color: var(--text-secondary); border-color: #e67e22; }

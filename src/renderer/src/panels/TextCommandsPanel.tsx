@@ -3,6 +3,7 @@ import { apiDelete, apiFetch, apiGet, apiPatch, apiPost, useApi } from '../hooks
 import { useToast } from '../contexts/ToastContext';
 import EmptyState from '../components/ux/EmptyState';
 import ChatCommands from '../components/ChatCommands';
+import CommandOverview from '../components/CommandOverview';
 
 interface TextCommand {
   id: number;
@@ -346,8 +347,11 @@ export default function TextCommandsPanel() {
           : <p className="empty">{NO_REPLY[trialAnswer.reason]}</p>)}
       </div>
 
+      <CommandOverview />
+
       <ChatCommands commands={[
         { cmd: '!befehle', desc: 'Listet alle Befehle' },
+        { cmd: '!befehle <Name>', desc: 'Erklärt einen einzelnen Befehl' },
         ...(lookups ?? []).filter((l) => l.enabled).map((l) => ({
           cmd: `${l.trigger} <Name>`,
           desc: `Sucht unter „${l.art}“`,

@@ -19,6 +19,8 @@ export interface TextCommand {
   cooldown_seconds: number;
   /** SQLite has no boolean. */
   enabled: number;
+  /** A sentence for the command list; empty means one is derived. */
+  description: string | null;
   created_at: string;
 }
 

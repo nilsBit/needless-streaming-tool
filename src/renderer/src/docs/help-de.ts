@@ -31,6 +31,7 @@ Alle Verbindungen richtest du unter **Settings** ein — Twitch, OBS, Notion und
 | Command | Beschreibung |
 |---------|-------------|
 | !befehle | Listet alle Befehle — deine Erklär-Commands zuerst |
+| !befehle <Name> | Erklärt einen einzelnen Befehl, z. B. !befehle figur |
 | !challenge | Zeigt aktuelle Challenge |
 | !figur | Zeigt die Figur, die gerade im Overlay ist |
 | !figur <Name> | Schlägt eine Figur in der Welt nach |
@@ -65,7 +66,9 @@ Alle Befehle lassen sich unter Settings → Chat Commands umbenennen. Antworten,
 **Regeln:**
 - Ein Erklär-Command darf nicht heißen wie ein eingebauter Befehl — auch nicht wie ein umbenannter.
 - Ausgeschaltete Befehle antworten nicht und stehen nicht in !befehle.
-- !befehle nennt deine Erklär-Commands zuerst, dann die Nachschlage-Commands, danach die eingebauten.
+- !befehle nennt deine Erklär-Commands zuerst, dann die Nachschlage-Commands, danach die eingebauten. Mit einem Namen dahinter (!befehle figur) kommt der eine Satz zu diesem Befehl.
+
+**Übersicht für Zuschauer:** Unten im Panel steht jeder Befehl mit einem Satz. Lässt du das Feld leer, schreibt das Tool den Satz selbst — bei eigenen Texten der erste Satz der Antwort, beim Nachschlagen die Art, bei eingebauten ein fester Text; er steht blass im Feld. **Für Twitch-Panel kopieren** legt die ganze Liste als Text in die Zwischenablage, den du auf Twitch unter *Kanal bearbeiten → Panels* einfügst. Nach Änderungen musst du ihn dort neu einfügen.
 - Eigene Texte und Nachschlage-Commands sind im Backup enthalten.
 
 **Aus der Welt nachschlagen:** Nachschlage-Commands suchen live in deiner Worldbuilder-Welt. Zuschauer schreiben z. B. !figur Mila oder !ort Saldor und bekommen Titel, Rolle und Kurzbeschreibung (oder den Text) in einer Chat-Nachricht.
