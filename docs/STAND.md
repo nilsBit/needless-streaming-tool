@@ -154,11 +154,22 @@ braucht den Bot.
 
 ## Wo wir stehen geblieben sind
 
-**Hier aufgehört (24.09.)**
+**Hier aufgehört (24.09., abends auf dem Mac)**
 
 - Gearbeitet wird auf diesem Branch, `overlay-design-workflow` — gepusht,
   aber **nicht in `main`**. `main` hat nur die zwei Sicherheits-Fixes
   (`dcb368e`, `0c1f901`), die hier schon drin sind.
+- **Zuletzt gebaut: die Befehls-Übersicht** (`82c4c0b`). Jeder Befehl hat
+  jetzt einen Satz — eigener Text, Nachschlagen und eingebaute in einer Liste
+  (`src/server/bot/command-list.ts`, Schema v22). Leere Sätze schreibt das
+  Tool selbst. In der App unter *Projekt → Erklär-Commands → Übersicht für
+  Zuschauer*: Sätze schreiben und **Für Twitch-Panel kopieren**. Im Chat
+  erklärt `!befehle <Name>` einen einzelnen Befehl.
+  **Offen dazu:** Der Panel-Text muss nach Änderungen von Hand neu in Twitch
+  eingefügt werden; ein Overlay mit der Befehlsliste wurde bewusst nicht
+  gebaut (wäre das 13., über denselben Figma-Weg).
+  Die elf Erklär-Command-Texte liegen in der Datenbank des Windows-Rechners,
+  nicht im Repo — auf dem Mac ist die Gruppe „Erklärt“ deshalb leer.
 - Stehen geblieben beim **Figma-Pilot mit `character`**: Tool lief
   (`npm run dev`), das Plugin war gebaut, `character` in drei Zuständen
   erfasst. Der nächste Handgriff liegt in Figma Desktop: Plugin „NST-Brücke“
