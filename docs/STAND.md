@@ -4,7 +4,7 @@ Einstieg für einen neuen Rechner oder eine neue Claude-Session. **Offene Arbeit
 steht in den GitHub Issues** (`gh issue list`) — dieses Dokument erklärt das
 Große Ganze, wie die beiden Projekte zusammenhängen und wo wir stehen.
 
-Stand: 22. September 2026.
+Stand: 24. September 2026.
 
 ## Worum es geht
 
@@ -25,7 +25,7 @@ Das Ziel: Figuren, Story und Welt nicht in jedem Stream neu erklären müssen.
 | Projekt | Repo | Rolle |
 |---|---|---|
 | **Needless Streaming Tool** (dieses Repo) | `github.com/nilsBit/needless-streaming-tool` (öffentlich), Branch `main` | Electron-App fürs Streamen: Overlays, Chat-Bot, Stream Deck |
-| **Worldbuilder** | `github.com/nilsBit/worldbuilder` (privat), Branch `weltwerkzeug-ausbau` | Electron-App, in der die Welt geschrieben wird |
+| **Worldbuilder** | `github.com/nilsBit/worldbuilder` (privat), Branch `main` | Electron-App, in der die Welt geschrieben wird |
 
 **Wie sie sich verbinden:** Der Worldbuilder öffnet ein lesendes
 „Schaufenster“ — nur auf `127.0.0.1`, hinter einem Token — und legt Port und
@@ -154,6 +154,25 @@ braucht den Bot.
 
 ## Wo wir stehen geblieben sind
 
+**Hier aufgehört (24.09.)**
+
+- Gearbeitet wird auf diesem Branch, `overlay-design-workflow` — gepusht,
+  aber **nicht in `main`**. `main` hat nur die zwei Sicherheits-Fixes
+  (`dcb368e`, `0c1f901`), die hier schon drin sind.
+- Stehen geblieben beim **Figma-Pilot mit `character`**: Tool lief
+  (`npm run dev`), das Plugin war gebaut, `character` in drei Zuständen
+  erfasst. Der nächste Handgriff liegt in Figma Desktop: Plugin „NST-Brücke“
+  importieren (*Plugins → Development → Import plugin from manifest…*,
+  `figma-plugin/manifest.json`), Figma-Token aus dem Log (`[Auth] Figma
+  token: …`) eintragen, **Aus NST einlesen**. Dann weiter mit Schritt 2 unten.
+- Im Worldbuilder liegt eine neue, leere Welt „No Fucking Hero“. **Der Stream
+  bleibt bei „Die Verborgene Stadt“.**
+
+**So geht es weiter:** Pilot (Schritte 1–3 unten) → die übrigen elf Overlays
+→ Branch nach `main` (vorher fragen, Konflikt in
+`custom-overlays.test.ts` zusammenführen) → Overlays in OBS über echtem Bild
+ansehen (#23) → einen echten Stream mit Live-Meldung.
+
 **Overlays in Figma gestalten — Branch `overlay-design-workflow` (21.09.)**
 
 Die Arbeit liegt auf dem Branch, **nicht in `main`**: `git checkout
@@ -246,7 +265,6 @@ Offen am Rand:
 - Die OBS-Quelle auf 800×700 prüfen (Windows-Rechner).
 - Das Glücksrad wird gedreht erfasst (als umschließender Kasten, 526 statt
   320 px) und kommt in Figma verzerrt an.
-- Der Bot-Login ist abgelaufen.
 - #22: Ursache belegt (Port-Kollision zwischen supertest und den Stubs),
   Behebung offen.
 - Dass die Plugin-Oberfläche nur Nachrichten von Figma annimmt
@@ -302,28 +320,16 @@ paint“. In „main“ gibt es sie nicht — dort bleibt der Song unsichtbar, e
 läuft.
 - Die Overlays als **Browser-Quelle in OBS** über echtem Videobild ansehen.
 
-**Achtung beim Start**
-
-- Der Chat-Bot kam zuletzt nicht rein: `[Bot] Connection failed: Login
-  authentication failed`. Ohne Bot-Login antwortet kein einziger
-  Erklär-Command. Sieht nach abgelaufenem Twitch-Token aus — in den Settings
-  neu anmelden.
-
-**Einmal einstellen**
-
-- In *Projekt → Erklär-Commands → Aus der Welt nachschlagen* die Arten auf die
-  Welt anpassen. Sie stehen noch auf den Notion-Arten und **greifen deshalb
-  ins Leere**: `!ort` → Ort, `!gilde` → Fraktion, `!begriff` → Konzept. „Die
-  Verborgene Stadt“ kennt stattdessen Region, Gilde und Begriff; nur `!figur`
-  → Figur passt schon.
-- Die **Erklär-Texte fehlen ganz** — `!story` und `!welt` gibt es noch nicht.
-  Der Text für beide lässt sich aus dem Discord-Channel ├die-welt ableiten.
-- In *Projekt → Welt* die Quelle auf **Worldbuilder** stellen — steht schon.
+**Erledigt am 20. und 23.09.:** Twitch neu verbunden, der Bot antwortet.
+Die Nachschlage-Commands stehen auf Region, Gilde und Begriff, `!story` und
+`!welt` gibt es, dazu elf Erklär-Commands (`!discord`, `!lexikon`, `!idee`,
+`!kanon`, `!worldbuilder`, `!tool`, `!regeln`, `!fanart`, `!clip`,
+`!zeitplan`, `!lurk`). Chat-Antworten höchstens 500 Zeichen, sonst teilt
+`splitForChat` sie auf.
 
 **Später**
 
 - Design aller Overlays überarbeiten.
-- Im Worldbuilder: Branch `weltwerkzeug-ausbau` nach `main` bringen.
 - Auf dem Discord-Server: der alte doppelte Test-Beitrag „Saldor“ in
   ├regionen muss weg, AutoMod und Regel-Bestätigung einschalten, Server-Icon,
   Rolle „Stream-Ping“, Server-Guide. Ein Bot-Vorhaben liegt daneben:
@@ -364,7 +370,6 @@ OBS und den Stream-Deck-Token danach in den Settings prüfen.
 ```bash
 git clone https://github.com/nilsBit/worldbuilder.git
 cd worldbuilder
-git switch weltwerkzeug-ausbau
 pnpm install
 pnpm dev
 ```
