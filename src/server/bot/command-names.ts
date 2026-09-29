@@ -24,11 +24,20 @@ export const DEFAULT_COMMANDS: Record<string, string> = {
   queue: '!queue',
   rewardstats: '!stats',
   commands: '!befehle',
+  shoutout: '!so',
 };
 
 /**
- * Built-ins a viewer can use, in the order `!befehle` names them. `!scene` is
- * for mods and `!design` runs a poll, so neither is advertised to chat.
+ * Fixed second names for a built-in, for viewers who look in English. They
+ * can't be renamed, and no configured command may take them.
+ */
+export const COMMAND_ALIASES: Record<string, readonly string[]> = {
+  commands: ['!commands', '!help'],
+};
+
+/**
+ * Built-ins a viewer can use, in the order `!befehle` names them. `!scene` and
+ * `!so` are for mods and `!design` runs a poll, so none is advertised to chat.
  */
 export const VIEWER_COMMAND_KEYS = [
   'challenge',
@@ -54,6 +63,14 @@ export function getCommandNames(): Record<string, string> {
     }
   } catch {}
   return { ...DEFAULT_COMMANDS };
+}
+
+/** Which built-in a trigger calls — by its name or one of its fixed second names. */
+export function builtinKeyOf(trigger: string, names: Record<string, string> = getCommandNames()): string | null {
+  for (const [key, name] of Object.entries(names)) {
+    if (trigger === name || COMMAND_ALIASES[key]?.includes(trigger)) return key;
+  }
+  return null;
 }
 
 /** "Story", "!story " and "!STORY" are the same trigger. */
@@ -95,7 +112,7 @@ export function checkTrigger(trigger: string, except?: { table: ConfiguredTable;
     };
   }
 
-  if (Object.values(getCommandNames()).includes(trigger)) {
+  if (builtinKeyOf(trigger) !== null) {
     return { status: 409, error: 'trigger_taken', message: `${trigger} ist schon ein eingebauter Befehl.` };
   }
 

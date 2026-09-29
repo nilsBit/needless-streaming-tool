@@ -6,15 +6,9 @@ import { changeScene, getScenes } from '../obs/index';
 import { broadcast } from '../websocket/index';
 import { resolveOEmbed, detectSource } from '../api/song-requests';
 import { sayInParts } from './chat-message';
-import { getCommandNames, triggerOf } from './command-names';
+import { builtinKeyOf, triggerOf } from './command-names';
 import { answerChatMessage } from './chat-answers';
-
-function matchCommand(input: string, cmds: Record<string, string>): string | null {
-  for (const [key, name] of Object.entries(cmds)) {
-    if (input === name) return key;
-  }
-  return null;
-}
+import { botHelix, shoutoutText } from './shoutout';
 
 /** Broadcaster and mods — the people allowed to steer the stream from chat. */
 function isPrivileged(tags: { mod?: boolean; badges?: { broadcaster?: string } | null }): boolean {
@@ -30,10 +24,16 @@ export function registerCommands(client: Client) {
     const say = (text: string) => void sayInParts(client, channel, text);
 
     const input = triggerOf(message);
-    const cmds = getCommandNames();
-    const command = matchCommand(input, cmds);
+    const command = builtinKeyOf(input);
 
     switch (command) {
+      case 'shoutout': {
+        if (!isPrivileged(tags)) break;
+        const name = message.trim().split(/\s+/)[1] ?? '';
+        say(await shoutoutText(name, botHelix() ?? (async () => null)));
+        break;
+      }
+
       case 'challenge': {
         const state = getDb().prepare('SELECT * FROM stream_state WHERE id = 1').get() as StreamState;
         if (!state.challenge_title) {

@@ -4,6 +4,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import type { Express } from 'express';
+import type Database from 'better-sqlite3';
 import { initDatabase } from '../db/index';
 import { generateApiToken } from '../auth-token';
 import { createApp } from '../index';
@@ -18,9 +19,13 @@ describe('the song queue test button', () => {
   let token: string;
   let file: string;
   let dir: string;
+  let db: Database.Database | null = null;
 
+  // Windows refuses to delete a database that is still open, so every start
+  // closes the one before, as the app's own restart would.
   const start = () => {
-    initDatabase(file);
+    db?.close();
+    db = initDatabase(file);
     token = generateApiToken();
     app = createApp();
   };
@@ -31,7 +36,11 @@ describe('the song queue test button', () => {
     start();
   });
 
-  afterEach(() => fs.rmSync(dir, { recursive: true, force: true }));
+  afterEach(() => {
+    db?.close();
+    db = null;
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
 
   const auth = () => ({ Authorization: `Bearer ${token}` });
   const queue = async () => (await request(app).get('/public/song-queue').expect(200)).body;

@@ -26,7 +26,11 @@ describe('a fresh database', () => {
     app = createApp();
   });
 
-  afterEach(() => fs.rmSync(dir, { recursive: true, force: true }));
+  // Windows refuses to delete a database that is still open.
+  afterEach(() => {
+    getDb().close();
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
 
   it('serves the milestone list', async () => {
     const res = await request(app).get('/api/milestones').set({ Authorization: `Bearer ${token}` }).expect(200);
@@ -35,6 +39,7 @@ describe('a fresh database', () => {
 
   it('puts a column back that a database lost', async () => {
     getDb().exec('ALTER TABLE todos DROP COLUMN milestone_id');
+    getDb().close();
     initDatabase(path.join(dir, 'stream.db')); // as on the next start
     app = createApp();
     const res = await request(app).get('/api/milestones').set({ Authorization: `Bearer ${token}` }).expect(200);

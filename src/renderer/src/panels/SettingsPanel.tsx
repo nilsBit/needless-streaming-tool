@@ -28,6 +28,12 @@ export default function SettingsPanel() {
   }>('/settings/sync/status');
   const { data: autostartInfo, refetch: refetchAutostart } = useApi<{ enabled: boolean }>('/settings/autostart');
   const { data: commandsData, refetch: refetchCommands } = useApi<Record<string, string>>('/settings/commands');
+  const { data: raidShoutout, refetch: refetchRaidShoutout } = useApi<{ value: string | null }>('/settings/get/raid_shoutout');
+  const raidShoutoutOn = raidShoutout?.value !== '0';
+  const setRaidShoutout = async (on: boolean) => {
+    await apiPost('/settings/set', { key: 'raid_shoutout', value: on ? '1' : '0' });
+    refetchRaidShoutout();
+  };
   const { data: discordLive, refetch: refetchDiscordLive } = useApi<{ configured: boolean; message: string }>('/settings/discord-live');
   const [discordWebhook, setDiscordWebhook] = useState('');
   const [discordMessage, setDiscordMessage] = useState<string | null>(null);
@@ -381,6 +387,16 @@ export default function SettingsPanel() {
               </div>
             ))}
             <button className="s-card-action primary" onClick={saveCommands}>Speichern</button>
+            <div className="s-command-row" style={{ marginTop: 16 }}>
+              <span className="s-command-label">Shoutout bei Raid</span>
+              <div className="s-toggle-row compact">
+                <button className={`s-toggle-btn ${raidShoutoutOn ? 'active' : ''}`} onClick={() => setRaidShoutout(true)}>An</button>
+                <button className={`s-toggle-btn ${!raidShoutoutOn ? 'active' : ''}`} onClick={() => setRaidShoutout(false)}>Aus</button>
+              </div>
+            </div>
+            <div className="s-card-status" style={{ color: '#888' }}>
+              !commands und !help antworten wie !befehle. !so &lt;Name&gt; (nur Mods) empfiehlt einen Kanal — nach einem Raid schreibt der Bot das von selbst.
+            </div>
           </div>
         )}
       </div>

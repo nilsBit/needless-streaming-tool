@@ -32,6 +32,8 @@ Alle Verbindungen richtest du unter **Settings** ein — Twitch, OBS, Notion und
 |---------|-------------|
 | !befehle | Listet alle Befehle — deine Erklär-Commands zuerst |
 | !befehle <Name> | Erklärt einen einzelnen Befehl, z. B. !befehle figur |
+| !commands / !help | Dasselbe wie !befehle — für alle, die auf Englisch suchen |
+| !so <Name> | Nur Mods: empfiehlt einen Kanal mit seiner letzten Kategorie. Nach einem Raid schreibt der Bot das selbst (Settings → Chat Commands → Shoutout bei Raid) |
 | !challenge | Zeigt aktuelle Challenge |
 | !figur | Zeigt die Figur, die gerade im Overlay ist |
 | !figur <Name> | Schlägt eine Figur in der Welt nach |
@@ -192,7 +194,7 @@ Konfiguriere Mappings über die API:
 3. Breite/Höhe anpassen
 4. Fertig
 
-**Alerts:** Das Overlay meldet neue Follower, Abos (auch Wiederholungen und Geschenke), Raids, Bits und eingelöste Kanalpunkte. Die Texte schreibt das Toolkit; was ein Zuschauer beim Abo oder bei den Bits dazuschreibt, steht darunter in Anführungszeichen. **Abos, Geschenke, Raids und Bits kommen über den Chat** und brauchen keine zusätzlichen Rechte. **Neue Follower brauchen ein Recht mehr** (moderator:read:followers): Verbinde dich in Settings → Verbindungen einmal neu mit Twitch, sonst bleiben Follower-Meldungen aus. Ob es geklappt hat, steht im Log — „Subscribed to follows“ oder ein Hinweis, dass Twitch die Anmeldung abgelehnt hat.
+**Alerts:** Das Overlay meldet neue Follower, Abos (auch Wiederholungen und Geschenke), Raids, Bits und eingelöste Kanalpunkte. Die Texte schreibt das Toolkit; was ein Zuschauer beim Abo oder bei den Bits dazuschreibt, steht darunter in Anführungszeichen. Jede Meldung ist eine Kompendium-Tafel oben rechts, in drei Größen: Follower klein (5 s), Abos, Geschenke und Bits etwas größer (6 s), ein Raid breit mit großem Namen (9 s). Kommen mehrere zugleich, erscheinen sie nacheinander; fünf verschenkte Abos sind eine Meldung, nicht sechs. **Abos, Geschenke, Raids und Bits kommen über den Chat** und brauchen keine zusätzlichen Rechte. **Neue Follower brauchen ein Recht mehr** (moderator:read:followers): Verbinde dich in Settings → Verbindungen einmal neu mit Twitch, sonst bleiben Follower-Meldungen aus. Ob es geklappt hat, steht im Log — „Subscribed to follows“ oder ein Hinweis, dass Twitch die Anmeldung abgelehnt hat.
 
 **Showcase:** Über den eingebauten Overlays öffnet **🖼️ Showcase** jedes Overlay in jedem Zustand mit Testdaten — zum Ansehen und Gestalten, ohne dass etwas in OBS erscheint. Die Seite hält jeden Zustand an, so wie ihn das Erfassen für Figma sieht; **▶ In Bewegung** zeigt dasselbe mit laufenden Animationen und Knöpfen zum Ausprobieren: **↻ Nochmal** spielt einen Zustand von vorn — Alerts und das Glücksrad blenden sich wie im Stream nach ein paar Sekunden aus —, dazu je Overlay Aktionen wie Punkt abhaken, Rad drehen oder Song wechseln. Direkt erreichbar unter http://localhost:4000/overlay/showcase/. Wie ein Overlay in Figma gestaltet und zurückgeholt wird, steht in docs/design-workflow.md.
 

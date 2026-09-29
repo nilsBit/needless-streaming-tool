@@ -2,7 +2,7 @@ import { getDb } from '../db/index';
 import { getStreamTimecodes } from '../obs/index';
 import { splitForChat, type ChatAnswer } from './chat-message';
 import { describeCommand } from './command-list';
-import { getCommandNames, triggerOf, VIEWER_COMMAND_KEYS } from './command-names';
+import { builtinKeyOf, getCommandNames, triggerOf, VIEWER_COMMAND_KEYS } from './command-names';
 import { answerLookupCommand } from './lookup-commands';
 import { answerTextCommand } from './text-commands';
 
@@ -17,8 +17,9 @@ import { answerTextCommand } from './text-commands';
 export async function answerChatMessage(message: string, privileged: boolean): Promise<ChatAnswer> {
   const trigger = triggerOf(message);
   const names = getCommandNames();
+  const builtin = builtinKeyOf(trigger, names);
 
-  if (trigger === names.commands) {
+  if (builtin === 'commands') {
     // `!befehle <name>` explains one command instead of naming them all.
     const wanted = message.trim().split(/\s+/).slice(1).join(' ');
     if (wanted) {
@@ -27,8 +28,8 @@ export async function answerChatMessage(message: string, privileged: boolean): P
     }
     return { replies: splitForChat(commandListReply(names)) };
   }
-  if (trigger === names.uptime) return { replies: [await uptimeReply()] };
-  if (Object.values(names).includes(trigger)) return { replies: null, reason: 'builtin' };
+  if (builtin === 'uptime') return { replies: [await uptimeReply()] };
+  if (builtin !== null) return { replies: null, reason: 'builtin' };
 
   return (
     answerTextCommand(trigger, privileged) ??

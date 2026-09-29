@@ -4,6 +4,7 @@ import type { Express } from 'express';
 import { initDatabase } from '../db/index';
 import { generateApiToken } from '../auth-token';
 import { createApp } from '../index';
+import { createGiftCounter } from '../bot/alerts';
 
 interface Sent { event: string; data: { kind?: string; label?: string; who?: string; text?: string; message?: string } }
 
@@ -31,6 +32,24 @@ describe('alerts for followers, subs, raids and bits', () => {
     expect(await alert('sub')).toMatchObject({ label: 'Abo', who: 'Lesezeichen42', text: 'ist jetzt dabei.', message: 'endlich dabei!' });
     expect(await alert('raid')).toMatchObject({ label: 'Raid', who: 'Nachtgilde', text: 'bringt 42 Zuschauer mit.' });
     expect(await alert('cheer')).toMatchObject({ label: 'Bits', who: 'Tintenfass', text: 'wirft 500 Bits ein.' });
+  });
+
+  it('counts five gifted subs once — the five single notices after them stay quiet', () => {
+    const gifts = createGiftCounter();
+    gifts.mystery('Mondfalter', 5);
+    const quiet = Array.from({ length: 5 }, () => gifts.fromMystery('mondfalter'));
+    expect(quiet).toEqual([true, true, true, true, true]);
+    // A sixth, given on its own, is shown again.
+    expect(gifts.fromMystery('Mondfalter')).toBe(false);
+    expect(gifts.fromMystery('Tintenfass')).toBe(false);
+  });
+
+  it('forgets a mystery gift whose single notices never came', () => {
+    let now = 0;
+    const gifts = createGiftCounter(() => now);
+    gifts.mystery('Mondfalter', 3);
+    now = 5 * 60_000;
+    expect(gifts.fromMystery('Mondfalter')).toBe(false);
   });
 
   it('still sends the channel point reward it always did', async () => {

@@ -4,45 +4,56 @@
   <meta charset="UTF-8">
   <link rel="stylesheet" href="/overlay/lexikon.css">
   <style>
-    .alert-container {
+    /* One Kompendium panel in the top right corner — the streamer's pick of
+       29.09. ("Randnotiz"). Alerts come one after another, never stacked: a
+       raid next to three follows would push itself off the screen. */
+    .alert-slot {
       position: fixed;
-      top: 20px;
-      right: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 16px;
+      top: 40px;
+      right: 40px;
     }
 
-    /* The Kompendium pattern, as everywhere else: an italic label with its
-       stroke, then the line. Right-aligned, so the stroke runs to the left. */
     .alert {
       --art: var(--color-accent);
-      text-align: right;
-      /* In px, not ch: a ch here counts in the container's small type, not in
-         the line's, and the line broke after a third of its room. */
-      max-width: 640px;
-      animation: alertSlideIn 0.5s cubic-bezier(0.22, 1, 0.36, 1), alertSlideOut 0.4s ease-in forwards;
-      animation-delay: 0s, 4s;
+      padding: 24px 32px 26px;
+      background: color-mix(in srgb, var(--color-bg) calc(var(--color-bg-opacity) * 100%), transparent);
+      color: var(--color-primary);
+      animation: alertSlideIn 0.5s cubic-bezier(0.22, 1, 0.36, 1);
     }
+    .alert.leaving { animation: alertSlideOut 0.4s ease-in forwards; }
 
-    .alert .alert-kicker { flex-direction: row-reverse; }
+    /* The occasion in the accent, then the stroke running to the edge. */
+    .alert .alert-kicker { font-size: 1.1rem; color: var(--art); }
 
     .alert .line {
-      font-size: 1.9rem;
+      font-family: var(--font-display);
+      font-weight: 700;
       line-height: 1.2;
-      margin-top: 8px;
+      margin-top: 12px;
     }
+    .alert .who { color: var(--art); }
 
     /* What a viewer wrote along with a sub or cheer — their words, not ours. */
     .alert .said {
-      font-family: var(--font-body);
-      font-weight: 400;
-      font-size: 1.05rem;
       font-style: italic;
+      font-size: 1.1rem;
       color: var(--color-secondary);
-      margin-top: 6px;
+      margin-top: 10px;
     }
+
+    /* Three sizes: a follow in passing, a sub a little more, a raid the most. */
+    .alert.klein { width: 560px; }
+    .alert.klein .line { font-size: 2.1rem; }
+
+    .alert.mittel { width: 660px; }
+    .alert.mittel .line { font-size: 2.4rem; }
+
+    .alert.gross {
+      width: 900px;
+      border-left: 8px solid var(--art);
+    }
+    .alert.gross .who { display: block; font-size: 3.8rem; line-height: 1.05; }
+    .alert.gross .line { font-size: 2.2rem; margin-top: 14px; }
 
     @keyframes alertSlideIn {
       from { opacity: 0; transform: translateX(80px); }
@@ -56,11 +67,11 @@
   </style>
 </head>
 <body>
-  <div class="alert-container" id="container"></div>
+  <div class="alert-slot" id="slot"></div>
 
   <script src="/overlay/boot.js" data-overlay="alerts"></script>
   <script>
-    const container = document.getElementById('container');
+    const slot = document.getElementById('slot');
 
     // What a redeemed reward did, in the same words as the rest.
     const REWARDS = {
@@ -69,9 +80,24 @@
       change_music: 'wechselt die Musik.',
     };
 
-    function showAlert({ label, who, text, message, kind = '' }) {
+    // Size and time on screen, by kind. Whatever isn't listed is small.
+    const WEIGHT = {
+      follow: ['klein', 5000],
+      sub: ['mittel', 6000],
+      resub: ['mittel', 6000],
+      subgift: ['mittel', 6000],
+      cheer: ['mittel', 6000],
+      raid: ['gross', 9000],
+    };
+    const LEAVE_MS = 400;
+
+    const queue = [];
+    let showing = false;
+
+    function build({ label, who, text, message, kind = '' }) {
+      const [size] = WEIGHT[kind] || ['klein'];
       const el = document.createElement('div');
-      el.className = 'alert lex lex-fluechtig ' + kind;
+      el.className = `alert lex ${size} ${kind}`;
 
       const kicker = document.createElement('div');
       kicker.className = 'lex-kicker alert-kicker';
@@ -82,7 +108,7 @@
       line.className = 'line';
       if (who) {
         const name = document.createElement('span');
-        name.className = 'accent';
+        name.className = 'who';
         name.textContent = who;
         line.append(name, ` ${text}`);
       } else {
@@ -93,12 +119,27 @@
       if (message) {
         const quote = document.createElement('div');
         quote.className = 'said';
-        quote.textContent = `„${message}"`;
+        quote.textContent = `„${message}“`;
         el.appendChild(quote);
       }
+      return el;
+    }
 
-      container.appendChild(el);
-      setTimeout(() => el.remove(), 5000);
+    function next() {
+      const alert = queue.shift();
+      if (!alert) { showing = false; return; }
+      showing = true;
+
+      const [, stay] = WEIGHT[alert.kind] || ['klein', 5000];
+      const el = build(alert);
+      slot.appendChild(el);
+      setTimeout(() => el.classList.add('leaving'), stay - LEAVE_MS);
+      setTimeout(() => { el.remove(); next(); }, stay);
+    }
+
+    function showAlert(alert) {
+      queue.push(alert);
+      if (!showing) next();
     }
 
     const onMessage = (msg) => {

@@ -77,6 +77,33 @@ export function buildAlert(kind: AlertKind, data: Record<string, unknown>): Aler
   }
 }
 
+/** How long single gift notices may trail their mystery gift before it is forgotten. */
+const MYSTERY_GIFT_WINDOW_MS = 60_000;
+
+/**
+ * Five gifted subs arrive as one mystery gift notice and then five single
+ * ones. The alert is the first; the counter tells which single notices
+ * belong to it, so the screen doesn't show six alerts for one gift.
+ */
+export function createGiftCounter(now: () => number = Date.now) {
+  const pending = new Map<string, { left: number; until: number }>();
+  return {
+    mystery(user: string, count: number) {
+      pending.set(user.toLowerCase(), { left: count, until: now() + MYSTERY_GIFT_WINDOW_MS });
+    },
+    fromMystery(user: string): boolean {
+      const key = user.toLowerCase();
+      const entry = pending.get(key);
+      if (!entry || entry.left <= 0 || now() > entry.until) {
+        pending.delete(key);
+        return false;
+      }
+      entry.left -= 1;
+      return true;
+    },
+  };
+}
+
 export function sendAlert(kind: AlertKind, data: Record<string, unknown>): Alert {
   const alert = buildAlert(kind, data);
   broadcast('alert', alert);

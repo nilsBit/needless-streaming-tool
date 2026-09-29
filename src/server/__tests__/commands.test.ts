@@ -80,6 +80,25 @@ describe('the command list', () => {
     expect(all).toContain('!befehle <Name>');
   });
 
+  it('answers !commands and !help like !befehle, for viewers who look in English', async () => {
+    const all = await chat('!befehle');
+    expect(await chat('!commands')).toBe(all);
+    expect(await chat('!HELP')).toBe(all);
+    expect(await chat('!help story')).toContain('Wir schreiben eine Welt.');
+  });
+
+  it('keeps !commands and !help from becoming a command of their own', async () => {
+    for (const trigger of ['!commands', '!help']) {
+      const res = await request(app).post('/api/text-commands').set(auth()).send({ trigger, response: 'x' });
+      expect(res.status).toBe(409);
+    }
+  });
+
+  it('leaves the shoutout out of the list — it is for mods', async () => {
+    expect(await find('!so')).toBeUndefined();
+    expect(await chat('!befehle')).not.toMatch(/!so\b/);
+  });
+
   it('leaves a command that is switched off out of the list', async () => {
     const story = await find('!story');
     await request(app).patch(`/api/text-commands/${story!.id}`).set(auth()).send({ enabled: false }).expect(200);
