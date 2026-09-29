@@ -17,8 +17,12 @@ export type AlertKind = 'follow' | 'sub' | 'resub' | 'subgift' | 'raid' | 'cheer
 
 export interface Alert {
   kind: AlertKind;
-  title: string;
-  line: string;
+  /** The occasion, as the kicker line above it: "Follower", "Abo", "Raid" … */
+  label: string;
+  /** Who did it — the overlay sets this one in the accent colour. */
+  who?: string;
+  /** What they did, read after the name: "folgt jetzt." */
+  text: string;
   /** What the viewer wrote along with a sub or cheer, if anything. */
   message?: string;
 }
@@ -48,27 +52,27 @@ export function buildAlert(kind: AlertKind, data: Record<string, unknown>): Aler
   const who = name(data.user);
   switch (kind) {
     case 'follow':
-      return { kind, title: 'Neu dabei', line: `${who} folgt jetzt.` };
+      return { kind, label: 'Follower', who, text: 'folgt jetzt.' };
     case 'sub':
-      return { kind, title: 'Abonniert', line: `${who} ist jetzt dabei.`, message: said(data.message) };
+      return { kind, label: 'Abo', who, text: 'ist jetzt dabei.', message: said(data.message) };
     case 'resub': {
       const months = count(data.months);
-      return { kind, title: 'Bleibt dabei', line: `${who} schon ${plural(months, 'Monat', 'Monate')}.`, message: said(data.message) };
+      return { kind, label: 'Abo', who, text: `schon ${plural(months, 'Monat', 'Monate')} dabei.`, message: said(data.message) };
     }
     case 'subgift': {
       const number = count(data.count);
-      const line = data.recipient
-        ? `${who} schenkt ${name(data.recipient)} ein Abo.`
-        : `${who} verschenkt ${plural(number, 'Abo', 'Abos')}.`;
-      return { kind, title: 'Verschenkt', line };
+      const text = data.recipient
+        ? `schenkt ${name(data.recipient)} ein Abo.`
+        : `verschenkt ${plural(number, 'Abo', 'Abos')}.`;
+      return { kind, label: 'Geschenk', who, text };
     }
     case 'raid': {
       const viewers = count(data.viewers);
-      return { kind, title: 'Raid', line: `${who} bringt ${plural(viewers, 'Zuschauer', 'Zuschauer')} mit.` };
+      return { kind, label: 'Raid', who, text: `bringt ${plural(viewers, 'Zuschauer', 'Zuschauer')} mit.` };
     }
     case 'cheer': {
       const bits = count(data.bits);
-      return { kind, title: 'Bits', line: `${who} wirft ${plural(bits, 'Bit', 'Bits')} ein.`, message: said(data.message) };
+      return { kind, label: 'Bits', who, text: `wirft ${plural(bits, 'Bit', 'Bits')} ein.`, message: said(data.message) };
     }
   }
 }

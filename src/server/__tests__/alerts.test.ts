@@ -5,7 +5,7 @@ import { initDatabase } from '../db/index';
 import { generateApiToken } from '../auth-token';
 import { createApp } from '../index';
 
-interface Sent { event: string; data: { kind?: string; title?: string; line?: string; message?: string } }
+interface Sent { event: string; data: { kind?: string; label?: string; who?: string; text?: string; message?: string } }
 
 /**
  * What the Alerts overlay shows when someone follows, subscribes, gifts,
@@ -26,11 +26,11 @@ describe('alerts for followers, subs, raids and bits', () => {
     (await request(app).post('/api/actions/overlay-test/alerts').set({ Authorization: `Bearer ${token}` }).expect(200)).body.sent;
   const alert = async (kind: string) => (await sent()).find((s) => s.event === 'alert' && s.data.kind === kind)?.data;
 
-  it('words a follow, a sub, a raid and bits', async () => {
-    expect(await alert('follow')).toEqual({ kind: 'follow', title: 'Neu dabei', line: 'Kartograph folgt jetzt.' });
-    expect(await alert('sub')).toMatchObject({ title: 'Abonniert', line: 'Lesezeichen42 ist jetzt dabei.', message: 'endlich dabei!' });
-    expect(await alert('raid')).toMatchObject({ title: 'Raid', line: 'Nachtgilde bringt 42 Zuschauer mit.' });
-    expect(await alert('cheer')).toMatchObject({ title: 'Bits', line: 'Tintenfass wirft 500 Bits ein.' });
+  it('words a follow, a sub, a raid and bits — name apart, so the overlay can accent it', async () => {
+    expect(await alert('follow')).toEqual({ kind: 'follow', label: 'Follower', who: 'Kartograph', text: 'folgt jetzt.' });
+    expect(await alert('sub')).toMatchObject({ label: 'Abo', who: 'Lesezeichen42', text: 'ist jetzt dabei.', message: 'endlich dabei!' });
+    expect(await alert('raid')).toMatchObject({ label: 'Raid', who: 'Nachtgilde', text: 'bringt 42 Zuschauer mit.' });
+    expect(await alert('cheer')).toMatchObject({ label: 'Bits', who: 'Tintenfass', text: 'wirft 500 Bits ein.' });
   });
 
   it('still sends the channel point reward it always did', async () => {

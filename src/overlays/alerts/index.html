@@ -14,45 +14,35 @@
       gap: 16px;
     }
 
+    /* The Kompendium pattern, as everywhere else: an italic label with its
+       stroke, then the line. Right-aligned, so the stroke runs to the left. */
     .alert {
-      font-size: 2.4rem;
-      letter-spacing: 0.06em;
-      line-height: 1.15;
+      --art: var(--color-accent);
       text-align: right;
+      /* In px, not ch: a ch here counts in the container's small type, not in
+         the line's, and the line broke after a third of its room. */
+      max-width: 640px;
       animation: alertSlideIn 0.5s cubic-bezier(0.22, 1, 0.36, 1), alertSlideOut 0.4s ease-in forwards;
       animation-delay: 0s, 4s;
     }
 
-    .alert .sub {
-      font-family: var(--font-body);
-      font-size: 1.1rem;
-      font-style: italic;
-      letter-spacing: normal;
-      color: var(--color-secondary);
-      margin-top: 6px;
+    .alert .alert-kicker { flex-direction: row-reverse; }
+
+    .alert .line {
+      font-size: 1.9rem;
+      line-height: 1.2;
+      margin-top: 8px;
     }
 
     /* What a viewer wrote along with a sub or cheer — their words, not ours. */
     .alert .said {
       font-family: var(--font-body);
-      font-size: 1.1rem;
-      letter-spacing: normal;
-      color: var(--color-text);
-      margin-top: 4px;
-      max-width: 34ch;
-      margin-left: auto;
+      font-weight: 400;
+      font-size: 1.05rem;
+      font-style: italic;
+      color: var(--color-secondary);
+      margin-top: 6px;
     }
-
-    /* Each kind sets the accent; the headline itself carries .accent, so one
-       value per kind colours it. No kind gets colour rules of its own. */
-    .alert.raid,
-    .alert.follow,
-    .alert.sub,
-    .alert.resub,
-    .alert.subgift { --art: var(--color-accent); }
-    .alert.reward,
-    .alert.cheer { --art: var(--color-secondary); }
-    .alert.compile { --art: var(--color-primary); }
 
     @keyframes alertSlideIn {
       from { opacity: 0; transform: translateX(80px); }
@@ -72,31 +62,41 @@
   <script>
     const container = document.getElementById('container');
 
-    const REWARD_LABELS = {
-      roulette: '🎰 Glücksrad!',
-      feature_request: '💡 Vorschlag!',
-      change_music: '🎵 Musik wechseln!',
+    // What a redeemed reward did, in the same words as the rest.
+    const REWARDS = {
+      roulette: 'dreht am Glücksrad.',
+      feature_request: 'schlägt etwas vor.',
+      change_music: 'wechselt die Musik.',
     };
 
-    function showAlert(title, subtitle, type = '', said = '') {
+    function showAlert({ label, who, text, message, kind = '' }) {
       const el = document.createElement('div');
-      el.className = 'alert lex lex-fluechtig ' + type;
-      const titleEl = document.createElement('span');
-      titleEl.className = 'accent';
-      titleEl.textContent = title;
-      el.appendChild(titleEl);
-      if (subtitle) {
-        const sub = document.createElement('div');
-        sub.className = 'sub';
-        sub.textContent = subtitle;
-        el.appendChild(sub);
+      el.className = 'alert lex lex-fluechtig ' + kind;
+
+      const kicker = document.createElement('div');
+      kicker.className = 'lex-kicker alert-kicker';
+      kicker.textContent = label;
+      el.appendChild(kicker);
+
+      const line = document.createElement('div');
+      line.className = 'line';
+      if (who) {
+        const name = document.createElement('span');
+        name.className = 'accent';
+        name.textContent = who;
+        line.append(name, ` ${text}`);
+      } else {
+        line.textContent = text;
       }
-      if (said) {
+      el.appendChild(line);
+
+      if (message) {
         const quote = document.createElement('div');
         quote.className = 'said';
-        quote.textContent = `„${said}"`;
+        quote.textContent = `„${message}"`;
         el.appendChild(quote);
       }
+
       container.appendChild(el);
       setTimeout(() => el.remove(), 5000);
     }
@@ -108,25 +108,26 @@
 
       switch (event) {
         case 'reward-redeemed':
-          showAlert(
-            REWARD_LABELS[data.reward_type] || '🎁 Reward!',
-            `von ${data.user_name}`,
-            'reward'
-          );
+          showAlert({
+            label: 'Kanalpunkte',
+            who: data.user_name,
+            text: REWARDS[data.reward_type] || 'löst eine Belohnung ein.',
+            kind: 'reward',
+          });
           break;
 
         case 'compile-pray':
-          showAlert('⚡ HYPE MOMENT ⚡', 'Läuft es? Oder crashed es?', 'compile');
+          showAlert({ label: 'Moment', text: 'Läuft es? Oder stürzt es ab?', kind: 'compile' });
           break;
 
         case 'roulette-result':
-          showAlert('🎰 GLÜCKSRAD', `➡️ ${data.title}`, 'compile');
+          showAlert({ label: 'Glücksrad', text: data.title, kind: 'compile' });
           break;
 
         // Follows, subs, gifts, raids and cheers: the server words them
-        // (bot/alerts.ts), the overlay only gives each kind its accent.
+        // (bot/alerts.ts), the overlay only lays them out.
         case 'alert':
-          showAlert(data.title, data.line, data.kind, data.message);
+          showAlert(data);
           break;
       }
     };
