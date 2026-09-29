@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
+import { buildAlert } from '../bot/alerts';
 import { getAutoDetectSetting, setAutoDetectSetting, isSMTCSupported, isSMTCRunning } from '../integrations/smtc';
 import { activeCard, type EntryCard } from './active-entry';
 
@@ -127,8 +128,14 @@ export function triggerRoulette(): { winner: { id: number; title: string } } | {
 
 // Test events for overlay preview
 const STATIC_TEST_EVENTS: Record<string, { event: string; data: unknown }[]> = {
+  // Worded by the same function as the real thing (bot/alerts.ts), so the test
+  // shows what a viewer's follow or sub will look like.
   alerts: [
     { event: 'reward-redeemed', data: { reward_type: 'roulette', user_name: 'TestViewer' } },
+    { event: 'alert', data: buildAlert('follow', { user: 'Kartograph' }) },
+    { event: 'alert', data: buildAlert('sub', { user: 'Lesezeichen42', message: 'endlich dabei!' }) },
+    { event: 'alert', data: buildAlert('raid', { user: 'Nachtgilde', viewers: 42 }) },
+    { event: 'alert', data: buildAlert('cheer', { user: 'Tintenfass', bits: 500 }) },
   ],
   song: [
     { event: 'song-update', data: { title: 'Neon Lights', artist: 'Synthwave Artist', source: 'test' } },
@@ -261,7 +268,8 @@ router.post('/overlay-test/:name', (req, res) => {
   for (const { event, data } of events) {
     broadcast(event, data);
   }
-  res.json({ triggered: true, events: events.length });
+  // `sent` carries what went out, so a test can read the wording a viewer sees.
+  res.json({ triggered: true, events: events.length, sent: events });
 });
 
 export default router;

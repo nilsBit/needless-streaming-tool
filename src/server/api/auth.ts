@@ -12,6 +12,10 @@ const TWITCH_SCOPES = [
   'chat:edit',
   'channel:read:redemptions',
   'bits:read',
+  // Follows exist only in EventSub, and only for a moderator of the channel.
+  // A token from before this line has to be renewed once — the follow
+  // subscription says so in the log when it is refused.
+  'moderator:read:followers',
 ].join('+');
 
 function buildAuthUrl(host: string): string {

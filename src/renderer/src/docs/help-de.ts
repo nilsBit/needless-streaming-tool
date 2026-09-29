@@ -173,7 +173,7 @@ Konfiguriere Mappings über die API:
 |---------|-----|-------------|
 | Progress | /overlay/progress/index.html | Projekt-Fortschritt |
 | Milestone | /overlay/milestone/index.html | Achievement-Benachrichtigungen |
-| Alerts | /overlay/alerts/index.html | Raids, Rewards, Events |
+| Alerts | /overlay/alerts/index.html | Follower, Abos, Geschenk-Abos, Raids, Bits, Kanalpunkte |
 | Song | /overlay/song/index.html | Aktueller Song |
 | Song Queue | /overlay/song-queue/index.html | Aktueller Song und Song-Wünsche |
 | Chat | /overlay/chat/index.html | Die letzten acht Chat-Nachrichten, ohne Befehle; was Mods löschen, verschwindet auch hier |
@@ -191,6 +191,8 @@ Konfiguriere Mappings über die API:
 2. URL: http://localhost:4000/overlay/<name>/index.html
 3. Breite/Höhe anpassen
 4. Fertig
+
+**Alerts:** Das Overlay meldet neue Follower, Abos (auch Wiederholungen und Geschenke), Raids, Bits und eingelöste Kanalpunkte. Die Texte schreibt das Toolkit; was ein Zuschauer beim Abo oder bei den Bits dazuschreibt, steht darunter in Anführungszeichen. **Abos, Geschenke, Raids und Bits kommen über den Chat** und brauchen keine zusätzlichen Rechte. **Neue Follower brauchen ein Recht mehr** (moderator:read:followers): Verbinde dich in Settings → Verbindungen einmal neu mit Twitch, sonst bleiben Follower-Meldungen aus. Ob es geklappt hat, steht im Log — „Subscribed to follows“ oder ein Hinweis, dass Twitch die Anmeldung abgelehnt hat.
 
 **Showcase:** Über den eingebauten Overlays öffnet **🖼️ Showcase** jedes Overlay in jedem Zustand mit Testdaten — zum Ansehen und Gestalten, ohne dass etwas in OBS erscheint. Die Seite hält jeden Zustand an, so wie ihn das Erfassen für Figma sieht; **▶ In Bewegung** zeigt dasselbe mit laufenden Animationen und Knöpfen zum Ausprobieren: **↻ Nochmal** spielt einen Zustand von vorn — Alerts und das Glücksrad blenden sich wie im Stream nach ein paar Sekunden aus —, dazu je Overlay Aktionen wie Punkt abhaken, Rad drehen oder Song wechseln. Direkt erreichbar unter http://localhost:4000/overlay/showcase/. Wie ein Overlay in Figma gestaltet und zurückgeholt wird, steht in docs/design-workflow.md.
 

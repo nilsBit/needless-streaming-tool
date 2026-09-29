@@ -12,7 +12,13 @@
       "states": {
         "reward-roulette": { "events": [{ "afterMs": 0, "event": "reward-redeemed", "data": { "reward_type": "roulette", "user_name": "Lesezeichen42" } }], "freezeAfterMs": 900 },
         "reward-feature": { "events": [{ "afterMs": 0, "event": "reward-redeemed", "data": { "reward_type": "feature_request", "user_name": "Kartograph" } }], "freezeAfterMs": 900 },
-        "roulette-result": { "events": [{ "afterMs": 0, "event": "roulette-result", "data": { "title": "Die Karte der Unterstadt zeichnen" } }], "freezeAfterMs": 900 }
+        "roulette-result": { "events": [{ "afterMs": 0, "event": "roulette-result", "data": { "title": "Die Karte der Unterstadt zeichnen" } }], "freezeAfterMs": 900 },
+        "follow": {"events": [{"afterMs": 0, "event": "alert", "data": {"kind": "follow", "title": "Neu dabei", "line": "Kartograph folgt jetzt."}}], "freezeAfterMs": 900},
+        "sub": {"events": [{"afterMs": 0, "event": "alert", "data": {"kind": "sub", "title": "Abonniert", "line": "Lesezeichen42 ist jetzt dabei.", "message": "endlich dabei!"}}], "freezeAfterMs": 900},
+        "resub": {"events": [{"afterMs": 0, "event": "alert", "data": {"kind": "resub", "title": "Bleibt dabei", "line": "Tintenfass schon 7 Monate.", "message": "Beste Stunde der Woche."}}], "freezeAfterMs": 900},
+        "subgift": {"events": [{"afterMs": 0, "event": "alert", "data": {"kind": "subgift", "title": "Verschenkt", "line": "Mondfalter schenkt Kartograph ein Abo."}}], "freezeAfterMs": 900},
+        "raid": {"events": [{"afterMs": 0, "event": "alert", "data": {"kind": "raid", "title": "Raid", "line": "Nachtgilde bringt 42 Zuschauer mit."}}], "freezeAfterMs": 900},
+        "cheer": {"events": [{"afterMs": 0, "event": "alert", "data": {"kind": "cheer", "title": "Bits", "line": "Tintenfass wirft 500 Bits ein.", "message": "Für die Unterstadt!"}}], "freezeAfterMs": 900}
       }
     },
     "challenge": {

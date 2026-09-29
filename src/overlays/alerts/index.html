@@ -32,10 +32,26 @@
       margin-top: 6px;
     }
 
+    /* What a viewer wrote along with a sub or cheer — their words, not ours. */
+    .alert .said {
+      font-family: var(--font-body);
+      font-size: 1.1rem;
+      letter-spacing: normal;
+      color: var(--color-text);
+      margin-top: 4px;
+      max-width: 34ch;
+      margin-left: auto;
+    }
+
     /* Each kind sets the accent; the headline itself carries .accent, so one
        value per kind colours it. No kind gets colour rules of its own. */
-    .alert.raid { --art: var(--color-accent); }
-    .alert.reward { --art: var(--color-secondary); }
+    .alert.raid,
+    .alert.follow,
+    .alert.sub,
+    .alert.resub,
+    .alert.subgift { --art: var(--color-accent); }
+    .alert.reward,
+    .alert.cheer { --art: var(--color-secondary); }
     .alert.compile { --art: var(--color-primary); }
 
     @keyframes alertSlideIn {
@@ -62,7 +78,7 @@
       change_music: '🎵 Musik wechseln!',
     };
 
-    function showAlert(title, subtitle, type = '') {
+    function showAlert(title, subtitle, type = '', said = '') {
       const el = document.createElement('div');
       el.className = 'alert lex lex-fluechtig ' + type;
       const titleEl = document.createElement('span');
@@ -74,6 +90,12 @@
         sub.className = 'sub';
         sub.textContent = subtitle;
         el.appendChild(sub);
+      }
+      if (said) {
+        const quote = document.createElement('div');
+        quote.className = 'said';
+        quote.textContent = `„${said}"`;
+        el.appendChild(quote);
       }
       container.appendChild(el);
       setTimeout(() => el.remove(), 5000);
@@ -99,6 +121,12 @@
 
         case 'roulette-result':
           showAlert('🎰 GLÜCKSRAD', `➡️ ${data.title}`, 'compile');
+          break;
+
+        // Follows, subs, gifts, raids and cheers: the server words them
+        // (bot/alerts.ts), the overlay only gives each kind its accent.
+        case 'alert':
+          showAlert(data.title, data.line, data.kind, data.message);
           break;
       }
     };

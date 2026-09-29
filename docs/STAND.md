@@ -181,6 +181,20 @@ braucht den Bot.
   nach 8 s — startet der Server in der Zeit neu, bleiben sie liegen (drei vom
   19.09. standen noch in der echten Liste, am 24.09. von Hand entfernt).
 
+**Hier aufgehört (29.09., auf dem Mac)**
+
+- **Alerts für Follower, Abos, Geschenk-Abos, Raids und Bits** gebaut
+  (`src/server/bot/alerts.ts`): Abos, Geschenke, Raids und Bits kommen über
+  den Chat (tmi.js, keine neuen Rechte), Follower über EventSub
+  `channel.follow`. Dafür kam `moderator:read:followers` zu den Scopes —
+  **Twitch muss einmal neu verbunden werden**, sonst bleiben nur die Follower
+  aus; das Log sagt es. Neun Showcase-Zustände, für Figma erfasst.
+- **Zwei Funde beim Aufräumen fürs Streamen** (`dc00f75`): Die drei Testsongs
+  des Songlisten-Knopfs bleiben nicht mehr liegen, und `/api/milestones`
+  antwortete auf diesem Rechner mit 500, weil `todos.milestone_id` fehlte —
+  die Spalte wird beim Start ergänzt, wenn sie fehlt.
+- **Befehls-Übersicht** (`82c4c0b`, siehe unten).
+
 **Hier aufgehört (24.09., abends auf dem Mac)**
 
 - Gearbeitet wird auf diesem Branch, `overlay-design-workflow` — gepusht,
