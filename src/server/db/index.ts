@@ -17,6 +17,8 @@ export function initDatabase(dbPath?: string): Database.Database {
   db.pragma('foreign_keys = ON');
   db.exec(SCHEMA);
 
+  ensureColumns();
+
   // Migration: project_name Spalte zu stream_state (v2)
   try {
     db.prepare('SELECT project_name FROM stream_state LIMIT 1').get();
@@ -33,11 +35,46 @@ export function initDatabase(dbPath?: string): Database.Database {
     runMigrations(currentVersion, SCHEMA_VERSION);
   }
 
+  // Whatever the overlay test button left behind when it was interrupted.
+  db.prepare('DELETE FROM song_requests WHERE is_test = 1').run();
+
   console.log(`[DB] Initialized at ${resolvedPath} (schema v${SCHEMA_VERSION})`);
   return db;
 }
 
+/**
+ * Columns a migration once added to a table whose CREATE TABLE went without
+ * them. A database that missed that migration — or where it failed quietly —
+ * never gets them back, because its version has long moved past the guard.
+ * The milestone list joined over `todos.milestone_id` and answered 500 on
+ * this machine for that reason. Checked on every start; it costs two PRAGMAs.
+ */
+function ensureColumns(): void {
+  const missing: [string, string, string][] = [
+    ['todos', 'milestone_id', 'INTEGER'],
+    ['milestones', 'project_id', 'INTEGER'],
+  ];
+  for (const [table, column, type] of missing) {
+    const columns = db.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>;
+    if (columns.length === 0 || columns.some((c) => c.name === column)) continue;
+    // Without REFERENCES: SQLite refuses to add one to an existing table while
+    // foreign keys are on, which is how the column went missing in the first place.
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
+    console.log(`[DB] Repaired: ${table}.${column} was missing`);
+  }
+}
+
 function runMigrations(from: number, to: number) {
+  if (from < 24) {
+    // The overlay test button used to remove its three songs on a timer. A
+    // restart in those eight seconds left them in the real queue (three from
+    // 19.09. were still in it on 24.09.). Test rows are marked now and go at
+    // startup; these three are what the old button inserted.
+    try { db.exec('ALTER TABLE song_requests ADD COLUMN is_test INTEGER NOT NULL DEFAULT 0'); } catch { /* already there */ }
+    db.prepare("DELETE FROM song_requests WHERE url IN ('https://www.youtube.com/watch?v=test', 'https://open.spotify.com/track/test1', 'https://www.youtube.com/watch?v=test2')").run();
+    console.log('[DB] Migrated: test song requests are marked and cleaned up');
+  }
+
   if (from < 22) {
     // A sentence per command, for `!befehle <name>`, the app's list and the
     // Twitch panel. Empty means "derive one" (see bot/command-list.ts), so
@@ -130,8 +167,7 @@ function runMigrations(from: number, to: number) {
   }
 
   if (from < 14) {
-    try { db.exec('ALTER TABLE todos ADD COLUMN milestone_id INTEGER REFERENCES milestones(id) ON DELETE SET NULL'); } catch {}
-    try { db.exec('ALTER TABLE milestones ADD COLUMN project_id INTEGER REFERENCES project_items(id) ON DELETE CASCADE'); } catch {}
+    // ensureColumns() has added both by now — it runs before any migration.
     console.log('[DB] Migrated: added milestone_id to todos, project_id to milestones');
   }
 

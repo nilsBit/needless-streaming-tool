@@ -225,20 +225,24 @@ function getTestEvents(name: string): { event: string; data: unknown }[] {
   if (name === 'song-queue') {
     const db = getDb();
     // Insert a temporary test song request
-    const result = db.prepare(
-      "INSERT INTO song_requests (url, title, artist, source, requested_by, status) VALUES (?, ?, ?, ?, ?, 'playing')"
+    // Marked as test rows: the timer below takes them out, and so does the
+    // next start if it never runs (a restart within those eight seconds used
+    // to leave them in the real queue).
+    db.prepare(
+      "INSERT INTO song_requests (url, title, artist, source, requested_by, status, is_test) VALUES (?, ?, ?, ?, ?, 'playing', 1)"
     ).run('https://www.youtube.com/watch?v=test', 'Sandstorm', 'Darude', 'youtube', 'TestViewer');
-    const testId = Number(result.lastInsertRowid);
     // Insert 2 pending songs
-    const id2 = Number(db.prepare(
-      "INSERT INTO song_requests (url, title, artist, source, requested_by) VALUES (?, ?, ?, ?, ?)"
-    ).run('https://open.spotify.com/track/test1', 'Blinding Lights', 'The Weeknd', 'spotify', 'ViewerA').lastInsertRowid);
-    const id3 = Number(db.prepare(
-      "INSERT INTO song_requests (url, title, artist, source, requested_by) VALUES (?, ?, ?, ?, ?)"
-    ).run('https://www.youtube.com/watch?v=test2', 'Never Gonna Give You Up', 'Rick Astley', 'youtube', 'ViewerB').lastInsertRowid);
+    for (const [url, title, artist, source, viewer] of [
+      ['https://open.spotify.com/track/test1', 'Blinding Lights', 'The Weeknd', 'spotify', 'ViewerA'],
+      ['https://www.youtube.com/watch?v=test2', 'Never Gonna Give You Up', 'Rick Astley', 'youtube', 'ViewerB'],
+    ]) {
+      db.prepare(
+        'INSERT INTO song_requests (url, title, artist, source, requested_by, is_test) VALUES (?, ?, ?, ?, ?, 1)'
+      ).run(url, title, artist, source, viewer);
+    }
     // Clean up after 8 seconds
     setTimeout(() => {
-      db.prepare('DELETE FROM song_requests WHERE id IN (?, ?, ?)').run(testId, id2, id3);
+      db.prepare('DELETE FROM song_requests WHERE is_test = 1').run();
       broadcast('sr-update', {});
     }, 8000);
     return [{ event: 'sr-update', data: {} }];
