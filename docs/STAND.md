@@ -4,7 +4,7 @@ Einstieg für einen neuen Rechner oder eine neue Claude-Session. **Offene Arbeit
 steht in den GitHub Issues** (`gh issue list`) — dieses Dokument erklärt das
 Große Ganze, wie die beiden Projekte zusammenhängen und wo wir stehen.
 
-Stand: 24. September 2026.
+Stand: 30. September 2026.
 
 ## Worum es geht
 
@@ -412,10 +412,24 @@ aus dem Wurzelverzeichnis trägt mit npm 10.3 das Hauptprojekt als Abhängigkeit
 `"needless-streaming-tool": "file:.."` in `streamdeck-plugin/package.json` ein.
 
 Die Einstellungen liegen in `data/stream.db` und sind **nicht** im Repo —
-Erklär-Commands, Nachschlage-Commands, Spoiler-Schalter, Settings. Zum Umziehen
-auf dem alten Rechner *Settings → Backup* exportieren und auf dem neuen
-importieren (oder `data/stream.db` kopieren, während die App aus ist). Twitch,
-OBS und den Stream-Deck-Token danach in den Settings prüfen.
+Erklär-Commands, Nachschlage-Commands, Spoiler-Schalter, Settings. Im Repo liegt
+stattdessen **`data/stream.seed.db`**: eine Kopie vom 30. September 2026 mit
+allen Commands, der Overlay-Palette, den Einstellungen und Clips, aber **ohne
+Zugangsdaten** (Twitch-Token, Notion-Token, Discord-Webhook, `api_token`,
+`design_token` sind entfernt — das Repo ist öffentlich). Auf einem neuen
+Rechner, bevor die App das erste Mal startet:
+
+1. `data/stream.seed.db` nach `data/stream.db` kopieren
+   (`cp data/stream.seed.db data/stream.db`).
+2. `npm run dev`, dann im Tool Twitch neu verbinden.
+3. Notion-Token und Discord-Webhook (*Settings → Discord — Live-Meldung*)
+   wieder eintragen, OBS und den Stream-Deck-Token prüfen.
+
+Die Kopie zieht sich nicht selbst nach — nach Änderungen an Commands oder
+Palette neu erzeugen: `stream.db` per SQLite-Backup kopieren, die fünf Schlüssel
+aus `settings` löschen, `oauth_token` aus `twitch_config` entfernen, `VACUUM`.
+Alternativ *Settings → Backup* auf dem alten Rechner exportieren und auf dem
+neuen importieren (enthält die Tokens, gehört also nicht ins Repo).
 
 **Worldbuilder**
 
