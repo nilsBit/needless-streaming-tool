@@ -97,6 +97,13 @@ against Electron's ABI. Running Vitest under plain Node fails with a
 via `ELECTRON_RUN_AS_NODE=1`, which is a pure Node process — no window, no port. Do not
 "fix" this with `npm rebuild`; that would break the app.
 
+**Ports in tests.** A server a test binds must name its address. A stub the app
+is pointed at takes `127.0.0.1`, because the app asks for
+`http://127.0.0.1:<port>`; supertest keeps its wildcard socket and is asked over
+`[::1]` (`src/server/__tests__/setup/loopback.ts`, loaded as a setup file). Both
+sides then own their port outright. A bind without a host shares the port with
+whatever else on the machine holds it — that is the wandering flake of issue #22.
+
 ## Conventions
 
 - Code is written in **English**
