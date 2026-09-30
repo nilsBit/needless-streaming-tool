@@ -4,6 +4,7 @@ release/
 # Build artifact of `npm run build:plugin`, bundled via extraResources
 assets/com.nst.deck.streamDeckPlugin
 data/*.db
+!data/stream.seed.db
 data/*.db-shm
 data/*.db-wal
 data/character-images/
