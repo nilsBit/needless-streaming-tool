@@ -1,5 +1,5 @@
 import { getDb } from '../db/index';
-import { DEFAULT_COMMANDS, getCommandNames, VIEWER_COMMAND_KEYS } from './command-names';
+import { aliasesOf, DEFAULT_COMMANDS, getAliases, getCommandNames, VIEWER_COMMAND_KEYS } from './command-names';
 
 /**
  * Every command a viewer can type, in one place: the streamer's own texts,
@@ -23,6 +23,8 @@ export interface CommandInfo {
   id: string;
   /** Whether the description is stored or derived — the app shows a derived one as a placeholder. */
   stored: boolean;
+  /** Second names a viewer may type instead. */
+  aliases: string[];
 }
 
 /** Built-ins a viewer can use. `!scene` (mods) and `!design` (a poll) stay out, as in `!befehle`. */
@@ -30,7 +32,7 @@ const BUILTIN_DESCRIPTIONS: Record<string, string> = {
   challenge: 'Sagt, welche Challenge gerade läuft und wie sie steht.',
   progress: 'Zeigt, wie weit das heutige Projekt gekommen ist.',
   todo: 'Nennt die nächste offene Aufgabe.',
-  issues: 'Zählt die offenen Punkte auf der Liste.',
+  issues: 'Zählt die offenen Themen fürs Glücksrad.',
   song: 'Sagt, welcher Song gerade läuft.',
   sr: 'Wünscht sich einen Song: !sr <Link oder Titel>.',
   queue: 'Zeigt die nächsten Songwünsche.',
@@ -38,7 +40,7 @@ const BUILTIN_DESCRIPTIONS: Record<string, string> = {
   hype: 'Treibt den Hype-Zähler hoch.',
   rewardstats: 'Zeigt, wer die meisten Kanalpunkte eingelöst hat.',
   uptime: 'Sagt, wie lange der Stream schon läuft.',
-  commands: 'Listet alle Befehle. „!befehle <Name>“ erklärt einen einzelnen.',
+  commands: 'Nennt die wichtigsten Befehle. „!befehle alle“ listet jeden, „!befehle <Name>“ erklärt einen.',
 };
 
 const DESCRIPTIONS_KEY = 'command_descriptions';
@@ -84,6 +86,7 @@ export function commandList(): CommandInfo[] {
   const db = getDb();
   const names = getCommandNames();
   const own = builtinDescriptions();
+  const aliases = getAliases();
 
   const texts = db.prepare('SELECT id, trigger, response, description FROM text_commands WHERE enabled = 1 ORDER BY trigger')
     .all() as Array<{ id: number; trigger: string; response: string; description: string | null }>;
@@ -94,12 +97,14 @@ export function commandList(): CommandInfo[] {
   for (const row of texts) {
     list.push({
       trigger: row.trigger, group: 'text', id: String(row.id), stored: Boolean(row.description?.trim()),
+      aliases: aliasesOf(row.trigger, aliases),
       description: row.description?.trim() || derivedDescription({ group: 'text', trigger: row.trigger, response: row.response }),
     });
   }
   for (const row of lookups) {
     list.push({
       trigger: row.trigger, group: 'lookup', id: String(row.id), stored: Boolean(row.description?.trim()),
+      aliases: aliasesOf(row.trigger, aliases),
       description: row.description?.trim() || derivedDescription({ group: 'lookup', trigger: row.trigger, art: row.art }),
     });
   }
@@ -108,16 +113,59 @@ export function commandList(): CommandInfo[] {
     if (!trigger) continue;
     list.push({
       trigger, group: 'builtin', id: key, stored: Boolean(own[key]?.trim()),
+      aliases: aliasesOf(trigger, aliases),
       description: own[key]?.trim() || derivedDescription({ group: 'builtin', trigger, key }),
     });
   }
   return list;
 }
 
-/** What one command does — for `!befehle <name>`; the name may come without its `!`. */
+/** What one command does — for `!befehle <name>`; the name may come without its `!`, and may be a second name. */
 export function describeCommand(name: string): CommandInfo | undefined {
-  const wanted = `!${name.trim().replace(/^!+/, '').toLowerCase()}`;
+  const typed = `!${name.trim().replace(/^!+/, '').toLowerCase()}`;
+  const wanted = getAliases()[typed] ?? typed;
   return commandList().find((command) => command.trigger.toLowerCase() === wanted);
+}
+
+/** A trigger with its second names, the way lists print it: "!links (auch !socials)". */
+export function withAliases(command: Pick<CommandInfo, 'trigger' | 'aliases'>): string {
+  return command.aliases.length ? `${command.trigger} (auch ${command.aliases.join(', ')})` : command.trigger;
+}
+
+const FEATURED_KEY = 'command_featured';
+/** How many a viewer reads at a glance. */
+export const MAX_FEATURED = 6;
+
+/**
+ * The few commands `!befehle` names first — the streamer's pick, stored as
+ * triggers. Until picked: the usual ways in, whichever of them exist.
+ */
+export function featuredCommands(list: CommandInfo[] = commandList()): { triggers: string[]; stored: boolean } {
+  const row = getDb().prepare('SELECT value FROM settings WHERE key = ?').get(FEATURED_KEY) as { value: string } | undefined;
+  const have = new Set(list.map((command) => command.trigger));
+  if (row?.value) {
+    try {
+      const stored = (JSON.parse(row.value) as string[]).filter((trigger) => have.has(trigger));
+      return { triggers: stored, stored: true };
+    } catch {}
+  }
+  return { triggers: ['!welt', '!story', '!figur', '!discord'].filter((trigger) => have.has(trigger)), stored: false };
+}
+
+export function saveFeaturedCommands(input: unknown): { triggers: string[] } | { error: string; message: string } {
+  if (!Array.isArray(input)) return { error: 'invalid_featured', message: 'Erwartet wird eine Liste von Befehlen.' };
+  const have = new Set(commandList().map((command) => command.trigger));
+  const triggers: string[] = [];
+  for (const raw of input) {
+    const trigger = `!${String(raw).trim().replace(/^!+/, '').toLowerCase()}`;
+    if (trigger === '!') continue;
+    if (!have.has(trigger)) return { error: 'unknown_command', message: `${trigger} steht nicht in der Liste.` };
+    if (!triggers.includes(trigger)) triggers.push(trigger);
+  }
+  if (triggers.length > MAX_FEATURED) return { error: 'too_many', message: `Höchstens ${MAX_FEATURED} Befehle — mehr liest im Chat niemand.` };
+  if (triggers.length) getDb().prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run(FEATURED_KEY, JSON.stringify(triggers));
+  else getDb().prepare('DELETE FROM settings WHERE key = ?').run(FEATURED_KEY);
+  return { triggers: featuredCommands().triggers };
 }
 
 const GROUP_TITLE: Record<CommandGroup, string> = {
@@ -135,7 +183,7 @@ export function panelText(): string {
   const blocks = (['text', 'lookup', 'builtin'] as CommandGroup[])
     .map((group) => {
       const lines = list.filter((command) => command.group === group)
-        .map((command) => `${command.trigger} — ${command.description}`);
+        .map((command) => `${withAliases(command)} — ${command.description}`);
       return lines.length ? [GROUP_TITLE[group], ...lines].join('\n') : '';
     })
     .filter(Boolean);

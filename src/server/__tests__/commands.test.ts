@@ -11,6 +11,7 @@ interface CommandInfo {
   group: 'text' | 'lookup' | 'builtin';
   id: string;
   stored: boolean;
+  aliases: string[];
 }
 
 /**
@@ -31,7 +32,7 @@ describe('the command list', () => {
   });
 
   const auth = () => ({ Authorization: `Bearer ${token}` });
-  const list = async (): Promise<{ commands: CommandInfo[]; panel: string; builtinDescriptions: Record<string, string> }> =>
+  const list = async (): Promise<{ commands: CommandInfo[]; panel: string; builtinDescriptions: Record<string, string>; aliases: Record<string, string>; featured: { triggers: string[]; stored: boolean; max: number } }> =>
     (await request(app).get('/api/commands').set(auth()).expect(200)).body;
   const find = async (trigger: string) => (await list()).commands.find((c) => c.trigger === trigger);
   const chat = async (message: string) =>
@@ -71,19 +72,58 @@ describe('the command list', () => {
     expect(panel).not.toContain('!scene');
   });
 
-  it('explains one command in chat, and still lists them all', async () => {
+  it('names a few in chat, lists them all on request, and explains one', async () => {
     expect(await chat('!befehle figur')).toBe('!figur — Zeigt einen Eintrag der Art „Figur“ aus der Welt — z. B. !figur <Name>.');
     expect(await chat('!befehle !story')).toContain('Wir schreiben eine Welt.');
-    expect(await chat('!befehle quatsch')).toMatch(/kenne ich nicht.*📜 Befehle/);
-    const all = await chat('!befehle');
-    expect(all).toMatch(/^📜 Befehle: !story/);
-    expect(all).toContain('!befehle <Name>');
+    expect(await chat('!befehle quatsch')).toMatch(/kenne ich nicht.*📜/);
+    // The plain call: the usual ways in — here only !story and !figur exist of them — and how to get the rest.
+    const few = await chat('!befehle');
+    expect(few).toBe('📜 Neu hier? !story · !figur <Name> — alle Befehle: !befehle alle · was einer macht: !befehle <Name>');
+    const all = await chat('!befehle alle');
+    expect(all).toMatch(/^📜 Erklärt: !story · Aus der Welt: !begriff/);
+    expect(all).toContain('Rund um den Stream: !challenge');
+    expect(await chat('!befehle welt')).toMatch(/^📜 Aus der Welt: !begriff !figur/);
+    expect(await chat('!befehle stream')).not.toContain('!story');
+  });
+
+  it('lets the streamer pick the few — up to six that exist', async () => {
+    await request(app).post('/api/commands/featured').set(auth()).send({ triggers: ['!uptime', 'story'] }).expect(200);
+    expect(await chat('!befehle')).toMatch(/^📜 Neu hier\? !uptime · !story — /);
+    expect((await list()).featured).toMatchObject({ triggers: ['!uptime', '!story'], stored: true, max: 6 });
+    await request(app).post('/api/commands/featured').set(auth()).send({ triggers: ['!nichts'] }).expect(400);
+    await request(app).post('/api/commands/featured').set(auth()).send({ triggers: [] }).expect(200);
+    expect((await list()).featured.stored).toBe(false);
+  });
+
+  it('answers a second name like the command it stands for, and says so in lists', async () => {
+    await request(app).post('/api/commands/aliases').set(auth()).send({ '!geschichte': '!story', 'char': '!figur', '!liste': '!themen' }).expect(200);
+    expect(await chat('!geschichte')).toContain('Wir schreiben eine Welt.');
+    expect(await chat('!befehle geschichte')).toMatch(/^!story \(auch !geschichte\) — /);
+    expect(await chat('!befehle alle')).toContain('!story (auch !geschichte)');
+    expect((await list()).panel).toContain('!figur (auch !char) —');
+    expect(await find('!story')).toMatchObject({ aliases: ['!geschichte'] });
+    // A second name is taken: nobody else may become it.
+    await request(app).post('/api/text-commands').set(auth()).send({ trigger: '!geschichte', response: 'x' }).expect(409);
+  });
+
+  it('refuses a second name that is a command, or that stands for nothing', async () => {
+    await request(app).post('/api/commands/aliases').set(auth()).send({ '!story': '!uptime' }).expect(409);
+    await request(app).post('/api/commands/aliases').set(auth()).send({ '!x': '!gibtsnicht' }).expect(404);
+    await request(app).post('/api/commands/aliases').set(auth()).send({ 'kein wort': '!story' }).expect(400);
+    expect((await list()).aliases).toEqual({});
+  });
+
+  it('calls the wheel’s list !themen now, and still answers to !issues', async () => {
+    expect(await find('!themen')).toMatchObject({ group: 'builtin', aliases: [] });
+    expect(await find('!issues')).toBeUndefined();
+    const res = await request(app).post('/api/text-commands').set(auth()).send({ trigger: '!issues', response: 'x' });
+    expect(res.status).toBe(409);
   });
 
   it('answers !commands and !help like !befehle, for viewers who look in English', async () => {
-    const all = await chat('!befehle');
-    expect(await chat('!commands')).toBe(all);
-    expect(await chat('!HELP')).toBe(all);
+    const all = await chat('!befehle alle');
+    expect(await chat('!commands alle')).toBe(all);
+    expect(await chat('!HELP alle')).toBe(all);
     expect(await chat('!help story')).toContain('Wir schreiben eine Welt.');
   });
 
@@ -96,7 +136,7 @@ describe('the command list', () => {
 
   it('leaves the shoutout out of the list — it is for mods', async () => {
     expect(await find('!so')).toBeUndefined();
-    expect(await chat('!befehle')).not.toMatch(/!so\b/);
+    expect(await chat('!befehle alle')).not.toMatch(/!so\b/);
   });
 
   it('leaves a command that is switched off out of the list', async () => {

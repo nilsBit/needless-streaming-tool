@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { apiPatch, apiPost, useApi } from '../hooks/useApi';
+import { apiFetch, apiPatch, apiPost, useApi } from '../hooks/useApi';
 import { useToast } from '../contexts/ToastContext';
 
 interface CommandInfo {
@@ -8,12 +8,17 @@ interface CommandInfo {
   group: 'text' | 'lookup' | 'builtin';
   id: string;
   stored: boolean;
+  aliases: string[];
 }
 
 interface CommandList {
   commands: CommandInfo[];
   panel: string;
   builtinDescriptions: Record<string, string>;
+  /** Second name → the command it stands for. */
+  aliases: Record<string, string>;
+  /** The few `!befehle` names first. */
+  featured: { triggers: string[]; stored: boolean; max: number };
 }
 
 const GROUPS: { group: CommandInfo['group']; title: string; hint: string }[] = [
@@ -33,6 +38,41 @@ export default function CommandOverview() {
   const { data, refetch } = useApi<CommandList>('/commands');
   const [edited, setEdited] = useState<Record<string, string>>({});
   const [showPanel, setShowPanel] = useState(false);
+  const [newAlias, setNewAlias] = useState({ alias: '', target: '' });
+
+  // The whole map goes back each time; the server refuses what it cannot keep.
+  const saveAliases = async (aliases: Record<string, string>) => {
+    const res = await apiFetch('/commands/aliases', { method: 'POST', body: JSON.stringify(aliases) });
+    if (!res.ok) {
+      const err = await res.json().catch(() => null);
+      toast.error(err?.message ?? 'Zweitname nicht gespeichert');
+      return false;
+    }
+    refetch();
+    return true;
+  };
+
+  const addAlias = async () => {
+    if (!data || !newAlias.alias.trim() || !newAlias.target) return;
+    if (await saveAliases({ ...data.aliases, [newAlias.alias.trim()]: newAlias.target })) setNewAlias({ alias: '', target: '' });
+  };
+
+  const removeAlias = async (alias: string) => {
+    if (!data) return;
+    const next = { ...data.aliases };
+    delete next[alias];
+    await saveAliases(next);
+  };
+
+  const toggleFeatured = async (trigger: string) => {
+    if (!data) return;
+    const current = data.featured.triggers;
+    const triggers = current.includes(trigger) ? current.filter((t) => t !== trigger) : [...current, trigger];
+    if (triggers.length > data.featured.max) { toast.error(`Höchstens ${data.featured.max} — mehr liest im Chat niemand.`); return; }
+    const res = await apiFetch('/commands/featured', { method: 'POST', body: JSON.stringify({ triggers }) });
+    if (!res.ok) { toast.error('Nicht gespeichert'); return; }
+    refetch();
+  };
 
   const key = (command: CommandInfo) => `${command.group}:${command.id}`;
   const valueOf = (command: CommandInfo) => edited[key(command)] ?? (command.stored ? command.description : '');
@@ -71,10 +111,36 @@ export default function CommandOverview() {
       </div>
       <p className="panel-desc">
         Alle Befehle mit einem Satz dazu. Leer gelassene Sätze schreibt das Tool selbst — sie stehen blass im Feld.
-        Im Chat erklärt „!befehle &lt;Name&gt;“ einen einzelnen Befehl.
+        Im Chat nennt „!befehle“ nur die mit ★, „!befehle alle“ jeden, „!befehle &lt;Name&gt;“ erklärt einen.
+        Ein Zweitname antwortet wie der Befehl, für den er steht.
       </p>
 
       {showPanel && <pre className="command-overview-panel">{data?.panel}</pre>}
+
+      {data && (
+        <div className="command-overview-group">
+          <h4>Zweitnamen <small>{Object.keys(data.aliases).length ? '' : 'Noch keine — z. B. !socials für !links.'}</small></h4>
+          {Object.entries(data.aliases).sort().map(([alias, target]) => (
+            <div key={alias} className="command-overview-row">
+              <code className="text-command-trigger">{alias}</code>
+              <span className="command-overview-arrow">→ {target}</span>
+              <button className="btn-export-small" onClick={() => removeAlias(alias)} title="Zweitname entfernen">✕</button>
+            </div>
+          ))}
+          <div className="command-overview-row">
+            <input
+              type="text" placeholder="!zweitname" style={{ flex: '0 0 140px' }}
+              value={newAlias.alias} onChange={(e) => setNewAlias({ ...newAlias, alias: e.target.value })}
+              onKeyDown={(e) => e.key === 'Enter' && addAlias()}
+            />
+            <select className="s-alert-select" value={newAlias.target} onChange={(e) => setNewAlias({ ...newAlias, target: e.target.value })}>
+              <option value="">steht für…</option>
+              {data.commands.map((c) => <option key={c.trigger} value={c.trigger}>{c.trigger}</option>)}
+            </select>
+            <button className="btn-export-small" onClick={addAlias} disabled={!newAlias.alias.trim() || !newAlias.target}>Hinzufügen</button>
+          </div>
+        </div>
+      )}
 
       {GROUPS.map(({ group, title, hint }) => {
         const commands = (data?.commands ?? []).filter((c) => c.group === group);
@@ -84,7 +150,14 @@ export default function CommandOverview() {
             <h4>{title} <small>{hint}</small></h4>
             {commands.map((command) => (
               <div key={key(command)} className="command-overview-row">
-                <code className="text-command-trigger">{command.trigger}</code>
+                <button
+                  className={`command-overview-star ${data?.featured.triggers.includes(command.trigger) ? 'on' : ''}`}
+                  onClick={() => toggleFeatured(command.trigger)}
+                  title={data?.featured.triggers.includes(command.trigger) ? 'Steht in „!befehle“ vorn — abwählen' : 'In „!befehle“ vorn nennen'}
+                >★</button>
+                <code className="text-command-trigger" title={command.aliases.length ? `auch ${command.aliases.join(', ')}` : undefined}>
+                  {command.trigger}{command.aliases.length ? <small> +{command.aliases.length}</small> : null}
+                </code>
                 <input
                   type="text"
                   value={valueOf(command)}
