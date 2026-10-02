@@ -3,6 +3,7 @@ import { createGiftCounter, sendAlert } from './alerts';
 import { clearChatFeed, feedChatMessage, removeChatMessage, removeChatUser } from './chat-feed';
 import { sayInParts } from './chat-message';
 import { botHelix, raidShoutoutEnabled, shoutoutText } from './shoutout';
+import { reminder } from './index';
 
 /** A raid's crowd arrives a moment after the notice; the shoutout waits for them. */
 const RAID_SHOUTOUT_DELAY_MS = 4000;
@@ -42,7 +43,9 @@ export function registerEvents(client: Client) {
   // The chat overlay: what viewers write, and what moderators take back.
   // The bot's own answers (`self`) stay out, like the commands they answer.
   client.on('message', (_channel, tags, message, self) => {
-    if (!self) feedChatMessage(tags, message);
+    if (self) return;
+    feedChatMessage(tags, message);
+    reminder.noteChat();
   });
   client.on('messagedeleted', (_channel, _username, _message, userstate) => {
     const id = userstate['target-msg-id'];
