@@ -96,14 +96,18 @@
        card drops its facts and tightens up instead of being cut off below. */
     @media (max-height: 420px) {
       :root { --lex-margin: 0px; }
-      .card { width: 100%; padding: 18px 22px 16px; }
+      /* The panel fills the strip whatever the entry holds, so it ends where
+         its neighbours end; the foot sits on the bottom edge. */
+      .slot { right: 0; bottom: 0; }
+      .card { display: flex; flex-direction: column; box-sizing: border-box; width: 100%; height: 100%; padding: 18px 22px 16px; }
+      .foot { margin-top: auto !important; padding-top: 12px; }
       .title { margin-top: 10px; font-size: 1.867rem; -webkit-line-clamp: 1; }
       .title.long { font-size: 1.467rem !important; }
       .alias { font-size: 0.867rem; }
       .body { margin-top: 12px; font-size: 1rem; -webkit-line-clamp: 3; }
       .initial { font-size: 2.4rem; }
       dl { display: none; }
-      .foot { margin-top: 12px; font-size: 0.8rem; }
+      .foot { font-size: 0.8rem; }
       .seal.portrait { width: 72px; height: 72px; }
       .has-portrait .kicker, .has-portrait .title { padding-right: 90px; }
     }

@@ -4,12 +4,15 @@
   <meta charset="UTF-8">
   <link rel="stylesheet" href="/overlay/lexikon.css">
   <style>
-    /* A fixed list: the last lines stay, a new one pushes the oldest out at the top. */
+    /* A fixed list: the last lines stay, a new one pushes the oldest out at the top.
+       The panel is as tall as its source, however few lines stand in it. */
     .chat {
       display: flex;
       flex-direction: column;
       gap: 8px;
       box-sizing: border-box;
+      height: 100vh;
+      overflow: hidden;
     }
 
     .chat-kicker { font-size: 0.733rem; }
@@ -113,7 +116,7 @@
       while (list.children.length > SHOWN) list.firstElementChild.remove();
       // Long messages can outgrow the browser source — then the oldest go, so
       // the newest line is never the one cut off at the bottom.
-      while (list.children.length > 1 && chat.getBoundingClientRect().height > window.innerHeight) {
+      while (list.children.length > 1 && chat.scrollHeight > chat.clientHeight) {
         list.firstElementChild.remove();
       }
       empty.classList.toggle('hidden', list.children.length > 0);
