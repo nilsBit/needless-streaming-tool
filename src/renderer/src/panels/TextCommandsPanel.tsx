@@ -182,7 +182,7 @@ export default function TextCommandsPanel() {
               onChange={(e) => setDraft({ ...draft, trigger: e.target.value })}
               autoFocus
             />
-            <label className="text-command-cooldown" title="So lange antwortet der Befehl nach einer Antwort nicht noch einmal. Mods und du sind ausgenommen.">
+            <label className="text-command-cooldown" title="So lange antwortet der Befehl in einem ruhigen Chat nicht noch einmal — in einem vollen Chat kürzer. Wer die Antwort gerade bekam, wartet länger. Mods und du sind ausgenommen.">
               Cooldown
               <input
                 type="number"

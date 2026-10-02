@@ -12,7 +12,8 @@ const router = Router();
  */
 router.post('/try', async (req, res) => {
   const privileged = req.body?.as !== 'viewer';
-  res.json(await answerChatMessage(String(req.body?.message ?? ''), privileged));
+  const viewer = typeof req.body?.user === 'string' && req.body.user.trim() ? req.body.user.trim() : undefined;
+  res.json(await answerChatMessage(String(req.body?.message ?? ''), privileged, viewer));
 });
 
 export default router;

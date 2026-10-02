@@ -37,6 +37,19 @@ export interface ChatTags {
 
 let lines: ChatLine[] = [];
 
+/** When viewers wrote, for the last minute — how busy chat is (cooldown.ts). Commands count too. */
+let recent: number[] = [];
+
+export function noteChatActivity(now = Date.now()): void {
+  recent.push(now);
+  if (recent.length > 400) recent = recent.filter((t) => now - t < 60_000);
+}
+
+export function chatMessagesLastMinute(now = Date.now()): number {
+  recent = recent.filter((t) => now - t < 60_000);
+  return recent.length;
+}
+
 /** Twitch emote ids are digits or `emotesv2_…`; anything else never reaches an image URL. */
 const EMOTE_ID = /^[\w-]+$/;
 
@@ -72,6 +85,7 @@ export function parseChatParts(message: string, emotes: Record<string, string[]>
 
 /** Takes a message the bot read; commands and messages without an id stay out. */
 export function feedChatMessage(tags: ChatTags, message: string): void {
+  noteChatActivity();
   if (message.trimStart().startsWith('!')) return;
   if (!tags.id || !tags.username) return;
 

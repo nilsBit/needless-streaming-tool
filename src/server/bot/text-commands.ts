@@ -52,14 +52,14 @@ export function checkTextCommand(
 }
 
 /** A Text Command's reply to a trigger, or null when no Text Command has it. */
-export function answerTextCommand(trigger: string, privileged: boolean): ChatAnswer | null {
+export function answerTextCommand(trigger: string, privileged: boolean, viewer?: string): ChatAnswer | null {
   const command = getDb().prepare('SELECT * FROM text_commands WHERE trigger = ?').get(trigger) as
     | TextCommand
     | undefined;
   if (!command) return null;
   if (!command.enabled) return { replies: null, reason: 'disabled' };
 
-  if (!passCooldown(`text:${command.id}`, command.cooldown_seconds, privileged)) {
+  if (!passCooldown(`text:${command.id}`, command.cooldown_seconds, privileged, { viewer })) {
     return { replies: null, reason: 'cooldown' };
   }
 
