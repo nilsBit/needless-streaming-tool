@@ -1,5 +1,5 @@
 export interface ObsCaller {
-  call(request: string, data?: Record<string, string>): Promise<unknown>;
+  call(request: string, data?: Record<string, unknown>): Promise<unknown>;
 }
 
 export async function refreshOwnBrowserSources(obs: ObsCaller, port: number): Promise<string[]> {
@@ -22,7 +22,7 @@ export async function refreshOwnBrowserSources(obs: ObsCaller, port: number): Pr
   return reloaded;
 }
 
-function isOwnOverlayUrl(url: string | undefined, port: number): boolean {
+export function isOwnOverlayUrl(url: string | undefined, port: number): boolean {
   if (!url) return false;
   try {
     const parsed = new URL(url);

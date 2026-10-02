@@ -16,6 +16,23 @@ interface Reward {
   title: string;
 }
 
+interface ScreenResult {
+  overlay: string;
+  scene: string;
+  status: 'created' | 'exists' | 'taken';
+  missing?: string[];
+}
+
+const SCREEN_LABELS: Record<string, string> = { start: 'Startbild', pause: 'Pausenbild', end: 'Endbild' };
+
+function describeScreen(s: ScreenResult): string {
+  const label = SCREEN_LABELS[s.overlay] ?? s.overlay;
+  if (s.status === 'exists') return `${label}: steht schon in der Szene „${s.scene}“.`;
+  if (s.status === 'taken') return `${label}: Eine Szene „${s.scene}“ gibt es schon, sie zeigt aber etwas anderes — nicht angerührt.`;
+  const missing = s.missing?.length ? ` Nicht mitgekommen: ${s.missing.join(', ')}.` : '';
+  return `${label}: Szene „${s.scene}“ angelegt.${missing}`;
+}
+
 export default function ObsPanel() {
   const { toast } = useToast();
 
@@ -28,6 +45,8 @@ export default function ObsPanel() {
   const [mappings, setMappings] = useState<SceneMapping[]>([]);
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [screens, setScreens] = useState<ScreenResult[] | null>(null);
+  const [creatingScreens, setCreatingScreens] = useState(false);
 
   useWebSocket((event) => {
     if (event === 'obs-status') {
@@ -51,6 +70,20 @@ export default function ObsPanel() {
       toast.error('Aktion fehlgeschlagen');
     }
     setSaving(false);
+  };
+
+  const createScreens = async () => {
+    setCreatingScreens(true);
+    const result = await apiPost<{ screens: ScreenResult[] }>('/obs/screens', {});
+    setCreatingScreens(false);
+    if (!result) {
+      toast.error('Szenen konnten nicht angelegt werden');
+      return;
+    }
+    setScreens(result.screens);
+    refetchScenes();
+    const created = result.screens.filter((s) => s.status === 'created').length;
+    toast.success(created ? `${created} ${created === 1 ? 'Szene' : 'Szenen'} angelegt` : 'Alle Szenen stehen schon');
   };
 
   const updateMapping = (index: number, field: keyof SceneMapping, value: string | number) => {
@@ -92,6 +125,19 @@ export default function ObsPanel() {
       {!twitchConnected && (
         <p className="obs-hint">Twitch ist nicht verbunden.</p>
       )}
+
+      <div className="obs-mappings-section">
+        <h3>Start, Pause, Ende</h3>
+        <p className="setup-info">Legt in OBS je eine Szene für Startbild („start“), Pausenbild („brb“) und Endbild („end“) an. Steht eine davon schon, werden die neuen wie sie aufgebaut: dieselben Quellen an denselben Stellen, nur das Bild getauscht. Vorhandene Szenen bleiben, wie sie sind.</p>
+        <div className="obs-mapping-actions">
+          <button className="btn-settings-primary" onClick={createScreens} disabled={!obsConnected || creatingScreens}>
+            {creatingScreens ? 'Laden...' : 'Szenen anlegen'}
+          </button>
+        </div>
+        {screens && screens.map((s) => (
+          <p key={s.overlay} className="setup-info">{describeScreen(s)}</p>
+        ))}
+      </div>
 
       <div className="obs-mappings-section">
         <h3>Scene Mappings</h3>

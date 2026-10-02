@@ -6,23 +6,24 @@
 </head>
 <body>
   <!--
-    The pause screen (scene "brb"), a whole page of the Kompendium: nothing
-    to look at but where the story stood when the stream paused.
+    The end screen (scene "end"), a whole page of the Kompendium: where the
+    story stands now, and where to read on until the next stream.
   -->
   <div class="lex lex-seite">
-    <div class="lex-kicker">Kompendium&nbsp;<span class="what">Pause</span></div>
-    <div class="lex-title">Gleich zurück.</div>
+    <div class="lex-kicker">Kompendium&nbsp;<span class="what">Schluss</span></div>
+    <div class="lex-title">Bis zum<br>nächsten Mal.</div>
     <p class="line hidden" id="line">Zuletzt aufgeschlagen: <span class="entry" id="entry"></span></p>
+    <p class="hint">Zum Nachlesen: <span class="cmd">!discord</span> im Chat führt ins Lexikon der Welt.</p>
     <div class="foot"><span id="world"></span><span>twitch.tv/chain_des</span></div>
   </div>
 
-  <script src="/overlay/boot.js" data-overlay="pause"></script>
+  <script src="/overlay/boot.js" data-overlay="end"></script>
   <script>
     const line = document.getElementById('line');
     const entry = document.getElementById('entry');
     const world = document.getElementById('world');
 
-    // The card that was up when the stream paused — as text, never as HTML.
+    // The card that was up when the stream ended — as text, never as HTML.
     function show(card) {
       line.classList.toggle('hidden', !card);
       entry.textContent = card ? card.title : '';

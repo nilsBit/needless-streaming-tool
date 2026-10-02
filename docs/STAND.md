@@ -4,7 +4,7 @@ Einstieg für einen neuen Rechner oder eine neue Claude-Session. **Offene Arbeit
 steht in den GitHub Issues** (`gh issue list`) — dieses Dokument erklärt das
 Große Ganze, wie die beiden Projekte zusammenhängen und wo wir stehen.
 
-Stand: 30. September 2026.
+Stand: 2. Oktober 2026.
 
 ## Worum es geht
 
@@ -131,6 +131,8 @@ braucht den Bot.
   den eigenen Port zeigt, neu, sobald es OBS erreicht; Quellen anderer Dienste
   bleiben unangetastet. Das deckt auch die nodemon-Neustarts beim Entwickeln
   ab. Gefunden am 20. September, weil der Song nicht im Bild stand.
+- **Start- und Endbild** neben dem Pausenbild, und ein Knopf, der die drei
+  Szenen dazu in OBS anlegt (02.10., siehe unten).
 - **Beide Apps zusammen** (19. September, Windows, mit einer Prüfwelt): Arten,
   Listen, Beziehungen und das Folgen kommen durch, die Karte rendert im
   Browser. Dabei gefunden: ein **verworfener** Eintrag stand in der Liste im
@@ -153,6 +155,33 @@ braucht den Bot.
   Warum kein Sync: ADR-0023 im Worldbuilder.
 
 ## Wo wir stehen geblieben sind
+
+**Hier aufgehört (02.10., auf dem Mac)**
+
+- **Startbild und Endbild** gebaut, als Geschwister des Pausenbilds:
+  `/overlay/start/` („Gleich geht’s los.“, Hinweis auf `!welt` und `!story`)
+  und `/overlay/end/` („Bis zum nächsten Mal.“, Hinweis auf `!discord`). Alle
+  drei zeigen den zuletzt aufgeschlagenen Eintrag und teilen sich ein Layout —
+  das „Seiten“-Gewicht `.lex-seite` in `lexikon.css`; wer eines umgestaltet,
+  gestaltet alle drei. Der Text bleibt in der linken 900-px-Spalte, rechts ist
+  Platz für Chat und Musik. Je zwei Showcase-Zustände.
+- **Szenen dafür legt das Tool selbst an:** *Live → OBS Scenes → Szenen
+  anlegen* (`POST /api/obs/screens`, `src/server/obs/screens.ts`). Fehlt eine
+  Szene für Start, Pause oder Ende, entsteht sie („start“, „brb“, „end“). Steht
+  schon eine — auf dem Windows-Rechner „brb“ —, werden die neuen wie sie
+  gebaut: dieselben Quellen an denselben Stellen, nur das Bild getauscht.
+  Vorhandene Szenen werden nie verändert, ein zweiter Klick ändert nichts.
+  Geprüft gegen ein echtes OBS 32 auf dem Mac in Wegwerf-Szenensammlungen:
+  mit „brb“ als Vorbild (Position, Skalierung, Zuschnitt, „An Bildschirm
+  anpassen“), mit einer anders benannten Pausen-Szene und ganz ohne Szenen.
+- **Auf dem Windows-Rechner noch zu tun:** `git pull`, `npm run dev`, OBS
+  offen, dann einmal **Szenen anlegen** — und „start“ und „end“ in OBS über
+  echtem Bild ansehen. Liegt der Titel dort unter dem Chat, den Chat in der
+  Szene verschieben; die Bilder selbst brauchen rechts von 1130 px nichts.
+- **Nicht geprüft:** wie die Bilder *in OBS* aussehen. Das OBS auf dem Mac
+  lädt keine einzige Browser-Quelle (auch die alten nicht, der Server wird nie
+  angefragt) — eine Sache dieses Rechners, auf dem nicht gestreamt wird. In
+  Chrome sind alle drei Bilder in beiden Zuständen angesehen.
 
 **Dazu am 24.09. abends (Windows):**
 

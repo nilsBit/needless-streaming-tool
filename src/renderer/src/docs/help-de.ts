@@ -140,6 +140,12 @@ Alle Befehle lassen sich unter Settings → Chat Commands umbenennen. Antworten,
 - Settings → OBS Verbindung → Host, Port, Passwort eintragen
 - "Mit OBS verbinden" klicken
 
+**Start, Pause, Ende:**
+- Im OBS-Panel legt **Szenen anlegen** je eine Szene für das Startbild („start“), das Pausenbild („brb“) und das Endbild („end“) an — mit dem ganzseitigen Overlay als Browser-Quelle (startScreen, pauseScreen, endScreen).
+- Gibt es eine der drei schon, werden die neuen wie sie aufgebaut: dieselben Quellen (Chat, Musik …) an denselben Stellen, nur das Bild getauscht. Wer die Pausen-Szene eingerichtet hat, bekommt Start und Ende also passend dazu.
+- Was es schon gibt, bleibt unberührt: Eine Szene, die das Bild schon zeigt, wird erkannt, egal wie sie heißt. Eine Szene, die nur so heißt und etwas anderes zeigt, wird nicht angefasst. Ein zweiter Klick ändert nichts.
+- Die Hinweise auf den Bildern (!welt, !story, !discord) und der Kanalname stehen fest im Overlay — anpassen über Settings → Overlays, Stift-Knopf (✏️) am Overlay.
+
 **Scene-Switching via Chat:**
 - Mods/Broadcaster: !scene <Szenenname> im Chat
 - Viewer: über Channel-Point-Rewards (siehe "Channel Points")
@@ -179,7 +185,9 @@ Konfiguriere Mappings über die API:
 | Song | /overlay/song/index.html | Aktueller Song |
 | Song Queue | /overlay/song-queue/index.html | Aktueller Song und Song-Wünsche |
 | Chat | /overlay/chat/index.html | Die letzten acht Chat-Nachrichten, ohne Befehle; was Mods löschen, verschwindet auch hier |
+| Start | /overlay/start/index.html | Ganzes Bild vor dem Stream: „Gleich geht’s los.“, der zuletzt aufgeschlagene Eintrag und der Hinweis auf !welt und !story |
 | Pause | /overlay/pause/index.html | Ganzes Bild für die Pausen-Szene: „Gleich zurück.“ und der zuletzt aufgeschlagene Eintrag |
+| Ende | /overlay/end/index.html | Ganzes Bild zum Schluss: „Bis zum nächsten Mal.“, der zuletzt aufgeschlagene Eintrag und der Hinweis auf !discord |
 | Reward Leaderboard | /overlay/reward-leaderboard/index.html | Wer die meisten Rewards eingelöst hat |
 | Reward Rank Change | /overlay/reward-rankchange/index.html | Einblendung, wenn sich die Rangliste ändert |
 | Todos | /overlay/todos/index.html | Todo-Liste |
@@ -369,6 +377,7 @@ Auth-Header: Authorization: Bearer <token>
 - GET /api/obs/config — POST /api/obs/config
 - GET /api/obs/status — POST /api/obs/connect — POST /api/obs/disconnect
 - GET /api/obs/scenes — POST /api/obs/scene
+- POST /api/obs/screens — legt die Szenen für Start, Pause und Ende an
 - GET /api/obs/mappings — POST /api/obs/mappings
 
 **Rewards:**

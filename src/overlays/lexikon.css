@@ -107,6 +107,46 @@ html, body {
   background: color-mix(in srgb, var(--color-bg) calc(var(--color-bg-opacity) * 100%), transparent);
 }
 
+/* ---- Weight: page. The whole picture, nothing behind it. Start, pause, end. ----
+   The text keeps to the left 900px; chat and music sit to its right in OBS. */
+.lex-seite {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 12vw;
+  background: color-mix(in srgb, var(--color-bg) calc(var(--color-bg-opacity) * 100%), transparent);
+}
+.lex-seite .lex-kicker { font-size: 1.2rem; max-width: 900px; }
+.lex-seite .lex-kicker .what { color: var(--color-accent); font-style: normal; }
+.lex-seite .lex-title { margin-top: 28px; font-size: 6rem; line-height: 1; }
+.lex-seite .line {
+  margin-top: 28px;
+  font: italic 400 1.333rem var(--font-body);
+  color: var(--lex-soft);
+}
+.lex-seite .line .entry { color: var(--color-primary); font-style: normal; }
+.lex-seite .line.hidden { display: none; }
+/* Where a newcomer can ask — below the line, quieter than it. */
+.lex-seite .hint {
+  margin-top: 14px;
+  max-width: 900px;
+  font: italic 400 1rem var(--font-body);
+  color: var(--lex-faint);
+}
+.lex-seite .hint .cmd { color: var(--color-primary); font-style: normal; }
+.lex-seite .foot {
+  position: absolute;
+  left: 12vw;
+  right: 12vw;
+  bottom: 64px;
+  display: flex;
+  justify-content: space-between;
+  font: italic 400 1rem var(--font-body);
+  color: var(--lex-faint);
+}
+
 /* ---- Weight: fleeting. Type and accent only. Alerts, rank change, wheel. ----
    No frame on purpose: two seconds on screen has to read at a glance, and a
    border that fades in with it pulls the eye off the words. */

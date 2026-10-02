@@ -105,3 +105,35 @@ describe('the Entry Card in a low source', () => {
     expect(low![2]).toMatch(/dl \{ display: none; \}/);
   });
 });
+
+describe('the whole-picture screens', () => {
+  /**
+   * Start, pause and end are one page three times: what differs is what they
+   * say. A screen that brings its own layout drifts off the other two the
+   * first time one of them is restyled.
+   */
+  it('are the same page of the Kompendium, each saying its own thing', async () => {
+    initDatabase(':memory:');
+    const app = createApp();
+    const says = { start: 'geht’s los.', pause: 'Gleich zurück.', end: 'nächsten Mal.' };
+
+    for (const [name, title] of Object.entries(says)) {
+      const res = await request(app).get(`/overlay/${name}/index.html`).expect(200);
+
+      expect(res.text, `${name} is not on the shared page`).toContain('class="lex lex-seite"');
+      expect(res.text, `${name} carries a layout of its own`).not.toContain('<style>');
+      expect(res.text, `${name} lost its title`).toContain(title);
+      expect(res.text, `${name} never says which entry was last open`).toContain('/public/entry');
+    }
+  });
+
+  it('can be looked at in the showcase, with and without an entry', async () => {
+    initDatabase(':memory:');
+    const { overlays } = (await request(createApp()).get('/overlay/showcase/states.json').expect(200)).body;
+
+    for (const name of ['start', 'pause', 'end']) {
+      expect(overlays[name].size, name).toEqual({ width: 1920, height: 1080 });
+      expect(Object.keys(overlays[name].states), name).toEqual(['mit-eintrag', 'ohne-eintrag']);
+    }
+  });
+});

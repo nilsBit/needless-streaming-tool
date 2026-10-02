@@ -8,6 +8,7 @@ import {
   changeScene,
   getScenes,
   getCurrentScene,
+  createScreens,
   getSceneMappings,
   saveSceneMappings,
 } from '../obs/index';
@@ -88,6 +89,20 @@ router.post('/scene', async (req, res) => {
     }
   } catch {
     res.status(503).json({ error: 'OBS not connected or unreachable' });
+  }
+});
+
+// The start, pause and end scenes, created where OBS shows none yet
+router.post('/screens', async (_req, res) => {
+  try {
+    const screens = await createScreens();
+    if (!screens) {
+      res.status(503).json({ error: 'OBS not connected' });
+      return;
+    }
+    res.json({ screens });
+  } catch (err) {
+    res.status(500).json({ error: 'Creating the scenes in OBS failed', details: String(err) });
   }
 });
 
