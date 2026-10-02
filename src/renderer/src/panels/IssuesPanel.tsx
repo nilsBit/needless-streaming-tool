@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useApi, apiPost, apiPatch, apiDelete } from '../hooks/useApi';
+import React, { useEffect, useState } from 'react';
+import { useApi, apiPost, apiPatch, apiDelete, apiFetch } from '../hooks/useApi';
 import { Issue } from '../../../shared/types';
 import { useWebSocket } from '../hooks/useWebSocket';
 import ChatCommands from '../components/ChatCommands';
@@ -15,6 +15,18 @@ export default function IssuesPanel() {
 
   const [spinning, setSpinning] = useState(false);
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
+
+  // What the wheel is called in the overlay — saved when the field is left.
+  const { data: titleInfo } = useApi<{ title: string; default: string; max: number }>('/actions/roulette-title');
+  const [title, setTitle] = useState<string | null>(null);
+  useEffect(() => { if (titleInfo && title === null) setTitle(titleInfo.title); }, [titleInfo, title]);
+  const saveTitle = async () => {
+    if (title === null) return;
+    const res = await apiFetch('/actions/roulette-title', { method: 'POST', body: JSON.stringify({ title }) });
+    if (!res.ok) { toast.error('Titel nicht gespeichert'); return; }
+    const saved = (await res.json()) as { title: string };
+    setTitle(saved.title);
+  };
 
   useWebSocket((event, data) => {
     if (event === 'issue-created' || event === 'issue-updated' || event === 'issue-deleted') refetch();
@@ -73,6 +85,19 @@ export default function IssuesPanel() {
     <div className="panel issues-panel">
       <h2>🎯 Glücksrad</h2>
       <p className="panel-desc">Themen sammeln, Rad drehen — der Chat entscheidet was dran kommt.</p>
+
+      <div className="issue-input">
+        <input
+          type="text"
+          placeholder={`Titel im Overlay (${titleInfo?.default ?? 'Glücksrad'})`}
+          title="So heißt das Rad über sich selbst; leer = Glücksrad"
+          maxLength={titleInfo?.max ?? 30}
+          value={title ?? ''}
+          onChange={(e) => setTitle(e.target.value)}
+          onBlur={saveTitle}
+          onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
+        />
+      </div>
 
       <div className="issue-input">
         <input

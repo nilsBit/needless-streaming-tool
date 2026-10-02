@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
-import { buildAlert } from '../bot/alerts';
+import { sampleAlert } from '../bot/alerts';
 import { getAutoDetectSetting, setAutoDetectSetting, isSMTCSupported, isSMTCRunning } from '../integrations/smtc';
 import { activeCard, type EntryCard } from './active-entry';
 
@@ -106,6 +106,31 @@ router.post('/song/auto-detect', (req, res) => {
 });
 
 // Direct trigger function (used by EventSub, bypasses HTTP + auth)
+/** What the wheel is called above itself — the streamer's word, "Glücksrad" until renamed. */
+export const ROULETTE_TITLE_DEFAULT = 'Glücksrad';
+export const ROULETTE_TITLE_MAX = 30;
+
+export function rouletteTitle(): string {
+  const row = getDb().prepare('SELECT value FROM settings WHERE key = ?').get('roulette_title') as { value: string } | undefined;
+  return row?.value?.trim() || ROULETTE_TITLE_DEFAULT;
+}
+
+// An empty title goes back to the built-in one.
+router.post('/roulette-title', (req, res) => {
+  const raw = (req.body as { title?: unknown })?.title;
+  if (raw !== undefined && typeof raw !== 'string') { res.status(400).json({ error: 'title must be a string' }); return; }
+  const title = String(raw ?? '').replace(/\s+/g, ' ').trim();
+  if (title.length > ROULETTE_TITLE_MAX) { res.status(400).json({ error: `title too long (max ${ROULETTE_TITLE_MAX})` }); return; }
+  if (title) getDb().prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('roulette_title', title);
+  else getDb().prepare('DELETE FROM settings WHERE key = ?').run('roulette_title');
+  broadcast('roulette-config', { title: rouletteTitle() });
+  res.json({ title: rouletteTitle() });
+});
+
+router.get('/roulette-title', (_req, res) => {
+  res.json({ title: rouletteTitle(), default: ROULETTE_TITLE_DEFAULT, max: ROULETTE_TITLE_MAX });
+});
+
 export function triggerRoulette(): { winner: { id: number; title: string } } | { error: string } {
   const now = Date.now();
 
@@ -128,15 +153,6 @@ export function triggerRoulette(): { winner: { id: number; title: string } } | {
 
 // Test events for overlay preview
 const STATIC_TEST_EVENTS: Record<string, { event: string; data: unknown }[]> = {
-  // Worded by the same function as the real thing (bot/alerts.ts), so the test
-  // shows what a viewer's follow or sub will look like.
-  alerts: [
-    { event: 'reward-redeemed', data: { reward_type: 'roulette', user_name: 'TestViewer' } },
-    { event: 'alert', data: buildAlert('follow', { user: 'Kartograph' }) },
-    { event: 'alert', data: buildAlert('sub', { user: 'Lesezeichen42', message: 'endlich dabei!' }) },
-    { event: 'alert', data: buildAlert('raid', { user: 'Nachtgilde', viewers: 42 }) },
-    { event: 'alert', data: buildAlert('cheer', { user: 'Tintenfass', bits: 500 }) },
-  ],
   song: [
     { event: 'song-update', data: { title: 'Neon Lights', artist: 'Synthwave Artist', source: 'test' } },
   ],
@@ -153,6 +169,15 @@ const STATIC_TEST_EVENTS: Record<string, { event: string; data: unknown }[]> = {
 
 function getTestEvents(name: string): { event: string; data: unknown }[] {
   if (STATIC_TEST_EVENTS[name]) return STATIC_TEST_EVENTS[name];
+
+  // Worded by the same function as the real thing (bot/alerts.ts), with the
+  // streamer's own wording and sounds — read now, not when the server started.
+  if (name === 'alerts') {
+    return [
+      { event: 'reward-redeemed', data: { reward_type: 'feature_request', user_name: 'TestViewer' } },
+      ...(['follow', 'sub', 'raid', 'cheer'] as const).map((slot) => ({ event: 'alert', data: sampleAlert(slot) })),
+    ];
+  }
 
   // Preview the entry that is actually pinned, so the test shows what will
   // really be on screen. Falls back to a demo when nothing is picked yet.

@@ -73,9 +73,9 @@
   <script>
     const slot = document.getElementById('slot');
 
-    // What a redeemed reward did, in the same words as the rest.
+    // What a redeemed reward did, in the same words as the rest. The wheel is
+    // not among them: it shows itself, and says who won on its own.
     const REWARDS = {
-      roulette: 'dreht am Glücksrad.',
       feature_request: 'schlägt etwas vor.',
       change_music: 'wechselt die Musik.',
     };
@@ -125,6 +125,17 @@
       return el;
     }
 
+    // The streamer's sound for this alert, as it appears — one at a time, like
+    // the alerts themselves. A file that is gone or won't play costs nothing.
+    function play(sound) {
+      if (!sound || !sound.url) return;
+      try {
+        const audio = new Audio(`${window.__overlayOrigin}${sound.url}`);
+        audio.volume = Math.min(Math.max(Number(sound.volume) || 0, 0), 1);
+        audio.play().catch(() => {});
+      } catch {}
+    }
+
     function next() {
       const alert = queue.shift();
       if (!alert) { showing = false; return; }
@@ -133,6 +144,7 @@
       const [, stay] = WEIGHT[alert.kind] || ['klein', 5000];
       const el = build(alert);
       slot.appendChild(el);
+      play(alert.sound);
       setTimeout(() => el.classList.add('leaving'), stay - LEAVE_MS);
       setTimeout(() => { el.remove(); next(); }, stay);
     }
@@ -149,6 +161,7 @@
 
       switch (event) {
         case 'reward-redeemed':
+          if (data.reward_type === 'roulette') break;
           showAlert({
             label: 'Kanalpunkte',
             who: data.user_name,
@@ -159,10 +172,6 @@
 
         case 'compile-pray':
           showAlert({ label: 'Moment', text: 'Läuft es? Oder stürzt es ab?', kind: 'compile' });
-          break;
-
-        case 'roulette-result':
-          showAlert({ label: 'Glücksrad', text: data.title, kind: 'compile' });
           break;
 
         // Follows, subs, gifts, raids and cheers: the server words them
