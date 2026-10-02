@@ -30,7 +30,7 @@ Alle Verbindungen richtest du unter **Settings** ein — Twitch, OBS, Notion und
 **Chat-Commands:**
 | Command | Beschreibung |
 |---------|-------------|
-| !befehle | Listet alle Befehle — deine Erklär-Commands zuerst |
+| !befehle | Nennt die wichtigsten Befehle (die mit ★ in der Übersicht). „!befehle alle“ listet jeden, „!befehle welt / texte / stream“ eine Gruppe |
 | !befehle <Name> | Erklärt einen einzelnen Befehl, z. B. !befehle figur |
 | !commands / !help | Dasselbe wie !befehle — für alle, die auf Englisch suchen |
 | !so <Name> | Nur Mods: empfiehlt einen Kanal mit seiner letzten Kategorie. Nach einem Raid schreibt der Bot das selbst (Settings → Chat Commands → Shoutout bei Raid) |
@@ -42,7 +42,7 @@ Alle Verbindungen richtest du unter **Settings** ein — Twitch, OBS, Notion und
 | !sr <URL> | Wünscht einen Song (YouTube oder Spotify) |
 | !queue | Zeigt die nächsten Song-Wünsche |
 | !hype | Löst einen Hype Moment aus |
-| !issues | Zeigt offene Einträge |
+| !themen (auch !issues) | Zeigt offene Einträge |
 | !todo | Zeigt offene Aufgaben |
 | !progress | Zeigt Projekt-Fortschritt |
 | !stats [name] | Zeigt eingelöste Rewards |
@@ -68,7 +68,10 @@ Alle Befehle lassen sich unter Settings → Chat Commands umbenennen. Antworten,
 **Regeln:**
 - Ein Erklär-Command darf nicht heißen wie ein eingebauter Befehl — auch nicht wie ein umbenannter.
 - Ausgeschaltete Befehle antworten nicht und stehen nicht in !befehle.
-- !befehle nennt deine Erklär-Commands zuerst, dann die Nachschlage-Commands, danach die eingebauten. Mit einem Namen dahinter (!befehle figur) kommt der eine Satz zu diesem Befehl.
+- !befehle nennt nur die wichtigsten Befehle — welche, wählst du in der Übersicht mit ★ (bis zu sechs). „!befehle alle“ listet jeden, „!befehle welt“, „!befehle texte“ und „!befehle stream“ je eine Gruppe. Mit einem Namen dahinter (!befehle figur) kommt der eine Satz zu diesem Befehl.
+- **Zweitnamen:** In der Übersicht kannst du einem Befehl weitere Namen geben (!socials für !links); sie antworten wie der Befehl selbst und stehen in Listen dahinter („auch !socials“). !issues ist so ein fester Zweitname von !themen.
+- **Schlaue Cooldowns:** Jeder Cooldown gilt für einen ruhigen Chat. Ab 20 Nachrichten pro Minute halbiert er sich, ab 60 ist es ein Viertel — in einem vollen Chat ist die Antwort schnell weggescrollt. Wer die Antwort gerade bekommen hat, bekommt sie frühestens nach dem Vierfachen (mindestens einer Minute) wieder; andere nach dem normalen Cooldown. Die eingebauten Befehle, die nur etwas sagen (!song, !uptime, !progress …), teilen sich einen Cooldown (Settings → Features → Chat Commands, Standard 15 s). !vote, !sr und !hype haben keinen. Mods und du warten nie.
+- **Erinnerung:** Unter Settings → Features → Chat Commands sagt der Bot alle paar Minuten einen Satz von selbst („Neu hier? !welt erklärt die Welt …“) — aber nur, wenn seit dem letzten Mal jemand im Chat geschrieben hat.
 
 **Übersicht für Zuschauer:** Unten im Panel steht jeder Befehl mit einem Satz. Lässt du das Feld leer, schreibt das Tool den Satz selbst — bei eigenen Texten der erste Satz der Antwort, beim Nachschlagen die Art, bei eingebauten ein fester Text; er steht blass im Feld. **Für Twitch-Panel kopieren** legt die ganze Liste als Text in die Zwischenablage, den du auf Twitch unter *Kanal bearbeiten → Panels* einfügst. Nach Änderungen musst du ihn dort neu einfügen.
 - Eigene Texte und Nachschlage-Commands sind im Backup enthalten.
@@ -181,6 +184,7 @@ Konfiguriere Mappings über die API:
 |---------|-----|-------------|
 | Progress | /overlay/progress/index.html | Projekt-Fortschritt |
 | Milestone | /overlay/milestone/index.html | Achievement-Benachrichtigungen |
+| Wechselfläche | /overlay/panel/index.html | Fortschritt oder Todos nach deiner Wahl, in einer Quelle |
 | Alerts | /overlay/alerts/index.html | Follower, Abos, Geschenk-Abos, Raids, Bits, Kanalpunkte |
 | Song | /overlay/song/index.html | Aktueller Song |
 | Song Queue | /overlay/song-queue/index.html | Aktueller Song und Song-Wünsche |
@@ -202,7 +206,9 @@ Konfiguriere Mappings über die API:
 3. Breite/Höhe anpassen
 4. Fertig
 
-**Alerts:** Das Overlay meldet neue Follower, Abos (auch Wiederholungen und Geschenke), Raids, Bits und eingelöste Kanalpunkte. Die Texte schreibt das Toolkit; was ein Zuschauer beim Abo oder bei den Bits dazuschreibt, steht darunter in Anführungszeichen. Jede Meldung ist eine Kompendium-Tafel oben rechts, in drei Größen: Follower klein (5 s), Abos, Geschenke und Bits etwas größer (6 s), ein Raid breit mit großem Namen (9 s). Kommen mehrere zugleich, erscheinen sie nacheinander; fünf verschenkte Abos sind eine Meldung, nicht sechs. **Abos, Geschenke, Raids und Bits kommen über den Chat** und brauchen keine zusätzlichen Rechte. **Neue Follower brauchen ein Recht mehr** (moderator:read:followers): Verbinde dich in Settings → Verbindungen einmal neu mit Twitch, sonst bleiben Follower-Meldungen aus. Ob es geklappt hat, steht im Log — „Subscribed to follows“ oder ein Hinweis, dass Twitch die Anmeldung abgelehnt hat.
+**Wechselfläche:** Eine Browser-Quelle für die Tafeln, die bleiben — gedacht für das freie Feld im Streifen (etwa 380 × 300). Was dort steht, wählst du von Hand — Fortschritt, Todos oder nichts — unter Live → OBS Scenes → **Wechselfläche** oder mit dem Hotkey „Wechselfläche weiterschalten“ (Standard Strg+Umschalt+4, auch für eine Stream-Deck-Taste); von selbst wechselt nichts. Die Abstimmung gehört nicht dazu, sie hat ihre eigene Quelle (Poll). So braucht nicht jede Tafel eine eigene Ecke im Bild.
+
+**Alerts:** Das Overlay meldet neue Follower, Abos (auch Wiederholungen und Geschenke), Raids, Bits und eingelöste Kanalpunkte. Die Texte und Töne stellst du unter Settings → Features → **Alerts — Texte und Töne** ein: je Anlass eine Überschrift, der Text nach dem Namen und, wenn du willst, eine Tondatei (.mp3, .wav, .ogg, bis 5 MB) mit eigener Lautstärke. Platzhalter wie {monate}, {empfaenger}, {abos}, {zuschauer} und {bits} füllt das Toolkit aus („7 Monate“, „42 Zuschauer“); mit einer Rechnung dahinter — {monate*5}, auch + - / — steht nur die gerundete Zahl da, ohne Einheit („35“), sodass du selbst benennst, was gezählt wird; mit einer Kommazahl ({monate*4.99}) bleiben zwei Nachkommastellen („34,93“); ein leeres Feld nimmt wieder den Standardtext. „Test“ speichert und zeigt den Alert im Overlay — im Stream sichtbar und hörbar. Damit der Ton im Stream ankommt, muss in OBS an der Browser-Quelle der Alerts „Audio über OBS steuern“ an sein. Die Texte für Kanalpunkte stehen fest. Was ein Zuschauer beim Abo oder bei den Bits dazuschreibt, steht darunter in Anführungszeichen. Jede Meldung ist eine Kompendium-Tafel oben rechts, in drei Größen: Follower klein (5 s), Abos, Geschenke und Bits etwas größer (6 s), ein Raid breit mit großem Namen (9 s). Kommen mehrere zugleich, erscheinen sie nacheinander; fünf verschenkte Abos sind eine Meldung, nicht sechs. **Abos, Geschenke, Raids und Bits kommen über den Chat** und brauchen keine zusätzlichen Rechte. **Neue Follower brauchen ein Recht mehr** (moderator:read:followers): Verbinde dich in Settings → Verbindungen einmal neu mit Twitch, sonst bleiben Follower-Meldungen aus. Ob es geklappt hat, steht im Log — „Subscribed to follows“ oder ein Hinweis, dass Twitch die Anmeldung abgelehnt hat.
 
 **Showcase:** Über den eingebauten Overlays öffnet **🖼️ Showcase** jedes Overlay in jedem Zustand mit Testdaten — zum Ansehen und Gestalten, ohne dass etwas in OBS erscheint. Die Seite hält jeden Zustand an, so wie ihn das Erfassen für Figma sieht; **▶ In Bewegung** zeigt dasselbe mit laufenden Animationen und Knöpfen zum Ausprobieren: **↻ Nochmal** spielt einen Zustand von vorn — Alerts und das Glücksrad blenden sich wie im Stream nach ein paar Sekunden aus —, dazu je Overlay Aktionen wie Punkt abhaken, Rad drehen oder Song wechseln. Direkt erreichbar unter http://localhost:4000/overlay/showcase/. Wie ein Overlay in Figma gestaltet und zurückgeholt wird, steht in docs/design-workflow.md.
 
@@ -282,7 +288,7 @@ Das Template unter /overlay/_template/index.html enthält:
     title: 'Dashboard Panels',
     content: `**Stream Tab:**
 - **Challenge** — Starte Challenges mit Timer und Status-Tracking
-- **Glücksrad** — Sammle Themen, drehe das Rad — der Chat entscheidet
+- **Glücksrad** — Sammle Themen, drehe das Rad — der Chat entscheidet. Wie das Rad im Overlay heißt, schreibst du oben ins Feld „Titel im Overlay“ (leer = Glücksrad)
 - **Clip Moments** — Markiere besondere Momente mit Tags
 - **Chat Voting** — Sammle Vorschläge und lass den Chat abstimmen
 - **Now Playing** — Aktuellen Song setzen und im Overlay anzeigen

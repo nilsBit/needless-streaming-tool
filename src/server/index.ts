@@ -10,7 +10,11 @@ import issuesRouter from './api/issues';
 import rewardsRouter from './api/rewards';
 import designsRouter from './api/designs';
 import settingsRouter from './api/settings';
-import actionsRouter, { currentSong } from './api/actions';
+import alertsRouter from './api/alerts';
+import panelRouter, { getPanelView } from './api/panel';
+import { currentPoll } from './bot/voting';
+import { ALERT_SOUND_DIR } from './bot/alerts';
+import actionsRouter, { currentSong, rouletteTitle } from './api/actions';
 import authRouter from './api/auth';
 import votingRouter from './api/voting';
 import progressRouter from './api/progress';
@@ -137,6 +141,8 @@ export function createApp(): express.Express {
   app.use('/api/rewards', rewardsRouter);
   app.use('/api/designs', designsRouter);
   app.use('/api/settings', settingsRouter);
+  app.use('/api/alerts', alertsRouter);
+  app.use('/api/panel', panelRouter);
   app.use('/api/actions', actionsRouter);
   app.use('/api/auth', authRouter);
   app.use('/api/voting', votingRouter);
@@ -168,6 +174,11 @@ export function createApp(): express.Express {
   app.get('/public/stream-state', (_req, res) => {
     const state = getDb().prepare('SELECT * FROM stream_state WHERE id = 1').get();
     res.json(state);
+  });
+
+  // What the wheel is called — the streamer's word for it.
+  app.get('/public/roulette', (_req, res) => {
+    res.json({ title: rouletteTitle() });
   });
 
   app.get('/public/issues', (_req, res) => {
@@ -203,6 +214,16 @@ export function createApp(): express.Express {
     res.json({ project_name: state?.project_name || null, items });
   });
 
+  // The vote that is running, for an overlay that loads in the middle of it.
+  app.get('/public/poll', (_req, res) => {
+    res.json({ poll: currentPoll() });
+  });
+
+  // Which of its panels the panel overlay shows — the streamer's pick.
+  app.get('/public/panel', (_req, res) => {
+    res.json({ view: getPanelView() });
+  });
+
   // The Entry Card — built server-side, so hidden fields never reach a browser source.
   app.get('/public/entry', (_req, res) => {
     res.json({ card: activeCard() });
@@ -215,6 +236,9 @@ export function createApp(): express.Express {
 
   // Portraits copied out of the source — Notion's URLs expire, Worldbuilder's want a token.
   app.use('/public/character-image', express.static(CHARACTER_IMAGE_DIR));
+
+  // The streamer's alert sounds — the Alerts overlay plays them as an alert appears.
+  app.use('/public/alert-sound', express.static(ALERT_SOUND_DIR));
 
   app.get('/public/reward-stats/top', (req, res) => {
     const type = (req.query.type as string) || 'all';

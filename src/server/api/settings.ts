@@ -11,6 +11,8 @@ import { DEFAULT_HOTKEYS } from '../../shared/types';
 import { listDatabases, listPages, createDatabase, healDatabase, checkDatabase } from './notion-sync';
 import { getSyncStatus, syncToRemoteManual, readSyncConfig, writeSyncConfig } from '../sync';
 import { getLiveSettings, saveLiveSettings } from '../discord/live';
+import { getReminderSettings, REMINDER_DEFAULT_TEXT, REMINDER_MAX_MINUTES, saveReminderSettings } from '../bot/reminder';
+import { BUILTIN_COOLDOWN_MAX, builtinCooldownSeconds } from '../bot/cooldown';
 
 const router = Router();
 
@@ -203,6 +205,32 @@ router.post('/discord-live', (req, res) => {
   } catch (err) {
     res.status(400).json({ error: err instanceof Error ? err.message : String(err) });
   }
+});
+
+// The one cooldown of the informational built-ins (bot/cooldown.ts)
+router.get('/builtin-cooldown', (_req, res) => {
+  res.json({ seconds: builtinCooldownSeconds(), max: BUILTIN_COOLDOWN_MAX });
+});
+
+router.post('/builtin-cooldown', (req, res) => {
+  const seconds = Number((req.body as { seconds?: unknown })?.seconds);
+  if (!Number.isInteger(seconds) || seconds < 0 || seconds > BUILTIN_COOLDOWN_MAX) {
+    res.status(400).json({ error: `seconds must be a whole number between 0 and ${BUILTIN_COOLDOWN_MAX}` });
+    return;
+  }
+  getDb().prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('builtin_cooldown_seconds', String(seconds));
+  res.json({ seconds, max: BUILTIN_COOLDOWN_MAX });
+});
+
+// The line the bot says on its own every so often (bot/reminder.ts)
+router.get('/reminder', (_req, res) => {
+  res.json({ ...getReminderSettings(), default: REMINDER_DEFAULT_TEXT, maxMinutes: REMINDER_MAX_MINUTES });
+});
+
+router.post('/reminder', (req, res) => {
+  const result = saveReminderSettings((req.body ?? {}) as { text?: unknown; minutes?: unknown });
+  if ('error' in result) { res.status(400).json(result); return; }
+  res.json({ ...result, default: REMINDER_DEFAULT_TEXT, maxMinutes: REMINDER_MAX_MINUTES });
 });
 
 // Fixed API token for Stream Deck
