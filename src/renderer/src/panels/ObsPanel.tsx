@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApi, apiPost } from '../hooks/useApi';
+import PanelSwitch from '../components/PanelSwitch';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { BotStatus } from '../../../shared/types';
 import { useToast } from '../contexts/ToastContext';
@@ -125,6 +126,8 @@ export default function ObsPanel() {
       {!twitchConnected && (
         <p className="obs-hint">Twitch ist nicht verbunden.</p>
       )}
+
+      <PanelSwitch />
 
       <div className="obs-mappings-section">
         <h3>Start, Pause, Ende</h3>

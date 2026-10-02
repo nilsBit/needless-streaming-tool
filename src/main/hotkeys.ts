@@ -126,6 +126,12 @@ export async function registerHotkeys(config?: Partial<HotkeyConfig>) {
     console.log(`[Hotkey] ${hotkeys.milestone_epic} — Milestone Epic`);
   });
 
+  // Panel overlay — the next of progress, todos, off
+  globalShortcut.register(hotkeys.panel_next, () => {
+    apiCall('POST', '/api/panel/next', {});
+    console.log(`[Hotkey] ${hotkeys.panel_next} — Panel next`);
+  });
+
   console.log('[Hotkeys] Registered all global shortcuts');
 }
 

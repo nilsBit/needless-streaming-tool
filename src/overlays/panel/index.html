@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="/overlay/lexikon.css">
+  <style>
+    /*
+     * One place for the panels that stay: progress and todos share a single
+     * browser source — the free field of the strip — instead of each wanting
+     * a corner of the picture.
+     *
+     * Which of them is up is the streamer's pick (Live → OBS Scenes, or a
+     * hotkey) and stays until picked again — nothing turns on its own. The
+     * poll is not part of it; it has a source of its own.
+     */
+    .turn {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      opacity: 0;
+      transition: opacity 0.6s ease;
+      pointer-events: none;
+    }
+    .turn.up { opacity: 1; }
+
+    /* Progress and todos are lists with a head and a bar above them: drawn a
+       quarter larger and shown at four fifths, a few more rows fit the field. */
+    .turn.list {
+      width: 125%;
+      height: 125%;
+      transform: scale(0.8);
+      transform-origin: top left;
+    }
+  </style>
+</head>
+<body>
+  <iframe class="turn list" id="progress" src="/overlay/progress/index.html" title="Fortschritt"></iframe>
+  <iframe class="turn list" id="todos" src="/overlay/todos/index.html" title="Todos"></iframe>
+
+  <script src="/overlay/boot.js" data-overlay="panel"></script>
+  <script>
+    const frames = { progress: document.getElementById('progress'), todos: document.getElementById('todos') };
+    // 'progress', 'todos' or 'off' — whatever else comes shows nothing.
+    let view = 'off';
+
+    function show() {
+      for (const [name, frame] of Object.entries(frames)) frame.classList.toggle('up', name === view);
+    }
+
+    // Updates only bring changes — on load, ask what was picked last.
+    function load() {
+      fetch(`${window.__overlayOrigin}/public/panel`)
+        .then((r) => r.json())
+        .then((d) => { view = d.view; show(); })
+        .catch(() => {});
+    }
+
+    // Reconnects on its own, and catches up on whatever changed meanwhile.
+    function connect() {
+      const ws = new WebSocket(`${window.__overlayWs}?overlay=1`);
+      ws.onopen = load;
+      ws.onmessage = (msg) => {
+        const { event, data } = JSON.parse(msg.data);
+
+        if (event === 'overlay-config' && window.__applyOverlayConfig) window.__applyOverlayConfig(data);
+
+        if (event === 'panel-view') { view = data.view; show(); }
+      };
+      ws.onclose = () => setTimeout(connect, 2000);
+      ws.onerror = () => ws.close();
+    }
+
+    show();
+    connect();
+  </script>
+</body>
+</html>

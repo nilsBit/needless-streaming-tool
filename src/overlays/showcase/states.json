@@ -7,14 +7,10 @@
     "alerts": {
       "size": { "width": 1920, "height": 1080 },
       "actions": [
-        { "label": "Glücksrad-Reward", "events": [{ "event": "reward-redeemed", "data": { "reward_type": "roulette", "user_name": "Lesezeichen42" }}]},
-        { "label": "Vorschlag", "events": [{ "event": "reward-redeemed", "data": { "reward_type": "feature_request", "user_name": "Kartograph" }}]},
-        { "label": "Glücksrad-Ergebnis", "events": [{ "event": "roulette-result", "data": { "title": "Die Karte der Unterstadt zeichnen" }}]}
+        { "label": "Vorschlag", "events": [{ "event": "reward-redeemed", "data": { "reward_type": "feature_request", "user_name": "Kartograph" }}]}
       ],
       "states": {
-        "reward-roulette": { "events": [{ "afterMs": 0, "event": "reward-redeemed", "data": { "reward_type": "roulette", "user_name": "Lesezeichen42" } }], "freezeAfterMs": 900 },
         "reward-feature": { "events": [{ "afterMs": 0, "event": "reward-redeemed", "data": { "reward_type": "feature_request", "user_name": "Kartograph" } }], "freezeAfterMs": 900 },
-        "roulette-result": { "events": [{ "afterMs": 0, "event": "roulette-result", "data": { "title": "Die Karte der Unterstadt zeichnen" } }], "freezeAfterMs": 900 },
         "follow": {"events": [{"afterMs": 0, "event": "alert", "data": {"kind": "follow", "label": "Follower", "who": "Kartograph", "text": "folgt jetzt."}}], "freezeAfterMs": 900},
         "sub": {"events": [{"afterMs": 0, "event": "alert", "data": {"kind": "sub", "label": "Abo", "who": "Lesezeichen42", "text": "ist jetzt dabei.", "message": "endlich dabei!"}}], "freezeAfterMs": 900},
         "resub": {"events": [{"afterMs": 0, "event": "alert", "data": {"kind": "resub", "label": "Abo", "who": "Tintenfass", "text": "schon 7 Monate dabei.", "message": "Beste Stunde der Woche."}}], "freezeAfterMs": 900},
@@ -87,6 +83,15 @@
       "states": {
         "open": { "events": [{ "afterMs": 0, "event": "poll-update", "data": { "title": "Wohin geht Aldric?", "options": [{ "label": "Zur Arche", "votes": 12 }, { "label": "In die Unterstadt", "votes": 8 }, { "label": "Zum Zirkel", "votes": 15 }] } }], "freezeAfterMs": 900 },
         "closed": { "events": [{ "afterMs": 0, "event": "poll-update", "data": { "title": "Wohin geht Aldric?", "options": [{ "label": "Zur Arche", "votes": 12 }, { "label": "In die Unterstadt", "votes": 8 }, { "label": "Zum Zirkel", "votes": 15 }] } }, { "afterMs": 300, "event": "poll-close", "data": {} }], "freezeAfterMs": 1200 }
+      }
+    },
+    "panel": {
+      "size": { "width": 383, "height": 303 },
+      "states": {
+        "fortschritt": {
+          "public": { "/public/panel": { "view": "progress" } },
+          "freezeAfterMs": 1500
+        }
       }
     },
     "progress": {
