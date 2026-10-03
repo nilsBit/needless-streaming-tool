@@ -20,7 +20,6 @@ export default function HotkeysPanel() {
     milestone_minor: 'Milestone (Minor)',
     milestone_major: 'Milestone (Major)',
     milestone_epic: 'Milestone (Epic)',
-    panel_next: 'Wechselfläche weiterschalten',
   };
 
   useEffect(() => {

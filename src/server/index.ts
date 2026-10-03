@@ -11,7 +11,6 @@ import rewardsRouter from './api/rewards';
 import designsRouter from './api/designs';
 import settingsRouter from './api/settings';
 import alertsRouter from './api/alerts';
-import panelRouter, { getPanelView } from './api/panel';
 import { currentPoll } from './bot/voting';
 import { ALERT_SOUND_DIR } from './bot/alerts';
 import actionsRouter, { currentSong, rouletteTitle } from './api/actions';
@@ -142,7 +141,6 @@ export function createApp(): express.Express {
   app.use('/api/designs', designsRouter);
   app.use('/api/settings', settingsRouter);
   app.use('/api/alerts', alertsRouter);
-  app.use('/api/panel', panelRouter);
   app.use('/api/actions', actionsRouter);
   app.use('/api/auth', authRouter);
   app.use('/api/voting', votingRouter);
@@ -217,11 +215,6 @@ export function createApp(): express.Express {
   // The vote that is running, for an overlay that loads in the middle of it.
   app.get('/public/poll', (_req, res) => {
     res.json({ poll: currentPoll() });
-  });
-
-  // Which of its panels the panel overlay shows — the streamer's pick.
-  app.get('/public/panel', (_req, res) => {
-    res.json({ view: getPanelView() });
   });
 
   // The Entry Card — built server-side, so hidden fields never reach a browser source.

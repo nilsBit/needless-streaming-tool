@@ -186,7 +186,6 @@ export interface HotkeyConfig {
   milestone_minor: string;
   milestone_major: string;
   milestone_epic: string;
-  panel_next: string;
 }
 
 export const DEFAULT_HOTKEYS: HotkeyConfig = {
@@ -199,7 +198,6 @@ export const DEFAULT_HOTKEYS: HotkeyConfig = {
   milestone_minor: 'CommandOrControl+Shift+1',
   milestone_major: 'CommandOrControl+Shift+2',
   milestone_epic: 'CommandOrControl+Shift+3',
-  panel_next: 'CommandOrControl+Shift+4',
 };
 
 // Valid status values for validation

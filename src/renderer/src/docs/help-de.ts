@@ -184,7 +184,6 @@ Konfiguriere Mappings über die API:
 |---------|-----|-------------|
 | Progress | /overlay/progress/index.html | Projekt-Fortschritt |
 | Milestone | /overlay/milestone/index.html | Achievement-Benachrichtigungen |
-| Wechselfläche | /overlay/panel/index.html | Fortschritt oder Todos nach deiner Wahl, in einer Quelle |
 | Alerts | /overlay/alerts/index.html | Follower, Abos, Geschenk-Abos, Raids, Bits, Kanalpunkte |
 | Song | /overlay/song/index.html | Aktueller Song |
 | Song Queue | /overlay/song-queue/index.html | Aktueller Song und Song-Wünsche |
@@ -205,8 +204,6 @@ Konfiguriere Mappings über die API:
 2. URL: http://localhost:4000/overlay/<name>/index.html
 3. Breite/Höhe anpassen
 4. Fertig
-
-**Wechselfläche:** Eine Browser-Quelle für die Tafeln, die bleiben — gedacht für das freie Feld im Streifen (etwa 380 × 300). Was dort steht, wählst du von Hand — Fortschritt, Todos oder nichts — unter Live → OBS Scenes → **Wechselfläche** oder mit dem Hotkey „Wechselfläche weiterschalten“ (Standard Strg+Umschalt+4, auch für eine Stream-Deck-Taste); von selbst wechselt nichts. Die Abstimmung gehört nicht dazu, sie hat ihre eigene Quelle (Poll). So braucht nicht jede Tafel eine eigene Ecke im Bild.
 
 **Alerts:** Das Overlay meldet neue Follower, Abos (auch Wiederholungen und Geschenke), Raids, Bits und eingelöste Kanalpunkte. Die Texte und Töne stellst du unter Settings → Features → **Alerts — Texte und Töne** ein: je Anlass eine Überschrift, der Text nach dem Namen und, wenn du willst, eine Tondatei (.mp3, .wav, .ogg, bis 5 MB) mit eigener Lautstärke. Platzhalter wie {monate}, {empfaenger}, {abos}, {zuschauer} und {bits} füllt das Toolkit aus („7 Monate“, „42 Zuschauer“); mit einer Rechnung dahinter — {monate*5}, auch + - / — steht nur die gerundete Zahl da, ohne Einheit („35“), sodass du selbst benennst, was gezählt wird; mit einer Kommazahl ({monate*4.99}) bleiben zwei Nachkommastellen („34,93“); ein leeres Feld nimmt wieder den Standardtext. „Test“ speichert und zeigt den Alert im Overlay — im Stream sichtbar und hörbar. Damit der Ton im Stream ankommt, muss in OBS an der Browser-Quelle der Alerts „Audio über OBS steuern“ an sein. Die Texte für Kanalpunkte stehen fest. Was ein Zuschauer beim Abo oder bei den Bits dazuschreibt, steht darunter in Anführungszeichen. Jede Meldung ist eine Kompendium-Tafel oben rechts, in drei Größen: Follower klein (5 s), Abos, Geschenke und Bits etwas größer (6 s), ein Raid breit mit großem Namen (9 s). Kommen mehrere zugleich, erscheinen sie nacheinander; fünf verschenkte Abos sind eine Meldung, nicht sechs. **Abos, Geschenke, Raids und Bits kommen über den Chat** und brauchen keine zusätzlichen Rechte. **Neue Follower brauchen ein Recht mehr** (moderator:read:followers): Verbinde dich in Settings → Verbindungen einmal neu mit Twitch, sonst bleiben Follower-Meldungen aus. Ob es geklappt hat, steht im Log — „Subscribed to follows“ oder ein Hinweis, dass Twitch die Anmeldung abgelehnt hat.
 
