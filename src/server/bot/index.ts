@@ -5,9 +5,15 @@ import { sayInParts } from './chat-message';
 import { registerEvents } from './events';
 import { connectEventSub, disconnectEventSub } from './eventsub';
 import { broadcast } from '../websocket/index';
+import { createReminder, getReminderSettings } from './reminder';
 
 let client: tmi.Client | null = null;
 let connected = false;
+
+// The reminder the bot says on its own (bot/reminder.ts); the timer asks every half minute.
+export const reminder = createReminder();
+let reminderTimer: ReturnType<typeof setInterval> | null = null;
+const REMINDER_TICK_MS = 30_000;
 
 export function getBotStatus(): { connected: boolean; channel: string | null } {
   const config = getBotConfig();
@@ -44,6 +50,16 @@ export async function connectBot(): Promise<boolean> {
     broadcast('bot-status', { connected: true, channel: config.channel });
     console.log(`[Bot] Connected to #${config.channel}`);
 
+    if (!reminderTimer) {
+      reminderTimer = setInterval(() => {
+        const { minutes, text } = getReminderSettings();
+        if (!reminder.due(minutes)) return;
+        reminder.sent();
+        sayInChat(text);
+        console.log('[Bot] Reminder said');
+      }, REMINDER_TICK_MS);
+    }
+
     // Start EventSub for channel point redemptions
     connectEventSub().catch((err) => console.error('[Bot] EventSub failed:', err));
 
@@ -66,6 +82,7 @@ export function sayInChat(message: string) {
 
 export async function disconnectBot(): Promise<void> {
   disconnectEventSub();
+  if (reminderTimer) { clearInterval(reminderTimer); reminderTimer = null; }
   if (client && connected) {
     await client.disconnect();
     connected = false;

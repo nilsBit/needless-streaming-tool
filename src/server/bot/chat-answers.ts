@@ -1,7 +1,8 @@
-import { getDb } from '../db/index';
 import { getStreamTimecodes } from '../obs/index';
 import { splitForChat, type ChatAnswer } from './chat-message';
-import { getCommandNames, triggerOf, VIEWER_COMMAND_KEYS } from './command-names';
+import { commandList, describeCommand, featuredCommands, withAliases, type CommandGroup, type CommandInfo } from './command-list';
+import { builtinKeyOf, canonicalTrigger, getCommandNames, triggerOf } from './command-names';
+import { builtinCooldownSeconds, INFO_BUILTINS, passCooldown } from './cooldown';
 import { answerLookupCommand } from './lookup-commands';
 import { answerTextCommand } from './text-commands';
 
@@ -13,33 +14,73 @@ import { answerTextCommand } from './text-commands';
  * The bot and `/api/chat/try` both come through here, so what the app shows
  * when trying a command out is what chat gets.
  */
-export async function answerChatMessage(message: string, privileged: boolean): Promise<ChatAnswer> {
-  const trigger = triggerOf(message);
+export async function answerChatMessage(message: string, privileged: boolean, viewer?: string): Promise<ChatAnswer> {
+  // A second name answers as the command it stands for.
+  const typed = triggerOf(message);
+  const trigger = canonicalTrigger(typed);
+  const asTyped = trigger === typed ? message : message.replace(/^\s*\S+/, trigger);
   const names = getCommandNames();
+  const builtin = builtinKeyOf(trigger, names);
 
-  if (trigger === names.commands) return { replies: splitForChat(commandListReply(names)) };
-  if (trigger === names.uptime) return { replies: [await uptimeReply()] };
-  if (Object.values(names).includes(trigger)) return { replies: null, reason: 'builtin' };
+  // The built-ins that only tell something share one cooldown (Settings → Chat Commands).
+  if (builtin !== null && INFO_BUILTINS.has(builtin) && !passCooldown(`builtin:${builtin}`, builtinCooldownSeconds(), privileged, { viewer })) {
+    return { replies: null, reason: 'cooldown' };
+  }
+
+  if (builtin === 'commands') {
+    // `!befehle <name>` explains one command; `!befehle alle` and the groups list them.
+    const wanted = asTyped.trim().split(/\s+/).slice(1).join(' ');
+    const group = GROUP_WORDS[wanted.toLowerCase()];
+    if (group !== undefined) return { replies: splitForChat(groupReply(group, names)) };
+    if (wanted) {
+      const command = describeCommand(wanted);
+      return { replies: splitForChat(command ? `${withAliases(command)} — ${command.description}` : `❓ „${wanted.slice(0, 40)}“ kenne ich nicht. ${featuredReply(names)}`) };
+    }
+    return { replies: splitForChat(featuredReply(names)) };
+  }
+  if (builtin === 'uptime') return { replies: [await uptimeReply()] };
+  if (builtin !== null) return { replies: null, reason: 'builtin' };
 
   return (
-    answerTextCommand(trigger, privileged) ??
-    (await answerLookupCommand(message, privileged)) ?? { replies: null, reason: 'unknown' }
+    answerTextCommand(trigger, privileged, viewer) ??
+    (await answerLookupCommand(asTyped, privileged, viewer)) ?? { replies: null, reason: 'unknown' }
   );
 }
 
-/** The `!befehle` reply: the streamer's own explanations, then lookups, then what the app computes. */
-function commandListReply(names: Record<string, string>): string {
-  const enabled = (table: 'text_commands' | 'lookup_commands') =>
-    (getDb().prepare(`SELECT trigger FROM ${table} WHERE enabled = 1 ORDER BY trigger`).all() as Array<{ trigger: string }>)
-      .map((row) => row.trigger);
+/** What a viewer may type after `!befehle` to get one group — or everything. */
+const GROUP_WORDS: Record<string, CommandGroup | 'all'> = {
+  alle: 'all', all: 'all',
+  welt: 'lookup',
+  texte: 'text', eigene: 'text',
+  stream: 'builtin',
+};
 
-  const groups = [
-    enabled('text_commands'),
-    enabled('lookup_commands'),
-    VIEWER_COMMAND_KEYS.map((key) => names[key]).filter(Boolean),
-  ].filter((group) => group.length > 0);
+const GROUP_NAMES: Record<CommandGroup, string> = { text: 'Erklärt', lookup: 'Aus der Welt', builtin: 'Rund um den Stream' };
 
-  return `📜 Befehle: ${groups.map((group) => group.join(' ')).join(' · ')}`;
+/** A lookup wants a name after it; the list says so. */
+const typed = (command: CommandInfo) => (command.group === 'lookup' ? `${command.trigger} <Name>` : command.trigger);
+
+/**
+ * The plain `!befehle`: a handful a newcomer needs, and how to get the rest.
+ * Thirty commands in one message is a wall nobody reads.
+ */
+function featuredReply(names: Record<string, string>): string {
+  const list = commandList();
+  const { triggers } = featuredCommands(list);
+  const few = triggers.map((trigger) => list.find((command) => command.trigger === trigger)).filter((c): c is CommandInfo => Boolean(c));
+  const lead = few.length ? `📜 Neu hier? ${few.map(typed).join(' · ')} — ` : '📜 ';
+  return `${lead}alle Befehle: ${names.commands} alle · was einer macht: ${names.commands} <Name>`;
+}
+
+/** One group of commands, or all three — the old full list, on request. */
+function groupReply(group: CommandGroup | 'all', names: Record<string, string>): string {
+  const list = commandList();
+  const groups = (group === 'all' ? (['text', 'lookup', 'builtin'] as CommandGroup[]) : [group])
+    .map((g) => ({ name: GROUP_NAMES[g], commands: list.filter((command) => command.group === g) }))
+    .filter((g) => g.commands.length > 0);
+  if (groups.length === 0) return featuredReply(names);
+  const body = groups.map((g) => `${g.name}: ${g.commands.map(withAliases).join(' ')}`).join(' · ');
+  return `📜 ${body} — was einer macht: ${names.commands} <Name>`;
 }
 
 /**

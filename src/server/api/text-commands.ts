@@ -20,6 +20,14 @@ function findCommand(id: string): TextCommand | undefined {
   return getDb().prepare('SELECT * FROM text_commands WHERE id = ?').get(id) as TextCommand | undefined;
 }
 
+
+/** Free text, or empty for the derived one (see bot/command-list.ts). */
+function description(value: unknown, fallback: string | null): string | null {
+  if (value === undefined) return fallback;
+  const text = String(value).trim();
+  return text ? text.slice(0, 300) : null;
+}
+
 router.get('/', (_req, res) => {
   const rows = getDb().prepare('SELECT * FROM text_commands ORDER BY trigger').all() as TextCommand[];
   res.json(rows.map(toJson));
@@ -32,14 +40,15 @@ router.post('/', (req, res) => {
     response: String(body.response ?? ''),
     cooldown_seconds: body.cooldown_seconds === undefined ? DEFAULT_COOLDOWN_SECONDS : Number(body.cooldown_seconds),
   };
+  const text = description(body.description, null);
 
   const refusal = checkTextCommand(command);
   if (refusal) { res.status(refusal.status).json({ error: refusal.error, message: refusal.message }); return; }
 
   const enabled = body.enabled === undefined || body.enabled ? 1 : 0;
   const result = getDb()
-    .prepare('INSERT INTO text_commands (trigger, response, cooldown_seconds, enabled) VALUES (?, ?, ?, ?)')
-    .run(command.trigger, command.response.trim(), command.cooldown_seconds, enabled);
+    .prepare('INSERT INTO text_commands (trigger, response, cooldown_seconds, enabled, description) VALUES (?, ?, ?, ?, ?)')
+    .run(command.trigger, command.response.trim(), command.cooldown_seconds, enabled, text);
 
   res.status(201).json(toJson(findCommand(String(result.lastInsertRowid))!));
 });
@@ -54,14 +63,15 @@ router.patch('/:id', (req, res) => {
     response: body.response === undefined ? existing.response : String(body.response),
     cooldown_seconds: body.cooldown_seconds === undefined ? existing.cooldown_seconds : Number(body.cooldown_seconds),
   };
+  const text = description(body.description, existing.description ?? null);
 
   const refusal = checkTextCommand(next, existing.id);
   if (refusal) { res.status(refusal.status).json({ error: refusal.error, message: refusal.message }); return; }
 
   const enabled = body.enabled === undefined ? existing.enabled : body.enabled ? 1 : 0;
   getDb()
-    .prepare('UPDATE text_commands SET trigger = ?, response = ?, cooldown_seconds = ?, enabled = ? WHERE id = ?')
-    .run(next.trigger, next.response.trim(), next.cooldown_seconds, enabled, existing.id);
+    .prepare('UPDATE text_commands SET trigger = ?, response = ?, cooldown_seconds = ?, enabled = ?, description = ? WHERE id = ?')
+    .run(next.trigger, next.response.trim(), next.cooldown_seconds, enabled, text, existing.id);
 
   res.json(toJson(findCommand(req.params.id)!));
 });

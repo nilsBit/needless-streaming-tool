@@ -189,10 +189,10 @@ describe('text commands', () => {
       await create({ trigger: '!story', response: 'Story.' }).expect(201);
       await create({ trigger: '!geheim', response: 'Aus.', enabled: false }).expect(201);
 
-      const res = await tryInChat('!befehle', 'viewer').expect(200);
+      const res = await tryInChat('!befehle alle', 'viewer').expect(200);
       const reply = (res.body.replies as string[]).join(' ');
 
-      expect(reply).toMatch(/^📜 Befehle: !story !welt · /);
+      expect(reply).toMatch(/^📜 Erklärt: !story !welt · /);
       expect(reply).toContain('!challenge');
       expect(reply).not.toContain('!geheim');
       expect(reply).not.toContain('!scene');
@@ -201,7 +201,7 @@ describe('text commands', () => {
     it('follows a renamed built-in', async () => {
       await request(app).post('/api/settings/commands').set(auth()).send({ song: '!lied' }).expect(200);
 
-      const res = await tryInChat('!befehle').expect(200);
+      const res = await tryInChat('!befehle alle').expect(200);
       expect(res.body.replies[0]).toContain('!lied');
       expect(res.body.replies[0]).not.toContain('!song');
     });

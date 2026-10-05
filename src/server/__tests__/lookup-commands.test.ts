@@ -271,6 +271,6 @@ describe('lookup commands', () => {
   it('are listed in !befehle between the Text Commands and the built-ins', async () => {
     await request(app).post('/api/text-commands').set(auth()).send({ trigger: '!story', response: 'Text.' }).expect(201);
 
-    expect(await reply('!befehle')).toMatch(/^📜 Befehle: !story · !begriff !figur !gilde !ort · !challenge/);
+    expect(await reply('!befehle alle')).toMatch(/^📜 Erklärt: !story · Aus der Welt: !begriff !figur !gilde !ort · Rund um den Stream: !challenge/);
   });
 });

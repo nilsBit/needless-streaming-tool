@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="/overlay/lexikon.css">
+</head>
+<body>
+  <!--
+    The pause screen (scene "brb"), a whole page of the Kompendium: nothing
+    to look at but where the story stood when the stream paused.
+  -->
+  <div class="lex lex-seite">
+    <div class="lex-kicker">Kompendium&nbsp;<span class="what">Pause</span></div>
+    <div class="lex-title">Gleich zurück.</div>
+    <p class="line hidden" id="line">Zuletzt aufgeschlagen: <span class="entry" id="entry"></span></p>
+    <div class="foot"><span id="world"></span><span>twitch.tv/chain_des</span></div>
+  </div>
+
+  <script src="/overlay/boot.js" data-overlay="pause"></script>
+  <script>
+    const line = document.getElementById('line');
+    const entry = document.getElementById('entry');
+    const world = document.getElementById('world');
+
+    // The card that was up when the stream paused — as text, never as HTML.
+    function show(card) {
+      line.classList.toggle('hidden', !card);
+      entry.textContent = card ? card.title : '';
+      world.textContent = card && card.world ? card.world : '';
+    }
+
+    function load() {
+      fetch(`${window.__overlayOrigin}/public/entry`)
+        .then((r) => r.json())
+        .then((d) => show(d.card))
+        .catch(() => {});
+    }
+
+    // Reconnects on its own, and catches up on whatever changed meanwhile.
+    function connect() {
+      const ws = new WebSocket(`${window.__overlayWs}?overlay=1`);
+      ws.onopen = load;
+      ws.onmessage = (msg) => {
+        const { event, data } = JSON.parse(msg.data);
+
+        if (event === 'overlay-config' && window.__applyOverlayConfig) window.__applyOverlayConfig(data);
+
+        if (event === 'entry-changed') show(data);
+      };
+      ws.onclose = () => setTimeout(connect, 2000);
+      ws.onerror = () => ws.close();
+    }
+
+    connect();
+  </script>
+</body>
+</html>

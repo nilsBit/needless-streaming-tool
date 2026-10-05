@@ -26,7 +26,22 @@
     return r + ' ' + g + ' ' + b;
   }
 
+  // What was applied from Figma drafts for this overlay (see design-apply.ts).
+  // Only a config that carries `styles` touches them — the Design panel
+  // broadcasts the palette alone.
+  function applyStyles(config) {
+    if (!config.styles) return;
+    var el = document.getElementById('nst-design-styles');
+    if (!el) {
+      el = document.createElement('style');
+      el.id = 'nst-design-styles';
+      document.head.appendChild(el);
+    }
+    el.textContent = config.styles[name] || '';
+  }
+
   function apply(config) {
+    applyStyles(config);
     var vars = Object.assign({}, config.global || {}, (config.overrides || {})[name] || {});
     var root = document.documentElement;
     Object.keys(vars).forEach(function (k) {
@@ -77,4 +92,153 @@
   window.__applyOverlayConfig = function (config) {
     apply(config);
   };
+
+  /*
+   * Showcase mode: `?state=<name>` plays one state from
+   * /overlay/showcase/states.json instead of listening to the server. Nothing
+   * reaches OBS and nothing reads the database. Once the state has played, the
+   * page is frozen — animations paused, timers cleared — and
+   * `data-showcase-ready` marks it for the capture script. `&live` skips the
+   * freeze, so the state keeps moving — for judging an animation by eye —
+   * and lets the showcase page play the overlay's actions into it.
+   */
+  var params = new URLSearchParams(window.location.search);
+  var showcaseState = params.get('state');
+  if (showcaseState) installShowcase(name, showcaseState, params.has('live'));
+
+  function installShowcase(overlay, stateName, live) {
+    var root = document.documentElement;
+    var realFetch = window.fetch.bind(window);
+    var realSetTimeout = window.setTimeout.bind(window);
+    var realSetInterval = window.setInterval.bind(window);
+    var realRaf = window.requestAnimationFrame.bind(window);
+    var timeouts = [];
+    var intervals = [];
+    var frames = [];
+    var frozen = false;
+
+    function fail(message) {
+      root.setAttribute('data-showcase-error', message);
+    }
+
+    var statePromise = realFetch(origin + '/overlay/showcase/states.json')
+      .then(function (r) {
+        return r.json();
+      })
+      .then(function (all) {
+        // Own keys only: `?state=__proto__` must not reach Object.prototype.
+        var own = Object.prototype.hasOwnProperty;
+        var entry = own.call(all.overlays, overlay) ? all.overlays[overlay] : null;
+        var state = entry && own.call(entry.states, stateName) ? entry.states[stateName] : null;
+        if (!state) throw new Error('unknown state ' + overlay + ' / ' + stateName);
+        return state;
+      });
+    statePromise.catch(function (e) {
+      fail(String(e && e.message ? e.message : e));
+    });
+
+    // Timers the overlay starts are tracked so the freeze can stop them —
+    // otherwise an alert would hide itself or a clock keep ticking mid-capture.
+    window.setTimeout = function () {
+      if (frozen) return 0;
+      var id = realSetTimeout.apply(window, arguments);
+      timeouts.push(id);
+      return id;
+    };
+    window.setInterval = function () {
+      if (frozen) return 0;
+      var id = realSetInterval.apply(window, arguments);
+      intervals.push(id);
+      return id;
+    };
+    window.requestAnimationFrame = function (cb) {
+      if (frozen) return 0;
+      var id = realRaf(cb);
+      frames.push(id);
+      return id;
+    };
+
+    // The overlay config stays real so palette changes show up here too.
+    window.fetch = function (input, init) {
+      var url = new URL(typeof input === 'string' ? input : input.url, origin);
+      if (url.pathname.indexOf('/public/') !== 0 || url.pathname === '/public/overlay-config') {
+        return realFetch(input, init);
+      }
+      return statePromise.then(function (state) {
+        var body = (state.public || {})[url.pathname];
+        var json = { 'Content-Type': 'application/json' };
+        if (body === undefined) return new Response('null', { status: 404, headers: json });
+        return new Response(JSON.stringify(body), { status: 200, headers: json });
+      });
+    };
+
+    function freeze() {
+      if (frozen) return;
+      document.getAnimations().forEach(function (a) {
+        a.pause();
+      });
+      frozen = true;
+      timeouts.forEach(clearTimeout);
+      intervals.forEach(clearInterval);
+      frames.forEach(cancelAnimationFrame);
+      document.fonts.ready.then(function () {
+        root.setAttribute('data-showcase-ready', '');
+      });
+    }
+
+    var sockets = [];
+
+    function play(socket, events) {
+      (events || []).forEach(function (e) {
+        realSetTimeout(function () {
+          if (!frozen && !socket.closed && socket.onmessage) {
+            socket.onmessage({ data: JSON.stringify({ event: e.event, data: e.data }) });
+          }
+        }, e.afterMs || 0);
+      });
+    }
+
+    function FakeSocket() {
+      var socket = this;
+      socket.readyState = 0;
+      sockets.push(socket);
+      realSetTimeout(function () {
+        socket.readyState = 1;
+        if (socket.onopen) socket.onopen({});
+        statePromise.then(function (state) {
+          play(socket, state.events);
+          if (!live) realSetTimeout(freeze, state.freezeAfterMs || 0);
+        });
+      }, 0);
+    }
+    FakeSocket.prototype.send = function () {};
+    FakeSocket.prototype.close = function () {
+      this.closed = true;
+    };
+
+    // Live, the showcase page can act on the overlay — tick off a todo, spin
+    // the wheel: an action swaps in new test data, then plays its events.
+    // Only the page this one is framed in may ask.
+    if (live) {
+      window.addEventListener('message', function (msg) {
+        if (msg.source !== window.parent || msg.origin !== window.location.origin) return;
+        if (!msg.data || msg.data.type !== 'nst-showcase-action') return;
+        var action = msg.data.action || {};
+        statePromise.then(function (state) {
+          state.public = Object.assign({}, state.public, action.public);
+          sockets.forEach(function (socket) {
+            play(socket, action.events);
+          });
+        });
+      });
+    }
+    FakeSocket.prototype.addEventListener = function (type, fn) {
+      this['on' + type] = fn;
+    };
+    FakeSocket.CONNECTING = 0;
+    FakeSocket.OPEN = 1;
+    FakeSocket.CLOSING = 2;
+    FakeSocket.CLOSED = 3;
+    window.WebSocket = FakeSocket;
+  }
 })();

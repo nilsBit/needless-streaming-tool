@@ -6,6 +6,7 @@ import { triggerRoulette } from '../api/actions';
 import { changeScene, findSceneForReward, getCurrentScene } from '../obs/index';
 import { checkAndBroadcast } from '../reward-leaderboard';
 import { getClientId } from '../twitch-config';
+import { sendAlert } from './alerts';
 
 let ws: WebSocket | null = null;
 let sessionId: string | null = null;
@@ -29,7 +30,12 @@ async function getTwitchUserId(token: string, clientId: string): Promise<string 
   }
 }
 
-async function subscribeToRedemptions(token: string, clientId: string, userId: string) {
+/**
+ * Subscribes to one event type. A follow needs `moderator:read:followers`,
+ * which older tokens don't carry — then Twitch answers 401/403 and the log
+ * says what to do instead of failing silently.
+ */
+async function subscribe(token: string, clientId: string, type: string, version: string, condition: Record<string, string>, label: string) {
   if (!sessionId) return;
 
   try {
@@ -40,23 +46,27 @@ async function subscribeToRedemptions(token: string, clientId: string, userId: s
         'Client-Id': clientId,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        type: 'channel.channel_points_custom_reward_redemption.add',
-        version: '1',
-        condition: { broadcaster_user_id: userId },
-        transport: { method: 'websocket', session_id: sessionId },
-      }),
+      body: JSON.stringify({ type, version, condition, transport: { method: 'websocket', session_id: sessionId } }),
     });
 
     const data = await res.json();
     if (res.ok) {
-      console.log('[EventSub] Subscribed to channel point redemptions');
+      console.log(`[EventSub] Subscribed to ${label}`);
+    } else if (res.status === 401 || res.status === 403) {
+      console.error(`[EventSub] ${label}: Twitch refused the subscription (${res.status}). Das Token kennt das nötige Recht nicht — in den Settings einmal neu mit Twitch verbinden.`);
     } else {
-      console.error('[EventSub] Subscribe failed:', data);
+      console.error(`[EventSub] ${label} failed:`, data);
     }
   } catch (err) {
-    console.error('[EventSub] Subscribe error:', err);
+    console.error(`[EventSub] ${label} error:`, err);
   }
+}
+
+async function subscribeToEvents(token: string, clientId: string, userId: string) {
+  await subscribe(token, clientId, 'channel.channel_points_custom_reward_redemption.add', '1', { broadcaster_user_id: userId }, 'channel point redemptions');
+  // A follow is only visible to a moderator of the channel — the broadcaster
+  // is one of their own channel.
+  await subscribe(token, clientId, 'channel.follow', '2', { broadcaster_user_id: userId, moderator_user_id: userId }, 'follows');
 }
 
 async function handleRedemption(event: Record<string, unknown>) {
@@ -171,7 +181,7 @@ export async function connectEventSub(): Promise<boolean> {
         if (type === 'session_welcome') {
           sessionId = msg.payload?.session?.id;
           console.log(`[EventSub] Session: ${sessionId}`);
-          await subscribeToRedemptions(token, clientId, userId);
+          await subscribeToEvents(token, clientId, userId);
           resolve(true);
         }
 
@@ -179,6 +189,10 @@ export async function connectEventSub(): Promise<boolean> {
           const subType = msg.metadata?.subscription_type;
           if (subType === 'channel.channel_points_custom_reward_redemption.add') {
             handleRedemption(msg.payload?.event);
+          }
+          if (subType === 'channel.follow') {
+            const event = msg.payload?.event;
+            sendAlert('follow', { user: event?.user_name ?? event?.user_login });
           }
         }
 

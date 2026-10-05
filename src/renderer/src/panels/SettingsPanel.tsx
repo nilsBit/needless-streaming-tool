@@ -6,6 +6,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useToast } from '../contexts/ToastContext';
 import CopyButton from '../components/CopyButton';
 import NotionDatabasePicker from '../components/NotionDatabasePicker';
+import AlertSettings from '../components/AlertSettings';
 
 type SettingsCategory = 'connections' | 'features' | 'app' | 'data';
 
@@ -28,7 +29,28 @@ export default function SettingsPanel() {
   }>('/settings/sync/status');
   const { data: autostartInfo, refetch: refetchAutostart } = useApi<{ enabled: boolean }>('/settings/autostart');
   const { data: commandsData, refetch: refetchCommands } = useApi<Record<string, string>>('/settings/commands');
+  const { data: raidShoutout, refetch: refetchRaidShoutout } = useApi<{ value: string | null }>('/settings/get/raid_shoutout');
+  const raidShoutoutOn = raidShoutout?.value !== '0';
+  const setRaidShoutout = async (on: boolean) => {
+    await apiPost('/settings/set', { key: 'raid_shoutout', value: on ? '1' : '0' });
+    refetchRaidShoutout();
+  };
   const { data: discordLive, refetch: refetchDiscordLive } = useApi<{ configured: boolean; message: string }>('/settings/discord-live');
+  // The bot's own reminder every so often — text and interval.
+  const { data: reminderInfo, refetch: refetchReminder } = useApi<{ text: string; minutes: number; default: string; maxMinutes: number }>('/settings/reminder');
+  const [reminderText, setReminderText] = useState<string | null>(null);
+  const { data: builtinCooldown, refetch: refetchBuiltinCooldown } = useApi<{ seconds: number; max: number }>('/settings/builtin-cooldown');
+  const saveBuiltinCooldown = async (seconds: number) => {
+    const res = await apiFetch('/settings/builtin-cooldown', { method: 'POST', body: JSON.stringify({ seconds }) });
+    if (!res.ok) { toast.error('Cooldown nicht gespeichert'); return; }
+    refetchBuiltinCooldown();
+  };
+  const saveReminder = async (change: { text?: string; minutes?: number }) => {
+    const res = await apiFetch('/settings/reminder', { method: 'POST', body: JSON.stringify(change) });
+    if (!res.ok) { toast.error('Erinnerung nicht gespeichert'); return; }
+    setReminderText(null);
+    refetchReminder();
+  };
   const [discordWebhook, setDiscordWebhook] = useState('');
   const [discordMessage, setDiscordMessage] = useState<string | null>(null);
 
@@ -330,6 +352,8 @@ export default function SettingsPanel() {
 
   const renderFeatures = () => (
     <>
+      <AlertSettings />
+
       <div className="s-card">
         <div className="s-card-header">
           <div className="s-card-info">
@@ -381,6 +405,56 @@ export default function SettingsPanel() {
               </div>
             ))}
             <button className="s-card-action primary" onClick={saveCommands}>Speichern</button>
+            <div className="s-command-row" style={{ marginTop: 16 }}>
+              <span className="s-command-label">Shoutout bei Raid</span>
+              <div className="s-toggle-row compact">
+                <button className={`s-toggle-btn ${raidShoutoutOn ? 'active' : ''}`} onClick={() => setRaidShoutout(true)}>An</button>
+                <button className={`s-toggle-btn ${!raidShoutoutOn ? 'active' : ''}`} onClick={() => setRaidShoutout(false)}>Aus</button>
+              </div>
+            </div>
+            <div className="s-card-status" style={{ color: '#888' }}>
+              !commands und !help antworten wie !befehle. !so &lt;Name&gt; (nur Mods) empfiehlt einen Kanal — nach einem Raid schreibt der Bot das von selbst.
+            </div>
+            <div className="s-command-row" style={{ marginTop: 16 }}>
+              <span className="s-command-label">Cooldown</span>
+              <select
+                className="s-alert-select" style={{ flex: '0 0 150px' }}
+                value={builtinCooldown?.seconds ?? 15}
+                onChange={(e) => saveBuiltinCooldown(Number(e.target.value))}
+              >
+                {[0, 5, 10, 15, 20, 30, 45, 60, 120].map((s) => <option key={s} value={s}>{s === 0 ? 'Keiner' : `${s} s`}</option>)}
+              </select>
+            </div>
+            <div className="s-card-status" style={{ color: '#888' }}>
+              Für die eingebauten Befehle, die nur etwas sagen (!song, !uptime, !progress, !todo, !themen, !queue, !stats, !challenge, !befehle).
+              Jeder Cooldown gilt für einen ruhigen Chat: ab 20 Nachrichten pro Minute halbiert er sich, ab 60 ist es ein Viertel.
+              Wer die Antwort gerade bekommen hat, bekommt sie frühestens nach dem Vierfachen (mindestens einer Minute) wieder; Mods und du nie zu früh.
+            </div>
+            <div className="s-command-row" style={{ marginTop: 16 }}>
+              <span className="s-command-label">Erinnerung</span>
+              <select
+                className="s-alert-select" style={{ flex: '0 0 150px' }}
+                value={reminderInfo?.minutes ?? 0}
+                onChange={(e) => saveReminder({ minutes: Number(e.target.value) })}
+              >
+                <option value={0}>Aus</option>
+                {[10, 15, 20, 30, 45, 60, 90, 120].map((m) => <option key={m} value={m}>alle {m} Minuten</option>)}
+              </select>
+            </div>
+            <div className="s-command-row">
+              <span className="s-command-label" />
+              <input
+                type="text" maxLength={400}
+                placeholder={reminderInfo?.default ?? ''}
+                value={reminderText ?? reminderInfo?.text ?? ''}
+                onChange={(e) => setReminderText(e.target.value)}
+                onBlur={() => reminderText !== null && saveReminder({ text: reminderText })}
+                onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
+              />
+            </div>
+            <div className="s-card-status" style={{ color: '#888' }}>
+              Der Bot sagt den Satz von selbst — aber nur, wenn seit dem letzten Mal jemand im Chat geschrieben hat. Leer = Standardtext.
+            </div>
           </div>
         )}
       </div>

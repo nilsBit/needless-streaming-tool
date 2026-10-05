@@ -3,6 +3,7 @@ import { apiDelete, apiFetch, apiGet, apiPatch, apiPost, useApi } from '../hooks
 import { useToast } from '../contexts/ToastContext';
 import EmptyState from '../components/ux/EmptyState';
 import ChatCommands from '../components/ChatCommands';
+import CommandOverview from '../components/CommandOverview';
 
 interface TextCommand {
   id: number;
@@ -181,7 +182,7 @@ export default function TextCommandsPanel() {
               onChange={(e) => setDraft({ ...draft, trigger: e.target.value })}
               autoFocus
             />
-            <label className="text-command-cooldown" title="So lange antwortet der Befehl nach einer Antwort nicht noch einmal. Mods und du sind ausgenommen.">
+            <label className="text-command-cooldown" title="So lange antwortet der Befehl in einem ruhigen Chat nicht noch einmal — in einem vollen Chat kürzer. Wer die Antwort gerade bekam, wartet länger. Mods und du sind ausgenommen.">
               Cooldown
               <input
                 type="number"
@@ -346,8 +347,11 @@ export default function TextCommandsPanel() {
           : <p className="empty">{NO_REPLY[trialAnswer.reason]}</p>)}
       </div>
 
+      <CommandOverview />
+
       <ChatCommands commands={[
         { cmd: '!befehle', desc: 'Listet alle Befehle' },
+        { cmd: '!befehle <Name>', desc: 'Erklärt einen einzelnen Befehl' },
         ...(lookups ?? []).filter((l) => l.enabled).map((l) => ({
           cmd: `${l.trigger} <Name>`,
           desc: `Sucht unter „${l.art}“`,

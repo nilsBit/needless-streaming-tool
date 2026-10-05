@@ -9,11 +9,24 @@
       flex-direction: column;
       gap: 10px;
       padding: 16px 18px;
-      max-width: 340px;
+      /* As wide as its browser source — the source decides, not the panel. */
       width: 100%;
+      box-sizing: border-box;
     }
 
-    .poll.visible { display: flex; }
+    .poll.visible { display: flex; animation: pollIn 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
+    /* Goes as quietly as it came. */
+    .poll.leaving { opacity: 0; transform: translateY(8px); transition: opacity 0.6s ease, transform 0.6s ease; }
+
+    @keyframes pollIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* The line above the title — only once the vote is over: "Ergebnis". */
+    .poll-kicker { display: none; font-size: 0.8rem; }
+    .poll-kicker .what { color: var(--color-accent); font-style: normal; }
+    .poll.result .poll-kicker { display: flex; animation: pollIn 0.4s ease-out; }
 
     .poll-title { font-size: 1.267rem; }
 
@@ -66,12 +79,32 @@
       color: var(--color-secondary);
     }
 
-    .poll-option.winner .poll-label { color: var(--color-primary); }
+    /*
+     * The result: what lost steps back, the winner's bar runs to the edge in
+     * full accent and its row stands out once — then the panel leaves.
+     */
+    .poll-option { transition: opacity 0.6s ease; }
+    .poll-bar { transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.6s ease; }
+    .poll.result .poll-option:not(.winner) { opacity: 0.35; }
+    .poll.result .poll-option.winner { animation: pollWin 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.5s both; }
+    .poll.result .poll-option.winner .poll-bar {
+      width: 100% !important;
+      opacity: 1;
+      transition: width 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.3s, opacity 0.6s ease 0.3s;
+    }
+    .poll-option.winner .poll-label { color: var(--color-primary); font-weight: 700; }
     .poll-option.winner .poll-count { color: var(--color-primary); }
+
+    @keyframes pollWin {
+      0% { transform: scale(1); }
+      40% { transform: scale(1.04); }
+      100% { transform: scale(1); }
+    }
   </style>
 </head>
 <body>
   <div class="poll lex lex-schlank" id="poll">
+    <div class="lex-kicker poll-kicker"><span class="what" id="poll-kicker">Ergebnis</span></div>
     <div class="poll-title lex-title" id="poll-title"></div>
     <div id="options"></div>
   </div>
@@ -81,62 +114,91 @@
     const poll = document.getElementById('poll');
     const pollTitle = document.getElementById('poll-title');
     const optionsEl = document.getElementById('options');
+    const kicker = document.getElementById('poll-kicker');
+
+    // How long the result stands before the panel leaves, and how long leaving takes.
+    const RESULT_MS = 8000;
+    const LEAVE_MS = 600;
+    let leaving = null;
+
+    function hide() {
+      poll.classList.add('leaving');
+      leaving = setTimeout(() => poll.classList.remove('visible', 'leaving', 'result'), LEAVE_MS);
+    }
+
+    /**
+     * The vote is over: the option with the most votes wins. Several with the
+     * same count share it, and without a single vote nobody does.
+     */
+    function result() {
+      const options = Array.from(optionsEl.querySelectorAll('.poll-option'));
+      const votes = options.map(opt => parseInt(opt.querySelector('.poll-count').textContent) || 0);
+      const most = Math.max(0, ...votes);
+      const winners = most > 0 ? options.filter((_, i) => votes[i] === most) : [];
+      winners.forEach(opt => opt.classList.add('winner'));
+      kicker.textContent = winners.length === 0 ? 'Keine Stimmen' : winners.length > 1 ? 'Gleichstand' : 'Ergebnis';
+      poll.classList.add('result');
+      leaving = setTimeout(hide, RESULT_MS);
+    }
+
+    function draw(data) {
+      // A new vote while the last result still stands takes over at once.
+      clearTimeout(leaving);
+      poll.classList.remove('leaving', 'result');
+      poll.classList.add('visible');
+      pollTitle.textContent = data.title;
+
+      const total = data.options.reduce((sum, o) => sum + o.votes, 0) || 1;
+
+      optionsEl.innerHTML = '';
+      data.options.forEach(o => {
+        const opt = document.createElement('div');
+        opt.className = 'poll-option';
+        const barWrap = document.createElement('div');
+        barWrap.className = 'poll-bar-wrap';
+        const bar = document.createElement('div');
+        bar.className = 'poll-bar';
+        bar.style.width = ((o.votes / total) * 100) + '%';
+        barWrap.appendChild(bar);
+        opt.appendChild(barWrap);
+        const label = document.createElement('span');
+        label.className = 'poll-label';
+        label.textContent = o.label;
+        const count = document.createElement('span');
+        count.className = 'poll-count';
+        count.textContent = String(o.votes);
+        opt.appendChild(label);
+        opt.appendChild(count);
+        optionsEl.appendChild(opt);
+      });
+    }
+
+    // Updates only bring changes — a source that loads mid-vote asks for the vote that runs.
+    function load() {
+      fetch(`${window.__overlayOrigin}/public/poll`)
+        .then(r => r.json())
+        .then(d => { if (d.poll) draw(d.poll); })
+        .catch(() => {});
+    }
 
     const onMessage = (msg) => {
       const { event, data } = JSON.parse(msg.data);
 
       if (event === 'overlay-config' && window.__applyOverlayConfig) window.__applyOverlayConfig(data);
 
-      if (event === 'poll-update') {
-        poll.classList.add('visible');
-        pollTitle.textContent = data.title;
+      if (event === 'poll-update') draw(data);
 
-        const total = data.options.reduce((sum, o) => sum + o.votes, 0) || 1;
-
-        optionsEl.innerHTML = '';
-        data.options.forEach(o => {
-          const opt = document.createElement('div');
-          opt.className = 'poll-option';
-          const barWrap = document.createElement('div');
-          barWrap.className = 'poll-bar-wrap';
-          const bar = document.createElement('div');
-          bar.className = 'poll-bar';
-          bar.style.width = ((o.votes / total) * 100) + '%';
-          barWrap.appendChild(bar);
-          opt.appendChild(barWrap);
-          const label = document.createElement('span');
-          label.className = 'poll-label';
-          label.textContent = o.label;
-          const count = document.createElement('span');
-          count.className = 'poll-count';
-          count.textContent = String(o.votes);
-          opt.appendChild(label);
-          opt.appendChild(count);
-          optionsEl.appendChild(opt);
-        });
-      }
-
-      if (event === 'poll-close') {
-        // Highlight the winner
-        const options = optionsEl.querySelectorAll('.poll-option');
-        let maxVotes = -1;
-        let winnerEl = null;
-        options.forEach(opt => {
-          const count = parseInt(opt.querySelector('.poll-count').textContent) || 0;
-          if (count > maxVotes) {
-            maxVotes = count;
-            winnerEl = opt;
-          }
-        });
-        if (winnerEl) winnerEl.classList.add('winner');
-
-        setTimeout(() => poll.classList.remove('visible'), 5000);
+      // Ended, it shows who won; called off, it just leaves.
+      if (event === 'poll-close' && poll.classList.contains('visible') && !poll.classList.contains('result')) {
+        if (data && data.cancelled) hide();
+        else result();
       }
     };
 
     // Reconnects on its own after a server restart.
     function connect() {
       const ws = new WebSocket(`${window.__overlayWs}?overlay=1`);
+      ws.onopen = load;
       ws.onmessage = onMessage;
       ws.onclose = () => setTimeout(connect, 2000);
       ws.onerror = () => ws.close();

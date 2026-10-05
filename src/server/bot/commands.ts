@@ -6,15 +6,10 @@ import { changeScene, getScenes } from '../obs/index';
 import { broadcast } from '../websocket/index';
 import { resolveOEmbed, detectSource } from '../api/song-requests';
 import { sayInParts } from './chat-message';
-import { getCommandNames, triggerOf } from './command-names';
+import { builtinKeyOf, triggerOf, canonicalTrigger } from './command-names';
 import { answerChatMessage } from './chat-answers';
-
-function matchCommand(input: string, cmds: Record<string, string>): string | null {
-  for (const [key, name] of Object.entries(cmds)) {
-    if (input === name) return key;
-  }
-  return null;
-}
+import { builtinCooldownSeconds, INFO_BUILTINS, passCooldown } from './cooldown';
+import { botHelix, shoutoutText } from './shoutout';
 
 /** Broadcaster and mods — the people allowed to steer the stream from chat. */
 function isPrivileged(tags: { mod?: boolean; badges?: { broadcaster?: string } | null }): boolean {
@@ -29,11 +24,22 @@ export function registerCommands(client: Client) {
     // Every reply goes out through the splitter, so none can exceed Twitch's limit.
     const say = (text: string) => void sayInParts(client, channel, text);
 
-    const input = triggerOf(message);
-    const cmds = getCommandNames();
-    const command = matchCommand(input, cmds);
+    const input = canonicalTrigger(triggerOf(message));
+    const command = builtinKeyOf(input);
+
+    // The built-ins that only tell something share one cooldown; `!befehle` and
+    // `!uptime` are gated where they answer (chat-answers.ts).
+    if (command !== null && INFO_BUILTINS.has(command) && command !== 'commands' && command !== 'uptime'
+      && !passCooldown(`builtin:${command}`, builtinCooldownSeconds(), isPrivileged(tags), { viewer: tags.username })) return;
 
     switch (command) {
+      case 'shoutout': {
+        if (!isPrivileged(tags)) break;
+        const name = message.trim().split(/\s+/)[1] ?? '';
+        say(await shoutoutText(name, botHelix() ?? (async () => null)));
+        break;
+      }
+
       case 'challenge': {
         const state = getDb().prepare('SELECT * FROM stream_state WHERE id = 1').get() as StreamState;
         if (!state.challenge_title) {
@@ -259,7 +265,7 @@ export function registerCommands(client: Client) {
       // `!befehle`, `!uptime`, Text Commands and Lookup Commands: the same path the app's "try it" box takes.
       case 'commands':
       default: {
-        const answer = await answerChatMessage(message, isPrivileged(tags));
+        const answer = await answerChatMessage(message, isPrivileged(tags), tags.username);
         for (const reply of answer.replies ?? []) say(reply);
         break;
       }

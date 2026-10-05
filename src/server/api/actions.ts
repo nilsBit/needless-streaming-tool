@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
+import { sampleAlert } from '../bot/alerts';
 import { getAutoDetectSetting, setAutoDetectSetting, isSMTCSupported, isSMTCRunning } from '../integrations/smtc';
 import { activeCard, type EntryCard } from './active-entry';
 
@@ -105,6 +106,31 @@ router.post('/song/auto-detect', (req, res) => {
 });
 
 // Direct trigger function (used by EventSub, bypasses HTTP + auth)
+/** What the wheel is called above itself — the streamer's word, "Glücksrad" until renamed. */
+export const ROULETTE_TITLE_DEFAULT = 'Glücksrad';
+export const ROULETTE_TITLE_MAX = 30;
+
+export function rouletteTitle(): string {
+  const row = getDb().prepare('SELECT value FROM settings WHERE key = ?').get('roulette_title') as { value: string } | undefined;
+  return row?.value?.trim() || ROULETTE_TITLE_DEFAULT;
+}
+
+// An empty title goes back to the built-in one.
+router.post('/roulette-title', (req, res) => {
+  const raw = (req.body as { title?: unknown })?.title;
+  if (raw !== undefined && typeof raw !== 'string') { res.status(400).json({ error: 'title must be a string' }); return; }
+  const title = String(raw ?? '').replace(/\s+/g, ' ').trim();
+  if (title.length > ROULETTE_TITLE_MAX) { res.status(400).json({ error: `title too long (max ${ROULETTE_TITLE_MAX})` }); return; }
+  if (title) getDb().prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('roulette_title', title);
+  else getDb().prepare('DELETE FROM settings WHERE key = ?').run('roulette_title');
+  broadcast('roulette-config', { title: rouletteTitle() });
+  res.json({ title: rouletteTitle() });
+});
+
+router.get('/roulette-title', (_req, res) => {
+  res.json({ title: rouletteTitle(), default: ROULETTE_TITLE_DEFAULT, max: ROULETTE_TITLE_MAX });
+});
+
 export function triggerRoulette(): { winner: { id: number; title: string } } | { error: string } {
   const now = Date.now();
 
@@ -127,9 +153,6 @@ export function triggerRoulette(): { winner: { id: number; title: string } } | {
 
 // Test events for overlay preview
 const STATIC_TEST_EVENTS: Record<string, { event: string; data: unknown }[]> = {
-  alerts: [
-    { event: 'reward-redeemed', data: { reward_type: 'roulette', user_name: 'TestViewer' } },
-  ],
   song: [
     { event: 'song-update', data: { title: 'Neon Lights', artist: 'Synthwave Artist', source: 'test' } },
   ],
@@ -146,6 +169,15 @@ const STATIC_TEST_EVENTS: Record<string, { event: string; data: unknown }[]> = {
 
 function getTestEvents(name: string): { event: string; data: unknown }[] {
   if (STATIC_TEST_EVENTS[name]) return STATIC_TEST_EVENTS[name];
+
+  // Worded by the same function as the real thing (bot/alerts.ts), with the
+  // streamer's own wording and sounds — read now, not when the server started.
+  if (name === 'alerts') {
+    return [
+      { event: 'reward-redeemed', data: { reward_type: 'feature_request', user_name: 'TestViewer' } },
+      ...(['follow', 'sub', 'raid', 'cheer'] as const).map((slot) => ({ event: 'alert', data: sampleAlert(slot) })),
+    ];
+  }
 
   // Preview the entry that is actually pinned, so the test shows what will
   // really be on screen. Falls back to a demo when nothing is picked yet.
@@ -211,23 +243,38 @@ function getTestEvents(name: string): { event: string; data: unknown }[] {
     return [{ event: 'progress-update', data: {} }];
   }
 
+  // Three lines as if from chat; taken back after a while like a moderator would.
+  if (name === 'chat') {
+    const lines = [
+      ['test-1', 'TestViewer', 'Hallo aus dem Chat!'],
+      ['test-2', 'Kartograph', 'wer hat eigentlich die Portale gebaut?'],
+      ['test-3', 'Lesezeichen42', 'die Farben sind so gut 😍'],
+    ].map(([id, user, text]) => ({ id, login: user.toLowerCase(), user, color: null, parts: [{ type: 'text', text }] }));
+    setTimeout(() => broadcast('chat-remove', { ids: lines.map((l) => l.id) }), 8000);
+    return lines.map((line) => ({ event: 'chat-message', data: line }));
+  }
+
   if (name === 'song-queue') {
     const db = getDb();
     // Insert a temporary test song request
-    const result = db.prepare(
-      "INSERT INTO song_requests (url, title, artist, source, requested_by, status) VALUES (?, ?, ?, ?, ?, 'playing')"
+    // Marked as test rows: the timer below takes them out, and so does the
+    // next start if it never runs (a restart within those eight seconds used
+    // to leave them in the real queue).
+    db.prepare(
+      "INSERT INTO song_requests (url, title, artist, source, requested_by, status, is_test) VALUES (?, ?, ?, ?, ?, 'playing', 1)"
     ).run('https://www.youtube.com/watch?v=test', 'Sandstorm', 'Darude', 'youtube', 'TestViewer');
-    const testId = Number(result.lastInsertRowid);
     // Insert 2 pending songs
-    const id2 = Number(db.prepare(
-      "INSERT INTO song_requests (url, title, artist, source, requested_by) VALUES (?, ?, ?, ?, ?)"
-    ).run('https://open.spotify.com/track/test1', 'Blinding Lights', 'The Weeknd', 'spotify', 'ViewerA').lastInsertRowid);
-    const id3 = Number(db.prepare(
-      "INSERT INTO song_requests (url, title, artist, source, requested_by) VALUES (?, ?, ?, ?, ?)"
-    ).run('https://www.youtube.com/watch?v=test2', 'Never Gonna Give You Up', 'Rick Astley', 'youtube', 'ViewerB').lastInsertRowid);
+    for (const [url, title, artist, source, viewer] of [
+      ['https://open.spotify.com/track/test1', 'Blinding Lights', 'The Weeknd', 'spotify', 'ViewerA'],
+      ['https://www.youtube.com/watch?v=test2', 'Never Gonna Give You Up', 'Rick Astley', 'youtube', 'ViewerB'],
+    ]) {
+      db.prepare(
+        'INSERT INTO song_requests (url, title, artist, source, requested_by, is_test) VALUES (?, ?, ?, ?, ?, 1)'
+      ).run(url, title, artist, source, viewer);
+    }
     // Clean up after 8 seconds
     setTimeout(() => {
-      db.prepare('DELETE FROM song_requests WHERE id IN (?, ?, ?)').run(testId, id2, id3);
+      db.prepare('DELETE FROM song_requests WHERE is_test = 1').run();
       broadcast('sr-update', {});
     }, 8000);
     return [{ event: 'sr-update', data: {} }];
@@ -246,7 +293,8 @@ router.post('/overlay-test/:name', (req, res) => {
   for (const { event, data } of events) {
     broadcast(event, data);
   }
-  res.json({ triggered: true, events: events.length });
+  // `sent` carries what went out, so a test can read the wording a viewer sees.
+  res.json({ triggered: true, events: events.length, sent: events });
 });
 
 export default router;

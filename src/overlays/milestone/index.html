@@ -81,9 +81,9 @@
   .achievement-label {
     font-family: var(--font-display);
     font-size: 0.733rem;
-    letter-spacing: 0.28em;
+    letter-spacing: 0;
     color: var(--color-secondary);
-    text-transform: uppercase;
+    font-style: italic;
   }
 
   .achievement-title {
@@ -168,51 +168,51 @@ const DURATION = { minor: 3000, major: 5000, epic: 8000 };
 
 const ICONS = {
   minor: `
-    <rect x="6" y="1" width="4" height="1" fill="#00d4ff"/>
-    <rect x="5" y="2" width="6" height="1" fill="#00d4ff"/>
-    <rect x="4" y="3" width="8" height="1" fill="#00b8dd"/>
-    <rect x="4" y="4" width="8" height="3" fill="#0099bb"/>
-    <rect x="5" y="7" width="6" height="1" fill="#007799"/>
-    <rect x="6" y="8" width="4" height="1" fill="#007799"/>
-    <rect x="7" y="9" width="2" height="1" fill="#005566"/>
-    <rect x="6" y="10" width="4" height="2" fill="#007799"/>
-    <rect x="5" y="12" width="6" height="1" fill="#0099bb"/>
-    <rect x="7" y="4" width="2" height="2" fill="#66eeff"/>
+    <rect x="6" y="1" width="4" height="1" style="fill:var(--color-primary)"/>
+    <rect x="5" y="2" width="6" height="1" style="fill:var(--color-primary)"/>
+    <rect x="4" y="3" width="8" height="1" style="fill:var(--color-accent)"/>
+    <rect x="4" y="4" width="8" height="3" style="fill:var(--color-accent)"/>
+    <rect x="5" y="7" width="6" height="1" style="fill:var(--color-accent)"/>
+    <rect x="6" y="8" width="4" height="1" style="fill:var(--color-accent)"/>
+    <rect x="7" y="9" width="2" height="1" style="fill:var(--color-accent)"/>
+    <rect x="6" y="10" width="4" height="2" style="fill:var(--color-accent)"/>
+    <rect x="5" y="12" width="6" height="1" style="fill:var(--color-accent)"/>
+    <rect x="7" y="4" width="2" height="2" style="fill:var(--color-primary)"/>
   `,
   major: `
-    <rect x="6" y="0" width="4" height="1" fill="#ff2d7b"/>
-    <rect x="5" y="1" width="6" height="1" fill="#ff2d7b"/>
-    <rect x="4" y="2" width="8" height="1" fill="#dd2266"/>
-    <rect x="3" y="3" width="10" height="1" fill="#dd2266"/>
-    <rect x="3" y="4" width="10" height="3" fill="#bb1155"/>
-    <rect x="4" y="7" width="8" height="1" fill="#991144"/>
-    <rect x="5" y="8" width="6" height="1" fill="#991144"/>
-    <rect x="6" y="9" width="4" height="1" fill="#770033"/>
-    <rect x="5" y="10" width="6" height="2" fill="#991144"/>
-    <rect x="4" y="12" width="8" height="1" fill="#bb1155"/>
-    <rect x="6" y="4" width="4" height="2" fill="#ff66aa"/>
-    <rect x="7" y="3" width="2" height="1" fill="#ff88bb"/>
+    <rect x="6" y="0" width="4" height="1" style="fill:var(--color-accent)"/>
+    <rect x="5" y="1" width="6" height="1" style="fill:var(--color-accent)"/>
+    <rect x="4" y="2" width="8" height="1" style="fill:var(--color-accent)"/>
+    <rect x="3" y="3" width="10" height="1" style="fill:var(--color-accent)"/>
+    <rect x="3" y="4" width="10" height="3" style="fill:var(--color-accent)"/>
+    <rect x="4" y="7" width="8" height="1" style="fill:color-mix(in srgb, var(--color-accent) 50%, var(--color-bg))"/>
+    <rect x="5" y="8" width="6" height="1" style="fill:color-mix(in srgb, var(--color-accent) 50%, var(--color-bg))"/>
+    <rect x="6" y="9" width="4" height="1" style="fill:color-mix(in srgb, var(--color-accent) 50%, var(--color-bg))"/>
+    <rect x="5" y="10" width="6" height="2" style="fill:color-mix(in srgb, var(--color-accent) 50%, var(--color-bg))"/>
+    <rect x="4" y="12" width="8" height="1" style="fill:var(--color-accent)"/>
+    <rect x="6" y="4" width="4" height="2" style="fill:var(--color-accent)"/>
+    <rect x="7" y="3" width="2" height="1" style="fill:var(--color-primary)"/>
   `,
   epic: `
-    <rect x="7" y="0" width="2" height="1" fill="#39ff14"/>
-    <rect x="6" y="1" width="4" height="1" fill="#39ff14"/>
-    <rect x="5" y="2" width="6" height="1" fill="#39ff14"/>
-    <rect x="4" y="3" width="8" height="1" fill="#33dd11"/>
-    <rect x="3" y="4" width="10" height="1" fill="#2abb0e"/>
-    <rect x="2" y="5" width="12" height="2" fill="#22990c"/>
-    <rect x="3" y="7" width="10" height="1" fill="#1a770a"/>
-    <rect x="4" y="8" width="8" height="1" fill="#166608"/>
-    <rect x="5" y="9" width="6" height="1" fill="#115506"/>
-    <rect x="6" y="10" width="4" height="1" fill="#0d4404"/>
-    <rect x="5" y="11" width="6" height="2" fill="#115506"/>
-    <rect x="4" y="13" width="8" height="1" fill="#166608"/>
-    <rect x="6" y="5" width="4" height="2" fill="#66ff44"/>
-    <rect x="7" y="4" width="2" height="1" fill="#88ff66"/>
-    <rect x="7" y="3" width="2" height="1" fill="#ccffcc"/>
-    <rect x="1" y="5" width="1" height="2" fill="#39ff14"/>
-    <rect x="14" y="5" width="1" height="2" fill="#39ff14"/>
-    <rect x="0" y="6" width="1" height="1" fill="#22990c"/>
-    <rect x="15" y="6" width="1" height="1" fill="#22990c"/>
+    <rect x="7" y="0" width="2" height="1" style="fill:var(--color-primary)"/>
+    <rect x="6" y="1" width="4" height="1" style="fill:var(--color-primary)"/>
+    <rect x="5" y="2" width="6" height="1" style="fill:var(--color-primary)"/>
+    <rect x="4" y="3" width="8" height="1" style="fill:var(--color-primary)"/>
+    <rect x="3" y="4" width="10" height="1" style="fill:var(--color-accent)"/>
+    <rect x="2" y="5" width="12" height="2" style="fill:var(--color-accent)"/>
+    <rect x="3" y="7" width="10" height="1" style="fill:var(--color-accent)"/>
+    <rect x="4" y="8" width="8" height="1" style="fill:var(--color-accent)"/>
+    <rect x="5" y="9" width="6" height="1" style="fill:var(--color-accent)"/>
+    <rect x="6" y="10" width="4" height="1" style="fill:color-mix(in srgb, var(--color-accent) 50%, var(--color-bg))"/>
+    <rect x="5" y="11" width="6" height="2" style="fill:var(--color-accent)"/>
+    <rect x="4" y="13" width="8" height="1" style="fill:var(--color-accent)"/>
+    <rect x="6" y="5" width="4" height="2" style="fill:var(--color-primary)"/>
+    <rect x="7" y="4" width="2" height="1" style="fill:var(--color-primary)"/>
+    <rect x="7" y="3" width="2" height="1" style="fill:var(--color-primary)"/>
+    <rect x="1" y="5" width="1" height="2" style="fill:var(--color-primary)"/>
+    <rect x="14" y="5" width="1" height="2" style="fill:var(--color-primary)"/>
+    <rect x="0" y="6" width="1" height="1" style="fill:var(--color-accent)"/>
+    <rect x="15" y="6" width="1" height="1" style="fill:var(--color-accent)"/>
   `,
 };
 

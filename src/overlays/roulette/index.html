@@ -55,19 +55,19 @@
     animation: orbFloat 2s ease-in-out infinite;
   }
 
-  .counter .pts {
-    color: var(--color-primary);
+  /* The line above the wheel: what it is, in the accent — then how many are on it. */
+  .counter .what {
+    color: var(--color-accent);
     font-family: var(--font-display);
+    font-style: italic;
     font-size: 3vmin;
-    letter-spacing: 0.1em;
   }
 
-  .counter .label {
+  .counter .pts {
     color: var(--lex-faint);
     font-family: var(--font-display);
+    font-style: italic;
     font-size: 1.83vmin;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
   }
 
   .wheel-wrapper {
@@ -102,26 +102,37 @@
     height: 6.67vmin;
   }
 
+  /* The result keeps its room below the wheel at all times — shown or not —
+     so the wheel never shrinks to make space for it when it comes. */
   .result {
     padding: 1.33vmin 2.67vmin;
     text-align: center;
     flex-shrink: 0;
+    width: 100%;
+    box-sizing: border-box;
+    height: 16vmin;
+    overflow: hidden;
     animation: fadeIn 0.4s ease-out forwards;
   }
+  .result.hidden { display: block; visibility: hidden; animation: none; }
 
   .result-label {
     color: var(--color-secondary);
     font-family: var(--font-display);
     font-size: 2vmin;
-    letter-spacing: 0.28em;
+    letter-spacing: 0;
     margin-bottom: 1vmin;
-    text-transform: uppercase;
+    font-style: italic;
   }
 
   .result-value {
     font-family: var(--font-display);
     font-size: 4.27vmin;
     color: var(--color-primary);
+    /* One line, however long the title — a second one would push the wheel. */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .result-sub {
@@ -151,8 +162,8 @@
 <div class="container lex lex-fluechtig">
   <div class="counter">
     <span class="diamond">&#9670;</span>
-    <span class="pts" id="totalPts">0</span>
-    <span class="label">PTS</span>
+    <span class="what" id="rouletteTitle">Glücksrad</span>
+    <span class="pts" id="totalPts"></span>
   </div>
 
   <div class="wheel-wrapper">
@@ -214,7 +225,7 @@ function hideOverlay() {
 // Build the wheel from a list of issues
 function setSegments(openIssues) {
   if (openIssues.length === 0) {
-    SEGMENTS = [{ id: 0, label: "Keine Issues", bg: 'var(--color-bg)', txt: 'var(--lex-faint)', title: "Keine offenen Issues" }];
+    SEGMENTS = [{ id: 0, label: "Keine Themen", bg: 'var(--color-bg)', txt: 'var(--lex-faint)', title: "Keine offenen Themen" }];
   } else {
     SEGMENTS = openIssues.map((issue, i) => {
       const style = PALETTE[i % PALETTE.length];
@@ -228,6 +239,17 @@ function setSegments(openIssues) {
   ANG = 360 / N;
   buildWheel();
   buildOrbs();
+}
+
+// The streamer's name for the wheel (Glücksrad panel in the app).
+function setTitle(title) {
+  document.getElementById('rouletteTitle').textContent = title || 'Glücksrad';
+}
+async function loadTitle() {
+  try {
+    const res = await fetch(`${window.__overlayOrigin}/public/roulette`);
+    setTitle((await res.json()).title);
+  } catch {}
 }
 
 // Fetch issues from API and build segments
@@ -249,6 +271,8 @@ ws.onmessage = (e) => {
     const msg = JSON.parse(e.data);
 
     if (msg.event === 'overlay-config' && window.__applyOverlayConfig) window.__applyOverlayConfig(msg.data);
+
+    if (msg.event === 'roulette-config') setTitle(msg.data.title);
 
     // Issues changed — rebuild wheel
     if (msg.event === 'issue-created' || msg.event === 'issue-updated' || msg.event === 'issue-deleted') {
@@ -293,7 +317,7 @@ function buildWheel(){
 
   document.getElementById('wheel').innerHTML=`<svg width="320" height="320" viewBox="0 0 320 320">${segs}<circle cx="${CX}" cy="${CY}" r="${R}" style="fill:none;stroke:var(--lex-frame)" stroke-width="1"/><circle cx="${CX}" cy="${CY}" r="18" style="fill:var(--color-bg);stroke:var(--lex-frame)" stroke-width="1"/><circle cx="${CX}" cy="${CY}" r="4" style="fill:var(--art)"/></svg>`;
 
-  document.getElementById('totalPts').textContent = N + ' ISSUES';
+  document.getElementById('totalPts').textContent = N === 1 ? '1 Thema' : N + ' Themen';
 }
 
 function buildOrbs(){
@@ -372,6 +396,7 @@ function spin(){
 }
 
 loadIssues();
+loadTitle();
 </script>
 </body>
 </html>

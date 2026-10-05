@@ -20,6 +20,15 @@ export function getOverlayConfig(): { global: Record<string, string>; overrides:
   }
 }
 
+export function isOverlayVar(key: string): boolean {
+  return VALID_KEYS.has(key);
+}
+
+/** Stores the config as is. Broadcasting is the caller's job. */
+export function saveOverlayConfig(config: { global: Record<string, string>; overrides: Record<string, Record<string, string>> }): void {
+  getDb().prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('overlay_config', JSON.stringify(config));
+}
+
 function validateVars(vars: Record<string, string>): Record<string, string> {
   const clean: Record<string, string> = {};
   for (const [k, v] of Object.entries(vars)) {
@@ -48,7 +57,7 @@ router.post('/', (req, res) => {
       }
     }
   }
-  getDb().prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('overlay_config', JSON.stringify(config));
+  saveOverlayConfig(config);
   broadcast('overlay-config', config);
   res.json({ success: true });
 });

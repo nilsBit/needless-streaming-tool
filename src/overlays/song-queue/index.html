@@ -32,9 +32,9 @@
     .now-playing {
       font-family: var(--font-display);
       font-size: 0.733rem;
-      letter-spacing: 0.28em;
+      letter-spacing: 0;
       color: var(--color-secondary);
-      text-transform: uppercase;
+      font-style: italic;
       display: inline-block;
       margin-bottom: 2px;
     }
@@ -101,9 +101,9 @@
     .sr-next-label {
       font-family: var(--font-display);
       font-size: 0.667rem;
-      letter-spacing: 0.28em;
+      letter-spacing: 0;
       color: var(--lex-faint);
-      text-transform: uppercase;
+      font-style: italic;
       margin-bottom: 4px;
     }
 
@@ -223,11 +223,18 @@
       return String(str ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     }
 
-    // --- Initial fetch for queue ---
-    fetch(`${window.__overlayOrigin}/public/song-queue`)
-      .then(r => r.json())
-      .then(renderQueue)
-      .catch(() => {});
+    // Updates only bring changes — a source that just loaded asks for the song
+    // that is already playing, then for the queue (a playing request wins).
+    function load() {
+      fetch(`${window.__overlayOrigin}/public/song`)
+        .then(r => r.json())
+        .then(({ song }) => { if (song) showSong(song.title, song.artist, '', song.artworkUrl || null); })
+        .catch(() => {})
+        .then(() => fetch(`${window.__overlayOrigin}/public/song-queue`))
+        .then(r => r.json())
+        .then(renderQueue)
+        .catch(() => {});
+    }
 
     // --- WebSocket ---
     const onMessage = (msg) => {
@@ -257,7 +264,7 @@
     function connect() {
       const ws = new WebSocket(`${window.__overlayWs}?overlay=1`);
       // Catch up on the queue that changed while the connection was down.
-      ws.onopen = () => fetch(`${window.__overlayOrigin}/public/song-queue`).then(r => r.json()).then(renderQueue).catch(() => {});
+      ws.onopen = load;
       ws.onmessage = onMessage;
       ws.onclose = () => setTimeout(connect, 2000);
       ws.onerror = () => ws.close();

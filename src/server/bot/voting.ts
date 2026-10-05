@@ -98,17 +98,28 @@ export function cancelVote(): void {
   if (!activeVote) return;
   if (activeVote.timer) clearTimeout(activeVote.timer);
   activeVote = null;
-  broadcast('poll-close', {});
+  // Called off: the overlay leaves without naming a winner.
+  broadcast('poll-close', { cancelled: true });
 }
 
-function broadcastPoll() {
-  if (!activeVote) return;
+/**
+ * The running vote as the poll overlay draws it — what `poll-update` carries.
+ * `null` while none runs. An overlay that loads mid-vote asks for this; the
+ * event alone would leave it blank until the next vote comes in.
+ */
+export function currentPoll(): { title: string; options: { label: string; votes: number }[] } | null {
+  if (!activeVote) return null;
   const counts = getVoteCounts();
-  broadcast('poll-update', {
+  return {
     title: activeVote.title,
     options: activeVote.options.map((label) => ({
       label,
       votes: counts[label] || 0,
     })),
-  });
+  };
+}
+
+function broadcastPoll() {
+  const poll = currentPoll();
+  if (poll) broadcast('poll-update', poll);
 }

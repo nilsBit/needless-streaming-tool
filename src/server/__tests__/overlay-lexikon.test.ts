@@ -6,7 +6,9 @@ import { generateApiToken } from '../auth-token';
 import { createApp } from '../index';
 
 /**
- * The Lexikon palette, as an overlay in OBS gets it.
+ * The shared overlay look, as an overlay in OBS gets it. The palette itself is
+ * the Kompendium now (overlay-kompendium.test.ts); what the Lexikon migration
+ * set up around it — size, opacity, overrides, shared assets — still holds.
  *
  * The stored config is applied as an inline style on `:root`, so it beats every
  * stylesheet — the palette has to live in the database, not only in the overlay
@@ -20,15 +22,6 @@ describe('overlay config after the Lexikon migration', () => {
     initDatabase(':memory:');
     token = generateApiToken();
     app = createApp();
-  });
-
-  it('serves the Lexikon palette to overlays without a token', async () => {
-    const res = await request(app).get('/public/overlay-config').expect(200);
-
-    expect(res.body.global['--color-bg']).toBe('#0e0c0a');
-    expect(res.body.global['--color-text']).toBe('#e1d6c2');
-    expect(res.body.global['--color-accent']).toBe('#c9a45c');
-    expect(res.body.global['--font-body']).toBe("'Source Serif 4', Georgia, serif");
   });
 
   /**
@@ -71,7 +64,7 @@ describe('overlay config after the Lexikon migration', () => {
     const names = [
       'alerts', 'challenge', 'character', 'milestone', 'poll', 'progress',
       'reward-leaderboard', 'reward-rankchange', 'roulette', 'song',
-      'song-queue', 'todos', '_template',
+      'song-queue', 'todos', 'chat', 'start', 'pause', 'end', '_template',
     ];
 
     for (const name of names) {
@@ -92,7 +85,7 @@ describe('overlay config after the Lexikon migration', () => {
     const names = [
       'alerts', 'challenge', 'character', 'milestone', 'poll', 'progress',
       'reward-leaderboard', 'reward-rankchange', 'roulette', 'song',
-      'song-queue', 'todos', '_template',
+      'song-queue', 'todos', 'chat', 'start', 'pause', 'end', '_template',
     ];
 
     for (const name of names) {
@@ -133,7 +126,7 @@ describe('overlay config after the Lexikon migration', () => {
     const names = [
       'alerts', 'challenge', 'character', 'milestone', 'poll', 'progress',
       'reward-leaderboard', 'reward-rankchange', 'roulette', 'song',
-      'song-queue', 'todos', '_template',
+      'song-queue', 'todos', 'chat', 'start', 'pause', 'end', '_template',
     ];
 
     for (const name of names) {

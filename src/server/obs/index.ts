@@ -3,6 +3,7 @@ import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
 import { announceLive } from '../discord/live';
 import { refreshOwnBrowserSources } from './refresh-overlays';
+import { createScreenScenes, type ScreenResult } from './screens';
 import { PORT } from '../index';
 
 let obs: OBSWebSocket | null = null;
@@ -185,6 +186,15 @@ export async function getScenes(): Promise<string[]> {
     console.error('[OBS] GetSceneList failed:', err);
     return [];
   }
+}
+
+/** The start, pause and end scenes — `null` while OBS is out of reach. */
+export async function createScreens(): Promise<ScreenResult[] | null> {
+  if (!obs || !connected) return null;
+  const results = await createScreenScenes(obs, PORT);
+  const created = results.filter((r) => r.status === 'created').map((r) => r.scene);
+  if (created.length) console.log(`[OBS] Created screen scenes: ${created.join(', ')}`);
+  return results;
 }
 
 // --- Scene-Reward Mappings ---

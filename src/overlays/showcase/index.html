@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>NST Showcase</title>
+  <style>
+    body { margin: 0; padding: 24px; background: #1b1916; color: #e1d6c2; font: 14px/1.4 system-ui, sans-serif; }
+    h1 { font-size: 20px; margin: 0 0 4px; }
+    p.hint { margin: 0 0 24px; color: #9b9484; }
+    p.hint a { color: #e1d6c2; margin-left: 8px; }
+    section { margin-bottom: 40px; }
+    h2 { font-size: 16px; margin: 0 0 12px; }
+    .states { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+    figure { margin: 0; }
+    figcaption { margin-top: 6px; color: #9b9484; font-size: 12px; }
+    figcaption a { color: inherit; }
+    /* A checkerboard shows what OBS will lay over the video. */
+    .stage {
+      position: relative; overflow: hidden; outline: 1px solid #3a372f;
+      background: repeating-conic-gradient(#2a2723 0 25%, #221f1b 0 50%) 0 0 / 20px 20px;
+    }
+    .stage iframe { position: absolute; top: 0; left: 0; border: 0; transform-origin: 0 0; background: transparent; }
+    .actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .actions button {
+      padding: 3px 9px; border: 1px solid #3a372f; border-radius: 4px; background: #2a2723;
+      color: #e1d6c2; font: 12px system-ui, sans-serif; cursor: pointer;
+    }
+    .actions button:hover { border-color: #9b9484; }
+  </style>
+</head>
+<body>
+  <h1>Showcase</h1>
+  <p class="hint">Jedes Overlay in jedem Zustand, mit Testdaten. Nichts hiervon erreicht OBS.
+    <a id="mode" href="?live"></a></p>
+  <main id="list"></main>
+  <script>
+    // Anything wider than this is shown scaled down; the caption says by how much.
+    const MAX_WIDTH = 760;
+    // Frozen like the capture sees it, or `?live` — everything keeps moving.
+    const live = new URLSearchParams(location.search).has('live');
+    const mode = document.getElementById('mode');
+    mode.textContent = live ? 'Angehalten ansehen' : 'In Bewegung ansehen und ausprobieren';
+
+    // Live only: play a state again from the start, or act on it — the
+    // overlay's actions from states.json, played in by boot.js.
+    function actionBar(iframe, src, actions, width) {
+      const bar = document.createElement('div');
+      bar.className = 'actions';
+      bar.style.maxWidth = width + 'px';
+      const add = (label, run) => {
+        const button = document.createElement('button');
+        button.textContent = label;
+        button.onclick = run;
+        bar.appendChild(button);
+      };
+      add('↻ Nochmal', () => { iframe.src = src; });
+      for (const action of actions) {
+        add(action.label, () => iframe.contentWindow.postMessage({ type: 'nst-showcase-action', action }, location.origin));
+      }
+      return bar;
+    }
+    mode.href = live ? '?' : '?live';
+
+    fetch('/overlay/showcase/states.json')
+      .then((r) => r.json())
+      .then(({ overlays }) => {
+        const list = document.getElementById('list');
+        for (const [name, entry] of Object.entries(overlays)) {
+          // Numbers only — the sizes end up in markup.
+          const width = Number(entry.size.width) || 0;
+          const height = Number(entry.size.height) || 0;
+          const section = document.createElement('section');
+          section.innerHTML = `<h2>${name} <small>${width}×${height}</small></h2>`;
+          const states = document.createElement('div');
+          states.className = 'states';
+          for (const state of Object.keys(entry.states)) {
+            const scale = Math.min(1, MAX_WIDTH / width);
+            const src = `/overlay/${name}/index.html?state=${encodeURIComponent(state)}${live ? '&live' : ''}`;
+            const figure = document.createElement('figure');
+            figure.innerHTML = `
+              <div class="stage" style="width:${width * scale}px;height:${height * scale}px">
+                <iframe src="${src}" width="${width}" height="${height}"
+                  style="transform:scale(${scale})" title="${name} / ${state}"></iframe>
+              </div>
+              <figcaption><a href="${src}" target="_blank">${name} / ${state}</a>${scale < 1 ? ` · ${Math.round(scale * 100)} %` : ''}</figcaption>`;
+            if (live) figure.appendChild(actionBar(figure.querySelector('iframe'), src, entry.actions ?? [], width * scale));
+            states.appendChild(figure);
+          }
+          section.appendChild(states);
+          list.appendChild(section);
+        }
+      });
+  </script>
+</body>
+</html>

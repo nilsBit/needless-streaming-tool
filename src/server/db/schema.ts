@@ -1,4 +1,4 @@
-export const SCHEMA_VERSION = 21;
+export const SCHEMA_VERSION = 24;
 
 export const SCHEMA = `
 CREATE TABLE IF NOT EXISTS schema_version (
@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS text_commands (
   id               INTEGER PRIMARY KEY AUTOINCREMENT,
   trigger          TEXT NOT NULL UNIQUE,
   response         TEXT NOT NULL,
+  description      TEXT,
   cooldown_seconds INTEGER NOT NULL DEFAULT 30,
   enabled          INTEGER NOT NULL DEFAULT 1,
   created_at       DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -24,6 +25,7 @@ CREATE TABLE IF NOT EXISTS lookup_commands (
   id               INTEGER PRIMARY KEY AUTOINCREMENT,
   trigger          TEXT NOT NULL UNIQUE,
   art              TEXT NOT NULL,
+  description      TEXT,
   cooldown_seconds INTEGER NOT NULL DEFAULT 30,
   enabled          INTEGER NOT NULL DEFAULT 1,
   created_at       DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -74,6 +76,7 @@ CREATE TABLE IF NOT EXISTS todos (
   done        INTEGER DEFAULT 0,
   sort_order  INTEGER DEFAULT 0,
   parent_id   INTEGER,
+  milestone_id INTEGER REFERENCES milestones(id) ON DELETE SET NULL,
   created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -110,6 +113,7 @@ CREATE TABLE IF NOT EXISTS milestones (
   status        TEXT DEFAULT 'pending',
   message       TEXT,
   completed_at  DATETIME,
+  project_id    INTEGER REFERENCES project_items(id) ON DELETE CASCADE,
   created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -121,6 +125,8 @@ CREATE TABLE IF NOT EXISTS song_requests (
   source        TEXT NOT NULL,
   requested_by  TEXT NOT NULL,
   status        TEXT NOT NULL DEFAULT 'pending',
+  /** A row the overlay test button made: cleared when the app starts, whatever happened to its timer. */
+  is_test       INTEGER NOT NULL DEFAULT 0,
   created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 

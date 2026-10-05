@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useApi, apiPost, apiFetch } from '../hooks/useApi';
+import { useApi, apiPost, apiFetch, getServerPort } from '../hooks/useApi';
 import { useToast } from '../contexts/ToastContext';
 import CopyButton from '../components/CopyButton';
+import FigmaDrafts, { type DesignStatus, type ImplementStatus } from '../components/FigmaDrafts';
+import { useWebSocket } from '../hooks/useWebSocket';
 
 const FONT_OPTIONS = [
   // The two the Lexikon style runs on. Without them the current fonts cannot be
@@ -22,7 +24,7 @@ const FONT_OPTIONS = [
   { value: "'Fira Code', monospace", label: 'Fira Code' },
 ];
 
-const OVERLAY_NAMES = ['challenge', 'todos', 'progress', 'milestone', 'song', 'song-queue', 'alerts', 'poll', 'roulette', 'reward-leaderboard', 'reward-rankchange', 'character'];
+const OVERLAY_NAMES = ['challenge', 'todos', 'progress', 'milestone', 'song', 'song-queue', 'alerts', 'poll', 'roulette', 'reward-leaderboard', 'reward-rankchange', 'character', 'chat', 'start', 'pause', 'end'];
 
 const OVERLAY_ICONS: Record<string, string> = {
   challenge: '🎯',
@@ -37,14 +39,57 @@ const OVERLAY_ICONS: Record<string, string> = {
   'reward-leaderboard': '🏅',
   'reward-rankchange': '🔄',
   character: '👥',
+  chat: '💬',
+  start: '▶️',
+  pause: '⏸️',
+  end: '⏹️',
 };
 
-const TESTABLE_OVERLAYS = new Set(['alerts', 'song', 'poll', 'milestone', 'roulette', 'challenge', 'todos', 'progress', 'song-queue', 'reward-leaderboard', 'reward-rankchange', 'character']);
+type PaletteConfig = { global: Record<string, string>; overrides: Record<string, Record<string, string>> };
+
+/**
+ * The server's config, with what was edited here since the last sync on top:
+ * a key that differs from `synced` was changed here (or removed here) and wins.
+ */
+function mergeConfig(local: PaletteConfig, synced: PaletteConfig, server: PaletteConfig): PaletteConfig {
+  const pick = (l: Record<string, string> = {}, s: Record<string, string> = {}, v: Record<string, string> = {}) => {
+    const out = { ...v };
+    for (const k of Object.keys(l)) if (l[k] !== s[k]) out[k] = l[k];
+    for (const k of Object.keys(s)) if (!(k in l)) delete out[k];
+    return out;
+  };
+  const overrides: PaletteConfig['overrides'] = {};
+  for (const name of new Set([...Object.keys(server.overrides ?? {}), ...Object.keys(local.overrides ?? {})])) {
+    const merged = pick(local.overrides?.[name], synced.overrides?.[name], server.overrides?.[name]);
+    if (Object.keys(merged).length) overrides[name] = merged;
+  }
+  return { global: pick(local.global, synced.global, server.global), overrides };
+}
+
+const TESTABLE_OVERLAYS = new Set(['alerts', 'song', 'poll', 'milestone', 'roulette', 'challenge', 'todos', 'progress', 'song-queue', 'reward-leaderboard', 'reward-rankchange', 'character', 'chat']);
 
 const THEME_PRESETS: { name: string; label: string; color: string; values: Record<string, string> }[] = [
   {
-    // What every overlay ships with (schema v21). First in the list, and the
-    // way back after trying any of the others.
+    // What every overlay ships with (schema v23) — the layout draft of 23.09.
+    // First in the list, and the way back after trying any of the others.
+    name: 'kompendium',
+    label: 'Kompendium',
+    color: '#e0201b',
+    values: {
+      '--color-primary': '#f3ecdd',
+      '--color-secondary': '#a79f90',
+      '--color-accent': '#e0201b',
+      '--color-text': '#e9e1d1',
+      '--color-bg': '#141210',
+      '--color-bg-opacity': '1',
+      '--color-bg-secondary': '#1d1a17',
+      '--font-display': "'JetBrains Mono', ui-monospace, monospace",
+      '--font-body': "'JetBrains Mono', ui-monospace, monospace",
+      '--font-size-base': '18px',
+    },
+  },
+  {
+    // The look before the Kompendium (schema v20/v21): serif, gold.
     name: 'lexikon',
     label: 'Lexikon',
     color: '#c9a45c',
@@ -150,7 +195,10 @@ export default function OverlaysPanel() {
   const { data: builtinOverlays, loading: loadingBuiltin, refetch: refetchBuiltin } = useApi<OverlayInfo[]>('/overlays/builtin');
   const { data: customOverlays, loading: loadingCustom, refetch: refetchCustom } = useApi<OverlayInfo[]>('/overlays');
 
-  const [subTab, setSubTab] = useState<'overlays' | 'design'>('overlays');
+  const [subTab, setSubTab] = useState<'overlays' | 'design' | 'figma'>('overlays');
+  const { data: designStatus, refetch: refetchDesign } = useApi<DesignStatus>('/design/status');
+  const { data: implementStatus, refetch: refetchImplement } = useApi<ImplementStatus>('/dev/implement');
+  const waitingDrafts = (designStatus?.drafts ?? []).filter((d) => !d.done).length;
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showUpload, setShowUpload] = useState(false);
   const [newName, setNewName] = useState('');
@@ -166,21 +214,51 @@ export default function OverlaysPanel() {
   }>({ global: {}, overrides: {} });
   const [selectedOverride, setSelectedOverride] = useState<string>('');
 
+  // The palette as the server last had it, and as it is here now. A save
+  // posts the whole config, so it must never carry values the server has
+  // since changed from elsewhere (a Figma draft) that weren't edited here.
+  const syncedRef = useRef<typeof overlayConfig>({ global: {}, overrides: {} });
+  const latestRef = useRef(overlayConfig);
+  useEffect(() => { latestRef.current = overlayConfig; }, [overlayConfig]);
+
   useEffect(() => {
-    apiFetch('/overlay-config').then(r => r.json()).then(setOverlayConfig).catch(() => {});
+    apiFetch('/overlay-config').then(r => r.json()).then((config) => {
+      syncedRef.current = config;
+      setOverlayConfig(config);
+    }).catch(() => {});
   }, []);
 
-  // Auto-save with debounce
+  // Auto-save with debounce — of whatever is current when it fires.
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cancelSave = () => {
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = null;
+  };
 
-  const autoSave = useCallback((config: typeof overlayConfig) => {
+  const autoSave = useCallback((_config: typeof overlayConfig) => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(async () => {
+      saveTimerRef.current = null;
+      const config = latestRef.current;
       const result = await apiPost('/overlay-config', config);
-      if (result) toast.success('Design gespeichert');
+      if (result) { syncedRef.current = config; toast.success('Design gespeichert'); }
       else toast.error('Aktion fehlgeschlagen');
     }, 600);
   }, [toast]);
+
+  // Every draft from Figma is followed by an overlay-config broadcast that may
+  // have changed the palette. Take the server's values, except for keys edited
+  // here since the last sync — those are newer, and a pending save keeps them.
+  useWebSocket((event) => {
+    if (event === 'design-implement') { refetchImplement(); refetchDesign(); return; }
+    if (event !== 'overlay-config') return;
+    refetchDesign();
+    apiFetch('/overlay-config').then((r) => r.json()).then((server: typeof overlayConfig) => {
+      const merged = mergeConfig(latestRef.current, syncedRef.current, server);
+      syncedRef.current = server;
+      setOverlayConfig(merged);
+    }).catch(() => {});
+  });
 
   const updateGlobal = (key: string, value: string) => {
     setOverlayConfig(prev => {
@@ -203,18 +281,21 @@ export default function OverlaysPanel() {
 
   const resetConfig = async () => {
     try {
+      cancelSave();
       await apiFetch('/overlay-config', { method: 'DELETE' });
+      syncedRef.current = { global: {}, overrides: {} };
       setOverlayConfig({ global: {}, overrides: {} });
       toast.success('Design gespeichert');
     } catch { toast.error('Aktion fehlgeschlagen'); }
   };
 
   const applyTheme = async (theme: typeof THEME_PRESETS[0]) => {
-    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    cancelSave();
     const newConfig = { ...overlayConfig, global: { ...theme.values } };
     setOverlayConfig(newConfig);
     const result = await apiPost('/overlay-config', newConfig);
     if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
+    syncedRef.current = newConfig;
     toast.success(`${theme.label} angewendet`);
   };
 
@@ -238,9 +319,11 @@ export default function OverlaysPanel() {
       const text = await file.text();
       const imported = JSON.parse(text);
       if (imported.global) {
+        cancelSave();
         setOverlayConfig(imported);
         const result = await apiPost('/overlay-config', imported);
         if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
+        syncedRef.current = imported;
         toast.success('Theme importiert');
       }
     } catch {
@@ -355,6 +438,12 @@ export default function OverlaysPanel() {
     }
   };
 
+  // Every overlay in every state with test data — frozen as the Figma capture
+  // sees it, or live to judge the motion. Nothing of it reaches OBS.
+  const openShowcase = (live: boolean) => {
+    window.open(`http://localhost:${getServerPort()}/overlay/showcase/${live ? '?live' : ''}`, '_blank', 'noopener,width=1400,height=900');
+  };
+
   const renderOverlayCard = (o: OverlayInfo, isBuiltin: boolean) => {
     const icon = OVERLAY_ICONS[o.name] || '🔲';
     const isPreview = previewUrl === o.url;
@@ -438,13 +527,25 @@ export default function OverlaysPanel() {
         <button className={`ov2-tab ${subTab === 'design' ? 'ov2-tab--active' : ''}`} onClick={() => setSubTab('design')}>
           Design
         </button>
+        <button className={`ov2-tab ${subTab === 'figma' ? 'ov2-tab--active' : ''}`} onClick={() => setSubTab('figma')}>
+          Figma{waitingDrafts > 0 ? ` (${waitingDrafts} offen)` : ''}
+        </button>
       </div>
+
+      {subTab === 'figma' && (
+        <FigmaDrafts status={designStatus} refetch={refetchDesign} implement={implementStatus} refetchImplement={refetchImplement} />
+      )}
 
       {subTab === 'overlays' && (
         <>
           {/* Built-in Overlays */}
           <div className="ov2-section">
             <h3>Eingebaute Overlays</h3>
+            <div className="ov2-showcase">
+              <span className="ov2-section-desc">Alle Overlays in allen Zuständen, mit Testdaten — erreicht OBS nicht.</span>
+              <button className="ov2-small-btn" onClick={() => openShowcase(false)}>🖼️ Showcase</button>
+              <button className="ov2-small-btn" onClick={() => openShowcase(true)}>▶ In Bewegung</button>
+            </div>
             <div className="ov2-card-list">
               {builtinOverlays?.map((o) => renderOverlayCard(o, true))}
             </div>

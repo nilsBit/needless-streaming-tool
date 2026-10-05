@@ -3,14 +3,17 @@ import http from 'http';
 import path from 'path';
 import { initWebSocket } from './websocket/index';
 import { initDatabase } from './db/index';
-import { generateApiToken, validateApiToken, getApiToken } from './auth-token';
+import { generateApiToken, validateApiToken, validateDesignToken, getApiToken } from './auth-token';
 import { writeConnectionFile, deleteConnectionFile } from './connection-file';
 import streamStateRouter, { restoreTimerState } from './api/stream-state';
 import issuesRouter from './api/issues';
 import rewardsRouter from './api/rewards';
 import designsRouter from './api/designs';
 import settingsRouter from './api/settings';
-import actionsRouter, { currentSong } from './api/actions';
+import alertsRouter from './api/alerts';
+import { currentPoll } from './bot/voting';
+import { ALERT_SOUND_DIR } from './bot/alerts';
+import actionsRouter, { currentSong, rouletteTitle } from './api/actions';
 import authRouter from './api/auth';
 import votingRouter from './api/voting';
 import progressRouter from './api/progress';
@@ -22,12 +25,16 @@ import customOverlaysRouter from './api/custom-overlays';
 import statsRouter from './api/stats';
 import rewardStatsRouter from './api/reward-stats';
 import backupRouter from './api/backup';
-import overlayConfigRouter, { getOverlayConfig } from './api/overlay-config';
+import designRouter from './api/design';
+import devRouter from './api/dev';
+import overlayConfigRouter from './api/overlay-config';
+import { publicOverlayConfig } from './design-apply';
 import songRequestsRouter, { getActiveQueue } from './api/song-requests';
 import charactersRouter from './api/characters';
 import entriesRouter from './api/entries';
 import { activeCard, activeCharacter, CHARACTER_IMAGE_DIR } from './api/active-entry';
 import { startFollowing } from './api/follow';
+import commandsRouter from './api/commands';
 import textCommandsRouter from './api/text-commands';
 import lookupCommandsRouter from './api/lookup-commands';
 import chatRouter from './api/chat';
@@ -40,6 +47,7 @@ import { startSMTC, getAutoDetectSetting } from './integrations/smtc';
 import { getDb } from './db/index';
 import { rateLimit, publicRateLimit } from './middleware/rate-limit';
 import { getUserDataPath } from './paths';
+import { recentChat } from './bot/chat-feed';
 
 const parsedPort = parseInt(process.env.NST_PORT || '4000', 10);
 if (isNaN(parsedPort) || parsedPort < 1 || parsedPort > 65535) {
@@ -63,7 +71,10 @@ export function createApp(): express.Express {
   // CORS — muss VOR allen anderen Middleware kommen
   app.use((req, res, next) => {
     const origin = req.headers.origin || '';
-    const allowed = !origin || origin.startsWith('http://localhost:') || origin.startsWith('file://') ||
+    // The Figma plugin runs in a sandboxed iframe and sends `Origin: null`.
+    // Allowed only where the plugin talks — everything there needs the token.
+    const figmaPlugin = origin === 'null' && req.path.startsWith('/api/design/');
+    const allowed = figmaPlugin || !origin || origin.startsWith('http://localhost:') || origin.startsWith('file://') ||
       (HOST === '0.0.0.0' && /^https?:\/\/\d+\.\d+\.\d+\.\d+/.test(origin));
     if (allowed) {
       res.header('Access-Control-Allow-Origin', origin || '*');
@@ -74,13 +85,18 @@ export function createApp(): express.Express {
     next();
   });
 
-  app.use(express.json({ limit: '100kb' }));
+  // Drafts posted to /api/design/inbox carry two PNGs of a whole overlay and
+  // can exceed this limit; design.ts's own POST /inbox route parses that body
+  // itself, behind auth, with a larger limit. The global parser must skip
+  // that one path rather than consume (and reject) the stream first.
+  const globalJson = express.json({ limit: '100kb' });
+  app.use((req, res, next) => (req.path === '/api/design/inbox' ? next() : globalJson(req, res, next)));
   app.use(rateLimit);
 
-  // CSP für Overlays — dynamic based on request host
+  // CSP für Overlays — dynamic based on request host. Images: Spotify covers, Twitch emotes (chat).
   app.use('/overlay', (req, res, next) => {
     const host = req.headers.host || `localhost:${PORT}`;
-    res.setHeader('Content-Security-Policy', `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' https://i.scdn.co data:; connect-src ws://${host} http://${host} wss://${host} https://${host}`);
+    res.setHeader('Content-Security-Policy', `default-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' https://i.scdn.co https://static-cdn.jtvnw.net data:; connect-src ws://${host} http://${host} wss://${host} https://${host}`);
     next();
   });
 
@@ -97,7 +113,10 @@ export function createApp(): express.Express {
     const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
     const queryToken = req.query.token as string | undefined;
 
-    if (!validateApiToken(bearerToken || queryToken)) {
+    const token = bearerToken || queryToken;
+    // The Figma plugin's token opens its own routes and nothing else.
+    const designRoute = req.path.startsWith('/design/') && validateDesignToken(token);
+    if (!designRoute && !validateApiToken(token)) {
       res.status(401).json({ error: 'Unauthorized — invalid API token' });
       return;
     }
@@ -121,6 +140,7 @@ export function createApp(): express.Express {
   app.use('/api/rewards', rewardsRouter);
   app.use('/api/designs', designsRouter);
   app.use('/api/settings', settingsRouter);
+  app.use('/api/alerts', alertsRouter);
   app.use('/api/actions', actionsRouter);
   app.use('/api/auth', authRouter);
   app.use('/api/voting', votingRouter);
@@ -137,9 +157,12 @@ export function createApp(): express.Express {
   app.use('/api/song-requests', songRequestsRouter);
   app.use('/api/characters', charactersRouter);
   app.use('/api/entries', entriesRouter);
+  app.use('/api/commands', commandsRouter);
   app.use('/api/text-commands', textCommandsRouter);
   app.use('/api/lookup-commands', lookupCommandsRouter);
   app.use('/api/chat', chatRouter);
+  app.use('/api/design', designRouter);
+  app.use('/api/dev', devRouter);
 
   // Twitch OAuth callback redirect (no auth needed)
   app.get('/auth/twitch/callback', (req, res) => res.redirect('/api/auth/twitch/callback'));
@@ -151,18 +174,29 @@ export function createApp(): express.Express {
     res.json(state);
   });
 
+  // What the wheel is called — the streamer's word for it.
+  app.get('/public/roulette', (_req, res) => {
+    res.json({ title: rouletteTitle() });
+  });
+
   app.get('/public/issues', (_req, res) => {
     const issues = getDb().prepare('SELECT * FROM issues ORDER BY created_at DESC').all();
     res.json(issues);
   });
 
+  // The palette plus what was applied from Figma drafts (see design-apply.ts).
   app.get('/public/overlay-config', (_req, res) => {
-    res.json(getOverlayConfig());
+    res.json(publicOverlayConfig());
   });
 
   // The song overlay only hears about changes; on load it asks what is playing.
   app.get('/public/song', (_req, res) => {
     res.json({ song: currentSong() });
+  });
+
+  // The chat overlay hears new lines as they come; on load it asks for the last ones.
+  app.get('/public/chat', (_req, res) => {
+    res.json(recentChat());
   });
 
   app.get('/public/song-queue', (_req, res) => {
@@ -178,6 +212,11 @@ export function createApp(): express.Express {
     res.json({ project_name: state?.project_name || null, items });
   });
 
+  // The vote that is running, for an overlay that loads in the middle of it.
+  app.get('/public/poll', (_req, res) => {
+    res.json({ poll: currentPoll() });
+  });
+
   // The Entry Card — built server-side, so hidden fields never reach a browser source.
   app.get('/public/entry', (_req, res) => {
     res.json({ card: activeCard() });
@@ -190,6 +229,9 @@ export function createApp(): express.Express {
 
   // Portraits copied out of the source — Notion's URLs expire, Worldbuilder's want a token.
   app.use('/public/character-image', express.static(CHARACTER_IMAGE_DIR));
+
+  // The streamer's alert sounds — the Alerts overlay plays them as an alert appears.
+  app.use('/public/alert-sound', express.static(ALERT_SOUND_DIR));
 
   app.get('/public/reward-stats/top', (req, res) => {
     const type = (req.query.type as string) || 'all';

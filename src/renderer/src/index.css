@@ -102,7 +102,9 @@ body {
 .panels {
   flex: 1;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  /* minmax(0, …): a 1fr column may not grow to fit its widest child — one
+     unbreakable line would push every panel past the window's edge. */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-auto-rows: min-content;
   align-content: start;
   gap: 16px;
@@ -111,8 +113,9 @@ body {
 }
 
 .panels.single-column {
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
 }
+.panels > .panel-wrapper { min-width: 0; }
 
 /* Dashboard: Hero + Grid Layout */
 .dashboard-hero-layout {
@@ -1332,6 +1335,36 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 [data-theme="light"] .s-card { background: var(--bg-panel); }
 [data-theme="light"] .s-card-inputs input,
 [data-theme="light"] .s-command-row input { background: var(--bg-input); }
+.s-alert-row { display: flex; flex-direction: column; gap: 4px; padding: 6px 0; border-top: 1px solid var(--border); }
+.s-alert-row .s-command-label { font-size: 11px; }
+.s-alert-select {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  font-size: 12px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-strong);
+  border-radius: 5px;
+  color: var(--text);
+}
+.s-alert-sounds { display: flex; flex-wrap: wrap; gap: 6px; }
+.command-overview-star { padding: 0 4px; font-size: 14px; line-height: 1; background: none; border: none; color: var(--border-strong); cursor: pointer; }
+.command-overview-star.on { color: var(--accent); }
+.command-overview-star:hover { color: var(--text); }
+.command-overview-arrow { font-size: 12px; color: var(--muted); flex: 1; }
+.text-command-trigger small { font-size: 10px; color: var(--muted); margin-left: 4px; }
+.s-alert-sound {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 4px 3px 8px;
+  font-size: 11px;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+}
+.s-alert-sound button { padding: 0 4px; font-size: 11px; background: none; border: none; color: var(--muted); cursor: pointer; }
+.s-alert-sound button:hover { color: var(--text); }
 @media (max-width: 600px) {
   .settings-panel-v2 { flex-direction: column; }
   .s-sidebar { flex-direction: row; border-right: none; border-bottom: 1px solid var(--border); min-width: 0; overflow-x: auto; }
@@ -1368,6 +1401,33 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .ov2-section h3 { color: #e67e22; font-size: 13px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
 .ov2-section h4 { color: var(--muted); font-size: 12px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
 .ov2-section-desc { color: var(--muted); font-size: 12px; margin-bottom: 12px; }
+.ov2-showcase { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 12px; }
+.figma-card { align-items: flex-start; gap: 12px; }
+.figma-card-body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.figma-card-body .ov2-card-url { max-width: none; }
+.figma-list { margin: 6px 0 0; padding-left: 18px; color: var(--text-secondary); font-size: 12px; }
+.figma-list li { margin: 2px 0; word-break: break-word; }
+.figma-wishes { margin: 6px 0 0; color: var(--text-secondary); font-size: 12px; white-space: pre-wrap; }
+.command-overview { margin-top: 24px; }
+.command-overview-actions { display: flex; gap: 8px; }
+.command-overview-panel {
+  margin: 0 0 12px; padding: 10px 12px; max-height: 220px; overflow: auto;
+  background: #151515; border: 1px solid var(--border-subtle); border-radius: 8px;
+  color: var(--text-secondary); font-size: 12px; white-space: pre-wrap;
+}
+.command-overview-group { margin-bottom: 14px; }
+.command-overview-group h4 { margin: 0 0 6px; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+.command-overview-group h4 small { text-transform: none; letter-spacing: 0; margin-left: 8px; }
+.command-overview-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.command-overview-row input { flex: 1; min-width: 0; }
+
+.figma-implement { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 12px; }
+.figma-implement .ov2-section-desc { flex: 1; margin: 0; }
+.figma-implement-btn { color: var(--text-secondary); border-color: #e67e22; }
+.figma-implement-btn:disabled { opacity: 0.5; cursor: default; }
+.figma-result { margin-bottom: 12px; padding: 10px 12px; border: 1px solid var(--border-subtle); border-radius: 8px; font-size: 12px; color: var(--text-secondary); }
+.figma-result--failed { border-color: #c0392b; }
+.ov2-showcase .ov2-section-desc { flex: 1; margin: 0; }
 
 .ov2-card-list { display: flex; flex-direction: column; gap: 6px; }
 

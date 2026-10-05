@@ -10,7 +10,9 @@ import { createApp } from '../index';
  *
  * The setup below is the whole pattern: an in-memory database, a real API token,
  * and the real Express app from createApp(). Requests go through the actual
- * middleware chain, routers, and SQLite. Nothing is mocked, no port is bound.
+ * middleware chain, routers, and SQLite. Nothing is mocked and nothing outside
+ * this process is contacted — supertest does open a short-lived server per
+ * request, on an address of its own (`setup/loopback.ts`).
  *
  * Copy this shape when testing a new endpoint. Assert on what a caller can
  * observe over HTTP — status codes and response bodies — never on internal
@@ -62,5 +64,18 @@ describe('HTTP seam', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({ description: 'no title given' })
       .expect(400);
+  });
+
+  /**
+   * A request has to reach the app under test and nothing else. Supertest
+   * builds the URL itself and would ask for `127.0.0.1`, a port its own socket
+   * shares with whatever else on the machine holds it — see
+   * `setup/loopback.ts` and issue #22.
+   */
+  it('asks the app over an address no other program can hold', async () => {
+    const pending = request(app).get('/api/health').set('Authorization', `Bearer ${token}`);
+
+    expect(pending.url).toMatch(/^http:\/\/\[::1\]:\d+\/api\/health$/);
+    await pending.expect(200);
   });
 });

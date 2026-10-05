@@ -27,6 +27,8 @@ export interface LookupCommand {
   cooldown_seconds: number;
   /** SQLite has no boolean. */
   enabled: number;
+  /** A sentence for the command list; empty means one is derived. */
+  description: string | null;
   created_at: string;
 }
 
@@ -52,7 +54,7 @@ export function checkLookupCommand(
  * The cooldown is per name: asking for Mila and then for Selma is two
  * questions, asking for Mila twice is spam.
  */
-export async function answerLookupCommand(message: string, privileged: boolean): Promise<ChatAnswer | null> {
+export async function answerLookupCommand(message: string, privileged: boolean, viewer?: string): Promise<ChatAnswer | null> {
   const command = getDb().prepare('SELECT * FROM lookup_commands WHERE trigger = ?').get(triggerOf(message)) as
     | LookupCommand
     | undefined;
@@ -60,7 +62,7 @@ export async function answerLookupCommand(message: string, privileged: boolean):
   if (!command.enabled) return { replies: null, reason: 'disabled' };
 
   const query = message.trim().split(/\s+/).slice(1).join(' ');
-  if (!passCooldown(`lookup:${command.id}:${fold(query)}`, command.cooldown_seconds, privileged)) {
+  if (!passCooldown(`lookup:${command.id}:${fold(query)}`, command.cooldown_seconds, privileged, { viewer })) {
     return { replies: null, reason: 'cooldown' };
   }
 
