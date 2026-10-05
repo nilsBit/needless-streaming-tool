@@ -3636,6 +3636,9 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 }
 .text-command-row.editing { border-color: var(--accent); }
 .text-command-row.disabled { opacity: 0.5; }
+.text-command-off-toggle { margin-top: 8px; padding: 2px 0; background: none; border: none; color: var(--muted); font-size: 12px; cursor: pointer; text-align: left; }
+.text-command-off-toggle:hover { color: var(--text-secondary); }
+.text-command-off-toggle + .text-command-list { margin-top: 6px; }
 
 .text-command-trigger { font-size: 13px; color: var(--accent); flex-shrink: 0; }
 .text-command-response {

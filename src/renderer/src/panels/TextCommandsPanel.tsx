@@ -74,6 +74,7 @@ export default function TextCommandsPanel() {
   const [preview, setPreview] = useState<Preview | null>(null);
   const [trial, setTrial] = useState('');
   const [trialAnswer, setTrialAnswer] = useState<ChatAnswer | null>(null);
+  const [showOff, setShowOff] = useState(false);
   // null while Worldbuilder cannot be asked — closed, or no world open.
   const [arten, setArten] = useState<string[] | null>(null);
   const [newLookup, setNewLookup] = useState({ trigger: '', art: '' });
@@ -154,6 +155,27 @@ export default function TextCommandsPanel() {
   };
 
   const list = commands ?? [];
+  // What answers in chat stays in sight; what is switched off folds away.
+  const active = list.filter((c) => c.enabled);
+  const off = list.filter((c) => !c.enabled);
+
+  const row = (c: TextCommand) => (
+    <div
+      key={c.id}
+      className={`text-command-row ${c.enabled ? '' : 'disabled'} ${draft?.id === c.id ? 'editing' : ''}`}
+    >
+      <code className="text-command-trigger">{c.trigger}</code>
+      <span className="text-command-response" title={c.response}>{c.response}</span>
+      <span className="text-command-meta">{c.cooldown_seconds}s</span>
+      <div className="issue-actions">
+        <button title={c.enabled ? 'Ausschalten' : 'Einschalten'} onClick={() => toggle(c)}>
+          {c.enabled ? '⏸️' : '▶️'}
+        </button>
+        <button title="Bearbeiten" onClick={() => edit(c)}>✏️</button>
+        <button title="Löschen" onClick={() => remove(c)}>🗑️</button>
+      </div>
+    </div>
+  );
 
   return (
     <div className="panel text-commands-panel">
@@ -253,25 +275,17 @@ export default function TextCommandsPanel() {
           </div>
         </>
       ) : (
-        <div className="text-command-list">
-          {list.map((c) => (
-            <div
-              key={c.id}
-              className={`text-command-row ${c.enabled ? '' : 'disabled'} ${draft?.id === c.id ? 'editing' : ''}`}
-            >
-              <code className="text-command-trigger">{c.trigger}</code>
-              <span className="text-command-response" title={c.response}>{c.response}</span>
-              <span className="text-command-meta">{c.cooldown_seconds}s</span>
-              <div className="issue-actions">
-                <button title={c.enabled ? 'Ausschalten' : 'Einschalten'} onClick={() => toggle(c)}>
-                  {c.enabled ? '⏸️' : '▶️'}
-                </button>
-                <button title="Bearbeiten" onClick={() => edit(c)}>✏️</button>
-                <button title="Löschen" onClick={() => remove(c)}>🗑️</button>
-              </div>
-            </div>
-          ))}
-        </div>
+        <>
+          <div className="text-command-list">{active.map(row)}</div>
+          {off.length > 0 && (
+            <>
+              <button className="text-command-off-toggle" onClick={() => setShowOff(!showOff)}>
+                {showOff ? '▾' : '▸'} Ausgeschaltet ({off.length})
+              </button>
+              {showOff && <div className="text-command-list">{off.map(row)}</div>}
+            </>
+          )}
+        </>
       )}
 
       <div className="text-commands-section">
