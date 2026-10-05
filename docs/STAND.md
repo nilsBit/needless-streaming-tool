@@ -4,7 +4,7 @@ Einstieg für einen neuen Rechner oder eine neue Claude-Session. **Offene Arbeit
 steht in den GitHub Issues** (`gh issue list`) — dieses Dokument erklärt das
 Große Ganze, wie die beiden Projekte zusammenhängen und wo wir stehen.
 
-Stand: 2. Oktober 2026.
+Stand: 5. Oktober 2026.
 
 ## Worum es geht
 
@@ -155,6 +155,27 @@ braucht den Bot.
   Warum kein Sync: ADR-0023 im Worldbuilder.
 
 ## Wo wir stehen geblieben sind
+
+**Hier aufgehört (05.10., unter Windows)**
+
+- `overlay-design-workflow` ist in `main` gemergt — **gearbeitet wird wieder auf `main`**.
+  Nicht gemergt: `feature/streamdeck-plugin`, `overlay-lexikon` (alter Stil).
+- Erklär-Commands: sechs ausgeschaltet (`!kanon`, `!worldbuilder`, `!tool`, `!fanart`,
+  `!clip`, `!zeitplan`), Instagram steht in `!links`. In der Liste klappen
+  Ausgeschaltete unter „Ausgeschaltet (n)“ zusammen. `data/stream.seed.db` trägt den Stand.
+- **Großes Vorhaben: die Bedienung des Tools neu aufbauen.** Nils findet sich nicht
+  zurecht. Statt „Live / Produktion“ eine Leiste nach Situation: Start · Im Stream ·
+  Chat & Bot · Overlays & Alerts · Nach dem Stream · Einstellungen · Hilfe.
+  - Klickbarer Prototyp (Claude Design, sieben Seiten):
+    https://claude.ai/artifact/5Nw7Ci85coRGA526iNv8u7 — die erste Fassung fand Nils
+    „viel viel besser“; den vollständigen Prototyp hat er noch nicht durchgesehen.
+  - Spezifikation: `docs/superpowers/specs/2026-10-05-bedienung-neuaufbau-design.md`,
+    sechs Stufen. **Noch nicht von Nils freigegeben.**
+  - Nächster Schritt: Nils klickt den Prototyp durch → Rückmeldung einarbeiten →
+    Spezifikation freigeben lassen → Umsetzungsplan für Stufe 1 (Gerüst) schreiben.
+    Am Code des Umbaus ist noch nichts geändert.
+- Weiter offen: Alert-Töne hinterlegen, Szene `tft` hat keine Spotify-Quellen,
+  Stream-Deck-Taste fürs Mithören, Test-Clip in der Clip-Liste, Figma-Pilot (verschoben).
 
 **Hier aufgehört (02.10., auf dem Mac)**
 
