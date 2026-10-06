@@ -4,7 +4,7 @@ import { useWebSocket } from '../../hooks/useWebSocket';
 import { useToast } from '../../contexts/ToastContext';
 import { overlaysOf } from '../../../../shared/features';
 
-interface CatalogEntry { name: string; label: string; sentence: string; size: { width: number; height: number } | null; url: string; builtin: boolean }
+interface CatalogEntry { name: string; base: string; label: string; sentence: string; size: { width: number; height: number } | null; url: string; builtin: boolean }
 interface OverlayScenes { connected: boolean; byOverlay: Record<string, string[]> }
 interface PlaceResult { overlay: string; scene: string; status: 'created' | 'exists' | 'no-scene' }
 
@@ -34,7 +34,8 @@ export default function ObsStep({ picked }: Props) {
     : scenesData?.current && scenes.includes(scenesData.current) ? scenesData.current : scenes[0] ?? '';
 
   const wanted = overlaysOf(picked);
-  const rows = wanted.map((name) => (catalog ?? []).find((e) => e.name === name)).filter((e): e is CatalogEntry => !!e);
+  // A Bestenliste overlay appears once per list; all of them belong to the feature.
+  const rows = (catalog ?? []).filter((e) => wanted.includes(e.base));
   const connected = !!obs?.connected;
   const placedIn = (name: string): string[] => placement?.connected ? (placement.byOverlay[name] ?? []) : [];
   const sceneOf = (name: string) => sceneFor[name] || sceneAll || scenes[0] || '';

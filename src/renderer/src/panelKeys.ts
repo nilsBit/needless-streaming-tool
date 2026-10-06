@@ -23,7 +23,7 @@ export const PANEL_KEYS = [
   'clips',
   'autoclips',
   'stats',
-  'rewardstats',
+  'leaderboards',
   // Einstellungen
   'settings-connections',
   'settings-app',

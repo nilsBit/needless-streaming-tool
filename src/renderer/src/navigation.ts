@@ -50,7 +50,7 @@ export const PANEL_LABELS: Record<PanelKey, string> = {
   clips: 'Content planen',
   autoclips: 'Von selbst merken',
   stats: 'Statistik',
-  rewardstats: 'Bestenliste',
+  leaderboards: 'Bestenlisten',
   'settings-connections': 'Verbindungen',
   'settings-app': 'Programm',
   hotkeys: 'Tastenkürzel',
@@ -105,7 +105,7 @@ export const AREAS: readonly Area[] = [
     key: 'overlays',
     label: 'Overlays & Alerts',
     sentence: 'Hier richtest du ein, was im Stream-Bild erscheint und wie es aussieht. Ausgelöst wird es unter „Im Stream“.',
-    keywords: ['Overlays', 'Alerts', 'Meilensteine', 'Aussehen', 'Szenen in OBS'],
+    keywords: ['Overlays', 'Alerts', 'Meilensteine', 'Bestenlisten', 'Aussehen', 'Szenen in OBS'],
     group: 'main',
     subTabs: [
       {
@@ -127,6 +127,12 @@ export const AREAS: readonly Area[] = [
         panels: ['milestones'],
       },
       {
+        key: 'bestenlisten',
+        label: 'Bestenlisten',
+        sentence: 'Wer eine Belohnung am öftesten einlöst. Jede Liste hängt an einer Belohnung in Twitch und läuft als Overlay im Stream.',
+        panels: ['leaderboards'],
+      },
+      {
         key: 'aussehen',
         label: 'Aussehen',
         sentence: 'Ein Stil für alle Overlays auf einmal, Farben und Schrift, einzelne Overlays abweichend, Entwürfe aus Figma.',
@@ -144,7 +150,7 @@ export const AREAS: readonly Area[] = [
     key: 'after',
     label: 'Nach dem Stream',
     sentence: 'Was passiert ist – und was daraus wird.',
-    keywords: ['Content planen', 'Statistik', 'Bestenliste'],
+    keywords: ['Content planen', 'Statistik'],
     group: 'main',
     subTabs: [
       {
@@ -158,12 +164,6 @@ export const AREAS: readonly Area[] = [
         label: 'Statistik',
         sentence: 'Zahlen zu deinen Streams – heute, der Stand deiner Listen und der Verlauf.',
         panels: ['stats'],
-      },
-      {
-        key: 'kanalpunkte',
-        label: 'Bestenliste',
-        sentence: 'Wer am meisten geflext hat. Die Belohnung „Flex“ in Twitch schaltet einen Flex frei, !flex im Chat zählt ihn – nur das zählt hier.',
-        panels: ['rewardstats'],
       },
     ],
   },

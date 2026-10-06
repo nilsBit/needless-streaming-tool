@@ -32,9 +32,9 @@ _Avoid_: module, plugin, toggle. In the UI a feature is „an“ or „aus“, n
 The four steps on first start — Können · Verbinden · In OBS einrichten · Fertig — and the same page opened again from Einstellungen → Programm. `setup_done` records that it was walked through or skipped.
 _Avoid_: onboarding, wizard, assistant.
 
-**Flex** (UI: „Flex“, „flexen“):
-One point on the Bestenliste (2026-10-06). A viewer redeems the "Flex" reward in Twitch (the reward chosen in the app from the channel's rewards, kept by its Twitch id in `settings`), which unlocks a flex (`flex_credits`); `!flex` in chat spends it and counts it (`reward_stats`, type `flex`). Only flexes count for the Bestenliste; every other reward does its own thing (wheel, music, scene, suggestion) and counts in the statistics only.
-_Avoid_: point, score, redemption count. „Bestenliste“ is the ranking of flexes, nothing else.
+**Bestenliste** (UI: „Bestenliste“, plural „Bestenlisten“):
+A ranking of one Twitch reward's redemptions (2026-10-06, evening). A list has a key (from its title, never changes), a title, and the reward's Twitch id (`leaderboards`); each redemption of that reward adds one to `reward_stats` under the key. Overlays take the key as `?type=`. No unlock step, no `!flex` — that flow lived for one day. A reward without a list counts nowhere.
+_Avoid_: flex, point, score.
 
 **Clip Moment**:
 A marked point in the session worth clipping later, carrying two timecodes and an optional tag. Created by hand or detected automatically. Since 2026-10-06 also the unit of content planning: each Clip Moment stands in one **Step** of the board (`status`: new · planned · cut · published, in the UI „Neu · Geplant · Geschnitten · Veröffentlicht“) and carries `platforms`, `planned_for`, `hook` and, once published for 30 days, `archived_at`. An **Idea** is a Clip Moment created without a stream (`idea: true`, tag `idee`, no timecodes).

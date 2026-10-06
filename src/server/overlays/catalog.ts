@@ -49,7 +49,7 @@ export const GROUP_LABELS: Record<CatalogGroup, string> = {
   always: 'Immer da',
   join: 'Mitmachen',
   today: 'Heute im Stream',
-  rewards: 'Bestenliste',
+  rewards: 'Bestenlisten',
   screens: 'Start, Pause, Ende',
   alerts: 'Meldungen',
   custom: 'Eigene Overlays',

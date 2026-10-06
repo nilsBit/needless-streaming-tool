@@ -17,7 +17,7 @@ import ObsPanel from './panels/ObsPanel';
 import ClipsPanel from './panels/ClipsPanel';
 import AutoClipsSettings from './components/settings/AutoClipsSettings';
 import StatsPanel from './panels/StatsPanel';
-import RewardStatsPanel from './panels/RewardStatsPanel';
+import LeaderboardsPanel from './panels/LeaderboardsPanel';
 import SettingsPanel from './panels/SettingsPanel';
 import HotkeysPanel from './panels/HotkeysPanel';
 import HelpPanel from './panels/HelpPanel';
@@ -46,7 +46,7 @@ export const PANEL_REGISTRY: Record<PanelKey, React.ComponentType> = {
   clips: ClipsPanel,
   autoclips: AutoClipsSettings,
   stats: StatsPanel,
-  rewardstats: RewardStatsPanel,
+  leaderboards: LeaderboardsPanel,
   'settings-connections': SettingsConnections,
   'settings-app': SettingsApp,
   hotkeys: HotkeysPanel,

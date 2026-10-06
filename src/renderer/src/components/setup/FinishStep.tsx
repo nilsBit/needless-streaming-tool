@@ -60,14 +60,14 @@ export default function FinishStep({ picked }: Props) {
         {rewards ? (
           <>
             <h2 id="fin-next">In Twitch noch anlegen</h2>
-            <p className="dialog-hint">Belohnungen legst du in Twitch an (Creator-Dashboard → Kanalpunkte). Das Tool erkennt sie am Namen; für die Bestenliste zählt nur der Flex:</p>
+            <p className="dialog-hint">Belohnungen legst du in Twitch an (Creator-Dashboard → Kanalpunkte). Die meisten erkennt das Tool am Namen; Bestenlisten wählst du unter Overlays & Alerts → Bestenlisten aus.</p>
             <ul className="setup-list">
-              <li><span>Name enthält <strong>Flex</strong></span><span className="dialog-hint">schaltet einen Flex frei – !flex zählt ihn für die Bestenliste</span></li>
+              <li><span>Für jede <strong>Bestenliste</strong> eine Belohnung</span><span className="dialog-hint">wird unter Overlays & Alerts → Bestenlisten gewählt – jede Einlösung zählt</span></li>
               <li><span>Name enthält <strong>Roulette</strong></span><span className="dialog-hint">dreht das Glücksrad</span></li>
               <li><span>Name enthält <strong>Musik</strong> oder <strong>Song</strong></span><span className="dialog-hint">ändert die Musik</span></li>
               <li><span>Name enthält <strong>Szene</strong></span><span className="dialog-hint">wechselt kurz die Szene</span></li>
               <li><span>Name enthält <strong>Feature</strong></span><span className="dialog-hint">reicht einen Vorschlag ein</span></li>
-              <li><span>Jede andere Belohnung</span><span className="dialog-hint">zählt in der Statistik, nicht für die Bestenliste</span></li>
+              <li><span>Jede andere Belohnung</span><span className="dialog-hint">zählt in der Statistik, in keiner Bestenliste</span></li>
             </ul>
           </>
         ) : (
