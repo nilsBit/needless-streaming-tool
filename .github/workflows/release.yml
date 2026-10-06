@@ -25,6 +25,12 @@ jobs:
           npm ci
           cd streamdeck-plugin && npm ci
 
+      # Unsigned for now (security review 2026-10-06, M9): macOS and Windows warn on first start
+      # and nobody can verify a download. Signing needs an Apple Developer ID (CSC_LINK,
+      # CSC_KEY_PASSWORD, APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD, APPLE_TEAM_ID for notarization)
+      # and a Windows code-signing certificate (WIN_CSC_LINK, WIN_CSC_KEY_PASSWORD) as repository
+      # secrets; then drop CSC_IDENTITY_AUTO_DISCOVERY. The Electron fuses in package.json apply
+      # regardless.
       - name: Build app
         run: npm run build:plugin && npx tsc -p tsconfig.node.json && npx vite build && npx electron-builder --publish never
         env:

@@ -21,12 +21,13 @@
     "showcase:capture": "node scripts/showcase-capture.mjs",
     "showcase:compare": "node scripts/showcase-compare.mjs",
     "server:headless": "tsc -p tsconfig.node.json && electron scripts/server-headless.cjs",
-    "ui:walk": "node scripts/ui-walk.mjs"
+    "ui:walk": "node scripts/ui-walk.mjs",
+    "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
     "@coooookies/windows-smtc-monitor": "^1.0.12",
     "@types/tmi.js": "^1.8.6",
-    "better-sqlite3": "^11.0.0",
+    "better-sqlite3": "^13.0.3",
     "express": "^4.21.0",
     "obs-websocket-js": "^5.0.8",
     "tmi.js": "^1.8.5",
@@ -77,6 +78,15 @@
       "shortcutName": "Needless Streaming Tool"
     },
     "asar": true,
+    "electronFuses": {
+      "runAsNode": false,
+      "enableCookieEncryption": true,
+      "enableNodeOptionsEnvironmentVariable": false,
+      "enableNodeCliInspectArguments": false,
+      "enableEmbeddedAsarIntegrityValidation": true,
+      "onlyLoadAppFromAsar": true,
+      "resetAdHocDarwinSignature": true
+    },
     "asarUnpack": [
       "node_modules/better-sqlite3/**",
       "node_modules/@coooookies/**"
@@ -94,8 +104,8 @@
     "@vitejs/plugin-react": "^4.3.0",
     "concurrently": "^9.0.0",
     "cross-env": "^7.0.3",
-    "electron": "^33.0.0",
-    "electron-builder": "^25.0.0",
+    "electron": "^44.5.1",
+    "electron-builder": "^26.15.3",
     "eslint": "^9.39.4",
     "eslint-plugin-react-hooks": "^7.0.1",
     "nodemon": "^3.1.14",
@@ -107,6 +117,9 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.6.0",
     "vite": "^6.0.0",
-    "vitest": "^2.1.9"
+    "vitest": "^3.2.7"
+  },
+  "overrides": {
+    "qs": "^6.15.4"
   }
 }

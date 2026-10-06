@@ -95,7 +95,9 @@ Twitch, OBS, or SMTC belongs in `startServer()`.
 against Electron's ABI. Running Vitest under plain Node fails with a
 `NODE_MODULE_VERSION` mismatch. The test script therefore runs Vitest inside Electron
 via `ELECTRON_RUN_AS_NODE=1`, which is a pure Node process — no window, no port. Do not
-"fix" this with `npm rebuild`; that would break the app.
+"fix" this with `npm rebuild`; that would break the app. The `postinstall` script runs
+`electron-builder install-app-deps`, so after `npm ci` the native modules match the Electron
+in `node_modules` (44 since 2026-10-06) on every machine.
 
 **Ports in tests.** A server a test binds must name its address. A stub the app
 is pointed at takes `127.0.0.1`, because the app asks for

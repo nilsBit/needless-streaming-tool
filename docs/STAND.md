@@ -270,9 +270,19 @@ braucht den Bot.
   Vergleich in konstanter Zeit, geschlossen bis zur Initialisierung; Songwünsche über
   `src/server/song-url.ts` (nur YouTube/Spotify, kanonische Adresse, 20 s Abklingzeit je
   Zuschauer); CSV-Downloads über `apiDownload` statt Links mit Token; Update-Prüfung nimmt nur
-  Release-Seiten dieses Repos an. **Offen:** Block 3 (Electron 44, `npm audit fix`, Dependabot-PRs #9 und #15, Signatur), Block 4
+  Release-Seiten dieses Repos an. **Block 3 behoben:** Electron 44.5.1,
+  electron-builder 26, better-sqlite3 13, express 4.22 mit `qs`-Override – `npm audit --omit=dev`
+  meldet nichts mehr; vitest 3; `postinstall` baut die nativen Module für Electron; Fuses im
+  Build (kein RunAsNode, kein NODE_OPTIONS, nur aus dem ASAR, ASAR-Integrität); die
+  Dependabot-PRs #9 und #15 als überholt geschlossen. **Offen aus Block 3:** die Signatur der
+  Releases (braucht ein Apple-Entwicklerkonto und ein Windows-Zertifikat) und die Prüfung des
+  fertigen Pakets mit Fuses und Meta-CSP beim nächsten Release; 14 Meldungen in reinen
+  Entwicklungs- und Build-Werkzeugen (electron-builder-Innereien, nodemon, vitest) bleiben, ein
+  Sprung auf Vite 8 und Vitest 5 wäre ein eigener Schritt mit Neustart des Dev-Servers. Block 4
   (WebSocket-Herkunft, CSV, Lesebereich des Claude-Laufs, Aufbewahrung der Zuschauerdaten).
-- **Nächster Schritt:** Auf dem Windows-Rechner pullen, `npm run dev`, OBS verbinden und einmal
+- **Nächster Schritt:** Auf dem Windows-Rechner pullen, **`npm ci`** (baut better-sqlite3 für
+  Electron 44 – dauert beim ersten Mal einen Moment; meldet sich `windows-smtc-monitor` mit einem
+  Modul-Fehler, einmal `npx electron-builder install-app-deps`), `npm run dev`, OBS verbinden und einmal
   alles durchklicken – Chips auf „Im Stream“, Overlay-Liste, Content-Brett (die alten
   Test-Momente in „Neu“ verwerfen), und in Einstellungen → Programm → „Ändern“ den Schritt
   „In OBS einrichten“ gegen eine Testszene laufen lassen. Danach #24 (Belohnungen aus dem Tool
