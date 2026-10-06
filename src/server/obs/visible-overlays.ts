@@ -4,9 +4,8 @@ import { isOwnOverlayUrl, type ObsCaller } from './refresh-overlays';
  * Which of our overlays are on screen right now: the browser sources in the
  * current scene that point at this server and are enabled — groups and nested
  * scenes included. The result names overlays the way their URL does:
- * `/overlay/roulette/index.html` → `roulette`, `/overlay/custom/x/` → `custom/x`,
- * `/overlay/reward-leaderboard/index.html?type=flex` → `reward-leaderboard:flex`
- * (a Bestenliste overlay is one source per list; the catalog names them so).
+ * `/overlay/roulette/index.html` → `roulette`, `/overlay/custom/x/` → `custom/x`.
+ * A query (`?type=`, `?compact=1`) does not make another overlay.
  */
 
 interface SceneItem {
@@ -18,11 +17,9 @@ interface SceneItem {
 
 export function overlayNameFromUrl(url: string | undefined, port: number): string | null {
   if (!isOwnOverlayUrl(url, port)) return null;
-  const parsed = new URL(url!);
-  const match = parsed.pathname.match(/^\/overlay\/(custom\/[^/]+|[^/]+)/);
-  if (!match) return null;
-  const type = parsed.searchParams.get('type');
-  return type ? `${match[1]}:${type}` : match[1];
+  const path = new URL(url!).pathname;
+  const match = path.match(/^\/overlay\/(custom\/[^/]+|[^/]+)/);
+  return match ? match[1] : null;
 }
 
 export async function visibleOverlays(obs: ObsCaller, port: number, scene: string): Promise<string[]> {

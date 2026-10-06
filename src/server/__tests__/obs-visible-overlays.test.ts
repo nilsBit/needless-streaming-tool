@@ -66,7 +66,7 @@ function fakeObs() {
 describe('visible overlays', () => {
   it('names the enabled own browser sources of a scene, through groups and nested scenes', async () => {
     const names = await visibleOverlays(fakeObs(), PORT, 'main');
-    expect(names).toEqual(['alerts', 'character', 'reward-leaderboard:flex', 'roulette']);
+    expect(names).toEqual(['alerts', 'character', 'reward-leaderboard', 'roulette']);
   });
 
   it('tells for every overlay in which scenes it sits, enabled or not', async () => {
@@ -76,7 +76,7 @@ describe('visible overlays', () => {
     expect(placed.poll).toEqual(['main', 'Unterszene']);     // placed, just switched off
     expect(placed.song).toEqual(['main', 'Unterszene']);     // inside a disabled group
     expect(placed.character).toEqual(['main', 'Unterszene']);
-    expect(placed['reward-leaderboard:flex']).toEqual(['main', 'Unterszene']);
+    expect(placed['reward-leaderboard']).toEqual(['main', 'Unterszene']);   // ?type= is the list, not another overlay
     expect(placed.kamera).toBeUndefined();
     expect(placed.streamelements).toBeUndefined();
   });
@@ -84,8 +84,7 @@ describe('visible overlays', () => {
   it('reads the overlay name from the url and ignores foreign sources', () => {
     expect(overlayNameFromUrl(`http://localhost:${PORT}/overlay/todos/index.html`, PORT)).toBe('todos');
     expect(overlayNameFromUrl(`http://localhost:${PORT}/overlay/custom/mein-overlay/index.html`, PORT)).toBe('custom/mein-overlay');
-    // A Bestenliste overlay is one source per list: the key rides in ?type=.
-    expect(overlayNameFromUrl(`http://localhost:${PORT}/overlay/reward-rankchange/index.html?type=angeben`, PORT)).toBe('reward-rankchange:angeben');
+    expect(overlayNameFromUrl(`http://localhost:${PORT}/overlay/reward-rankchange/index.html?type=angeben`, PORT)).toBe('reward-rankchange');
     expect(overlayNameFromUrl(`http://localhost:${PORT}/public/song`, PORT)).toBeNull();
     expect(overlayNameFromUrl('https://streamelements.com/overlay/abc', PORT)).toBeNull();
     expect(overlayNameFromUrl(undefined, PORT)).toBeNull();

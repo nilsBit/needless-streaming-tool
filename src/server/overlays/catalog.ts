@@ -5,7 +5,6 @@ import { getOverlayConfig } from '../api/overlay-config';
 import { appliedChanges } from '../design-apply';
 import { getUserDataPath } from '../paths';
 import { featureOfOverlay, type FeatureKey } from '../../shared/features';
-import { listLeaderboards } from '../leaderboards';
 
 /**
  * The overlays as the app presents them: German name, one sentence, a group,
@@ -22,14 +21,7 @@ import { listLeaderboards } from '../leaderboards';
 export type CatalogGroup = 'always' | 'join' | 'today' | 'rewards' | 'screens' | 'alerts' | 'custom';
 
 export interface CatalogEntry {
-  /** Unique id: the overlay folder, or `<folder>:<list key>` for one Bestenliste's overlay. */
   name: string;
-  /** The overlay folder under src/overlays (`custom/<x>` for an own overlay) — overrides and tests hang on it. */
-  base: string;
-  /** The Bestenliste key this entry is for, null for every other overlay. */
-  variant: string | null;
-  /** False for the bare Bestenliste overlay while no list exists: nothing to put in OBS yet. */
-  placeable: boolean;
   label: string;
   sentence: string;
   group: CatalogGroup;
@@ -67,8 +59,8 @@ const META: Record<string, { label: string; sentence: string; group: CatalogGrou
   todos: { label: 'Aufgaben', sentence: 'Deine Liste zum Abhaken.', group: 'today', preview: 'open-todos' },
   challenge: { label: 'Ziel für heute', sentence: 'Dein Ziel mit laufender Uhr.', group: 'today', preview: 'running' },
   milestone: { label: 'Meilenstein', sentence: 'Feiert einen abgehakten Meilenstein groß, über allem anderen.', group: 'today', preview: 'major' },
-  'reward-leaderboard': { label: 'Bestenliste', sentence: 'Blendet bei jeder Einlösung die Top 3 der Liste ein, mit der Zeile der Person.', group: 'rewards', preview: 'top-three' },
-  'reward-rankchange': { label: 'Rangwechsel', sentence: 'Meldet, wenn jemand in einer Bestenliste aufsteigt.', group: 'rewards', preview: 'overtake' },
+  'reward-leaderboard': { label: 'Bestenliste', sentence: 'Blendet bei jeder Einlösung die Top 3 der betroffenen Liste ein – eine Adresse für alle Listen.', group: 'rewards', preview: 'top-three' },
+  'reward-rankchange': { label: 'Rangwechsel', sentence: 'Meldet, wenn jemand in einer Bestenliste aufsteigt – eine Adresse für alle Listen.', group: 'rewards', preview: 'overtake' },
   start: { label: 'Startbild', sentence: 'Füllt den ganzen Stream, bevor es losgeht.', group: 'screens', preview: 'mit-eintrag' },
   pause: { label: 'Pausenbild', sentence: 'Füllt den ganzen Stream, wenn du kurz weg bist.', group: 'screens', preview: 'mit-eintrag' },
   end: { label: 'Endbild', sentence: 'Füllt den ganzen Stream zum Abschluss.', group: 'screens', preview: 'mit-eintrag' },
@@ -76,10 +68,6 @@ const META: Record<string, { label: string; sentence: string; group: CatalogGrou
 };
 
 const GROUP_ORDER: CatalogGroup[] = ['always', 'join', 'today', 'rewards', 'screens', 'alerts', 'custom'];
-
-/** Overlays that exist once per Bestenliste: the list key rides in `?type=`. */
-const PER_LIST = new Set(['reward-leaderboard', 'reward-rankchange']);
-const NO_LIST_YET = 'Lege unter Overlays & Alerts → Bestenlisten eine Liste an, dann bekommt dieses Overlay eine Adresse je Liste.';
 
 function builtinDir(): string {
   return process.env.NST_OVERLAYS_DIR ?? path.join(process.cwd(), 'src', 'overlays');
@@ -124,9 +112,6 @@ export function overlayCatalog(host: string): CatalogEntry[] {
       : showcase ? Object.keys(showcase.states)[0] ?? null : null;
     return {
       name,
-      base: name,
-      variant: null,
-      placeable: true,
       label: meta?.label ?? name,
       sentence: meta?.sentence ?? '',
       group: meta?.group ?? 'custom',
@@ -140,31 +125,9 @@ export function overlayCatalog(host: string): CatalogEntry[] {
     };
   });
 
-  // The Bestenliste overlays: one entry per list, addressed by its key — or,
-  // while there is no list, the bare overlay with a hint where to make one.
-  const lists = listLeaderboards();
-  const expanded: CatalogEntry[] = [];
-  for (const entry of entries) {
-    if (!PER_LIST.has(entry.name)) { expanded.push(entry); continue; }
-    if (lists.length === 0) { expanded.push({ ...entry, sentence: NO_LIST_YET, placeable: false }); continue; }
-    for (const list of lists) {
-      expanded.push({
-        ...entry,
-        name: `${entry.name}:${list.key}`,
-        variant: list.key,
-        label: `${entry.label}: ${list.title}`,
-        url: `${entry.url}?type=${encodeURIComponent(list.key)}`,
-      });
-    }
-  }
-  entries.splice(0, entries.length, ...expanded);
-
   for (const name of customNames()) {
     entries.push({
       name: `custom/${name}`,
-      base: `custom/${name}`,
-      variant: null,
-      placeable: true,
       label: name,
       sentence: 'Ein eigenes Overlay aus deiner HTML-Datei.',
       group: 'custom',
@@ -179,8 +142,6 @@ export function overlayCatalog(host: string): CatalogEntry[] {
   }
 
   const order = (g: CatalogGroup) => GROUP_ORDER.indexOf(g);
-  const within = (base: string) => Object.keys(META).indexOf(base);
-  const listOrder = (variant: string | null) => lists.findIndex((l) => l.key === variant);
-  // A list's two overlays stay together, lists in the order they were made.
-  return entries.sort((a, b) => order(a.group) - order(b.group) || listOrder(a.variant) - listOrder(b.variant) || within(a.base) - within(b.base) || a.label.localeCompare(b.label, 'de'));
+  const within = (name: string) => Object.keys(META).indexOf(name);
+  return entries.sort((a, b) => order(a.group) - order(b.group) || within(a.name) - within(b.name) || a.label.localeCompare(b.label, 'de'));
 }

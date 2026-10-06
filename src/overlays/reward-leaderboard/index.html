@@ -99,9 +99,12 @@
 <script src="/overlay/boot.js" data-overlay="reward-leaderboard"></script>
 <script>
 const params = new URLSearchParams(window.location.search);
-const configuredType = params.get('type') || 'all';
+// One address serves every list (Nils, 06.10.): without ?type= the overlay
+// shows whichever list just got a point; with ?type=<key> only that one.
+const configuredType = params.get('type');
 // In the showcase (?state=) the list stands still, so it can be looked at.
 const standing = params.has('state');
+let shownType = configuredType || 'all';
 const SHOW_MS = 6000;
 
 const panel = document.getElementById('leaderboard');
@@ -111,19 +114,9 @@ let hideTimer = null;
 let fallbackInterval = null;
 
 if (standing) panel.classList.add('standing');
-// An address without ?type= belongs to no list: say so instead of staying dark
-// (the catalog's "Adresse kopieren" carries the parameter).
-if (!params.get('type') && !standing) {
-  panel.classList.add('standing');
-  const hint = document.createElement('div');
-  hint.className = 'entry';
-  hint.innerHTML = '<span class="name" style="white-space:normal">Diese Adresse gehört zu keiner Bestenliste. Kopiere die Adresse des Overlays „Bestenliste: …“ aus der App – sie endet auf ?type=…</span>';
-  panel.appendChild(hint);
-}
-
 async function fetchLeaderboard() {
   try {
-    const res = await fetch(`${window.__overlayOrigin}/public/reward-stats/top?type=${configuredType}&limit=3`);
+    const res = await fetch(`${window.__overlayOrigin}/public/reward-stats/top?type=${encodeURIComponent(shownType)}&limit=3`);
     const data = await res.json();
     leaderboard = data.leaderboard || [];
     if (data.title) document.getElementById('title').textContent = data.title;
@@ -187,7 +180,8 @@ function show() {
 }
 
 async function handlePoint(data) {
-  if (data.key !== configuredType) return;
+  if (configuredType && data.key !== configuredType) return;
+  shownType = data.key;
   me = { login: String(data.login || data.user || '').toLowerCase(), user: data.user, count: data.count, rank: data.rank };
   await fetchLeaderboard();
   flashCount(me.user);
@@ -198,7 +192,8 @@ async function handlePoint(data) {
 }
 
 function handleLeaderboardUpdate(data) {
-  if (data.type !== configuredType) return;
+  if (data.type !== shownType) return;
+  if (data.title) document.getElementById('title').textContent = data.title;
   const oldCounts = new Map(leaderboard.map((e) => [e.userName, e.count]));
   leaderboard = (data.leaderboard || []).map((e) => ({ rank: e.rank, userName: e.userName, count: e.count }));
   render();
@@ -249,7 +244,8 @@ function connectWS() {
   ws.onerror = () => ws.close();
 }
 
-if (params.get('type') || standing) { connectWS(); startFallbackPolling(); }
+connectWS();
+if (configuredType || standing) startFallbackPolling();
 </script>
 </body>
 </html>

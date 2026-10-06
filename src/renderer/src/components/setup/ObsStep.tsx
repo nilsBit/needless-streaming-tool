@@ -4,7 +4,7 @@ import { useWebSocket } from '../../hooks/useWebSocket';
 import { useToast } from '../../contexts/ToastContext';
 import { overlaysOf } from '../../../../shared/features';
 
-interface CatalogEntry { name: string; base: string; label: string; sentence: string; size: { width: number; height: number } | null; url: string; builtin: boolean; placeable: boolean }
+interface CatalogEntry { name: string; label: string; sentence: string; size: { width: number; height: number } | null; url: string; builtin: boolean }
 interface OverlayScenes { connected: boolean; byOverlay: Record<string, string[]> }
 interface PlaceResult { overlay: string; scene: string; status: 'created' | 'exists' | 'no-scene' }
 
@@ -34,8 +34,7 @@ export default function ObsStep({ picked }: Props) {
     : scenesData?.current && scenes.includes(scenesData.current) ? scenesData.current : scenes[0] ?? '';
 
   const wanted = overlaysOf(picked);
-  // A Bestenliste overlay appears once per list; all of them belong to the feature.
-  const rows = (catalog ?? []).filter((e) => wanted.includes(e.base));
+  const rows = wanted.map((name) => (catalog ?? []).find((e) => e.name === name)).filter((e): e is CatalogEntry => !!e);
   const connected = !!obs?.connected;
   const placedIn = (name: string): string[] => placement?.connected ? (placement.byOverlay[name] ?? []) : [];
   const sceneOf = (name: string) => sceneFor[name] || sceneAll || scenes[0] || '';
@@ -55,7 +54,7 @@ export default function ObsStep({ picked }: Props) {
   const placeAll = async () => {
     setBusy('all');
     let n = 0;
-    for (const row of rows) if (row.placeable && placedIn(row.name).length === 0 && await place(row.name)) n++;
+    for (const row of rows) if (placedIn(row.name).length === 0 && await place(row.name)) n++;
     await refetchPlacement();
     setBusy(null);
     if (n > 0) toast.success(`${n} ${n === 1 ? 'Browserquelle' : 'Browserquellen'} in OBS angelegt`);
@@ -99,7 +98,7 @@ export default function ObsStep({ picked }: Props) {
                 <span>{r.sentence}</span>
               </div>
               <span className="obs-row-size">{r.size ? `${r.size.width} × ${r.size.height}` : 'Bildgröße'}</span>
-              {connected && !done && r.placeable && (
+              {connected && !done && (
                 <label className="obs-row-scene">
                   <span className="dialog-hint">Szene</span>
                   <select className="card-select" value={sceneOf(r.name)} onChange={(e) => setSceneFor({ ...sceneFor, [r.name]: e.target.value })}>
@@ -110,8 +109,6 @@ export default function ObsStep({ picked }: Props) {
               <div className="obs-row-action">
                 {done
                   ? <span className="obs-row-ok">in OBS · {inScenes.join(', ')}</span>
-                  : !r.placeable
-                    ? <span className="dialog-hint">kommt nach der ersten Bestenliste</span>
                   : connected
                     ? <button type="button" className="card-secondary" onClick={() => placeOne(r.name)} disabled={busy !== null}>{busy === r.name ? 'Legt an …' : 'In OBS anlegen'}</button>
                     : <button type="button" className="card-secondary" onClick={() => copyAddress(r.url)}>Adresse kopieren</button>}

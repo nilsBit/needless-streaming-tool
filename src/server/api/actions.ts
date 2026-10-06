@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getLeaderboard } from '../leaderboards';
+import { listLeaderboards } from '../leaderboards';
 import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
 import { sampleAlert } from '../bot/alerts';
@@ -169,8 +169,7 @@ const STATIC_TEST_EVENTS: Record<string, { event: string; data: unknown }[]> = {
 };
 
 function getTestEvents(name: string): { event: string; data: unknown }[] {
-  // A Bestenliste overlay is named `<overlay>:<list key>` in the catalog.
-  const [base, variant] = name.split(':');
+  const base = name;
   if (STATIC_TEST_EVENTS[base]) return STATIC_TEST_EVENTS[base];
 
   // Worded by the same function as the real thing (bot/alerts.ts), with the
@@ -221,8 +220,10 @@ function getTestEvents(name: string): { event: string; data: unknown }[] {
   }
 
   if (base === 'reward-leaderboard' || base === 'reward-rankchange') {
-    const key = variant ?? 'all';
-    const title = (variant && getLeaderboard(variant)?.title) || 'Bestenliste';
+    // One address serves every list: the sample plays in the first list, if any.
+    const first = listLeaderboards()[0];
+    const key = first?.key ?? 'all';
+    const title = first?.title ?? 'Bestenliste';
     // The list overlay shows itself on a point; the sample update follows, as live.
     const point = base === 'reward-leaderboard'
       ? [{ event: 'leaderboard-point', data: { key, title, user: 'TestUser_A', login: 'testuser_a', count: 42, rank: 1 } }]
@@ -231,6 +232,7 @@ function getTestEvents(name: string): { event: string; data: unknown }[] {
       event: 'reward-leaderboard-update',
       data: {
         type: key,
+        title,
         leaderboard: [
           { rank: 1, userName: 'TestUser_A', count: 42, previousRank: 2 },
           { rank: 2, userName: 'TestUser_B', count: 38, previousRank: 1 },

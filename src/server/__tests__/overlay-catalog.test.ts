@@ -66,37 +66,20 @@ describe('overlay catalog', () => {
     expect(after.body.find((e: { name: string }) => e.name === 'chat').customized).toBe(false);
   });
 
-  it('lists the Bestenliste overlays once per list, with the list key in the address', async () => {
+
+  it('keeps one Bestenliste and one Rangwechsel entry, whatever lists exist', async () => {
     const before = (await request(app).get('/api/overlays/catalog').set(auth()).expect(200)).body;
-    const placeholder = before.find((e: { name: string }) => e.name === 'reward-leaderboard');
-    expect(placeholder).toMatchObject({ base: 'reward-leaderboard', variant: null, group: 'rewards' });
-    expect(placeholder.sentence).toMatch(/Bestenlisten/);
+    const names = (c: Array<{ name: string }>) => c.map((e) => e.name).filter((n) => n.startsWith('reward-'));
+    expect(names(before)).toEqual(['reward-leaderboard', 'reward-rankchange']);
+    const board = before.find((e: { name: string }) => e.name === 'reward-leaderboard');
+    expect(board).toMatchObject({ label: 'Bestenliste', group: 'rewards', feature: 'bestenliste', size: { width: 700, height: 260 } });
+    expect(board.url.endsWith('/overlay/reward-leaderboard/index.html')).toBe(true);
 
     await request(app).post('/api/leaderboards').set(auth()).send({ title: 'Flex', reward: { id: 'rw-1', title: 'Flex!' } }).expect(201);
     await request(app).post('/api/leaderboards').set(auth()).send({ title: 'Angeben', reward: { id: 'rw-2', title: 'Angeben' } }).expect(201);
     const after = (await request(app).get('/api/overlays/catalog').set(auth()).expect(200)).body;
-    const rewards = after.filter((e: { group: string }) => e.group === 'rewards');
-    expect(rewards.map((e: { name: string }) => e.name)).toEqual(['reward-leaderboard:flex', 'reward-rankchange:flex', 'reward-leaderboard:angeben', 'reward-rankchange:angeben']);
-    expect(rewards[0]).toMatchObject({ base: 'reward-leaderboard', variant: 'flex', label: 'Bestenliste: Flex', size: { width: 700, height: 260 }, previewState: 'top-three', feature: 'bestenliste' });
-    expect(rewards[0].url.endsWith('/overlay/reward-leaderboard/index.html?type=flex')).toBe(true);
-    expect(after.find((e: { name: string }) => e.name === 'reward-leaderboard')).toBeUndefined();
-    for (const entry of after) expect(typeof entry.base).toBe('string');
-  });
-
-  it('does not let the setup place the bare Bestenliste overlays while there is no list', async () => {
-    await request(app).delete('/api/leaderboards/flex').set(auth()).expect(200);
-    await request(app).delete('/api/leaderboards/angeben').set(auth()).expect(200);
-    const catalog = (await request(app).get('/api/overlays/catalog').set(auth()).expect(200)).body;
-    const placeholder = catalog.find((e: { name: string }) => e.name === 'reward-leaderboard');
-    expect(placeholder.placeable).toBe(false);
-    expect(catalog.find((e: { name: string }) => e.name === 'chat').placeable).toBe(true);
-    const refused = await request(app).post('/api/obs/place-overlay').set(auth()).send({ overlay: 'reward-leaderboard', scene: 'Main' }).expect(400);
-    expect(refused.body.error).toMatch(/Bestenliste/);
-
-    await request(app).post('/api/leaderboards').set(auth()).send({ title: 'Flex', reward: { id: 'rw-1', title: 'Flex!' } }).expect(201);
-    const after = (await request(app).get('/api/overlays/catalog').set(auth()).expect(200)).body;
-    expect(after.find((e: { name: string }) => e.name === 'reward-leaderboard:flex').placeable).toBe(true);
-    // Past the gate: only OBS is missing now.
-    await request(app).post('/api/obs/place-overlay').set(auth()).send({ overlay: 'reward-leaderboard:flex', scene: 'Main' }).expect(503);
+    expect(names(after)).toEqual(['reward-leaderboard', 'reward-rankchange']);
+    // One address serves every list; placing it only lacks OBS here.
+    await request(app).post('/api/obs/place-overlay').set(auth()).send({ overlay: 'reward-leaderboard', scene: 'Main' }).expect(503);
   });
 });

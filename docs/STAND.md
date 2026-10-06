@@ -307,8 +307,9 @@ braucht den Bot.
   werden aber nirgends mehr gezeigt. **Mehrere Bestenlisten** (Nils, 06.10., Abend): je Liste
   eine Belohnung per Twitch-ID (`leaderboards`), Einlösung zählt direkt (ohne Chat-Zeile,
   die flog nach dem ersten Test wieder raus), `!flex` und
-  `flex_credits` wieder weg, Seite unter Overlays & Alerts → Bestenlisten, Overlays je Liste mit
-  `?type=<key>`. Alte Overlay-Adressen ohne Parameter zeigen nichts mehr. Spec:
+  `flex_credits` wieder weg, Seite unter Overlays & Alerts → Bestenlisten. Die Overlays laufen mit
+  **einer** Adresse für alle Listen und blenden sich bei einer Einlösung ein (Bestenliste: Top 3
+  der betroffenen Liste, Zeile der Person leuchtet); `?type=<key>` schränkt auf eine Liste ein. Spec:
   `docs/superpowers/specs/2026-10-06-bestenlisten-design.md`. **Stream-Deck-Plugin geparkt**
   (Nils, 06.10., Abend: „weiß nicht ob so ein Plugin überhaupt sinnvoll ist … was ich brauche ist
   Szenenwechsel"): Szenen wechselt die Stream-Deck-Software über ihre eigene OBS-Anbindung, die

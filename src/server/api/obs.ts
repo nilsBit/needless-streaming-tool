@@ -129,9 +129,8 @@ router.post('/place-overlay', async (req, res) => {
   }
   const entry = overlayCatalog(req.get('host') ?? 'localhost').find((e) => e.name === overlay && e.builtin);
   if (!entry) { res.status(404).json({ error: 'unknown overlay' }); return; }
-  if (!entry.placeable) { res.status(400).json({ error: 'Erst eine Bestenliste anlegen – dann hat dieses Overlay eine Adresse je Liste.' }); return; }
   try {
-    const result = await placeOverlayNow({ name: entry.name, base: entry.base, variant: entry.variant, label: entry.label, size: entry.size }, scene.trim());
+    const result = await placeOverlayNow({ name: entry.name, label: entry.label, size: entry.size }, scene.trim());
     if (!result) { res.status(503).json({ error: 'OBS not connected' }); return; }
     if (result.status === 'no-scene') { res.status(400).json({ error: `no scene "${scene}" in OBS`, ...result }); return; }
     res.json(result);

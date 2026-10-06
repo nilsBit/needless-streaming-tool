@@ -87,6 +87,14 @@ Die Liste der Twitch-Belohnungen kommt weiter aus `/api/auth/twitch/rewards`
 
 ## Overlays
 
+> **Nachtrag 06.10., Abend (Nils: „kann man das nicht nur mit einer URL abfangen?"):** Beide
+> Overlays laufen mit **einer** Adresse für alle Listen. Ohne `?type=` zeigt die Bestenliste bei
+> jeder Einlösung die betroffene Liste (eingeblendet, mit Namen im Kopf), der Rangwechsel jeden
+> Überholer mit Listennamen. `?type=<key>` schränkt eine Quelle auf eine Liste ein. Der Katalog
+> führt deshalb wieder **einen** Eintrag je Overlay; die Einträge je Liste von weiter unten sind
+> damit hinfällig. Das Update-Ereignis trägt den Listentitel (`title`). Alte Quellen ohne
+> Parameter funktionieren damit wieder.
+
 `reward-leaderboard` und `reward-rankchange` bleiben, wie sie sind, inklusive `?type=`. Neu:
 
 - **Der Katalog** (`src/server/overlays/catalog.ts`) führt sie je Liste auf: „Bestenliste: Flex“,

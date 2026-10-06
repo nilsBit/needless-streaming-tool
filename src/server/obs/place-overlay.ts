@@ -10,10 +10,6 @@ import { overlaysByScene } from './visible-overlays';
 
 export interface PlaceableOverlay {
   name: string;
-  /** The overlay folder; the address is built from it. */
-  base: string;
-  /** The Bestenliste key, carried as ?type= — null for every other overlay. */
-  variant: string | null;
   label: string;
   size: { width: number; height: number } | null;
 }
@@ -35,7 +31,7 @@ export async function placeOverlay(obs: ObsCaller, port: number, overlay: Placea
 
   // Not the overlay's bare name: a streamer may well have a source called "chat".
   const inputName = `NST ${overlay.label}`;
-  const url = `http://localhost:${port}/overlay/${overlay.base}/index.html${overlay.variant ? `?type=${encodeURIComponent(overlay.variant)}` : ''}`;
+  const url = `http://localhost:${port}/overlay/${overlay.name}/index.html`;
   let size = overlay.size;
   if (!size) {
     const video = (await obs.call('GetVideoSettings')) as { baseWidth: number; baseHeight: number };

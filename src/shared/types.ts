@@ -64,6 +64,8 @@ export interface RankExit {
 
 export interface LeaderboardUpdate {
   type: string;
+  /** The Bestenliste's title, so one overlay address can show any list. */
+  title: string | null;
   leaderboard: LeaderboardUpdateEntry[];
   changes: RankChange[];
   entered: RankEntry[];

@@ -121,7 +121,7 @@
     "reward-rankchange": {
       "size": { "width": 1920, "height": 1080 },
       "actions": [
-        { "label": "Überholen", "events": [{ "event": "reward-leaderboard-update", "data": { "type": "all", "leaderboard": [{ "rank": 1, "userName": "Kartograph", "count": 43, "previousRank": 2}, { "rank": 2, "userName": "Lesezeichen42", "count": 42, "previousRank": 1}, { "rank": 3, "userName": "Tintenfass", "count": 15, "previousRank": null}], "changes": [{ "userName": "Kartograph", "from": 2, "to": 1, "changeType": "up" }, { "userName": "Lesezeichen42", "from": 1, "to": 2, "changeType": "down" }], "entered": [{ "userName": "Tintenfass", "rank": 3}], "exited": [{ "userName": "Nachtschwärmer", "previousRank": 3}]}}]}
+        { "label": "Überholen", "events": [{ "event": "reward-leaderboard-update", "data": { "type": "all", "title": "Flex", "leaderboard": [{ "rank": 1, "userName": "Kartograph", "count": 43, "previousRank": 2}, { "rank": 2, "userName": "Lesezeichen42", "count": 42, "previousRank": 1}, { "rank": 3, "userName": "Tintenfass", "count": 15, "previousRank": null}], "changes": [{ "userName": "Kartograph", "from": 2, "to": 1, "changeType": "up" }, { "userName": "Lesezeichen42", "from": 1, "to": 2, "changeType": "down" }], "entered": [{ "userName": "Tintenfass", "rank": 3}], "exited": [{ "userName": "Nachtschwärmer", "previousRank": 3}]}}]}
       ],
       "states": {
         "overtake": {

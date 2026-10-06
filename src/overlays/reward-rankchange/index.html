@@ -135,7 +135,8 @@
 <script src="/overlay/boot.js" data-overlay="reward-rankchange"></script>
 <script>
 const params = new URLSearchParams(window.location.search);
-const configuredType = params.get('type') || 'all';
+// One address serves every list: without ?type= every list's overtakes show, with the list's name.
+const configuredType = params.get('type');
 
 const queue = [];
 let animating = false;
@@ -147,7 +148,7 @@ function escapeHtml(str) {
 }
 
 function handleLeaderboardUpdate(data) {
-  if (data.type !== configuredType) return;
+  if (configuredType && data.type !== configuredType) return;
   if ((!data.changes || data.changes.length === 0) && (!data.entered || data.entered.length === 0)) return;
   queue.push(data);
   processQueue();
@@ -172,6 +173,7 @@ async function playAnimation(data) {
   const container = document.getElementById('alertContainer');
   const list = document.getElementById('alertList');
   list.innerHTML = '';
+  container.querySelector('.alert-header').textContent = data.title ? `Platzwechsel in ${data.title}!` : 'Platzwechsel!';
 
   const changedUsers = new Set((data.changes || []).map(c => c.userName));
   const enteredUsers = new Set((data.entered || []).map(e => e.userName));

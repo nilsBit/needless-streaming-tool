@@ -16,8 +16,6 @@ type Group = 'always' | 'join' | 'today' | 'rewards' | 'screens' | 'alerts' | 'c
 
 interface CatalogEntry {
   name: string;
-  base: string;
-  variant: string | null;
   label: string;
   sentence: string;
   group: Group;
@@ -116,7 +114,7 @@ export default function OverlaysPanel() {
 
   // Own overlays: create from the template or from an uploaded file, edit the
   // HTML, delete. Built-in overlays: edit the HTML as an override, reset it.
-  const customBase = (entry: CatalogEntry) => entry.base.replace(/^custom\//, '');
+  const customBase = (entry: CatalogEntry) => entry.name.replace(/^custom\//, '');
   const createFromTemplate = async () => {
     if (!newName.trim()) return;
     setBusy(true);
@@ -158,7 +156,7 @@ export default function OverlaysPanel() {
   };
   const openEditor = async (entry: CatalogEntry) => {
     setEditor({ entry, html: '', loading: true, saving: false });
-    const endpoint = entry.builtin ? `/overlays/builtin/${entry.base}/source` : `/overlays/${encodeURIComponent(customBase(entry))}/source`;
+    const endpoint = entry.builtin ? `/overlays/builtin/${entry.name}/source` : `/overlays/${encodeURIComponent(customBase(entry))}/source`;
     try {
       const { html } = await (await apiFetch(endpoint)).json();
       setEditor({ entry, html, loading: false, saving: false });
@@ -167,7 +165,7 @@ export default function OverlaysPanel() {
   const saveEditor = async () => {
     if (!editor) return;
     setEditor({ ...editor, saving: true });
-    const endpoint = editor.entry.builtin ? `/overlays/builtin/${editor.entry.base}` : `/overlays/${encodeURIComponent(customBase(editor.entry))}`;
+    const endpoint = editor.entry.builtin ? `/overlays/builtin/${editor.entry.name}` : `/overlays/${encodeURIComponent(customBase(editor.entry))}`;
     const res = await apiFetch(endpoint, { method: 'PUT', body: JSON.stringify({ html: editor.html }) });
     if (!res.ok) { toast.error('Speichern fehlgeschlagen'); setEditor({ ...editor, saving: false }); return; }
     toast.success('HTML gespeichert');
@@ -176,7 +174,7 @@ export default function OverlaysPanel() {
   };
   const resetBuiltin = async (entry: CatalogEntry) => {
     if (!window.confirm(`„${entry.label}“ auf das mitgelieferte HTML zurücksetzen?`)) return;
-    const res = await apiFetch(`/overlays/builtin/${entry.base}/override`, { method: 'DELETE' });
+    const res = await apiFetch(`/overlays/builtin/${entry.name}/override`, { method: 'DELETE' });
     if (!res.ok) { toast.error('Zurücksetzen fehlgeschlagen'); return; }
     refetchCatalog();
   };
@@ -264,12 +262,12 @@ export default function OverlaysPanel() {
 
             <div className="card-row card-wrap ovl-actions">
               <button type="button" className="card-primary" onClick={() => openLarge(selected)}>Groß im Browser ansehen</button>
-              {TESTABLE.has(selected.base) && <button type="button" className="card-secondary" onClick={() => testOnStream(selected)}>Im Stream testen</button>}
+              {TESTABLE.has(selected.name) && <button type="button" className="card-secondary" onClick={() => testOnStream(selected)}>Im Stream testen</button>}
               <button type="button" className="card-link" onClick={() => openEditor(selected)}>HTML bearbeiten</button>
               {selected.builtin && selected.customizedBy.includes('html') && <button type="button" className="card-link" onClick={() => resetBuiltin(selected)}>HTML zurücksetzen</button>}
               {!selected.builtin && <button type="button" className="card-link" onClick={() => deleteCustom(selected)}>Löschen</button>}
             </div>
-            {TESTABLE.has(selected.base) && <span className="dialog-hint">„Im Stream testen“ sehen auch die Zuschauer.</span>}
+            {TESTABLE.has(selected.name) && <span className="dialog-hint">„Im Stream testen“ sehen auch die Zuschauer.</span>}
           </section>
         )}
       </div>

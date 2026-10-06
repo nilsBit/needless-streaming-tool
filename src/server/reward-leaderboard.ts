@@ -123,8 +123,10 @@ export function checkAndBroadcast(type: string): void {
     return { ...entry, previousRank: old?.rank ?? null };
   });
 
+  const titleRow = getDb().prepare('SELECT title FROM leaderboards WHERE key = ?').get(type) as { title: string } | undefined;
   const update: LeaderboardUpdate = {
     type,
+    title: titleRow?.title ?? null,
     leaderboard,
     changes,
     entered,
