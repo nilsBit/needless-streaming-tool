@@ -12,6 +12,7 @@ export const PANEL_KEYS = [
   // Chat & Bot
   'textcommands',
   'chatbot',
+  'trycommands',
   // Overlays & Alerts
   'overlays',
   'alerts',

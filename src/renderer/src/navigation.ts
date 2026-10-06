@@ -40,6 +40,7 @@ export const PANEL_LABELS: Record<PanelKey, string> = {
   world: 'Eintrag aus der Welt',
   textcommands: 'Befehle',
   chatbot: 'Von selbst',
+  trycommands: 'Ausprobieren',
   overlays: 'Overlays',
   alerts: 'Alerts',
   milestones: 'Meilensteine',
@@ -75,13 +76,13 @@ export const AREAS: readonly Area[] = [
     key: 'chat',
     label: 'Chat & Bot',
     sentence: 'Was der Bot antwortet und was er von selbst sagt.',
-    keywords: ['Befehle', 'Nachschlagen in der Welt', 'Erinnerung', 'Shoutout'],
+    keywords: ['Befehle', 'Nachschlagen in der Welt', 'Erinnerung', 'Shoutout', 'Ausprobieren'],
     group: 'main',
     subTabs: [
       {
         key: 'befehle',
         label: 'Befehle',
-        sentence: 'Eigene Texte wie !story und Nachschlage-Befehle wie !figur – was der Chat tippt und der Bot antwortet.',
+        sentence: 'Eigene Texte wie !story und Nachschlage-Befehle wie !figur – eine Liste, was der Chat tippt und der Bot antwortet. Die eingebauten Befehle stehen unter „Von selbst“.',
         panels: ['textcommands'],
       },
       {
@@ -89,6 +90,12 @@ export const AREAS: readonly Area[] = [
         label: 'Von selbst',
         sentence: 'Was der Bot ohne Aufforderung sagt, wie lange er zwischen Antworten wartet und wie die eingebauten Befehle heißen.',
         panels: ['chatbot'],
+      },
+      {
+        key: 'ausprobieren',
+        label: 'Ausprobieren',
+        sentence: 'Schreib einen Befehl, wie ihn ein Zuschauer schreiben würde. Im echten Chat passiert dabei nichts.',
+        panels: ['trycommands'],
       },
     ],
   },

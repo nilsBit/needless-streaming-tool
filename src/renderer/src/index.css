@@ -250,6 +250,35 @@ body {
 .dialog .card-todo-add { flex-wrap: wrap; }
 .dialog .card-todos li { padding-left: 2px; }
 
+/* "Befehle": one list, filter pills, rows with star, name, sentence, meta, two word buttons */
+.cmd-panel { gap: 16px; }
+.cmd-toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; }
+.filter-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.pill { min-height: 40px; padding: 0 14px; border: 1px solid var(--border); border-radius: 999px; background: none; color: var(--text-secondary); font: inherit; cursor: pointer; }
+.pill:hover { color: var(--text); background: var(--bg-hover); border-color: var(--border-strong); }
+.pill.active { color: var(--accent); border-color: var(--accent); font-weight: 600; background: none; }
+.cmd-group { display: flex; flex-direction: column; gap: 6px; }
+.cmd-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.cmd-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 8px 12px; border: 1px solid var(--border-subtle); border-radius: 6px; }
+.cmd-row.off { opacity: 0.7; }
+.cmd-star { width: 28px; min-height: 32px; border: none; background: none; color: var(--border-strong); font-size: 16px; cursor: pointer; padding: 0; }
+.cmd-star:hover { color: var(--text-secondary); background: none; border-color: transparent; }
+.cmd-star.on { color: var(--accent); }
+.cmd-trigger { flex: 0 0 120px; color: var(--accent); font-size: 14px; }
+.cmd-text { flex: 1 1 260px; min-width: 0; color: var(--text-secondary); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cmd-derived { color: var(--muted); font-style: italic; }
+.cmd-aliases { color: var(--muted); }
+.cmd-meta { color: var(--muted); font-size: 12px; white-space: nowrap; }
+.cmd-footer { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; padding-top: 12px; border-top: 1px solid var(--border-subtle); }
+.cmd-footer .dialog-hint { flex: 1 1 320px; }
+.cmd-panel-text { white-space: pre-wrap; font-size: 13px; line-height: 1.5; padding: 12px; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 6px; color: var(--text-secondary); }
+.cmd-too-long { color: #e74c3c; }
+.dialog-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.chip-list { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-height: 32px; }
+.chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 4px 2px 10px; border: 1px solid var(--border); border-radius: 999px; font-size: 13px; }
+.chip code { color: var(--accent); }
+.cmd-try-answer { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 6px; min-height: 52px; }
+
 /* Dialog — the shared building block for editing */
 .dialog-overlay { position: fixed; inset: 0; z-index: 50; background: rgba(0, 0, 0, 0.62); display: flex; align-items: center; justify-content: center; padding: 24px; }
 .dialog {

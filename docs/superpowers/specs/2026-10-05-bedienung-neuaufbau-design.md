@@ -190,7 +190,8 @@ Jede Stufe ist für sich benutzbar und wird einzeln geplant und gebaut.
    ihren neuen Ort; Brett-Funktionen entfernt. Danach ist schon alles auffindbar. (Gebaut am 06.10.)
 2. **Bereitschaft.** Verbindungsmarken in der Leiste, `readiness`, Hinweisbalken auf „Im
    Stream“ (statt einer Startseite; gebaut am 06.10. direkt nach Stufe 1).
-3. **Chat & Bot.** Eine Befehlsliste mit Filtern und Bearbeiten-Dialog.
+3. **Chat & Bot.** Eine Befehlsliste mit Filtern und Bearbeiten-Dialog. (Gebaut am 06.10.; Plan
+   `docs/superpowers/plans/2026-10-06-bedienung-stufe-3-chat-bot.md`.)
 4. **Im Stream.** Einheitliche Karten, „in der Szene“. (Gebaut am 06.10., vor Stufe 3; am selben Tag
    die Karten innen auf eine Eingabe, einen Knopf, eine Zustandszeile gebracht, Verwaltung in
    Dialogen; Plan `docs/superpowers/plans/2026-10-06-bedienung-stufe-4-im-stream.md`.)

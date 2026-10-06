@@ -220,9 +220,15 @@ braucht den Bot.
   der gemeinsame Baustein). Der Hinweisbalken ist eine Zeile mit „Anzeigen“. Plan mit
   Nachtrag: `docs/superpowers/plans/2026-10-06-bedienung-stufe-4-im-stream.md`.
   **Nicht geprüft:** die Chips gegen ein echtes OBS (auf dem Mac keins mit Szenen).
-- **Nächster Schritt:** Stufe 3 (eine Befehlsliste mit Filtern und Bearbeiten-Dialog), dann
-  5 (Overlay-Liste mit Vorschau) und 6 (Content-Brett #26, Einstellungen, Hilfe). Davor auf
-  dem Windows-Rechner pullen, OBS verbinden und die Chips auf „Im Stream“ ansehen.
+- **Stufe 3 „Chat & Bot“ gebaut:** eine Befehlsliste (eigene Texte + Nachschlagen) mit Filter
+  „Aktiv / Ausgeschaltet“, Stern für `!befehle`, Satz für Zuschauer, Zweitnamen, Zeichenzahl;
+  Bearbeiten im Dialog mit Name, Antwort (Vorschau der Chat-Nachrichten), Satz, Zweitnamen,
+  Pause. „Ausprobieren“ ist ein eigener Unterreiter. `CommandOverview` und `ChatCommands`
+  sind weg. Keine Server-Änderung. Plan: `docs/superpowers/plans/2026-10-06-bedienung-stufe-3-chat-bot.md`.
+- **Nächster Schritt:** Stufe 5 (Overlay-Liste mit Vorschau und OBS-Zustand, Alerts als
+  Karten, Szenenfelder als Auswahllisten, Song-Queue-Overlay raus), dann 6 (Content-Brett
+  #26, Einstellungen, Hilfe). Davor auf dem Windows-Rechner pullen, OBS verbinden und die
+  Chips auf „Im Stream“ ansehen.
 - Weiter offen wie zuvor: Alert-Töne hinterlegen, Szene `tft` ohne Spotify-Quellen,
   Stream-Deck-Taste fürs Mithören, Test-Clip in der Clip-Liste, Figma-Pilot.
 

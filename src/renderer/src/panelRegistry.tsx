@@ -8,6 +8,7 @@ import SongPanel from './panels/SongPanel';
 import WorldPanel from './panels/WorldPanel';
 import TextCommandsPanel from './panels/TextCommandsPanel';
 import ChatBotSettings from './components/settings/ChatBotSettings';
+import TryCommandsPanel from './panels/TryCommandsPanel';
 import OverlaysPanel from './panels/OverlaysPanel';
 import AlertSettings from './components/AlertSettings';
 import MilestonesPanel from './panels/MilestonesPanel';
@@ -35,6 +36,7 @@ export const PANEL_REGISTRY: Record<PanelKey, React.ComponentType> = {
   world: WorldPanel,
   textcommands: TextCommandsPanel,
   chatbot: ChatBotSettings,
+  trycommands: TryCommandsPanel,
   overlays: OverlaysPanel,
   alerts: AlertSettings,
   milestones: MilestonesPanel,
