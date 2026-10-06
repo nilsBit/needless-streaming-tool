@@ -130,7 +130,7 @@ describe('hardened routes', () => {
   it('forgets a viewer with everything stored under the login', async () => {
     await request(app).post('/api/reward-stats').set(auth()).send({ user_name: 'Kartograph', reward_type: 'roulette', count: 3 }).expect(200);
     await request(app).post('/api/reward-stats/forget').set(auth()).send({ user_name: 'kartograph' }).expect(200);
-    const rows = (await request(app).get('/api/reward-stats/breakdown').set(auth()).expect(200)).body as Array<{ user_name: string }>;
+    const rows = (await request(app).get('/api/reward-stats').set(auth()).expect(200)).body as Array<{ user_name: string }>;
     expect(rows.find((r) => r.user_name === 'kartograph')).toBeUndefined();
     await request(app).post('/api/reward-stats/forget').set(auth()).send({ user_name: 'DROP TABLE' }).expect(400);
     await request(app).post('/api/reward-stats/forget').set(auth()).send({}).expect(400);

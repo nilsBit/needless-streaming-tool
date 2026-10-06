@@ -76,6 +76,28 @@ function ensureColumns(): void {
 }
 
 function runMigrations(from: number, to: number) {
+  if (from < 28) {
+    // Several Bestenlisten (2026-10-06, evening): the chosen flex reward
+    // becomes the first list, open flexes count as points, the unlock flow
+    // (flex_credits, !flex) and its settings go. Counts under `flex` stay —
+    // they belong to a list named "Flex", existing or created later.
+    const setting = (key: string) => (db.prepare('SELECT value FROM settings WHERE key = ?').get(key) as { value: string } | undefined)?.value;
+    const rewardId = setting('flex_reward_id');
+    if (rewardId) {
+      db.prepare('INSERT OR IGNORE INTO leaderboards (key, title, reward_id, reward_title) VALUES (?, ?, ?, ?)')
+        .run('flex', 'Flex', rewardId, setting('flex_reward_title') || 'Flex');
+    }
+    try {
+      const open = db.prepare('SELECT user_name, credits FROM flex_credits WHERE credits > 0').all() as Array<{ user_name: string; credits: number }>;
+      const add = db.prepare(`INSERT INTO reward_stats (user_name, reward_type, count, last_redeemed_at) VALUES (?, 'flex', ?, CURRENT_TIMESTAMP)
+        ON CONFLICT(user_name, reward_type) DO UPDATE SET count = count + excluded.count`);
+      for (const row of open) add.run(row.user_name, row.credits);
+    } catch { /* no flex_credits table — nothing was open */ }
+    db.exec('DROP TABLE IF EXISTS flex_credits');
+    db.prepare("DELETE FROM settings WHERE key IN ('flex_reward', 'flex_reward_id', 'flex_reward_title')").run();
+    console.log(`[DB] Migrated: Bestenlisten — ${rewardId ? 'the flex reward is the list "Flex"' : 'no flex reward chosen, no list yet'}, open flexes counted, flex_credits dropped`);
+  }
+
   if (from < 25) {
     // Clip Moments became the start of content planning (2026-10-06): a step
     // on the board, platforms, a date, a hook, and an archive for what is out.
