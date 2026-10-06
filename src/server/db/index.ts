@@ -1,4 +1,5 @@
 import Database from 'better-sqlite3';
+import { FEATURE_KEYS } from '../../shared/features';
 import path from 'path';
 import { SCHEMA, SCHEMA_VERSION } from './schema';
 import { getUserDataPath } from '../paths';
@@ -82,6 +83,16 @@ function runMigrations(from: number, to: number) {
       try { db.exec(`ALTER TABLE clips ADD COLUMN ${column} ${type}`); } catch { /* already there */ }
     }
     console.log('[DB] Migrated: clips carry status, platforms, planned_for, published_at, hook, archived_at');
+  }
+
+  if (from < 26 && from > 0) {
+    // The setup on first start (2026-10-06) is for fresh installations only.
+    // An installation that already exists keeps everything it has: the setup
+    // counts as done and every feature stays on.
+    const put = db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)');
+    put.run('setup_done', '1');
+    put.run('features', JSON.stringify(FEATURE_KEYS));
+    console.log('[DB] Migrated: existing installation keeps every feature, setup counts as done');
   }
 
   if (from < 24) {

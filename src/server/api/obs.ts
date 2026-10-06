@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { overlayCatalog } from '../overlays/catalog';
 import {
   getObsConfig,
   saveObsConfig,
@@ -10,7 +11,7 @@ import {
   getCurrentScene,
   createScreens,
   getSceneMappings,
-  saveSceneMappings, getVisibleOverlays, getOverlayScenes } from '../obs/index';
+  saveSceneMappings, getVisibleOverlays, getOverlayScenes, placeOverlayNow } from '../obs/index';
 
 const router = Router();
 
@@ -112,6 +113,26 @@ router.post('/screens', async (_req, res) => {
     res.json({ screens });
   } catch (err) {
     res.status(500).json({ error: 'Creating the scenes in OBS failed', details: String(err) });
+  }
+});
+
+// One overlay as a browser source in a scene — the setup's "In OBS anlegen".
+// An overlay that already sits somewhere is reported, not placed twice.
+router.post('/place-overlay', async (req, res) => {
+  const { overlay, scene } = (req.body ?? {}) as { overlay?: unknown; scene?: unknown };
+  if (typeof overlay !== 'string' || typeof scene !== 'string' || !scene.trim()) {
+    res.status(400).json({ error: 'overlay and scene are required' });
+    return;
+  }
+  const entry = overlayCatalog(req.get('host') ?? 'localhost').find((e) => e.name === overlay && e.builtin);
+  if (!entry) { res.status(404).json({ error: 'unknown overlay' }); return; }
+  try {
+    const result = await placeOverlayNow({ name: entry.name, label: entry.label, size: entry.size }, scene.trim());
+    if (!result) { res.status(503).json({ error: 'OBS not connected' }); return; }
+    if (result.status === 'no-scene') { res.status(400).json({ error: `no scene "${scene}" in OBS`, ...result }); return; }
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: 'Placing the overlay in OBS failed', details: String(err) });
   }
 });
 

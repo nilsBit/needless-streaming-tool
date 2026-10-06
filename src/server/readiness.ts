@@ -5,6 +5,8 @@ import { SCREENS } from './obs/screens';
 import { characterSource } from './api/characters';
 import { loadWorld } from './api/worldbuilder';
 import { ALERT_SLOTS, getAlertSettings } from './bot/alerts';
+import { getFeatures } from './features';
+import { FEATURE_KEYS, readinessVisible } from '../shared/features';
 
 /**
  * "Bereit für den Stream?" — what has to be in place before going live, and
@@ -41,6 +43,8 @@ export interface ReadinessInput {
   world: { source: 'notion' | 'worldbuilder'; reachable: boolean | null; name: string | null };
   enabledCommands: number;
   alerts: { slots: number; withSound: number };
+  /** The chosen features ("Was dein Stream kann"); every feature when left out. Checks of features that are off are dropped. */
+  features?: readonly string[];
 }
 
 export interface Readiness {
@@ -133,8 +137,10 @@ export function assessReadiness(input: ReadinessInput): Readiness {
     },
   ];
 
-  const ready = items.every((item) => item.severity === 'hint' || item.ok !== false);
-  return { ready, items };
+  const on = new Set<string>(input.features ?? FEATURE_KEYS);
+  const visible = items.filter((item) => readinessVisible(on, item.id));
+  const ready = visible.every((item) => item.severity === 'hint' || item.ok !== false);
+  return { ready, items: visible };
 }
 
 /** The live state. Talks to OBS only when it is already connected. */
@@ -164,5 +170,6 @@ export async function readinessInput(): Promise<ReadinessInput> {
     world: { source, reachable, name },
     enabledCommands: row.n,
     alerts: { slots, withSound },
+    features: getFeatures(),
   };
 }

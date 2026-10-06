@@ -1,4 +1,6 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import os from 'os';
+import path from 'path';
 import request from 'supertest';
 import type { Express } from 'express';
 import { initDatabase } from '../db/index';
@@ -23,10 +25,14 @@ describe('readiness', () => {
   let token: string;
 
   beforeAll(() => {
+    // No Worldbuilder on this machine: its checks (the entry card, the screens' scenes) are not asked.
+    process.env.WORLDBUILDER_ANSCHLUSS = path.join(os.tmpdir(), `nst-readiness-test-${process.pid}-${Date.now()}.json`);
     initDatabase(':memory:');
     token = generateApiToken();
     app = createApp();
   });
+
+  afterAll(() => { delete process.env.WORLDBUILDER_ANSCHLUSS; });
 
   it('needs a token like every API route', async () => {
     await request(app).get('/api/readiness').expect(401);
@@ -40,12 +46,11 @@ describe('readiness', () => {
     expect(byId.twitch.ok).toBe(false);
     expect(byId.twitch.target).toEqual({ area: 'settings', subTab: 'verbindungen' });
     expect(byId.obs.ok).toBe(false);
-    // Scenes cannot be judged while OBS is out of reach — not a problem of its own.
-    expect(byId.scenes.ok).toBeNull();
+    // Overlays cannot be judged while OBS is out of reach — not a problem of its own.
     expect(byId.overlays.ok).toBeNull();
-    // Notion is the default source: a hint, not an error.
-    expect(byId.worldbuilder.severity).toBe('hint');
-    expect(byId.worldbuilder.ok).toBe(false);
+    // The screens' scenes and the Worldbuilder are Nils's own: without the Worldbuilder set up here, they are not asked.
+    expect(byId.scenes).toBeUndefined();
+    expect(byId.worldbuilder).toBeUndefined();
     expect(byId.commands.ok).toBe(false);
     expect(byId.alertSounds.severity).toBe('hint');
     for (const item of res.body.items) {

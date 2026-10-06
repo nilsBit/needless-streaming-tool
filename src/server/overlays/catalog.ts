@@ -4,6 +4,7 @@ import { readStates } from '../showcase';
 import { getOverlayConfig } from '../api/overlay-config';
 import { appliedChanges } from '../design-apply';
 import { getUserDataPath } from '../paths';
+import { featureOfOverlay, type FeatureKey } from '../../shared/features';
 
 /**
  * The overlays as the app presents them: German name, one sentence, a group,
@@ -34,6 +35,8 @@ export interface CatalogEntry {
   customized: boolean;
   /** Why it counts as customized, for the UI to say. */
   customizedBy: Array<'html' | 'palette' | 'figma'>;
+  /** The feature ("Was dein Stream kann") this overlay belongs to; null for a custom overlay. */
+  feature: FeatureKey | null;
 }
 
 export const GROUP_LABELS: Record<CatalogGroup, string> = {
@@ -118,6 +121,7 @@ export function overlayCatalog(host: string): CatalogEntry[] {
       builtin: true,
       customized: by.length > 0,
       customizedBy: by,
+      feature: featureOfOverlay(name),
     };
   });
 
@@ -133,6 +137,7 @@ export function overlayCatalog(host: string): CatalogEntry[] {
       builtin: false,
       customized: true,
       customizedBy: ['html'],
+      feature: null,
     });
   }
 

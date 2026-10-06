@@ -7,6 +7,7 @@ import { broadcast } from '../websocket/index';
 import { resolveOEmbed, detectSource } from '../api/song-requests';
 import { sayInParts } from './chat-message';
 import { builtinKeyOf, triggerOf, canonicalTrigger } from './command-names';
+import { commandEnabled } from '../features';
 import { answerChatMessage } from './chat-answers';
 import { builtinCooldownSeconds, INFO_BUILTINS, passCooldown } from './cooldown';
 import { botHelix, shoutoutText } from './shoutout';
@@ -26,6 +27,8 @@ export function registerCommands(client: Client) {
 
     const input = canonicalTrigger(triggerOf(message));
     const command = builtinKeyOf(input);
+    // A built-in of a feature that is off ("Was dein Stream kann") is not there for the chat.
+    if (command !== null && !commandEnabled(command)) return;
 
     // The built-ins that only tell something share one cooldown; `!befehle` and
     // `!uptime` are gated where they answer (chat-answers.ts).

@@ -5,6 +5,7 @@ import { announceLive } from '../discord/live';
 import { refreshOwnBrowserSources } from './refresh-overlays';
 import { visibleOverlays, overlaysByScene } from './visible-overlays';
 import { createScreenScenes, type ScreenResult } from './screens';
+import { placeOverlay, type PlaceableOverlay, type PlaceResult } from './place-overlay';
 import { PORT } from '../index';
 
 let obs: OBSWebSocket | null = null;
@@ -205,6 +206,14 @@ export async function createScreens(): Promise<ScreenResult[] | null> {
   const created = results.filter((r) => r.status === 'created').map((r) => r.scene);
   if (created.length) console.log(`[OBS] Created screen scenes: ${created.join(', ')}`);
   return results;
+}
+
+/** One overlay as a browser source in a scene — `null` while OBS is out of reach. */
+export async function placeOverlayNow(overlay: PlaceableOverlay, scene: string): Promise<PlaceResult | null> {
+  if (!obs || !connected) return null;
+  const result = await placeOverlay(obs, PORT, overlay, scene);
+  if (result.status === 'created') console.log(`[OBS] Placed overlay "${overlay.name}" in scene "${scene}"`);
+  return result;
 }
 
 // --- Scene-Reward Mappings ---

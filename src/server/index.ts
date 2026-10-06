@@ -18,6 +18,7 @@ import authRouter from './api/auth';
 import votingRouter from './api/voting';
 import progressRouter from './api/progress';
 import clipsRouter, { archivePublishedClips } from './api/clips';
+import setupRouter from './api/setup';
 import clipTagsRouter from './api/clip-tags';
 import milestonesRouter from './api/milestones';
 import obsRouter from './api/obs';
@@ -163,6 +164,7 @@ export function createApp(): express.Express {
   app.use('/api/lookup-commands', lookupCommandsRouter);
   app.use('/api/chat', chatRouter);
   app.use('/api/readiness', readinessRouter);
+  app.use('/api/setup', setupRouter);
   app.use('/api/design', designRouter);
   app.use('/api/dev', devRouter);
 

@@ -1,5 +1,6 @@
 import { getDb } from '../db/index';
 import { aliasesOf, DEFAULT_COMMANDS, getAliases, getCommandNames, VIEWER_COMMAND_KEYS } from './command-names';
+import { commandEnabled } from '../features';
 
 /**
  * Every command a viewer can type, in one place: the streamer's own texts,
@@ -110,7 +111,7 @@ export function commandList(): CommandInfo[] {
   }
   for (const key of [...VIEWER_COMMAND_KEYS, 'commands']) {
     const trigger = names[key];
-    if (!trigger) continue;
+    if (!trigger || !commandEnabled(key)) continue;
     list.push({
       trigger, group: 'builtin', id: key, stored: Boolean(own[key]?.trim()),
       aliases: aliasesOf(trigger, aliases),
