@@ -6,6 +6,9 @@
 <title>Reward Leaderboard</title>
 <link rel="stylesheet" href="/overlay/lexikon.css">
 <style>
+/* The Bestenliste shows up for a moment whenever someone redeems the list's
+   reward (Nils, 06.10.): it slides in with the fresh Top 3, the viewer's row
+   lights up, and it slides out again. In the showcase it simply stands. */
 .leaderboard {
   display: flex;
   flex-direction: column;
@@ -13,6 +16,20 @@
   /* Tighter than the full weight's own padding: 44px of side margin on a
      280px panel would leave the names barely half the width. */
   padding: 24px 26px 20px;
+  opacity: 0;
+  pointer-events: none;
+}
+.leaderboard.standing { opacity: 1; }
+.leaderboard.slide-in { animation: slideIn 0.5s ease forwards; }
+.leaderboard.slide-out { animation: slideOut 0.5s ease forwards; }
+
+@keyframes slideIn {
+  from { transform: translateX(-60px); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+@keyframes slideOut {
+  from { transform: translateX(0); opacity: 1; }
+  to   { transform: translateX(60px); opacity: 0; }
 }
 
 .header { margin-bottom: 10px; }
@@ -28,6 +45,17 @@
 }
 
 .entry:last-child { border-bottom: none; }
+
+/* The viewer who just redeemed. */
+.entry.me {
+  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+  margin: 0 -10px;
+  padding-left: 10px;
+  padding-right: 10px;
+  border-radius: 6px;
+}
+/* The viewer's own row below the Top 3, when they are not in it. */
+.entry.beyond { border-top: 1px dashed var(--lex-rule); margin-top: 4px; }
 
 .rank {
   font-family: var(--font-display);
@@ -72,10 +100,17 @@
 <script>
 const params = new URLSearchParams(window.location.search);
 const configuredType = params.get('type') || 'all';
+// In the showcase (?state=) the list stands still, so it can be looked at.
+const standing = params.has('state');
+const SHOW_MS = 6000;
 
+const panel = document.getElementById('leaderboard');
 let leaderboard = [];
-let wsConnected = false;
+let me = null;            // { login, user, count, rank } of the viewer who just redeemed
+let hideTimer = null;
 let fallbackInterval = null;
+
+if (standing) panel.classList.add('standing');
 
 async function fetchLeaderboard() {
   try {
@@ -89,54 +124,78 @@ async function fetchLeaderboard() {
   }
 }
 
-function render() {
-  const container = document.getElementById('leaderboard');
-  // Keep header, remove entries
-  const header = container.querySelector('.header');
-  container.innerHTML = '';
-  container.appendChild(header);
-
-  for (const entry of leaderboard) {
-    const el = document.createElement('div');
-    el.className = `entry rank-${entry.rank}`;
-    el.dataset.user = entry.userName;
-    el.innerHTML = `
-      <span class="rank">#${entry.rank}</span>
-      <span class="name">${escapeHtml(entry.userName)}</span>
-      <span class="count">${entry.count}</span>
-    `;
-    container.appendChild(el);
-  }
-}
-
 function escapeHtml(str) {
   const div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
 }
 
+function row(entry, extraClass) {
+  const el = document.createElement('div');
+  const mine = me && entry.userName.toLowerCase() === me.login;
+  el.className = `entry rank-${entry.rank}${mine ? ' me' : ''}${extraClass ? ' ' + extraClass : ''}`;
+  el.dataset.user = entry.userName;
+  el.innerHTML = `
+    <span class="rank">#${entry.rank}</span>
+    <span class="name">${escapeHtml(entry.userName)}</span>
+    <span class="count">${entry.count}</span>
+  `;
+  return el;
+}
+
+function render() {
+  const header = panel.querySelector('.header');
+  panel.innerHTML = '';
+  panel.appendChild(header);
+  for (const entry of leaderboard) panel.appendChild(row(entry));
+  // The viewer who just redeemed, below the Top 3 when they are not in it.
+  if (me && !leaderboard.some((e) => e.userName.toLowerCase() === me.login)) {
+    panel.appendChild(row({ rank: me.rank, userName: me.user, count: me.count }, 'beyond'));
+  }
+}
+
+function flashCount(userName) {
+  const el = panel.querySelector(`.entry[data-user="${CSS.escape(userName)}"] .count`);
+  if (!el) return;
+  el.classList.add('updated');
+  setTimeout(() => el.classList.remove('updated'), 400);
+}
+
+/** Slide in (or stay in), and slide out SHOW_MS after the last point. */
+function show() {
+  if (standing) return;
+  if (hideTimer) clearTimeout(hideTimer);
+  if (!panel.classList.contains('slide-in')) {
+    panel.classList.remove('slide-out');
+    panel.classList.add('slide-in');
+  }
+  hideTimer = setTimeout(() => {
+    panel.classList.remove('slide-in');
+    panel.classList.add('slide-out');
+    hideTimer = null;
+    me = null;
+  }, SHOW_MS);
+}
+
+async function handlePoint(data) {
+  if (data.key !== configuredType) return;
+  me = { login: String(data.login || data.user || '').toLowerCase(), user: data.user, count: data.count, rank: data.rank };
+  await fetchLeaderboard();
+  flashCount(me.user);
+  // The Top 3 keep Twitch's spelling of the login; match the row case-insensitively.
+  const mine = leaderboard.find((e) => e.userName.toLowerCase() === me.login);
+  if (mine) flashCount(mine.userName);
+  show();
+}
+
 function handleLeaderboardUpdate(data) {
   if (data.type !== configuredType) return;
-
-  // Animate count changes
-  const oldCounts = new Map(leaderboard.map(e => [e.userName, e.count]));
-  leaderboard = (data.leaderboard || []).map(e => ({
-    rank: e.rank,
-    userName: e.userName,
-    count: e.count,
-  }));
+  const oldCounts = new Map(leaderboard.map((e) => [e.userName, e.count]));
+  leaderboard = (data.leaderboard || []).map((e) => ({ rank: e.rank, userName: e.userName, count: e.count }));
   render();
-
-  // Flash updated counts
   for (const entry of leaderboard) {
     const old = oldCounts.get(entry.userName);
-    if (old !== undefined && old !== entry.count) {
-      const el = document.querySelector(`.entry[data-user="${CSS.escape(entry.userName)}"] .count`);
-      if (el) {
-        el.classList.add('updated');
-        setTimeout(() => el.classList.remove('updated'), 400);
-      }
-    }
+    if (old !== undefined && old !== entry.count) flashCount(entry.userName);
   }
 }
 
@@ -159,7 +218,6 @@ function connectWS() {
 
   ws.onopen = () => {
     console.log('[Leaderboard] WebSocket connected');
-    wsConnected = true;
     stopFallbackPolling();
     fetchLeaderboard();
   };
@@ -167,15 +225,14 @@ function connectWS() {
   ws.onmessage = (e) => {
     try {
       const msg = JSON.parse(e.data);
+      if (msg.event === 'leaderboard-point') handlePoint(msg.data);
       if (msg.event === 'reward-leaderboard-update') handleLeaderboardUpdate(msg.data);
-      if (msg.event === 'reward-redeemed') fetchLeaderboard();
       if (msg.event === 'overlay-config' && window.__applyOverlayConfig) window.__applyOverlayConfig(msg.data);
     } catch {}
   };
 
   ws.onclose = () => {
     console.log('[Leaderboard] WebSocket closed, reconnecting...');
-    wsConnected = false;
     startFallbackPolling();
     setTimeout(connectWS, 2000);
   };

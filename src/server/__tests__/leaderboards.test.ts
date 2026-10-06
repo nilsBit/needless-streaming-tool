@@ -124,4 +124,12 @@ describe('a redemption on a list', () => {
     expect(standingsText('Kartograph')).toBe('@Kartograph: Flex 2 (Platz 1), Angeben 1 (Platz 2).');
     expect(standingsText('tintenfass')).toBe('@tintenfass: Angeben 2 (Platz 1).');
   });
+
+  it('lets "Im Stream testen" show the list overlay with a sample point', async () => {
+    const sent = (await request(app).post('/api/actions/overlay-test/reward-leaderboard:flex').set(auth()).expect(200)).body.sent;
+    const point = sent.find((e: { event: string }) => e.event === 'leaderboard-point');
+    expect(point.data).toMatchObject({ key: 'flex', title: 'Flex', user: 'TestUser_A', count: 42, rank: 1 });
+    const update = sent.find((e: { event: string }) => e.event === 'reward-leaderboard-update');
+    expect(update.data.type).toBe('flex');
+  });
 });

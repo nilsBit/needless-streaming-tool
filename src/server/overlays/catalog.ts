@@ -67,7 +67,7 @@ const META: Record<string, { label: string; sentence: string; group: CatalogGrou
   todos: { label: 'Aufgaben', sentence: 'Deine Liste zum Abhaken.', group: 'today', preview: 'open-todos' },
   challenge: { label: 'Ziel für heute', sentence: 'Dein Ziel mit laufender Uhr.', group: 'today', preview: 'running' },
   milestone: { label: 'Meilenstein', sentence: 'Feiert einen abgehakten Meilenstein groß, über allem anderen.', group: 'today', preview: 'major' },
-  'reward-leaderboard': { label: 'Bestenliste', sentence: 'Die Top 3 einer Bestenliste – wer die Belohnung am öftesten eingelöst hat.', group: 'rewards', preview: 'top-three' },
+  'reward-leaderboard': { label: 'Bestenliste', sentence: 'Blendet bei jeder Einlösung die Top 3 der Liste ein, mit der Zeile der Person.', group: 'rewards', preview: 'top-three' },
   'reward-rankchange': { label: 'Rangwechsel', sentence: 'Meldet, wenn jemand in einer Bestenliste aufsteigt.', group: 'rewards', preview: 'overtake' },
   start: { label: 'Startbild', sentence: 'Füllt den ganzen Stream, bevor es losgeht.', group: 'screens', preview: 'mit-eintrag' },
   pause: { label: 'Pausenbild', sentence: 'Füllt den ganzen Stream, wenn du kurz weg bist.', group: 'screens', preview: 'mit-eintrag' },

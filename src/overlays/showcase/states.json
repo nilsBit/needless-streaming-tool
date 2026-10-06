@@ -110,7 +110,13 @@
           "public": { "/public/reward-stats/top": { "type": "all", "title": "Flex", "leaderboard": [{ "rank": 1, "userName": "Lesezeichen42", "count": 42, "previousRank": 1 }, { "rank": 2, "userName": "Kartograph", "count": 38, "previousRank": 2 }, { "rank": 3, "userName": "Tintenfass", "count": 15, "previousRank": null }] } },
           "freezeAfterMs": 1200
         }
-      }
+      },
+      "actions": [
+        { "label": "Einlösung", "events": [
+          { "event": "leaderboard-point", "data": { "key": "all", "title": "Flex", "user": "Kartograph", "login": "kartograph", "count": 39, "rank": 2 } },
+          { "afterMs": 50, "event": "reward-leaderboard-update", "data": { "type": "all", "leaderboard": [{ "rank": 1, "userName": "Lesezeichen42", "count": 42, "previousRank": 1 }, { "rank": 2, "userName": "Kartograph", "count": 39, "previousRank": 2 }, { "rank": 3, "userName": "Tintenfass", "count": 15, "previousRank": null }], "changes": [], "entered": [], "exited": [] } }
+        ] }
+      ]
     },
     "reward-rankchange": {
       "size": { "width": 1920, "height": 1080 },

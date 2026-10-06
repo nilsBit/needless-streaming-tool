@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { getLeaderboard } from '../leaderboards';
 import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
 import { sampleAlert } from '../bot/alerts';
@@ -220,10 +221,16 @@ function getTestEvents(name: string): { event: string; data: unknown }[] {
   }
 
   if (base === 'reward-leaderboard' || base === 'reward-rankchange') {
-    return [{
+    const key = variant ?? 'all';
+    const title = (variant && getLeaderboard(variant)?.title) || 'Bestenliste';
+    // The list overlay shows itself on a point; the sample update follows, as live.
+    const point = base === 'reward-leaderboard'
+      ? [{ event: 'leaderboard-point', data: { key, title, user: 'TestUser_A', login: 'testuser_a', count: 42, rank: 1 } }]
+      : [];
+    return [...point, {
       event: 'reward-leaderboard-update',
       data: {
-        type: variant ?? 'all',
+        type: key,
         leaderboard: [
           { rank: 1, userName: 'TestUser_A', count: 42, previousRank: 2 },
           { rank: 2, userName: 'TestUser_B', count: 38, previousRank: 1 },
