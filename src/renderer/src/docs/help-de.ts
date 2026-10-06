@@ -50,6 +50,23 @@ Die Kästen lassen sich nicht mehr verschieben, anpinnen oder ausblenden — jed
 Auf „Im Stream“ steht an jeder Karte, ob ihr Overlay in der laufenden OBS-Szene an ist („in der Szene“ / „nicht in der Szene“) — sobald OBS verbunden ist; oben rechts der Name der Szene. „Moment merken“ setzt dort eine Marke für später (Nach dem Stream → Content planen).`,
   },
   {
+    title: 'Daten: was gespeichert wird, was den Rechner verlässt',
+    content: `Alles liegt in einer Datenbank auf deinem Rechner. Das Tool hat keinen eigenen Server, keine Telemetrie, keine Werbe-IDs. Die einzige Verbindung nach draußen, die es von sich aus aufbaut, ist die Update-Prüfung bei GitHub – ohne Daten von dir.
+
+**Über Zuschauer gespeichert:** der Twitch-Login mit dem, was die Person getan hat – Einlösungen (mit dem eingetippten Text), Songwünsche, Themen und Vorschläge, dazu Namen in Moment-Notizen aus der Hype-Erkennung. Chatzeilen bleiben nur im Speicher und sind nach dem Neustart weg.
+
+**Wie lange:** Das Einlösungsprotokoll und erledigte Songwünsche löscht das Tool nach 90 Tagen von selbst. Wer ein Jahr nichts eingelöst hat, verschwindet aus der Zählung für die Bestenliste. Unter **Nach dem Stream → Kanalpunkte → Bearbeiten → Zuschauer vergessen** verschwindet alles, was unter einem Namen gespeichert ist, sofort.
+
+**Was den Rechner verlässt – nur wenn du es anschließt:**
+- **Notion:** Moment-Notizen mit Schlagwort, Zeitmarke und Text, also auch Zuschauernamen aus der Hype-Erkennung. Notion ist ein US-Anbieter.
+- **Discord:** nur die Live-Meldung mit deinem Kanalnamen. Keine Zuschauerdaten.
+- **Sync-Ordner:** die ganze Datenbank, also auch alle Zuschauerdaten – ohne Zugangsdaten. Liegt der Ordner in Dropbox oder iCloud, liegt sie dort.
+- **Sicherung:** dieselbe Datenbank als Datei, ohne Zugangsdaten. Du entscheidest, wo sie hinkommt.
+- **Twitch:** der Bot liest und schreibt in deinem Kanal; Einlösungen kommen von Twitch. Die Anmeldung läuft über die App-Registrierung des Tool-Autors.
+
+**Was Zuschauer erfahren:** \`!datenschutz\` antwortet im Chat mit einem Satz, der genau das sagt – Daten, Fristen, Löschen auf Wunsch. Derselbe Satz steht im Text fürs Kanal-Panel (Chat & Bot → Befehle → Panel-Text). Ein Twitch-Login ist ein Pseudonym, aber personenbezogen; wer öffentlich streamt, ist für sein Tool verantwortlich und sagt den Zuschauern am besten, was es tut.`,
+  },
+  {
     title: 'Content planen',
     content: `Aus Momenten wird Content. Jeder Moment, den du im Stream mit „Moment merken“, am Stream Deck oder per Tastenkürzel setzt, landet unter **Nach dem Stream → Content planen** in der Spalte **Neu**. Von dort schiebst du ihn weiter: **Geplant** (du weißt, wohin und wann), **Geschnitten** (der Clip ist fertig), **Veröffentlicht**.
 
@@ -97,6 +114,7 @@ Auf „Im Stream“ steht an jeder Karte, ob ihr Overlay in der laufenden OBS-Sz
 | !scene | Listet OBS-Szenen (nur Mods) |
 | !scene <name> | Wechselt OBS-Szene (nur Mods) |
 | !uptime | Zeigt Stream-Laufzeit |
+| !datenschutz (auch !privacy) | Sagt, was das Tool über Zuschauer speichert, wie lange, und dass es auf Wunsch gelöscht wird |
 
 Alle Befehle lassen sich unter Chat & Bot → Von selbst umbenennen. Antworten, die länger als eine Chat-Nachricht (500 Zeichen) sind, verteilt der Bot automatisch auf mehrere Nachrichten.`,
   },

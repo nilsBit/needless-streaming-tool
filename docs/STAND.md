@@ -288,8 +288,11 @@ braucht den Bot.
   Fehlerantworten ohne Innereien; Rate-Limit je Adresse und Token; LAN-Modus warnt beim Start.
   **Zuschauerdaten:** `src/server/retention.ts` löscht Einlösungsprotokoll und erledigte Songwünsche
   nach 90 Tagen (Start und täglich), `POST /api/reward-stats/forget` und der Knopf „Zuschauer
-  vergessen“ im Bearbeiten-Dialog entfernen alles unter einem Login. Offen bleibt nur die
-  Signatur der Releases.
+  vergessen“ im Bearbeiten-Dialog entfernen alles unter einem Login. Dazu (06.10., spät):
+  Zuschauer ohne Einlösung seit einem Jahr fallen aus der Bestenliste; `!datenschutz` (auch
+  `!privacy`) antwortet mit dem einen Satz aus `src/server/privacy-text.ts`, der auch den Text fürs
+  Kanal-Panel abschließt; Hilfe-Abschnitt „Daten: was gespeichert wird, was den Rechner
+  verlässt“. Offen bleibt nur die Signatur der Releases.
 - **Nächster Schritt:** Auf dem Windows-Rechner pullen, **`npm ci`** (baut better-sqlite3 für
   Electron 44 – dauert beim ersten Mal einen Moment; meldet sich `windows-smtc-monitor` mit einem
   Modul-Fehler, einmal `npx electron-builder install-app-deps`), `npm run dev`, OBS verbinden und einmal

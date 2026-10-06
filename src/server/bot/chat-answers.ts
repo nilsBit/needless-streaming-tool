@@ -5,6 +5,7 @@ import { builtinKeyOf, canonicalTrigger, getCommandNames, triggerOf } from './co
 import { builtinCooldownSeconds, INFO_BUILTINS, passCooldown } from './cooldown';
 import { answerLookupCommand } from './lookup-commands';
 import { answerTextCommand } from './text-commands';
+import { privacySentence } from '../privacy-text';
 
 /**
  * What the bot says to a chat message that no side-effecting built-in claimed:
@@ -39,6 +40,8 @@ export async function answerChatMessage(message: string, privileged: boolean, vi
     return { replies: splitForChat(featuredReply(names)) };
   }
   if (builtin === 'uptime') return { replies: [await uptimeReply()] };
+  // What the tool keeps about the viewer who asks — the same sentence as on the Twitch panel.
+  if (builtin === 'privacy') return { replies: [privacySentence()] };
   if (builtin !== null) return { replies: null, reason: 'builtin' };
 
   return (

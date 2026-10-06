@@ -1,6 +1,7 @@
 import { getDb } from '../db/index';
 import { aliasesOf, DEFAULT_COMMANDS, getAliases, getCommandNames, VIEWER_COMMAND_KEYS } from './command-names';
 import { commandEnabled } from '../features';
+import { privacyPanelBlock } from '../privacy-text';
 
 /**
  * Every command a viewer can type, in one place: the streamer's own texts,
@@ -41,6 +42,7 @@ const BUILTIN_DESCRIPTIONS: Record<string, string> = {
   hype: 'Treibt den Hype-Zähler hoch.',
   rewardstats: 'Zeigt, wer die meisten Kanalpunkte eingelöst hat.',
   uptime: 'Sagt, wie lange der Stream schon läuft.',
+  privacy: 'Sagt, was das Tool über dich speichert, wie lange, und wie du es löschen lässt.',
   commands: 'Nennt die wichtigsten Befehle. „!befehle alle“ listet jeden, „!befehle <Name>“ erklärt einen.',
 };
 
@@ -188,5 +190,6 @@ export function panelText(): string {
       return lines.length ? [GROUP_TITLE[group], ...lines].join('\n') : '';
     })
     .filter(Boolean);
-  return ['Befehle im Chat', ...blocks].join('\n\n').trim();
+  // The panel ends with what the tool keeps about viewers — the one place a viewer would look.
+  return ['Befehle im Chat', ...blocks, privacyPanelBlock()].join('\n\n').trim();
 }

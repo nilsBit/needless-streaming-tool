@@ -145,4 +145,11 @@ describe('the command list', () => {
     expect(await find('!story')).toBeUndefined();
     expect((await list()).panel).not.toContain('!story');
   });
+
+  it('lists !datenschutz among the built-ins and ends the panel text with what the tool keeps', async () => {
+    const { commands, panel } = await list();
+    expect(commands.find((c) => c.trigger === '!datenschutz')).toMatchObject({ group: 'builtin' });
+    expect(panel).toContain('Deine Daten');
+    expect(panel).toContain('90 Tage');
+  });
 });

@@ -25,6 +25,7 @@ export const DEFAULT_COMMANDS: Record<string, string> = {
   rewardstats: '!stats',
   commands: '!befehle',
   shoutout: '!so',
+  privacy: '!datenschutz',
 };
 
 /**
@@ -32,6 +33,7 @@ export const DEFAULT_COMMANDS: Record<string, string> = {
  * can't be renamed, and no configured command may take them.
  */
 export const COMMAND_ALIASES: Record<string, readonly string[]> = {
+  privacy: ['!privacy'],
   commands: ['!commands', '!help'],
   // What the wheel's list was called before it became "Themen".
   issues: ['!issues'],
@@ -116,6 +118,7 @@ export const VIEWER_COMMAND_KEYS = [
   'hype',
   'rewardstats',
   'uptime',
+  'privacy',
 ] as const;
 
 /** Built-in triggers with the streamer's renames applied. */

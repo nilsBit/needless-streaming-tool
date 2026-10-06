@@ -35,4 +35,16 @@ describe('chat', () => {
     const res = await tryInChat('!live').expect(200);
     expect(res.body.replies).toEqual(['⏱️ Gerade wird nicht gestreamt.']);
   });
+
+  it('!datenschutz tells a viewer what is stored, for how long, and that it goes on request', async () => {
+    const res = await tryInChat('!datenschutz').expect(200);
+    const reply = (res.body.replies as string[]).join(' ');
+    expect(reply).toContain('Twitch-Namen');
+    expect(reply).toContain('90 Tage');
+    expect(reply).toContain('Bestenliste');
+    expect(reply).toContain('Chat wird nicht gespeichert');
+    expect(reply.length).toBeLessThanOrEqual(500);
+    // The English second name answers the same.
+    expect((await tryInChat('!privacy').expect(200)).body.replies).toEqual(res.body.replies);
+  });
 });
