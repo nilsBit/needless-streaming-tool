@@ -151,7 +151,7 @@
         { "label": "Musik aus", "events": [{ "event": "song-clear", "data": {}}]}
       ],
       "states": {
-        "playing": { "public": { "/public/song": { "song": { "title": "Ashes of the Old City", "artist": "Lorewalker", "source": "spotify" } } }, "freezeAfterMs": 1000 }
+        "playing": { "public": { "/public/song": { "song": { "title": "Ashes of the Old City", "artist": "Lorewalker", "source": "spotify", "artworkUrl": "/overlay/showcase/cover.svg" } } }, "freezeAfterMs": 1000 }
       }
     },
     "song-queue": {
