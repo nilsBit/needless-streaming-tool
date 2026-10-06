@@ -4,9 +4,10 @@ import { broadcast } from '../websocket/index';
 import { getBotConfig } from './config';
 import { triggerRoulette } from '../api/actions';
 import { changeScene, sceneMappingForRedemption, getCurrentScene } from '../obs/index';
-import { grantFlexCredit, isFlexReward } from '../flex';
+import { adoptFlexReward, grantFlexCredit, isFlexReward } from '../flex';
 import { getClientId } from '../twitch-config';
 import { sendAlert } from './alerts';
+import { botHelix } from './shoutout';
 
 let ws: WebSocket | null = null;
 let sessionId: string | null = null;
@@ -77,10 +78,10 @@ async function handleRedemption(event: Record<string, unknown>) {
 
   console.log(`[EventSub] Redemption: ${userName} redeemed "${rewardTitle}"`);
 
-  // Map reward title to our reward types
+  // Map the reward to our reward types: the flex reward by its id, the rest by title
   let rewardType = rewardTitle;
   const titleLower = rewardTitle.toLowerCase();
-  if (isFlexReward(rewardTitle)) rewardType = 'flex';
+  if (isFlexReward(rewardId)) rewardType = 'flex';
   else if (titleLower.includes('roulette')) rewardType = 'roulette';
   else if (titleLower.includes('feature')) rewardType = 'feature_request';
   else if (titleLower.includes('musik') || titleLower.includes('song')) rewardType = 'change_music';
@@ -151,6 +152,10 @@ export async function connectEventSub(): Promise<boolean> {
     console.error('[EventSub] Could not get user ID');
     return false;
   }
+
+  // Once: turn the flex keyword from before the update into a chosen reward.
+  const helix = botHelix();
+  if (helix) adoptFlexReward(helix).catch((err) => console.error('[Flex] Could not adopt the reward:', err));
 
   return new Promise((resolve) => {
     ws = new WebSocket(EVENTSUB_WS_URL);

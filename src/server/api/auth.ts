@@ -1,8 +1,10 @@
 import crypto from 'crypto';
 import { Router } from 'express';
 import { shell } from 'electron';
-import { getBotConfig, saveBotConfig } from '../bot/config';
+import { saveBotConfig } from '../bot/config';
 import { connectBot } from '../bot/index';
+import { botHelix } from '../bot/shoutout';
+import { listCustomRewards } from '../bot/twitch-rewards';
 import { broadcast } from '../websocket/index';
 import { getClientId } from '../twitch-config';
 
@@ -176,42 +178,18 @@ router.post('/twitch/save', async (req, res) => {
 
 // GET — fetch custom Channel Point rewards from Twitch
 router.get('/twitch/rewards', async (_req, res) => {
-  const config = getBotConfig();
-  if (!config) {
+  const helix = botHelix();
+  if (!helix) {
     res.json({ rewards: [] });
     return;
   }
-
-  const token = config.oauth_token.replace(/^oauth:/, '');
-  const clientId = getClientId();
-
-  try {
-    // Get broadcaster user ID
-    const userRes = await fetch('https://api.twitch.tv/helix/users', {
-      headers: { 'Authorization': `Bearer ${token}`, 'Client-Id': clientId },
-    });
-    if (!userRes.ok) throw new Error(`Users API: ${userRes.status}`);
-    const userData = await userRes.json();
-    const userId = userData.data?.[0]?.id;
-    if (!userId) throw new Error('No user ID');
-
-    // Get custom rewards
-    const rewardsRes = await fetch(`https://api.twitch.tv/helix/channel_points/custom_rewards?broadcaster_id=${userId}`, {
-      headers: { 'Authorization': `Bearer ${token}`, 'Client-Id': clientId },
-    });
-    if (!rewardsRes.ok) throw new Error(`Rewards API: ${rewardsRes.status}`);
-    const rewardsData = await rewardsRes.json();
-
-    const rewards = (rewardsData.data || []).map((r: { id: string; title: string }) => ({
-      id: r.id,
-      title: r.title,
-    }));
-
-    res.json({ rewards });
-  } catch (err) {
-    console.error('[Auth] Failed to fetch rewards:', err);
-    res.json({ rewards: [], error: err instanceof Error ? err.message : String(err) });
+  const rewards = await listCustomRewards(helix);
+  if (!rewards) {
+    console.error('[Auth] Failed to fetch rewards');
+    res.json({ rewards: [], error: 'Twitch konnte nicht gefragt werden' });
+    return;
   }
+  res.json({ rewards });
 });
 
 export default router;

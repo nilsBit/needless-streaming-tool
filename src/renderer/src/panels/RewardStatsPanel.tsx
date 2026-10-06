@@ -5,23 +5,26 @@ import { useToast } from '../contexts/ToastContext';
 import Dialog from '../components/ux/Dialog';
 
 interface FlexRow { user_name: string; count: number; last_redeemed_at: string; credits: number }
+interface TwitchReward { id: string; title: string }
 
 const day = (iso: string) => new Date(iso.includes('T') ? iso : iso + 'Z').toLocaleDateString('de-DE', { day: 'numeric', month: 'short' });
 const n = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
 
-// "Bestenliste" under Nach dem Stream: who flexed most. A "Flex" reward in
+// "Bestenliste" under Nach dem Stream: who flexed most. The chosen reward in
 // Twitch unlocks a flex, !flex in chat spends it — only that counts, in the
-// same order the Bestenliste overlay shows. Corrections, a flex by hand and
+// same order the Bestenliste overlay shows. The reward is picked from the
+// channel's rewards and kept by its id. Corrections, a flex by hand and
 // "Zuschauer vergessen" live in dialogs.
 export default function RewardStatsPanel() {
   const { toast } = useToast();
   const { data: rows, refetch } = useApi<FlexRow[]>('/reward-stats/breakdown');
-  const { data: settings, refetch: refetchSettings } = useApi<{ reward: string }>('/reward-stats/flex-settings');
+  const { data: settings, refetch: refetchSettings } = useApi<{ reward: TwitchReward | null }>('/reward-stats/flex-settings');
+  const { data: rewardsData } = useApi<{ rewards: TwitchReward[]; error?: string }>('/auth/twitch/rewards');
+  const { data: botStatus } = useApi<{ connected: boolean }>('/settings/bot-status');
   const [search, setSearch] = useState('');
   const [editing, setEditing] = useState<FlexRow | null>(null);
   const [countEdit, setCountEdit] = useState('');
   const [adding, setAdding] = useState<{ user: string; count: string } | null>(null);
-  const [reward, setReward] = useState<string | null>(null);
 
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
   useWebSocket((event) => {
@@ -35,12 +38,18 @@ export default function RewardStatsPanel() {
     return (rows ?? []).filter((v) => !q || v.user_name.toLowerCase().includes(q));
   }, [rows, search]);
 
-  const saveReward = async () => {
-    if (reward === null) return;
-    const result = await apiPost<{ reward: string }>('/reward-stats/flex-settings', { reward });
-    if (!result) { toast.error('Nicht gespeichert – 1 bis 45 Zeichen'); return; }
-    toast.success(`Belohnungen mit „${result.reward}“ im Namen schalten einen Flex frei`);
-    setReward(null);
+  // The list from Twitch is only trusted while the bot is connected and Twitch answered.
+  const rewards = rewardsData?.rewards ?? [];
+  const listLoaded = !!botStatus?.connected && !!rewardsData && !rewardsData.error;
+  const chosen = settings?.reward ?? null;
+  const gone = listLoaded && chosen !== null && !rewards.some((r) => r.id === chosen.id);
+
+  const chooseReward = async (id: string) => {
+    const reward = rewards.find((r) => r.id === id);
+    if (!reward) return;
+    const result = await apiPost<{ reward: TwitchReward }>('/reward-stats/flex-settings', reward);
+    if (!result) { toast.error('Nicht gespeichert'); return; }
+    toast.success(`„${result.reward.title}“ schaltet jetzt einen Flex frei`);
     refetchSettings();
   };
 
@@ -90,20 +99,38 @@ export default function RewardStatsPanel() {
     refetch();
   };
 
-  const rewardValue = reward ?? settings?.reward ?? '';
-
   return (
     <div className="panel card-slim rewards">
       <div className="card-line card-wrap">
         <div className="card-row card-wrap">
           <label htmlFor="flex-reward" className="dialog-field-label">Belohnung in Twitch, die einen Flex freischaltet</label>
-          <input id="flex-reward" type="text" maxLength={45} value={rewardValue} onChange={(e) => setReward(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && saveReward()} style={{ width: 180 }} aria-describedby="flex-reward-hint" />
-          {reward !== null && reward !== (settings?.reward ?? '') && <button type="button" className="card-primary" onClick={saveReward}>Speichern</button>}
+          <select id="flex-reward" value={chosen?.id ?? ''} onChange={(e) => chooseReward(e.target.value)} disabled={!listLoaded} style={{ width: 220 }} aria-describedby="flex-reward-hint">
+            <option value="">{
+              !listLoaded ? (chosen ? chosen.title : 'Twitch ist nicht verbunden.') :
+              rewards.length === 0 ? 'Keine Belohnungen in Twitch' :
+              'Belohnung wählen …'
+            }</option>
+            {rewards.map((r) => (
+              <option key={r.id} value={r.id}>{r.title}</option>
+            ))}
+            {gone && chosen && <option value={chosen.id} disabled>{chosen.title} (gibt es nicht mehr)</option>}
+          </select>
         </div>
         <button type="button" className="card-secondary" onClick={() => setAdding({ user: '', count: '' })}>+ Eintrag von Hand</button>
       </div>
+      {gone && chosen && (
+        <p className="dialog-hint" role="alert" style={{ margin: 0 }}>
+          Die Belohnung „{chosen.title}“ gibt es in Twitch nicht mehr – bitte neu wählen. Bis dahin schaltet nichts einen Flex frei.
+        </p>
+      )}
+      {listLoaded && !chosen && (
+        <p className="dialog-hint" role="alert" style={{ margin: 0 }}>
+          Noch keine Belohnung gewählt – bis dahin schaltet nichts einen Flex frei.
+        </p>
+      )}
       <p id="flex-reward-hint" className="dialog-hint" style={{ margin: 0 }}>
-        Jede Belohnung, die dieses Wort im Namen trägt, schaltet für die Person einen Flex frei. Eingelöst wird er mit !flex im Chat – erst das zählt. Alle anderen Belohnungen zählen hier nicht.
+        {!listLoaded ? 'Mit Twitch verbinden, um eine andere Belohnung zu wählen. ' : ''}
+        Löst jemand diese Belohnung ein, bekommt die Person einen Flex. Eingelöst wird er mit !flex im Chat – erst das zählt. Alle anderen Belohnungen zählen hier nicht.
       </p>
 
       <section className="rewards-ranking" aria-label="Rangliste">

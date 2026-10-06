@@ -33,7 +33,7 @@ The four steps on first start — Können · Verbinden · In OBS einrichten · F
 _Avoid_: onboarding, wizard, assistant.
 
 **Flex** (UI: „Flex“, „flexen“):
-One point on the Bestenliste (2026-10-06). A viewer redeems the "Flex" reward in Twitch (any reward whose name carries the configured word), which unlocks a flex (`flex_credits`); `!flex` in chat spends it and counts it (`reward_stats`, type `flex`). Only flexes count for the Bestenliste; every other reward does its own thing (wheel, music, scene, suggestion) and counts in the statistics only.
+One point on the Bestenliste (2026-10-06). A viewer redeems the "Flex" reward in Twitch (the reward chosen in the app from the channel's rewards, kept by its Twitch id in `settings`), which unlocks a flex (`flex_credits`); `!flex` in chat spends it and counts it (`reward_stats`, type `flex`). Only flexes count for the Bestenliste; every other reward does its own thing (wheel, music, scene, suggestion) and counts in the statistics only.
 _Avoid_: point, score, redemption count. „Bestenliste“ is the ranking of flexes, nothing else.
 
 **Clip Moment**:

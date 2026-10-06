@@ -6,7 +6,7 @@ import { changeScene, getScenes } from '../obs/index';
 import { broadcast } from '../websocket/index';
 import { resolveOEmbed } from '../api/song-requests';
 import { parseSongUrl } from '../song-url';
-import { flexRewardKeyword, flexStanding, useFlex } from '../flex';
+import { flexReward, flexStanding, useFlex } from '../flex';
 import { sayInParts } from './chat-message';
 import { builtinKeyOf, triggerOf, canonicalTrigger } from './command-names';
 import { commandEnabled } from '../features';
@@ -263,7 +263,9 @@ export function registerCommands(client: Client) {
         if (result.counted) {
           say(`💪 @${shown} flext! Flex Nr. ${result.count}${result.rank ? ` – Platz ${result.rank}` : ''}.`);
         } else if (passCooldown(`flex-none:${login}`, 20, false, { viewer: login })) {
-          say(`@${shown} du hast keinen Flex offen – die Belohnung „${flexRewardKeyword()}“ schaltet einen frei.${result.count ? ` Bisher ${result.count} ${result.count === 1 ? 'Flex' : 'Flexe'}.` : ''}`);
+          const chosen = flexReward();
+          const how = chosen ? `die Belohnung „${chosen.title}“ schaltet einen frei.` : 'im Tool ist noch keine Belohnung dafür gewählt.';
+          say(`@${shown} du hast keinen Flex offen – ${how}${result.count ? ` Bisher ${result.count} ${result.count === 1 ? 'Flex' : 'Flexe'}.` : ''}`);
         }
         break;
       }

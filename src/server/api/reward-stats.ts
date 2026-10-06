@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { forgetViewer } from '../retention';
-import { flexBoard, flexRewardKeyword, grantFlexCredit, saveFlexRewardKeyword } from '../flex';
+import { flexBoard, flexReward, grantFlexCredit, saveFlexReward } from '../flex';
 import { getDb } from '../db/index';
 import { checkAndBroadcast } from '../reward-leaderboard';
 
@@ -17,13 +17,13 @@ router.get('/breakdown', (_req, res) => {
   res.json(flexBoard());
 });
 
-// Which reward in Twitch unlocks a flex — any reward whose name contains this.
+// Which reward in Twitch unlocks a flex — chosen by its id; null while none is.
 router.get('/flex-settings', (_req, res) => {
-  res.json({ reward: flexRewardKeyword() });
+  res.json({ reward: flexReward() });
 });
 
 router.post('/flex-settings', (req, res) => {
-  const result = saveFlexRewardKeyword((req.body as { reward?: unknown } | undefined)?.reward);
+  const result = saveFlexReward(req.body);
   if ('error' in result) { res.status(400).json(result); return; }
   res.json(result);
 });

@@ -229,13 +229,13 @@ Alle Befehle lassen sich unter Chat & Bot → Von selbst umbenennen. Antworten, 
 
 | Name enthält | Aktion |
 |---|---|
-| "Flex" | schaltet für die Person einen Flex frei – \`!flex\` im Chat zählt ihn für die Bestenliste |
+| *(die gewählte Flex-Belohnung)* | schaltet für die Person einen Flex frei – \`!flex\` im Chat zählt ihn für die Bestenliste |
 | "roulette" | Glücksrad drehen |
 | "feature" | Vorschlag einreichen |
 | "musik" oder "song" | Musik ändern |
 | "scene" oder "szene" | Szene wechseln – nur in Szenen, die unter Szenen in OBS → Szene per Kanalpunkt stehen |
 
-Welches Wort den Flex freischaltet, stellst du unter **Nach dem Stream → Bestenliste** ein („Flex“ ist die Vorgabe).
+Welche Belohnung den Flex freischaltet, wählst du unter **Nach dem Stream → Bestenliste** aus den Belohnungen deines Kanals. Die Wahl hängt an der Belohnung selbst, nicht an ihrem Namen – umbenennen in Twitch ist also kein Problem. Löschst du sie in Twitch, zeigt das Panel das an, bis du eine neue wählst.
 
 **Die Bestenliste** zählt nur Flexe. Eine Einlösung allein zählt noch nicht: Die Person löst die Belohnung ein und tippt dann \`!flex\`, wann sie will. Der Bot antwortet „@Name flext! Flex Nr. 12 – Platz 3“, das Overlay **Bestenliste** zeigt die Top 3, **Rangwechsel** meldet Überholer, die Alert-Tafel zeigt den Flex. Ohne offenen Flex sagt der Bot, welche Belohnung einen freischaltet. \`!stats\` zeigt den eigenen Stand, \`!stats <Name>\` den eines anderen.
 
