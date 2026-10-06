@@ -188,7 +188,7 @@ export const AREAS: readonly Area[] = [
       {
         key: 'daten',
         label: 'Daten',
-        sentence: 'Stream-Deck-Token, Backup und Sync.',
+        sentence: 'Stream-Deck-Token, Sicherung und Sync-Ordner.',
         panels: ['settings-data'],
       },
     ],

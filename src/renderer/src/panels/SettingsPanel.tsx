@@ -355,7 +355,7 @@ export default function SettingsPanel({ category }: { category: SettingsCategory
             </div>
           </div>
           <button className={`s-card-action ${expanded === 'sync' ? 'ghost' : 'primary'}`} onClick={() => toggle('sync')}>
-            {expanded === 'sync' ? '▲' : '▼'}
+            {expanded === 'sync' ? 'Zuklappen' : 'Einrichten'}
           </button>
         </div>
         {expanded === 'sync' && (
