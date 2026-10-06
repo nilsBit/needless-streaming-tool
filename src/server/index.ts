@@ -28,6 +28,7 @@ import customOverlaysRouter from './api/custom-overlays';
 import statsRouter from './api/stats';
 import rewardStatsRouter from './api/reward-stats';
 import leaderboardsRouter from './api/leaderboards';
+import { getLeaderboard } from './leaderboards';
 import backupRouter from './api/backup';
 import designRouter from './api/design';
 import devRouter from './api/dev';
@@ -240,9 +241,9 @@ export function createApp(): express.Express {
   app.use('/public/alert-sound', express.static(ALERT_SOUND_DIR));
 
   app.get('/public/reward-stats/top', (req, res) => {
-    const type = (req.query.type as string) || 'all';
+    const type = (req.query.type as string) || '';
     const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 3, 1), 10);
-    res.json({ type, leaderboard: getTopRewards(type, limit) });
+    res.json({ type, title: getLeaderboard(type)?.title ?? null, leaderboard: type ? getTopRewards(type, limit) : [] });
   });
 
   // Overlay paths

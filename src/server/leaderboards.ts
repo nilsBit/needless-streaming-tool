@@ -1,4 +1,5 @@
 import { getDb } from './db/index';
+import { broadcast } from './websocket/index';
 import { checkAndBroadcast } from './reward-leaderboard';
 
 /**
@@ -112,4 +113,37 @@ export function leaderboardBoard(key: string): LeaderboardRow[] | null {
   return getDb().prepare(
     'SELECT user_name, count, last_redeemed_at FROM reward_stats WHERE reward_type = ? ORDER BY count DESC, user_name ASC'
   ).all(key) as LeaderboardRow[];
+}
+
+export interface LeaderboardPoint { leaderboard: Leaderboard; count: number; rank: number }
+
+export function standing(key: string, login: string): { count: number; rank: number | null } {
+  const name = login.toLowerCase();
+  const db = getDb();
+  const row = db.prepare('SELECT count FROM reward_stats WHERE user_name = ? AND reward_type = ?').get(name, key) as { count: number } | undefined;
+  const count = row?.count ?? 0;
+  const rank = count > 0
+    ? (db.prepare('SELECT COUNT(*) + 1 AS rank FROM reward_stats WHERE reward_type = ? AND count > ?').get(key, count) as { rank: number }).rank
+    : null;
+  return { count, rank };
+}
+
+/**
+ * A redemption of a list's reward: one point for the viewer, the Top 3 of
+ * that list checked (the overlays follow), the point announced on the
+ * WebSocket (alert board, app). Null when no list has this reward.
+ */
+export function countRedemption(rewardId: string, login: string, shownName: string = login): LeaderboardPoint | null {
+  const leaderboard = leaderboardForReward(rewardId);
+  if (!leaderboard) return null;
+  const name = login.toLowerCase();
+  getDb().prepare(`
+    INSERT INTO reward_stats (user_name, reward_type, count, last_redeemed_at)
+    VALUES (?, ?, 1, CURRENT_TIMESTAMP)
+    ON CONFLICT(user_name, reward_type) DO UPDATE SET count = count + 1, last_redeemed_at = CURRENT_TIMESTAMP
+  `).run(name, leaderboard.key);
+  const { count, rank } = standing(leaderboard.key, name);
+  checkAndBroadcast(leaderboard.key);
+  broadcast('leaderboard-point', { key: leaderboard.key, title: leaderboard.title, user: shownName, login: name, count, rank });
+  return { leaderboard, count, rank: rank ?? 1 };
 }

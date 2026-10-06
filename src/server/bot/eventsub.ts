@@ -4,10 +4,10 @@ import { broadcast } from '../websocket/index';
 import { getBotConfig } from './config';
 import { triggerRoulette } from '../api/actions';
 import { changeScene, sceneMappingForRedemption, getCurrentScene } from '../obs/index';
-import { adoptFlexReward, grantFlexCredit, isFlexReward } from '../flex';
+import { countRedemption } from '../leaderboards';
 import { getClientId } from '../twitch-config';
 import { sendAlert } from './alerts';
-import { botHelix } from './shoutout';
+import { sayInChat } from './index';
 
 let ws: WebSocket | null = null;
 let sessionId: string | null = null;
@@ -72,34 +72,37 @@ async function subscribeToEvents(token: string, clientId: string, userId: string
 
 async function handleRedemption(event: Record<string, unknown>) {
   const userName = (event.user_name as string) || 'Unknown';
+  // Twitch sends the login in lower case and the name as typed; counts go by login.
+  const login = (event.user_login as string) || userName;
   const rewardTitle = (event.reward as Record<string, unknown>)?.title as string || 'Unknown';
   const rewardId = (event.reward as Record<string, unknown>)?.id as string || '';
   const userInput = (event.user_input as string) || '';
 
   console.log(`[EventSub] Redemption: ${userName} redeemed "${rewardTitle}"`);
 
-  // Map the reward to our reward types: the flex reward by its id, the rest by title
-  let rewardType = rewardTitle;
+  // A reward with a Bestenliste counts there, by its id; the rest is told
+  // apart by title and does what it does (wheel, music, scene, suggestion).
+  const point = countRedemption(rewardId, login, userName);
+  let rewardType = point ? point.leaderboard.key : rewardTitle;
   const titleLower = rewardTitle.toLowerCase();
-  if (isFlexReward(rewardId)) rewardType = 'flex';
-  else if (titleLower.includes('roulette')) rewardType = 'roulette';
-  else if (titleLower.includes('feature')) rewardType = 'feature_request';
-  else if (titleLower.includes('musik') || titleLower.includes('song')) rewardType = 'change_music';
-  else if (titleLower.includes('scene') || titleLower.includes('szene')) rewardType = 'scene_change';
+  if (!point) {
+    if (titleLower.includes('roulette')) rewardType = 'roulette';
+    else if (titleLower.includes('feature')) rewardType = 'feature_request';
+    else if (titleLower.includes('musik') || titleLower.includes('song')) rewardType = 'change_music';
+    else if (titleLower.includes('scene') || titleLower.includes('szene')) rewardType = 'scene_change';
+  }
 
   const result = getDb().prepare(
     'INSERT INTO rewards (user_name, reward_type, data) VALUES (?, ?, ?)'
   // The row is for alerts and the statistics count; what the viewer typed is used right here and not kept.
-  ).run(userName, rewardType, JSON.stringify({ reward_title: rewardTitle, reward_id: rewardId }));
+  ).run(userName, rewardType, JSON.stringify({ reward_title: rewardTitle, reward_id: rewardId, leaderboard: point?.leaderboard.key ?? null }));
 
   const reward = getDb().prepare('SELECT * FROM rewards WHERE id = ?').get(result.lastInsertRowid);
   broadcast('reward-redeemed', reward);
 
-  // Redemptions do not count for the Bestenliste. A "Flex" reward unlocks one
-  // flex; the viewer spends it with !flex, and that is what counts (2026-10-06).
-  if (rewardType === 'flex') {
-    const credits = grantFlexCredit(userName);
-    console.log(`[EventSub] ${userName} unlocked a flex (${credits} open)`);
+  if (point) {
+    console.log(`[EventSub] ${userName}: ${point.leaderboard.title} Nr. ${point.count}, Platz ${point.rank}`);
+    sayInChat(`💪 @${userName}: ${point.leaderboard.title} Nr. ${point.count} – Platz ${point.rank}.`);
   }
 
   // Auto-trigger roulette when someone redeems roulette
@@ -152,10 +155,6 @@ export async function connectEventSub(): Promise<boolean> {
     console.error('[EventSub] Could not get user ID');
     return false;
   }
-
-  // Once: turn the flex keyword from before the update into a chosen reward.
-  const helix = botHelix();
-  if (helix) adoptFlexReward(helix).catch((err) => console.error('[Flex] Could not adopt the reward:', err));
 
   return new Promise((resolve) => {
     ws = new WebSocket(EVENTSUB_WS_URL);

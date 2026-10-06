@@ -14,42 +14,21 @@ const cache = new Map<string, LeaderboardEntry[]>();
 let initialized = false;
 
 /**
- * Query the current Top N from the DB.
- * type="all" aggregates across all reward types.
+ * Query the current Top N of one Bestenliste from the DB. The type is the
+ * list's key (2026-10-06); there is no aggregate over every list.
  */
 function queryTop(type: string, limit = 3): LeaderboardEntry[] {
   try {
-    const db = getDb();
-    let rows: Array<{ user_name: string; count: number }>;
-
-    if (type === 'all') {
-      // The Bestenliste is the flex ranking — nothing else counts (2026-10-06).
-      rows = db
-        .prepare(
-          `SELECT user_name, count
-           FROM reward_stats
-           WHERE reward_type = 'flex'
-           ORDER BY count DESC, user_name ASC
-           LIMIT ?`
-        )
-        .all(limit) as Array<{ user_name: string; count: number }>;
-    } else {
-      rows = db
-        .prepare(
-          `SELECT user_name, count
-           FROM reward_stats
-           WHERE reward_type = ?
-           ORDER BY count DESC, user_name ASC
-           LIMIT ?`
-        )
-        .all(type, limit) as Array<{ user_name: string; count: number }>;
-    }
-
-    return rows.map((row, i) => ({
-      rank: i + 1,
-      userName: row.user_name,
-      count: Number(row.count),
-    }));
+    const rows = getDb()
+      .prepare(
+        `SELECT user_name, count
+         FROM reward_stats
+         WHERE reward_type = ?
+         ORDER BY count DESC, user_name ASC
+         LIMIT ?`
+      )
+      .all(type, limit) as Array<{ user_name: string; count: number }>;
+    return rows.map((row, i) => ({ rank: i + 1, userName: row.user_name, count: Number(row.count) }));
   } catch (err) {
     console.error('[Leaderboard] queryTop failed:', err);
     return [];
@@ -100,10 +79,7 @@ function detectChanges(
  */
 export function initRewardLeaderboard(): void {
   try {
-    // Load "all" type
-    cache.set('all', queryTop('all'));
-
-    // Load each known reward type
+    // Load each known reward type — every list that has counts
     const types = getDb()
       .prepare('SELECT DISTINCT reward_type FROM reward_stats')
       .all() as Array<{ reward_type: string }>;

@@ -4,7 +4,7 @@ import type { Express } from 'express';
 import { initDatabase } from '../db/index';
 import { generateApiToken } from '../auth-token';
 import { createApp } from '../index';
-import { keyFromTitle } from '../leaderboards';
+import { countRedemption, keyFromTitle, standing } from '../leaderboards';
 
 /**
  * A Bestenliste hangs on one Twitch reward and ranks who redeemed it most.
@@ -76,5 +76,41 @@ describe('Bestenlisten', () => {
     expect((await request(app).get('/api/leaderboards').set(auth()).expect(200)).body).toEqual([]);
     expect((await request(app).get('/api/reward-stats').set(auth()).expect(200)).body).toEqual([]);
     await request(app).delete('/api/leaderboards/flex').set(auth()).expect(404);
+  });
+});
+
+describe('a redemption on a list', () => {
+  let app: Express;
+  let token: string;
+  const auth = () => ({ Authorization: `Bearer ${token}` });
+
+  beforeEach(async () => {
+    initDatabase(':memory:');
+    token = generateApiToken();
+    app = createApp();
+    await request(app).post('/api/leaderboards').set(auth()).send({ title: 'Flex', reward: { id: 'rw-1', title: 'Flex!' } }).expect(201);
+  });
+
+  it('counts one point under the lower-case login and ranks the viewer', () => {
+    expect(countRedemption('rw-1', 'kartograph', 'Kartograph')).toMatchObject({ count: 1, rank: 1, leaderboard: { key: 'flex', title: 'Flex' } });
+    expect(countRedemption('rw-1', 'Kartograph', 'Kartograph')).toMatchObject({ count: 2, rank: 1 });
+    expect(countRedemption('rw-1', 'tintenfass')).toMatchObject({ count: 1, rank: 2 });
+    expect(standing('flex', 'KARTOGRAPH')).toEqual({ count: 2, rank: 1 });
+    expect(standing('flex', 'niemand')).toEqual({ count: 0, rank: null });
+  });
+
+  it('counts nothing for a reward without a list', async () => {
+    expect(countRedemption('rw-other', 'kartograph')).toBeNull();
+    expect((await request(app).get('/api/leaderboards/flex/board').set(auth()).expect(200)).body).toEqual([]);
+  });
+
+  it('answers the overlay with title and top three, and stays calm about a list that is gone', async () => {
+    countRedemption('rw-1', 'kartograph');
+    const top = (await request(app).get('/public/reward-stats/top?type=flex').expect(200)).body;
+    expect(top).toEqual({ type: 'flex', title: 'Flex', leaderboard: [{ rank: 1, userName: 'kartograph', count: 1 }] });
+    const gone = (await request(app).get('/public/reward-stats/top?type=nope').expect(200)).body;
+    expect(gone).toEqual({ type: 'nope', title: null, leaderboard: [] });
+    const unset = (await request(app).get('/public/reward-stats/top').expect(200)).body;
+    expect(unset.leaderboard).toEqual([]);
   });
 });
