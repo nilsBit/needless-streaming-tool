@@ -44,7 +44,6 @@ export default function HotkeysPanel() {
 
   return (
     <div className="panel settings-panel">
-      <h2>⌨️ Hotkeys</h2>
       <p className="panel-desc">Globale Tastenkürzel konfigurieren.</p>
 
       <div className="settings-section">

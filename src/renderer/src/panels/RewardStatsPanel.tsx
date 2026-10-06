@@ -150,7 +150,6 @@ export default function RewardStatsPanel() {
   return (
     <div className="panel reward-stats-panel">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-        <h2>🏆 Reward Stats</h2>
         <div style={{ display: 'flex', gap: 8 }}>
           <button
             className={`tab-btn ${view === 'leaderboard' ? 'active' : ''}`}

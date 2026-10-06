@@ -44,7 +44,6 @@ export default function StatsPanel() {
   if (loading || !stats) {
     return (
       <div className="panel stats-panel">
-        <h2>📊 Statistiken</h2>
         <p className="panel-desc">Wird geladen...</p>
       </div>
     );
@@ -52,7 +51,6 @@ export default function StatsPanel() {
 
   return (
     <div className="panel stats-panel">
-      <h2>📊 Statistiken</h2>
       <p className="panel-desc">Überblick über alle Stream-Daten.</p>
 
       <section className="stats-section">

@@ -69,7 +69,6 @@ export default function MilestonesPanel() {
 
   return (
     <div className="panel milestones-panel">
-      <h2>🎉 Milestones</h2>
 
       <div className="milestone-list">
         {pending.length === 0 && <p className="empty">Keine offenen Milestones</p>}

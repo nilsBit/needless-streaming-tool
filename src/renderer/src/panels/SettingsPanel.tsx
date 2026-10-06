@@ -6,18 +6,10 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useToast } from '../contexts/ToastContext';
 import CopyButton from '../components/CopyButton';
 import NotionDatabasePicker from '../components/NotionDatabasePicker';
-import AlertSettings from '../components/AlertSettings';
 
-type SettingsCategory = 'connections' | 'features' | 'app' | 'data';
+export type SettingsCategory = 'connections' | 'app' | 'data';
 
-const CATEGORIES: { key: SettingsCategory; icon: string; label: string }[] = [
-  { key: 'connections', icon: '🔗', label: 'Verbindungen' },
-  { key: 'features', icon: '🎬', label: 'Features' },
-  { key: 'app', icon: '🖥️', label: 'App' },
-  { key: 'data', icon: '💾', label: 'Daten & API' },
-];
-
-export default function SettingsPanel() {
+export default function SettingsPanel({ category }: { category: SettingsCategory }) {
   const { data: botStatus, refetch: refetchBot } = useApi<BotStatus>('/settings/bot-status');
   const { data: tokenInfo } = useApi<{ token: string | null }>('/settings/api-token');
   const { data: notionInfo, refetch: refetchNotion } = useApi<{ configured: boolean; preview: string | null }>('/settings/notion');
@@ -28,29 +20,7 @@ export default function SettingsPanel() {
     enabled: boolean; syncPath?: string; lastSync?: string; device?: string; error?: string;
   }>('/settings/sync/status');
   const { data: autostartInfo, refetch: refetchAutostart } = useApi<{ enabled: boolean }>('/settings/autostart');
-  const { data: commandsData, refetch: refetchCommands } = useApi<Record<string, string>>('/settings/commands');
-  const { data: raidShoutout, refetch: refetchRaidShoutout } = useApi<{ value: string | null }>('/settings/get/raid_shoutout');
-  const raidShoutoutOn = raidShoutout?.value !== '0';
-  const setRaidShoutout = async (on: boolean) => {
-    await apiPost('/settings/set', { key: 'raid_shoutout', value: on ? '1' : '0' });
-    refetchRaidShoutout();
-  };
   const { data: discordLive, refetch: refetchDiscordLive } = useApi<{ configured: boolean; message: string }>('/settings/discord-live');
-  // The bot's own reminder every so often — text and interval.
-  const { data: reminderInfo, refetch: refetchReminder } = useApi<{ text: string; minutes: number; default: string; maxMinutes: number }>('/settings/reminder');
-  const [reminderText, setReminderText] = useState<string | null>(null);
-  const { data: builtinCooldown, refetch: refetchBuiltinCooldown } = useApi<{ seconds: number; max: number }>('/settings/builtin-cooldown');
-  const saveBuiltinCooldown = async (seconds: number) => {
-    const res = await apiFetch('/settings/builtin-cooldown', { method: 'POST', body: JSON.stringify({ seconds }) });
-    if (!res.ok) { toast.error('Cooldown nicht gespeichert'); return; }
-    refetchBuiltinCooldown();
-  };
-  const saveReminder = async (change: { text?: string; minutes?: number }) => {
-    const res = await apiFetch('/settings/reminder', { method: 'POST', body: JSON.stringify(change) });
-    if (!res.ok) { toast.error('Erinnerung nicht gespeichert'); return; }
-    setReminderText(null);
-    refetchReminder();
-  };
   const [discordWebhook, setDiscordWebhook] = useState('');
   const [discordMessage, setDiscordMessage] = useState<string | null>(null);
 
@@ -58,7 +28,6 @@ export default function SettingsPanel() {
   const { theme, setTheme } = useTheme();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [category, setCategory] = useState<SettingsCategory>('connections');
   const [expanded, setExpanded] = useState<string | null>(null);
 
   // Form states
@@ -72,35 +41,6 @@ export default function SettingsPanel() {
   const [syncPath, setSyncPath] = useState('');
   const [syncEnabled, setSyncEnabled] = useState(false);
   const [syncing, setSyncing] = useState(false);
-
-  // Custom commands
-  const [editCommands, setEditCommands] = useState<Record<string, string>>({});
-  const [commandsLoaded, setCommandsLoaded] = useState(false);
-
-  // Auto clips
-  const [autoClipsEnabled, setAutoClipsEnabled] = useState(true);
-  const [triggerReward, setTriggerReward] = useState(true);
-  const [triggerHype, setTriggerHype] = useState(true);
-  const [triggerMilestone, setTriggerMilestone] = useState(true);
-
-
-  useEffect(() => {
-    if (commandsData && !commandsLoaded) {
-      setEditCommands(commandsData);
-      setCommandsLoaded(true);
-    }
-  }, [commandsData, commandsLoaded]);
-
-  useEffect(() => {
-    const keys = ['auto_clips_enabled', 'auto_clip_trigger_reward', 'auto_clip_trigger_hype', 'auto_clip_trigger_milestone'];
-    Promise.all(keys.map(k => apiFetch(`/settings/get/${k}`).then(r => r.json()).then(d => [k, d.value] as [string, string | null]))).then(entries => {
-      const m = Object.fromEntries(entries);
-      if (m['auto_clips_enabled'] !== null) setAutoClipsEnabled(m['auto_clips_enabled'] !== 'false');
-      if (m['auto_clip_trigger_reward'] !== null) setTriggerReward(m['auto_clip_trigger_reward'] !== 'false');
-      if (m['auto_clip_trigger_hype'] !== null) setTriggerHype(m['auto_clip_trigger_hype'] !== 'false');
-      if (m['auto_clip_trigger_milestone'] !== null) setTriggerMilestone(m['auto_clip_trigger_milestone'] !== 'false');
-    }).catch(() => {});
-  }, []);
 
   useEffect(() => {
     apiGet<{ enabled: boolean; syncPath: string }>('/settings/sync/config').then((cfg) => {
@@ -177,23 +117,6 @@ export default function SettingsPanel() {
   const removeDiscordLive = async () => {
     await apiFetch('/settings/discord-live', { method: 'POST', body: JSON.stringify({ webhook_url: '' }) });
     refetchDiscordLive();
-  };
-
-  const saveCommands = async () => {
-    const result = await apiPost('/settings/commands', editCommands);
-    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
-    toast.success('Commands gespeichert'); refetchCommands();
-  };
-
-  const saveAutoClipSettings = async () => {
-    const result = await apiPost('/settings/batch', {
-      auto_clips_enabled: String(autoClipsEnabled),
-      auto_clip_trigger_reward: String(triggerReward),
-      auto_clip_trigger_hype: String(triggerHype),
-      auto_clip_trigger_milestone: String(triggerMilestone),
-    });
-    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
-    toast.success('Design gespeichert');
   };
 
   const exportBackup = async () => {
@@ -350,117 +273,6 @@ export default function SettingsPanel() {
     </>
   );
 
-  const renderFeatures = () => (
-    <>
-      <AlertSettings />
-
-      <div className="s-card">
-        <div className="s-card-header">
-          <div className="s-card-info">
-            <span className="s-card-icon">🎬</span>
-            <div>
-              <div className="s-card-title">Auto-Clips</div>
-              <div className="s-card-status" style={{ color: autoClipsEnabled ? '#2ecc71' : '#888' }}>
-                {autoClipsEnabled ? 'Auto-Clips aktiviert' : 'Auto-Clips deaktiviert'}
-              </div>
-            </div>
-          </div>
-          <button className={`s-card-action ${expanded === 'autoclips' ? 'ghost' : 'primary'}`} onClick={() => toggle('autoclips')}>
-            {expanded === 'autoclips' ? '▲' : '▼'}
-          </button>
-        </div>
-        {expanded === 'autoclips' && (
-          <div className="s-card-body">
-            <div className="s-toggle-row">
-              <button className={`s-toggle-btn ${autoClipsEnabled ? 'active' : ''}`} onClick={() => setAutoClipsEnabled(true)}>Auto-Clips aktiviert</button>
-              <button className={`s-toggle-btn ${!autoClipsEnabled ? 'active' : ''}`} onClick={() => setAutoClipsEnabled(false)}>Auto-Clips deaktiviert</button>
-            </div>
-            <label className="s-checkbox"><input type="checkbox" checked={triggerReward} onChange={e => setTriggerReward(e.target.checked)} /> Channel Point Rewards</label>
-            <label className="s-checkbox"><input type="checkbox" checked={triggerHype} onChange={e => setTriggerHype(e.target.checked)} /> Hype Moments</label>
-            <label className="s-checkbox"><input type="checkbox" checked={triggerMilestone} onChange={e => setTriggerMilestone(e.target.checked)} /> Milestones</label>
-            <button className="s-card-action primary" onClick={saveAutoClipSettings}>Speichern</button>
-          </div>
-        )}
-      </div>
-
-      <div className="s-card">
-        <div className="s-card-header">
-          <div className="s-card-info">
-            <span className="s-card-icon">💬</span>
-            <div>
-              <div className="s-card-title">Chat Commands</div>
-              <div className="s-card-status" style={{ color: '#888' }}>Chat-Befehle umbenennen. Alle Befehle beginnen mit !</div>
-            </div>
-          </div>
-          <button className={`s-card-action ${expanded === 'commands' ? 'ghost' : 'primary'}`} onClick={() => toggle('commands')}>
-            {expanded === 'commands' ? '▲' : '▼'}
-          </button>
-        </div>
-        {expanded === 'commands' && (
-          <div className="s-card-body">
-            {Object.entries(editCommands).map(([key, value]) => (
-              <div key={key} className="s-command-row">
-                <span className="s-command-label">{key}</span>
-                <input type="text" value={value} onChange={e => setEditCommands(prev => ({ ...prev, [key]: e.target.value }))} />
-              </div>
-            ))}
-            <button className="s-card-action primary" onClick={saveCommands}>Speichern</button>
-            <div className="s-command-row" style={{ marginTop: 16 }}>
-              <span className="s-command-label">Shoutout bei Raid</span>
-              <div className="s-toggle-row compact">
-                <button className={`s-toggle-btn ${raidShoutoutOn ? 'active' : ''}`} onClick={() => setRaidShoutout(true)}>An</button>
-                <button className={`s-toggle-btn ${!raidShoutoutOn ? 'active' : ''}`} onClick={() => setRaidShoutout(false)}>Aus</button>
-              </div>
-            </div>
-            <div className="s-card-status" style={{ color: '#888' }}>
-              !commands und !help antworten wie !befehle. !so &lt;Name&gt; (nur Mods) empfiehlt einen Kanal — nach einem Raid schreibt der Bot das von selbst.
-            </div>
-            <div className="s-command-row" style={{ marginTop: 16 }}>
-              <span className="s-command-label">Cooldown</span>
-              <select
-                className="s-alert-select" style={{ flex: '0 0 150px' }}
-                value={builtinCooldown?.seconds ?? 15}
-                onChange={(e) => saveBuiltinCooldown(Number(e.target.value))}
-              >
-                {[0, 5, 10, 15, 20, 30, 45, 60, 120].map((s) => <option key={s} value={s}>{s === 0 ? 'Keiner' : `${s} s`}</option>)}
-              </select>
-            </div>
-            <div className="s-card-status" style={{ color: '#888' }}>
-              Für die eingebauten Befehle, die nur etwas sagen (!song, !uptime, !progress, !todo, !themen, !queue, !stats, !challenge, !befehle).
-              Jeder Cooldown gilt für einen ruhigen Chat: ab 20 Nachrichten pro Minute halbiert er sich, ab 60 ist es ein Viertel.
-              Wer die Antwort gerade bekommen hat, bekommt sie frühestens nach dem Vierfachen (mindestens einer Minute) wieder; Mods und du nie zu früh.
-            </div>
-            <div className="s-command-row" style={{ marginTop: 16 }}>
-              <span className="s-command-label">Erinnerung</span>
-              <select
-                className="s-alert-select" style={{ flex: '0 0 150px' }}
-                value={reminderInfo?.minutes ?? 0}
-                onChange={(e) => saveReminder({ minutes: Number(e.target.value) })}
-              >
-                <option value={0}>Aus</option>
-                {[10, 15, 20, 30, 45, 60, 90, 120].map((m) => <option key={m} value={m}>alle {m} Minuten</option>)}
-              </select>
-            </div>
-            <div className="s-command-row">
-              <span className="s-command-label" />
-              <input
-                type="text" maxLength={400}
-                placeholder={reminderInfo?.default ?? ''}
-                value={reminderText ?? reminderInfo?.text ?? ''}
-                onChange={(e) => setReminderText(e.target.value)}
-                onBlur={() => reminderText !== null && saveReminder({ text: reminderText })}
-                onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
-              />
-            </div>
-            <div className="s-card-status" style={{ color: '#888' }}>
-              Der Bot sagt den Satz von selbst — aber nur, wenn seit dem letzten Mal jemand im Chat geschrieben hat. Leer = Standardtext.
-            </div>
-          </div>
-        )}
-      </div>
-    </>
-  );
-
   const renderApp = () => (
     <>
       <div className="s-card">
@@ -581,22 +393,9 @@ export default function SettingsPanel() {
   );
 
   return (
-    <div className="panel settings-panel-v2">
-      <div className="s-sidebar">
-        {CATEGORIES.map(cat => (
-          <button
-            key={cat.key}
-            className={`s-sidebar-btn ${category === cat.key ? 'active' : ''}`}
-            onClick={() => setCategory(cat.key)}
-          >
-            <span>{cat.icon}</span>
-            <span>{cat.label}</span>
-          </button>
-        ))}
-      </div>
+    <div className="panel settings-panel-v2 settings-plain">
       <div className="s-content">
         {category === 'connections' && renderConnections()}
-        {category === 'features' && renderFeatures()}
         {category === 'app' && renderApp()}
         {category === 'data' && renderData()}
       </div>

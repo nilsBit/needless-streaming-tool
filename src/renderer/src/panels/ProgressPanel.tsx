@@ -365,7 +365,6 @@ export default function ProgressPanel() {
 
   return (
     <div className="panel progress-panel">
-      <h2>📊 Progress Tracker</h2>
 
       <div className="progress-header">
         {editingName ? (

@@ -180,7 +180,6 @@ export default function TextCommandsPanel() {
   return (
     <div className="panel text-commands-panel">
       <div className="clips-panel-header">
-        <h2>💬 Erklär-Commands</h2>
       </div>
       <p className="panel-desc">
         Was du sonst in jedem Stream neu erklärst, ruft der Chat hier selbst ab.

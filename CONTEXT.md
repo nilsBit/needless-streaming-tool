@@ -6,6 +6,18 @@ Storage names and UI names have drifted apart in places — the glossary below n
 
 ## Language
 
+### Navigation
+
+**Area**:
+One of the seven entries in the sidebar, chosen by situation — Start, Im Stream, Chat & Bot, Overlays & Alerts, Nach dem Stream, Einstellungen, Hilfe. Defined once in `src/renderer/src/navigation.ts`; the sidebar, the page headers and the start cards all read from there. In the UI: „Bereich“.
+_Avoid_: Tab, section. The old "Live / Produktion" switch and its tab row are gone.
+
+**Sub tab**:
+A topic inside an Area, shown as a row under the page header when the Area has more than one (Chat & Bot → Befehle · Von selbst). In the UI: „Unterreiter“.
+
+**Page**:
+What one Area shows: a header with the Area's name and one sentence, the Sub tabs if any, then its Panels one below the other. Every Panel has exactly one Page (tested in `navigation.test.ts`). The dashboard board — pinning, hiding, collapsing, dragging — no longer exists. In the UI: „Seite“.
+
 ### Stream session
 
 **Challenge**:

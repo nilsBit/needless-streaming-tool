@@ -106,7 +106,6 @@ export default function SongPanel() {
 
   return (
     <div className="panel song-panel">
-      <h2>🎵 Now Playing</h2>
       <p className="panel-desc">Erkennt automatisch was du gerade hörst — Spotify, YouTube, Apple Music und mehr.</p>
 
       {autoSupported && (

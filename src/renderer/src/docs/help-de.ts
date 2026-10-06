@@ -5,13 +5,38 @@ export const HELP_SECTIONS_DE = [
     title: 'Erste Schritte',
     content: `Das Stream Toolkit ist deine Zentrale für Streaming. Hier steuerst du alles — Overlays, Challenges, Clips, Aufgaben, Milestones und mehr.
 
-Alle Verbindungen richtest du unter **Settings** ein — Twitch, OBS, Notion und den Stream Deck Token.
+Links stehen die Bereiche nach Situation: **Start** (bist du bereit?), **Im Stream** (alles, was du live auslöst), **Chat & Bot**, **Overlays & Alerts**, **Nach dem Stream**, darunter **Einstellungen** und **Hilfe**. Alle Verbindungen richtest du unter **Einstellungen → Verbindungen** ein — Twitch, OBS, Notion, Discord; den Stream-Deck-Token findest du unter **Einstellungen → Daten**.
 
 **Voraussetzungen:**
 - OBS Studio (Version 28+) mit aktiviertem WebSocket Server
 - Twitch-Account mit einer App auf dev.twitch.tv
 - Optional: Notion-Account für Clip-Sync
 - Optional: Elgato Stream Deck`,
+  },
+  {
+    title: 'Wo finde ich was',
+    content: `Die Oberfläche ist nach Situation sortiert, nicht nach Technik. Links die Bereiche, oben auf einer Seite die Themen.
+
+| Früher | Jetzt |
+|--------|-------|
+| Live → Challenge | Im Stream → Ziel für heute |
+| Live → Glücksrad, Abstimmungen, Now Playing | Im Stream → Glücksrad, Abstimmung, Musik |
+| Projekt → Progress Tracker | Im Stream → Fortschritt |
+| Projekt → Welt | Im Stream → Eintrag aus der Welt |
+| Projekt → Erklär-Commands | Chat & Bot → Befehle |
+| Settings → Features → Chat Commands | Chat & Bot → Von selbst |
+| Settings → Overlays | Overlays & Alerts → Overlays |
+| Settings → Features → Alerts | Overlays & Alerts → Alerts |
+| Settings → Milestones | Overlays & Alerts → Meilensteine |
+| Live → OBS Scenes | Overlays & Alerts → Szenen in OBS |
+| Produktion → Clip Moments | Nach dem Stream → Content planen |
+| Settings → Features → Auto-Clips | Nach dem Stream → Content planen → Von selbst merken |
+| Projekt → Statistiken | Nach dem Stream → Statistik |
+| Live → Reward Stats | Nach dem Stream → Kanalpunkte |
+| Settings → Verbindungen / App / Daten & API | Einstellungen → Verbindungen / Programm / Daten |
+| Hotkeys | Einstellungen → Programm → Tastenkürzel |
+
+Die Kästen lassen sich nicht mehr verschieben, anpinnen oder ausblenden — jedes Panel hat genau einen Ort. Welcher Bereich und welches Thema zuletzt offen waren, merkt sich das Tool.`,
   },
   {
     title: 'Twitch verbinden',
@@ -23,7 +48,7 @@ Alle Verbindungen richtest du unter **Settings** ein — Twitch, OBS, Notion und
 - Client-ID kopieren
 
 **2. Im Toolkit verbinden:**
-- Settings → Twitch Verbindung → Client-ID eintragen
+- Einstellungen → Verbindungen → Twitch → Client-ID eintragen
 - "Mit Twitch verbinden" klicken → Twitch-Login im Browser
 - Nach dem Login verbindet sich der Bot automatisch
 
@@ -33,7 +58,7 @@ Alle Verbindungen richtest du unter **Settings** ein — Twitch, OBS, Notion und
 | !befehle | Nennt die wichtigsten Befehle (die mit ★ in der Übersicht). „!befehle alle“ listet jeden, „!befehle welt / texte / stream“ eine Gruppe |
 | !befehle <Name> | Erklärt einen einzelnen Befehl, z. B. !befehle figur |
 | !commands / !help | Dasselbe wie !befehle — für alle, die auf Englisch suchen |
-| !so <Name> | Nur Mods: empfiehlt einen Kanal mit seiner letzten Kategorie. Nach einem Raid schreibt der Bot das selbst (Settings → Chat Commands → Shoutout bei Raid) |
+| !so <Name> | Nur Mods: empfiehlt einen Kanal mit seiner letzten Kategorie. Nach einem Raid schreibt der Bot das selbst (Chat & Bot → Von selbst → Shoutout nach einem Raid) |
 | !challenge | Zeigt aktuelle Challenge |
 | !figur | Zeigt die Figur, die gerade im Overlay ist |
 | !figur <Name> | Schlägt eine Figur in der Welt nach |
@@ -52,13 +77,13 @@ Alle Verbindungen richtest du unter **Settings** ein — Twitch, OBS, Notion und
 | !scene <name> | Wechselt OBS-Szene (nur Mods) |
 | !uptime | Zeigt Stream-Laufzeit |
 
-Alle Befehle lassen sich unter Settings → Chat Commands umbenennen. Antworten, die länger als eine Chat-Nachricht (500 Zeichen) sind, verteilt der Bot automatisch auf mehrere Nachrichten.`,
+Alle Befehle lassen sich unter Chat & Bot → Von selbst umbenennen. Antworten, die länger als eine Chat-Nachricht (500 Zeichen) sind, verteilt der Bot automatisch auf mehrere Nachrichten.`,
   },
   {
     title: 'Erklär-Commands',
     content: `Erklär-Commands sind Chat-Befehle, deren Antwort du selbst schreibst — für alles, was du sonst in jedem Stream neu erklärst: Worum geht die Story? Wo spielt sie? Was passiert hier?
 
-**Anlegen:** Projekt → Erklär-Commands → „+ Neu“
+**Anlegen:** Chat & Bot → Befehle → „+ Neu“
 - **Befehl:** ein Wort, z. B. !story. Das ! kannst du weglassen.
 - **Text:** was der Chat lesen soll. Darunter siehst du, in wie viele Chat-Nachrichten er aufgeteilt wird — höchstens 3.
 - **Cooldown:** so viele Sekunden antwortet der Befehl nach einer Antwort nicht noch einmal. Mods und du selbst sind davon ausgenommen und starten ihn auch nicht.
@@ -70,8 +95,8 @@ Alle Befehle lassen sich unter Settings → Chat Commands umbenennen. Antworten,
 - Ausgeschaltete Befehle antworten nicht und stehen nicht in !befehle.
 - !befehle nennt nur die wichtigsten Befehle — welche, wählst du in der Übersicht mit ★ (bis zu sechs). „!befehle alle“ listet jeden, „!befehle welt“, „!befehle texte“ und „!befehle stream“ je eine Gruppe. Mit einem Namen dahinter (!befehle figur) kommt der eine Satz zu diesem Befehl.
 - **Zweitnamen:** In der Übersicht kannst du einem Befehl weitere Namen geben (!socials für !links); sie antworten wie der Befehl selbst und stehen in Listen dahinter („auch !socials“). !issues ist so ein fester Zweitname von !themen.
-- **Schlaue Cooldowns:** Jeder Cooldown gilt für einen ruhigen Chat. Ab 20 Nachrichten pro Minute halbiert er sich, ab 60 ist es ein Viertel — in einem vollen Chat ist die Antwort schnell weggescrollt. Wer die Antwort gerade bekommen hat, bekommt sie frühestens nach dem Vierfachen (mindestens einer Minute) wieder; andere nach dem normalen Cooldown. Die eingebauten Befehle, die nur etwas sagen (!song, !uptime, !progress …), teilen sich einen Cooldown (Settings → Features → Chat Commands, Standard 15 s). !vote, !sr und !hype haben keinen. Mods und du warten nie.
-- **Erinnerung:** Unter Settings → Features → Chat Commands sagt der Bot alle paar Minuten einen Satz von selbst („Neu hier? !welt erklärt die Welt …“) — aber nur, wenn seit dem letzten Mal jemand im Chat geschrieben hat.
+- **Schlaue Cooldowns:** Jeder Cooldown gilt für einen ruhigen Chat. Ab 20 Nachrichten pro Minute halbiert er sich, ab 60 ist es ein Viertel — in einem vollen Chat ist die Antwort schnell weggescrollt. Wer die Antwort gerade bekommen hat, bekommt sie frühestens nach dem Vierfachen (mindestens einer Minute) wieder; andere nach dem normalen Cooldown. Die eingebauten Befehle, die nur etwas sagen (!song, !uptime, !progress …), teilen sich einen Cooldown (Chat & Bot → Von selbst → Pause zwischen Antworten, Standard 15 s). !vote, !sr und !hype haben keinen. Mods und du warten nie.
+- **Erinnerung:** Unter Chat & Bot → Von selbst → Erinnerung sagt der Bot alle paar Minuten einen Satz von selbst („Neu hier? !welt erklärt die Welt …“) — aber nur, wenn seit dem letzten Mal jemand im Chat geschrieben hat.
 
 **Übersicht für Zuschauer:** Unten im Panel steht jeder Befehl mit einem Satz. Lässt du das Feld leer, schreibt das Tool den Satz selbst — bei eigenen Texten der erste Satz der Antwort, beim Nachschlagen die Art, bei eingebauten ein fester Text; er steht blass im Feld. **Für Twitch-Panel kopieren** legt die ganze Liste als Text in die Zwischenablage, den du auf Twitch unter *Kanal bearbeiten → Panels* einfügst. Nach Änderungen musst du ihn dort neu einfügen.
 - Eigene Texte und Nachschlage-Commands sind im Backup enthalten.
@@ -92,7 +117,7 @@ Alle Befehle lassen sich unter Settings → Chat Commands umbenennen. Antworten,
 
 **In OBS:** Browser-Quelle mit http://localhost:4000/overlay/character/index.html (dieselbe URL wie früher das Figuren-Overlay), etwa 800 × 700 groß.
 
-**Panel:** Projekt → Welt
+**Wo:** Im Stream → Eintrag aus der Welt
 - **Quelle:** Worldbuilder oder Notion. Notion kennt nur Figuren.
 - **Reiter:** eine Art pro Reiter, mit ihrer Farbe aus dem Worldbuilder. Darunter die Suche.
 - **▶** bringt einen Eintrag sofort ins Overlay. **✕ Overlay leeren** blendet die Karte aus.
@@ -115,7 +140,7 @@ Alle Befehle lassen sich unter Settings → Chat Commands umbenennen. Antworten,
 
 **Damit sie immer in ihre Quelle passt,** auch bei langen Einträgen: Der Titel hat höchstens zwei Zeilen und wird kleiner, wenn er länger ist; Zweitname und Rolle eine Zeile; die Beschreibung höchstens vier Zeilen; Felder und Beziehungen zusammen höchstens drei, jede einzeilig — hat der Eintrag Beziehungen, ist mindestens eine davon dabei. Was darüber hinausgeht, endet mit „…“. Den ganzen Text gibt es mit !figur im Chat. Beziehungen zu verworfenen Einträgen erscheinen nicht. Jede Beziehung hat im Panel ihren eigenen 👁-Schalter (↔).
 
-**Umgestalten:** Farben und Schriften kommen aus Settings → Overlays → Design und gelten für alle Overlays zugleich; einzelne lassen sich dort übersteuern. Die Karte selbst nutzt den Kompendium-Stil aus /overlay/lexikon.css — dort liegen auch die drei Gewichte (voll, schlank, flüchtig), die alle Overlays teilen. Nur was dieser Karte allein gehört (Breite, das Wort „Kompendium“ über dem Titel) steht oben in ihrer Datei. Über Settings → Overlays lässt sich eine eigene Kopie anlegen.`,
+**Umgestalten:** Farben und Schriften kommen aus Overlays & Alerts → Overlays → Design und gelten für alle Overlays zugleich; einzelne lassen sich dort übersteuern. Die Karte selbst nutzt den Kompendium-Stil aus /overlay/lexikon.css — dort liegen auch die drei Gewichte (voll, schlank, flüchtig), die alle Overlays teilen. Nur was dieser Karte allein gehört (Breite, das Wort „Kompendium“ über dem Titel) steht oben in ihrer Datei. Über Overlays & Alerts → Overlays lässt sich eine eigene Kopie anlegen.`,
   },
   {
     title: 'Discord: Live-Meldung',
@@ -123,7 +148,7 @@ Alle Befehle lassen sich unter Settings → Chat Commands umbenennen. Antworten,
 
 **Einrichten:**
 - In Discord: Channel bearbeiten → Integrationen → Webhooks → Neuer Webhook → Webhook-URL kopieren
-- Settings → Discord — Live-Meldung → URL einfügen, Text anpassen, Speichern
+- Einstellungen → Verbindungen → Discord — Live-Meldung → URL einfügen, Text anpassen, Speichern
 - {channel} im Text wird zu deinem Twitch-Kanal
 
 **Gut zu wissen:**
@@ -140,14 +165,14 @@ Alle Befehle lassen sich unter Settings → Chat Commands umbenennen. Antworten,
 - Passwort: setzen oder Authentication deaktivieren
 
 **Im Toolkit:**
-- Settings → OBS Verbindung → Host, Port, Passwort eintragen
+- Einstellungen → Verbindungen → OBS → Host, Port, Passwort eintragen
 - "Mit OBS verbinden" klicken
 
 **Start, Pause, Ende:**
 - Im OBS-Panel legt **Szenen anlegen** je eine Szene für das Startbild („start“), das Pausenbild („brb“) und das Endbild („end“) an — mit dem ganzseitigen Overlay als Browser-Quelle (startScreen, pauseScreen, endScreen).
 - Gibt es eine der drei schon, werden die neuen wie sie aufgebaut: dieselben Quellen (Chat, Musik …) an denselben Stellen, nur das Bild getauscht. Wer die Pausen-Szene eingerichtet hat, bekommt Start und Ende also passend dazu.
 - Was es schon gibt, bleibt unberührt: Eine Szene, die das Bild schon zeigt, wird erkannt, egal wie sie heißt. Eine Szene, die nur so heißt und etwas anderes zeigt, wird nicht angefasst. Ein zweiter Klick ändert nichts.
-- Die Hinweise auf den Bildern (!welt, !story, !discord) und der Kanalname stehen fest im Overlay — anpassen über Settings → Overlays, Stift-Knopf (✏️) am Overlay.
+- Die Hinweise auf den Bildern (!welt, !story, !discord) und der Kanalname stehen fest im Overlay — anpassen über Overlays & Alerts → Overlays, Stift-Knopf (✏️) am Overlay.
 
 **Scene-Switching via Chat:**
 - Mods/Broadcaster: !scene <Szenenname> im Chat
@@ -205,18 +230,18 @@ Konfiguriere Mappings über die API:
 3. Breite/Höhe anpassen
 4. Fertig
 
-**Alerts:** Das Overlay meldet neue Follower, Abos (auch Wiederholungen und Geschenke), Raids, Bits und eingelöste Kanalpunkte. Die Texte und Töne stellst du unter Settings → Features → **Alerts — Texte und Töne** ein: je Anlass eine Überschrift, der Text nach dem Namen und, wenn du willst, eine Tondatei (.mp3, .wav, .ogg, bis 5 MB) mit eigener Lautstärke. Platzhalter wie {monate}, {empfaenger}, {abos}, {zuschauer} und {bits} füllt das Toolkit aus („7 Monate“, „42 Zuschauer“); mit einer Rechnung dahinter — {monate*5}, auch + - / — steht nur die gerundete Zahl da, ohne Einheit („35“), sodass du selbst benennst, was gezählt wird; mit einer Kommazahl ({monate*4.99}) bleiben zwei Nachkommastellen („34,93“); ein leeres Feld nimmt wieder den Standardtext. „Test“ speichert und zeigt den Alert im Overlay — im Stream sichtbar und hörbar. Damit der Ton im Stream ankommt, muss in OBS an der Browser-Quelle der Alerts „Audio über OBS steuern“ an sein. Die Texte für Kanalpunkte stehen fest. Was ein Zuschauer beim Abo oder bei den Bits dazuschreibt, steht darunter in Anführungszeichen. Jede Meldung ist eine Kompendium-Tafel oben rechts, in drei Größen: Follower klein (5 s), Abos, Geschenke und Bits etwas größer (6 s), ein Raid breit mit großem Namen (9 s). Kommen mehrere zugleich, erscheinen sie nacheinander; fünf verschenkte Abos sind eine Meldung, nicht sechs. **Abos, Geschenke, Raids und Bits kommen über den Chat** und brauchen keine zusätzlichen Rechte. **Neue Follower brauchen ein Recht mehr** (moderator:read:followers): Verbinde dich in Settings → Verbindungen einmal neu mit Twitch, sonst bleiben Follower-Meldungen aus. Ob es geklappt hat, steht im Log — „Subscribed to follows“ oder ein Hinweis, dass Twitch die Anmeldung abgelehnt hat.
+**Alerts:** Das Overlay meldet neue Follower, Abos (auch Wiederholungen und Geschenke), Raids, Bits und eingelöste Kanalpunkte. Die Texte und Töne stellst du unter Overlays & Alerts → **Alerts** ein: je Anlass eine Überschrift, der Text nach dem Namen und, wenn du willst, eine Tondatei (.mp3, .wav, .ogg, bis 5 MB) mit eigener Lautstärke. Platzhalter wie {monate}, {empfaenger}, {abos}, {zuschauer} und {bits} füllt das Toolkit aus („7 Monate“, „42 Zuschauer“); mit einer Rechnung dahinter — {monate*5}, auch + - / — steht nur die gerundete Zahl da, ohne Einheit („35“), sodass du selbst benennst, was gezählt wird; mit einer Kommazahl ({monate*4.99}) bleiben zwei Nachkommastellen („34,93“); ein leeres Feld nimmt wieder den Standardtext. „Test“ speichert und zeigt den Alert im Overlay — im Stream sichtbar und hörbar. Damit der Ton im Stream ankommt, muss in OBS an der Browser-Quelle der Alerts „Audio über OBS steuern“ an sein. Die Texte für Kanalpunkte stehen fest. Was ein Zuschauer beim Abo oder bei den Bits dazuschreibt, steht darunter in Anführungszeichen. Jede Meldung ist eine Kompendium-Tafel oben rechts, in drei Größen: Follower klein (5 s), Abos, Geschenke und Bits etwas größer (6 s), ein Raid breit mit großem Namen (9 s). Kommen mehrere zugleich, erscheinen sie nacheinander; fünf verschenkte Abos sind eine Meldung, nicht sechs. **Abos, Geschenke, Raids und Bits kommen über den Chat** und brauchen keine zusätzlichen Rechte. **Neue Follower brauchen ein Recht mehr** (moderator:read:followers): Verbinde dich in Einstellungen → Verbindungen einmal neu mit Twitch, sonst bleiben Follower-Meldungen aus. Ob es geklappt hat, steht im Log — „Subscribed to follows“ oder ein Hinweis, dass Twitch die Anmeldung abgelehnt hat.
 
 **Showcase:** Über den eingebauten Overlays öffnet **🖼️ Showcase** jedes Overlay in jedem Zustand mit Testdaten — zum Ansehen und Gestalten, ohne dass etwas in OBS erscheint. Die Seite hält jeden Zustand an, so wie ihn das Erfassen für Figma sieht; **▶ In Bewegung** zeigt dasselbe mit laufenden Animationen und Knöpfen zum Ausprobieren: **↻ Nochmal** spielt einen Zustand von vorn — Alerts und das Glücksrad blenden sich wie im Stream nach ein paar Sekunden aus —, dazu je Overlay Aktionen wie Punkt abhaken, Rad drehen oder Song wechseln. Direkt erreichbar unter http://localhost:4000/overlay/showcase/. Wie ein Overlay in Figma gestaltet und zurückgeholt wird, steht in docs/design-workflow.md.
 
-**Aus Figma:** Sendest du im Figma-Plugin einen Frame, übernimmt das Toolkit sofort, was eindeutig ist — Palette, Textfarbe, Schriftgröße und -schnitt, Rahmen, Ecken, Deckkraft — und die Overlays zeigen es live. Was mehr verlangt (Verschieben, Größen, neue Ebenen, deine Wünsche aus der Notiz), wartet unter Settings → Overlays → **Figma**; der Reiter zeigt, wie viel offen ist. In der Entwicklungsversion startet **Umsetzen lassen** dort Claude im Hintergrund: Es setzt nur die offenen Entwürfe um, ändert nur Overlay-Dateien, und das Ergebnis erscheint im Reiter und im Showcase. Versucht der Lauf, Skripte oder externe Adressen in ein Overlay zu schreiben, wird das zurückgenommen und nichts verbucht. Dort lässt sich jede übernommene Änderung auch zurücknehmen; eine Palettenfarbe kannst du stattdessen „behalten“. Im Figma-Plugin gehört das **Figma-Token** eingetragen (im Log: „Figma token“) — es gilt nur für diese Figma-Verbindung, nicht für die ganze App.
+**Aus Figma:** Sendest du im Figma-Plugin einen Frame, übernimmt das Toolkit sofort, was eindeutig ist — Palette, Textfarbe, Schriftgröße und -schnitt, Rahmen, Ecken, Deckkraft — und die Overlays zeigen es live. Was mehr verlangt (Verschieben, Größen, neue Ebenen, deine Wünsche aus der Notiz), wartet unter Overlays & Alerts → Overlays → **Figma**; der Reiter zeigt, wie viel offen ist. In der Entwicklungsversion startet **Umsetzen lassen** dort Claude im Hintergrund: Es setzt nur die offenen Entwürfe um, ändert nur Overlay-Dateien, und das Ergebnis erscheint im Reiter und im Showcase. Versucht der Lauf, Skripte oder externe Adressen in ein Overlay zu schreiben, wird das zurückgenommen und nichts verbucht. Dort lässt sich jede übernommene Änderung auch zurücknehmen; eine Palettenfarbe kannst du stattdessen „behalten“. Im Figma-Plugin gehört das **Figma-Token** eingetragen (im Log: „Figma token“) — es gilt nur für diese Figma-Verbindung, nicht für die ganze App.
 
 **Die Reihenfolge ist egal.** Startet OBS vor dem Toolkit, laden die Browser-Quellen ins Leere und bleiben leer — deshalb lädt das Toolkit jede Browser-Quelle, die auf localhost:4000 zeigt, selbst neu, sobald es OBS erreicht. Quellen anderer Dienste bleiben unangetastet.
 
-**Größe der Schrift:** Ein einziger Regler unter Settings → Overlays → Design stellt sie für alle Overlays zugleich — Titel, Kicker und Zahlen ziehen mit, nicht nur der Fließtext. Standard sind 18px. Wächst die Schrift, wächst auch der Kasten: Passt eine Browser-Quelle in OBS danach nicht mehr, gib ihr ein paar Pixel mehr Höhe.
+**Größe der Schrift:** Ein einziger Regler unter Overlays & Alerts → Overlays → Design stellt sie für alle Overlays zugleich — Titel, Kicker und Zahlen ziehen mit, nicht nur der Fließtext. Standard sind 18px. Wächst die Schrift, wächst auch der Kasten: Passt eine Browser-Quelle in OBS danach nicht mehr, gib ihr ein paar Pixel mehr Höhe.
 
 **Custom Overlays:**
-- Settings → Overlays → "Neues Overlay"
+- Overlays & Alerts → Overlays → "Neues Overlay"
 - Aus Template erstellen oder eigene HTML-Datei hochladen
 - URL: http://localhost:4000/overlay/custom/<name>/index.html
 
@@ -254,7 +279,7 @@ Das Template unter /overlay/_template/index.html enthält:
     content: `Das "NST Deck" Stream Deck Plugin bietet 10 Buttons mit Live-Status.
 
 **Installation:**
-- Im Toolkit: Settings → Stream Deck → "Plugin jetzt installieren"
+- Die Datei assets/com.nst.deck.streamDeckPlugin doppelklicken — die Stream-Deck-App fragt, ob sie das Plugin installieren soll
 - Oder: .streamDeckPlugin Datei manuell öffnen
 
 **Einrichtung:**
@@ -278,34 +303,8 @@ Das Template unter /overlay/_template/index.html enthält:
 | Karte festpinnen | Festpinnen oder wieder dem Worldbuilder folgen | Folgt / Festgepinnt / Folgen aus |
 
 **API Token:**
-- Findest du unter Settings → Stream Deck API Token
+- Findest du unter Einstellungen → Daten → Stream Deck API Token
 - Bleibt gleich nach Neustart der App`,
-  },
-  {
-    title: 'Dashboard Panels',
-    content: `**Stream Tab:**
-- **Challenge** — Starte Challenges mit Timer und Status-Tracking
-- **Glücksrad** — Sammle Themen, drehe das Rad — der Chat entscheidet. Wie das Rad im Overlay heißt, schreibst du oben ins Feld „Titel im Overlay“ (leer = Glücksrad)
-- **Clip Moments** — Markiere besondere Momente mit Tags
-- **Chat Voting** — Sammle Vorschläge und lass den Chat abstimmen
-- **Now Playing** — Aktuellen Song setzen und im Overlay anzeigen
-
-**Projekt Tab:**
-- **Progress Tracker** — Verfolge den Fortschritt deines Projekts
-- **Welt** — Einträge aus der Welt als Karte ins Overlay bringen, Spoiler-Felder ausblenden
-- **Erklär-Commands** — Chat-Befehle mit selbst geschriebenem Text, z. B. !story
-- **Milestones** — Achievement-System (Minor, Major, Epic)
-- **Todos** — Aufgabenliste für den Stream
-
-**Stats Tab:**
-- **Statistiken** — Überblick über alle Daten (Clips, Todos, Milestones etc.)
-
-**Settings Tab:**
-- **Settings** — Twitch, OBS, Notion, Stream Deck, Backup
-- **Overlays** — Overlay-URLs und Custom Overlays verwalten
-
-**Hilfe Tab:**
-- **Hilfe & Dokumentation** — Diese Dokumentation`,
   },
   {
     title: 'API Referenz',

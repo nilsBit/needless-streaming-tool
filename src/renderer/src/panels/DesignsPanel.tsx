@@ -79,7 +79,6 @@ export default function DesignsPanel() {
 
   return (
     <div className="panel designs-panel">
-      <h2>🗳️ Abstimmungen</h2>
       <p className="panel-desc">Sammle Vorschläge und lass den Chat abstimmen.</p>
 
       {/* Step 1: Collect design proposals */}

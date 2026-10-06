@@ -175,11 +175,36 @@ braucht den Bot.
   `states.json`) – das Overlay zeigt Cover längst, nur die Vorschau nicht.
 - **Issues:** #25 der Umbau selbst mit den sechs Stufen · #26 Content-Planungsbrett
   (Stufe 6) · #24 Belohnungen aus dem Tool heraus anlegen (nach dem Umbau).
-- **Umsetzungsplan für Stufe 1 (Gerüst) geschrieben:**
-  `docs/superpowers/plans/2026-10-06-bedienung-stufe-1-geruest.md`. Am Code des
-  Umbaus ist noch nichts geändert.
-- **Nächster Schritt:** Stufe 1 nach dem Plan bauen, dann Durchlauf in Chrome, dann
-  auf dem Windows-Rechner pullen und einmal durch alle Bereiche klicken.
+- **Stufe 1 (Gerüst) gebaut**, nach dem Plan
+  `docs/superpowers/plans/2026-10-06-bedienung-stufe-1-geruest.md`:
+  - `src/renderer/src/navigation.ts` ist die eine Quelle für Bereiche, Unterreiter,
+    Namen und Sätze; `panelKeys.ts` + `panelRegistry.tsx` bilden Schlüssel auf
+    Komponenten ab. Der Test `__tests__/navigation.test.ts` prüft, dass jedes Panel
+    genau einen Ort hat und keine alten Namen mehr vorkommen (läuft unter Node mit).
+  - `Shell.tsx` (Leiste links, Kopfzeile, Unterreiter), `pages/AreaPage.tsx`,
+    `pages/StartPage.tsx` (vorerst nur Bereichskarten), `components/ux/PageHeader.tsx`
+    und `SubTabs.tsx`. `App.tsx` ist nur noch Update-Hinweis plus Shell.
+  - Settings → „Features“ ist zerlegt: `components/settings/ChatBotSettings.tsx`
+    (Erinnerung, Shoutout, Pause, Namen der eingebauten Befehle → Chat & Bot → Von
+    selbst), `AutoClipsSettings.tsx` (→ Nach dem Stream → Content planen),
+    `AlertSettings` ist ein eigenes Panel (→ Overlays & Alerts → Alerts).
+    `SettingsPanel` bekommt die Kategorie als Prop und hat keine innere Leiste mehr.
+  - Weg: `useDashboardLayout.ts`, Drag & Drop, Anpinnen, Ausblenden, Einklappen, die
+    Leiste „Ausgeblendet“, alle zugehörigen CSS-Regeln. Die `localStorage`-Schlüssel
+    `stream_area` und `dashboard-layout` löscht die Shell beim ersten Start; gemerkt
+    wird `nst.navigation`.
+  - Das Tastenkürzel-Panel (`HotkeysPanel`) war nirgends eingebunden, die API dazu
+    gibt es; es hängt jetzt unter Einstellungen → Programm.
+  - Hilfe: Abschnitt „Dashboard Panels“ raus, neu „Wo finde ich was“ (alt → neu),
+    alle Pfade auf die neuen Wege. `CONTEXT.md`: Bereich, Unterreiter, Seite.
+  - Zwei neue Skripte: `npm run server:headless` startet nur den Server in Electron,
+    ohne Fenster (für Durchläufe und Aufnahmen, wenn die App nicht aufgehen soll);
+    `npm run ui:walk` klickt in Chrome jeden Bereich und Unterreiter, zählt die Panels
+    und legt Bilder unter `design/ui-walk/` ab (nicht eingecheckt). Braucht Server und
+    Vite (`npx vite`). Ergebnis am 06.10.: 21 Panels wie erwartet, kein Überlauf bei
+    1360 und 900 px, keine unbehandelten Fehler.
+- **Nächster Schritt:** Stufe 2 (Start mit Zustandsmarken und Prüfliste, `/api/readiness`)
+  planen. Vorher auf dem Windows-Rechner pullen und einmal durch alle Bereiche klicken.
 - Weiter offen wie zuvor: Alert-Töne hinterlegen, Szene `tft` ohne Spotify-Quellen,
   Stream-Deck-Taste fürs Mithören, Test-Clip in der Clip-Liste, Figma-Pilot.
 

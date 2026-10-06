@@ -99,10 +99,10 @@ export function findSubTab(areaKey: string, subKey: string | null): SubTab;
 ```
 
 **Steps:**
-- [ ] `panelKeys.ts` anlegen. `hotkeys` bleibt drin, bis Task 4 entschieden hat; fällt es weg, hier und in `navigation.ts` streichen.
-- [ ] `navigation.ts` nach der Tabelle oben füllen. Sätze aus dem Prototyp übernehmen (z. B. Im Stream: „Alles, was du auslöst, während du live bist.“). Keine Emoji in Labels.
-- [ ] Test: (a) jeder Schlüssel aus `PANEL_KEYS` kommt in genau einem Unterreiter vor, (b) kein Unterreiter ohne Panel außer `start`, (c) kein Label aus der Verbotsliste `['Settings', 'Progress Tracker', 'Clip Moments', 'Reward Stats', 'Now Playing', 'Challenge', 'Milestones', 'OBS Scenes', 'Live', 'Produktion']`, (d) `findSubTab` fällt auf den ersten Unterreiter zurück, wenn der Schlüssel unbekannt ist.
-- [ ] `npm test` – die vitest-Konfiguration findet `src/**/__tests__/**/*.test.ts` bereits, nichts anpassen.
+- [x] `panelKeys.ts` anlegen. `hotkeys` bleibt drin, bis Task 4 entschieden hat; fällt es weg, hier und in `navigation.ts` streichen.
+- [x] `navigation.ts` nach der Tabelle oben füllen. Sätze aus dem Prototyp übernehmen (z. B. Im Stream: „Alles, was du auslöst, während du live bist.“). Keine Emoji in Labels.
+- [x] Test: (a) jeder Schlüssel aus `PANEL_KEYS` kommt in genau einem Unterreiter vor, (b) kein Unterreiter ohne Panel außer `start`, (c) kein Label aus der Verbotsliste `['Settings', 'Progress Tracker', 'Clip Moments', 'Reward Stats', 'Now Playing', 'Challenge', 'Milestones', 'OBS Scenes', 'Live', 'Produktion']`, (d) `findSubTab` fällt auf den ersten Unterreiter zurück, wenn der Schlüssel unbekannt ist.
+- [x] `npm test` – die vitest-Konfiguration findet `src/**/__tests__/**/*.test.ts` bereits, nichts anpassen.
 
 ---
 
@@ -113,11 +113,11 @@ export function findSubTab(areaKey: string, subKey: string | null): SubTab;
 - Modify: `src/renderer/src/panels/SettingsPanel.tsx`
 
 **Steps:**
-- [ ] In `SettingsPanel.tsx` den Render- und State-Teil für Erinnerung (`/settings/reminder`), Pause eingebaute Befehle (`/settings/builtin-cooldown`) und Shoutout nach `ChatBotSettings.tsx` ziehen – Verhalten und API-Aufrufe unverändert, nur verschoben. Toasts bleiben.
-- [ ] Auto-Clips (`auto_clips_enabled`, `auto_clip_trigger_*`) nach `AutoClipsSettings.tsx` ziehen, gleiches Prinzip.
-- [ ] `<AlertSettings />` wird nicht mehr von SettingsPanel gerendert; es ist ein eigener Panel-Schlüssel `alerts`.
-- [ ] `SettingsPanel` bekommt `props.category: 'connections' | 'app' | 'data'` und rendert nur diese; die eigene Kategorie-Leiste und `'features'` entfallen. `CATEGORIES` wird zu `'app' → 'Programm'`, `'data' → 'Daten'` nur noch als Überschriften-Text, falls überhaupt noch nötig.
-- [ ] Im laufenden Tool prüfen: Erinnerung speichern, Pause ändern, Auto-Clips umschalten – jeweils die Antwort des Servers im Netzwerk-Tab sehen. Kein Test (Renderer).
+- [x] In `SettingsPanel.tsx` den Render- und State-Teil für Erinnerung (`/settings/reminder`), Pause eingebaute Befehle (`/settings/builtin-cooldown`) und Shoutout nach `ChatBotSettings.tsx` ziehen – Verhalten und API-Aufrufe unverändert, nur verschoben. Toasts bleiben.
+- [x] Auto-Clips (`auto_clips_enabled`, `auto_clip_trigger_*`) nach `AutoClipsSettings.tsx` ziehen, gleiches Prinzip.
+- [x] `<AlertSettings />` wird nicht mehr von SettingsPanel gerendert; es ist ein eigener Panel-Schlüssel `alerts`.
+- [x] `SettingsPanel` bekommt `props.category: 'connections' | 'app' | 'data'` und rendert nur diese; die eigene Kategorie-Leiste und `'features'` entfallen. `CATEGORIES` wird zu `'app' → 'Programm'`, `'data' → 'Daten'` nur noch als Überschriften-Text, falls überhaupt noch nötig.
+- [ ] Im laufenden Tool prüfen (steht aus, der Durchlauf war nur lesend): Erinnerung speichern, Pause ändern, Auto-Clips umschalten – jeweils die Antwort des Servers im Netzwerk-Tab sehen. Kein Test (Renderer).
 
 ---
 
@@ -129,13 +129,13 @@ export function findSubTab(areaKey: string, subKey: string | null): SubTab;
 - Delete: `src/renderer/src/hooks/useDashboardLayout.ts`
 
 **Steps:**
-- [ ] `panelRegistry.tsx`: `Record<PanelKey, React.ComponentType>`; `settings-*` zeigen auf `() => <SettingsPanel category="…" />`.
-- [ ] `Shell.tsx`: Leiste links (`<nav aria-label="Bereiche">`, Knöpfe mit `aria-current="page"`), Trennlinie vor den `secondary`-Bereichen, Logo oben; rechts `PageHeader` (Label + Satz), darunter `SubTabs` (nur wenn > 1), darunter die Seite. Gemerkt wird `{ area, subTab }` unter `localStorage['nst.navigation']`; die alten Schlüssel `stream_area` und `dashboard-layout` werden beim Start gelöscht.
-- [ ] `AreaPage.tsx`: Panels des Unterreiters untereinander, je in `ErrorBoundary` (Fallback wie heute), Klasse `page-panels`.
-- [ ] `StartPage.tsx`: eine Karte je Bereich außer Start (Label, Satz, Stichworte, Knopf „Öffnen“ → `onNavigate(area)`). Platz oberhalb für Zustandsmarken und Prüfliste (Stufe 2) lassen, aber nichts davon bauen.
-- [ ] `App.tsx`: nur noch Toast-Provider-Nutzung für den Update-Hinweis und `<Shell />`. `AREAS`, `TABS`, Drag-Handler, Hero/Collapsed/Hidden entfernen; `logo.svg` wandert in die Shell.
-- [ ] `useDashboardLayout.ts` löschen. `grep -rn "useDashboardLayout\|dashboard-layout\|stream_area" src/` muss leer sein.
-- [ ] `npm run typecheck`.
+- [x] `panelRegistry.tsx`: `Record<PanelKey, React.ComponentType>`; `settings-*` zeigen auf `() => <SettingsPanel category="…" />`.
+- [x] `Shell.tsx`: Leiste links (`<nav aria-label="Bereiche">`, Knöpfe mit `aria-current="page"`), Trennlinie vor den `secondary`-Bereichen, Logo oben; rechts `PageHeader` (Label + Satz), darunter `SubTabs` (nur wenn > 1), darunter die Seite. Gemerkt wird `{ area, subTab }` unter `localStorage['nst.navigation']`; die alten Schlüssel `stream_area` und `dashboard-layout` werden beim Start gelöscht.
+- [x] `AreaPage.tsx`: Panels des Unterreiters untereinander, je in `ErrorBoundary` (Fallback wie heute), Klasse `page-panels`.
+- [x] `StartPage.tsx`: eine Karte je Bereich außer Start (Label, Satz, Stichworte, Knopf „Öffnen“ → `onNavigate(area)`). Platz oberhalb für Zustandsmarken und Prüfliste (Stufe 2) lassen, aber nichts davon bauen.
+- [x] `App.tsx`: nur noch Toast-Provider-Nutzung für den Update-Hinweis und `<Shell />`. `AREAS`, `TABS`, Drag-Handler, Hero/Collapsed/Hidden entfernen; `logo.svg` wandert in die Shell.
+- [x] `useDashboardLayout.ts` löschen. `grep -rn "useDashboardLayout\|dashboard-layout\|stream_area" src/` muss leer sein.
+- [x] `npm run typecheck`.
 
 ---
 
@@ -146,9 +146,9 @@ export function findSubTab(areaKey: string, subKey: string | null): SubTab;
 - Decide: `src/renderer/src/panels/HotkeysPanel.tsx`
 
 **Steps:**
-- [ ] In jedem Panel die erste `<h2>` mit Symbol entfernen (z. B. `<h2>🎬 Clip Moments</h2>`). Nur die Kopfzeile – innere `<h3>` und Texte bleiben. In einer Runde speichern.
-- [ ] `HotkeysPanel.tsx`: Welche API ruft es? Existiert sie noch (`grep` im Server)? Ja → unter Einstellungen → Programm einhängen (`hotkeys`). Nein → Datei löschen, Schlüssel aus `panelKeys.ts`/`navigation.ts` streichen, Hilfe-Abschnitt „Tastenkürzel“ prüfen.
-- [ ] `npm run lint` (ungenutzte Importe nach dem Entfernen der Kopfzeilen).
+- [x] In jedem Panel die erste `<h2>` mit Symbol entfernen (z. B. `<h2>🎬 Clip Moments</h2>`). Nur die Kopfzeile – innere `<h3>` und Texte bleiben. In einer Runde speichern.
+- [x] `HotkeysPanel.tsx`: Welche API ruft es? Existiert sie noch (`grep` im Server)? Ja → unter Einstellungen → Programm einhängen (`hotkeys`). Nein → Datei löschen, Schlüssel aus `panelKeys.ts`/`navigation.ts` streichen, Hilfe-Abschnitt „Tastenkürzel“ prüfen.
+- [x] `npm run lint` (ungenutzte Importe nach dem Entfernen der Kopfzeilen).
 
 ---
 
@@ -158,9 +158,9 @@ export function findSubTab(areaKey: string, subKey: string | null): SubTab;
 - Modify: `src/renderer/src/index.css`
 
 **Steps:**
-- [ ] Neue Regeln: `.shell` (Grid: Leiste 220 px | Seite), `.shell-nav`, `.shell-nav-btn[aria-current]` (Akzent `#e67e22`, Rahmen statt Füllung – wie im Prototyp), `.page-header`, `.sub-tabs` (Unterstrich 2 px in Akzentfarbe), `.page-panels` (eine Spalte, Abstand 24 px), `.start-cards` (Raster `auto-fit, minmax(300px, 1fr)`). Farben und Schrift bleiben die heutigen.
-- [ ] Alte Regeln entfernen: `.app-header`, `.area-nav`, `.area-btn`, `.tab-nav`, `.tab-btn`, `.dashboard-hero-layout`, `.hero-panel`, `.hero-badge`, `.panel-grid`, `.panel-wrapper`, `.panel-header-bar`, `.panel-header-controls`, `.panel-header-btn`, `.drag-handle`, `.dragging`, `.drag-over`, `.pin-btn`, `.panel-collapse-btn`, `.collapse-icon`, `.collapse-label`, `.panel-collapsed-list`, `.hidden-bar`, `.hidden-bar-label`, `.hidden-bar-btn`. Vorher `grep` im Renderer, dass keine Klasse mehr benutzt wird.
-- [ ] Schmales Fenster (unter 900 px): die Leiste wird zur Zeile oben, die Seite darunter – kein horizontales Scrollen. Mit dem Durchlauf aus Task 8 bei 1360 und 900 px prüfen.
+- [x] Neue Regeln: `.shell` (Grid: Leiste 220 px | Seite), `.shell-nav`, `.shell-nav-btn[aria-current]` (Akzent `#e67e22`, Rahmen statt Füllung – wie im Prototyp), `.page-header`, `.sub-tabs` (Unterstrich 2 px in Akzentfarbe), `.page-panels` (eine Spalte, Abstand 24 px), `.start-cards` (Raster `auto-fit, minmax(300px, 1fr)`). Farben und Schrift bleiben die heutigen.
+- [x] Alte Regeln entfernen: `.app-header`, `.area-nav`, `.area-btn`, `.tab-nav`, `.tab-btn`, `.dashboard-hero-layout`, `.hero-panel`, `.hero-badge`, `.panel-grid`, `.panel-wrapper`, `.panel-header-bar`, `.panel-header-controls`, `.panel-header-btn`, `.drag-handle`, `.dragging`, `.drag-over`, `.pin-btn`, `.panel-collapse-btn`, `.collapse-icon`, `.collapse-label`, `.panel-collapsed-list`, `.hidden-bar`, `.hidden-bar-label`, `.hidden-bar-btn`. Vorher `grep` im Renderer, dass keine Klasse mehr benutzt wird.
+- [x] Schmales Fenster (unter 900 px): die Leiste wird zur Zeile oben, die Seite darunter – kein horizontales Scrollen. Mit dem Durchlauf aus Task 8 bei 1360 und 900 px prüfen.
 
 ---
 
@@ -170,17 +170,17 @@ export function findSubTab(areaKey: string, subKey: string | null): SubTab;
 - Modify: `src/renderer/src/docs/help-de.ts`, `CONTEXT.md`
 
 **Steps:**
-- [ ] Abschnitt „Dashboard Panels“ (Verschieben, Anpinnen, Ausblenden) entfernen.
-- [ ] Neuer Abschnitt „Wo finde ich was“ gleich nach „Erste Schritte“: eine Tabelle alt → neu nach der Tabelle „Wohin was wandert“ oben, in Nutzersprache.
-- [ ] Alle Pfade in anderen Abschnitten ersetzen: „Settings → Features → Alerts“ → „Overlays & Alerts → Alerts“, „Projekt → Erklär-Commands“ → „Chat & Bot → Befehle“, „Live → OBS Scenes“ → „Overlays & Alerts → Szenen in OBS“, „Settings → Overlays“ → „Overlays & Alerts → Overlays“, „Settings → Discord“ → „Einstellungen → Verbindungen“, „Projekt → Welt“ → „Im Stream“. `grep -n "Settings →\|Projekt →\|Live →\|Produktion" src/renderer/src/docs/help-de.ts` muss danach leer sein.
-- [ ] `CONTEXT.md`: Bereich, Unterreiter, Seite eintragen; „Dashboard“/„Tab“ als veraltet markieren oder streichen.
+- [x] Abschnitt „Dashboard Panels“ (Verschieben, Anpinnen, Ausblenden) entfernen.
+- [x] Neuer Abschnitt „Wo finde ich was“ gleich nach „Erste Schritte“: eine Tabelle alt → neu nach der Tabelle „Wohin was wandert“ oben, in Nutzersprache.
+- [x] Alle Pfade in anderen Abschnitten ersetzen: „Settings → Features → Alerts“ → „Overlays & Alerts → Alerts“, „Projekt → Erklär-Commands“ → „Chat & Bot → Befehle“, „Live → OBS Scenes“ → „Overlays & Alerts → Szenen in OBS“, „Settings → Overlays“ → „Overlays & Alerts → Overlays“, „Settings → Discord“ → „Einstellungen → Verbindungen“, „Projekt → Welt“ → „Im Stream“. `grep -n "Settings →\|Projekt →\|Live →\|Produktion" src/renderer/src/docs/help-de.ts` muss danach leer sein.
+- [x] `CONTEXT.md`: Bereich, Unterreiter, Seite eintragen; „Dashboard“/„Tab“ als veraltet markieren oder streichen.
 
 ---
 
 ### Task 7: `docs/STAND.md`
 
 **Steps:**
-- [ ] Abschnitt „Hier aufgehört“ ergänzen: Stufe 1 gebaut, was wo liegt, was die Stufen 2–6 noch bringen; Hinweis, dass `localStorage`-Layout der alten Oberfläche beim ersten Start gelöscht wird.
+- [x] Abschnitt „Hier aufgehört“ ergänzen: Stufe 1 gebaut, was wo liegt, was die Stufen 2–6 noch bringen; Hinweis, dass `localStorage`-Layout der alten Oberfläche beim ersten Start gelöscht wird.
 
 ---
 
@@ -191,16 +191,16 @@ export function findSubTab(areaKey: string, subKey: string | null): SubTab;
 - Modify: `package.json` (Skripte `server:headless`, `ui:walk`), `.gitignore` (`design/ui-walk/`)
 
 **Steps:**
-- [ ] `server-headless.mjs`: startet `dist/server/index.js` in Electron ohne Fenster (`app.whenReady().then(startServer)`), `process.chdir` ins Repo, `NST_DEV=1`; vorher `tsc -p tsconfig.node.json`. Bricht ab, wenn Port 4000 belegt ist. Beendet sich mit SIGINT sauber (der Server löscht `~/.nst/connection.json`).
-- [ ] `ui-walk.mjs`: holt das Session-Token aus dem Serverlog bzw. `GET /api/auth/token`-Äquivalent, wie die App es tut; öffnet `http://localhost:5273/#token=…` (Vite) oder die gebaute Renderer-Seite; klickt jeden Bereich und Unterreiter, zählt `.page-panels > *`, schreibt `design/ui-walk/<bereich>-<unterreiter>.png` bei 1360×900 und 900×700. Druckt eine Tabelle Bereich · Unterreiter · Panels.
-- [ ] Erwartung: Summe der Panels über alle Seiten = Anzahl `PANEL_KEYS` (ohne `start`), jede Seite öffnet ohne Fehler in der Konsole.
-- [ ] Nur lesend. Nichts klicken, was speichert oder sendet (`Im Stream testen`, `Szenen anlegen`, `Speichern`).
+- [x] `server-headless.mjs`: startet `dist/server/index.js` in Electron ohne Fenster (`app.whenReady().then(startServer)`), `process.chdir` ins Repo, `NST_DEV=1`; vorher `tsc -p tsconfig.node.json`. Bricht ab, wenn Port 4000 belegt ist. Beendet sich mit SIGINT sauber (der Server löscht `~/.nst/connection.json`).
+- [x] `ui-walk.mjs`: holt das Session-Token aus dem Serverlog bzw. `GET /api/auth/token`-Äquivalent, wie die App es tut; öffnet `http://localhost:5273/#token=…` (Vite) oder die gebaute Renderer-Seite; klickt jeden Bereich und Unterreiter, zählt `.page-panels > *`, schreibt `design/ui-walk/<bereich>-<unterreiter>.png` bei 1360×900 und 900×700. Druckt eine Tabelle Bereich · Unterreiter · Panels.
+- [x] Erwartung: Summe der Panels über alle Seiten = Anzahl `PANEL_KEYS` (ohne `start`), jede Seite öffnet ohne Fehler in der Konsole.
+- [x] Nur lesend. Nichts klicken, was speichert oder sendet (`Im Stream testen`, `Szenen anlegen`, `Speichern`).
 
 ---
 
 ### Task 9: Abschluss
 
-- [ ] `npm run typecheck && echo ok; npm test > /tmp/test.log 2>&1; echo $?; npm run lint > /tmp/lint.log 2>&1; echo $?`
+- [x] `npm run typecheck && echo ok; npm test > /tmp/test.log 2>&1; echo $?; npm run lint > /tmp/lint.log 2>&1; echo $?`
 - [ ] Commit (englisch), z. B. `refactor(ui): navigation by situation — shell, areas, sub tabs; dashboard board removed (stage 1)`.
 - [ ] Nils fragen, bevor gepusht wird. Danach auf dem Windows-Rechner: `git pull`, `npm run dev`, einmal durch alle Bereiche klicken.
 

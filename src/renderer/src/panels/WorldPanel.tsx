@@ -224,7 +224,6 @@ export default function WorldPanel() {
   return (
     <div className="panel world-panel">
       <div className="clips-panel-header">
-        <h2>🌍 Welt</h2>
         {active && (
           <button className="btn-export-small" onClick={unpin} title="Aus dem Overlay nehmen">✕ Overlay leeren</button>
         )}

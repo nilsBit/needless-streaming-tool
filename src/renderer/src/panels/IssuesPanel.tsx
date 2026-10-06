@@ -83,7 +83,6 @@ export default function IssuesPanel() {
 
   return (
     <div className="panel issues-panel">
-      <h2>🎯 Glücksrad</h2>
       <p className="panel-desc">Themen sammeln, Rad drehen — der Chat entscheidet was dran kommt.</p>
 
       <div className="issue-input">

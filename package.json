@@ -19,7 +19,9 @@
     "lint": "eslint src/",
     "format": "prettier --write src/",
     "showcase:capture": "node scripts/showcase-capture.mjs",
-    "showcase:compare": "node scripts/showcase-compare.mjs"
+    "showcase:compare": "node scripts/showcase-compare.mjs",
+    "server:headless": "tsc -p tsconfig.node.json && electron scripts/server-headless.cjs",
+    "ui:walk": "node scripts/ui-walk.mjs"
   },
   "dependencies": {
     "@coooookies/windows-smtc-monitor": "^1.0.12",

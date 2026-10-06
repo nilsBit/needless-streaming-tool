@@ -194,7 +194,6 @@ export default function ClipsPanel() {
   return (
     <div className="panel clips-panel">
       <div className="clips-panel-header">
-        <h2>🎬 Clip Moments</h2>
         <button
           ref={autoSyncToggleRef}
           className={`auto-sync-toggle ${notionConfigured && autoSync ? 'on' : 'off'}`}

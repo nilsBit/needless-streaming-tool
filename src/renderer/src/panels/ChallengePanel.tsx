@@ -80,7 +80,6 @@ export default function ChallengePanel() {
 
   return (
     <div className="panel challenge-panel">
-      <h2>🔬 Challenge</h2>
       <p className="panel-desc">Setz dein Ziel für den Stream. Timer startet automatisch.</p>
 
       {!isActive ? (
