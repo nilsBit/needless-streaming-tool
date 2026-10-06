@@ -174,31 +174,6 @@ router.get('/notion/database/check', async (_req, res) => {
   res.json(result);
 });
 
-// Install Stream Deck plugin
-router.post('/streamdeck/install', async (_req, res) => {
-  try {
-    const { shell } = require('electron');
-    // Check both dev and production paths
-    let pluginPath = path.join(process.cwd(), 'assets', 'com.nst.deck.streamDeckPlugin');
-    if (!fs.existsSync(pluginPath)) {
-      // Production: check resources dir
-      try {
-        const { app } = require('electron');
-        pluginPath = path.join(process.resourcesPath || app.getAppPath(), 'assets', 'com.nst.deck.streamDeckPlugin');
-      } catch {}
-    }
-    if (!fs.existsSync(pluginPath)) {
-      res.status(404).json({ error: 'Plugin file not found' });
-      return;
-    }
-    await shell.openPath(pluginPath);
-    res.json({ success: true });
-  } catch (err) {
-    console.error('[Settings] Could not open the plugin:', err);
-    res.status(500).json({ error: 'Failed to open plugin' });
-  }
-});
-
 // Discord live announcement — the webhook URL goes in, never out
 router.get('/discord-live', (_req, res) => {
   res.json(getLiveSettings());

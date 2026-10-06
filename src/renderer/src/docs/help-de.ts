@@ -5,13 +5,12 @@ export const HELP_SECTIONS_DE = [
     title: 'Erste Schritte',
     content: `Das Stream Toolkit ist deine Zentrale für Streaming. Hier steuerst du alles — Overlays, Challenges, Clips, Aufgaben, Milestones und mehr.
 
-Links stehen die Bereiche nach Situation: **Im Stream** (alles, was du live auslöst), **Chat & Bot**, **Overlays & Alerts**, **Nach dem Stream**, darunter **Einstellungen** und **Hilfe**. Unten in der Leiste siehst du immer, ob Twitch, OBS und der Worldbuilder verbunden sind. Fehlt vor dem Stream etwas, steht es oben auf „Im Stream“ in einem Balken – mit dem, was es im Stream bedeutet, und einem Knopf, der dich hinbringt. Alle Verbindungen richtest du unter **Einstellungen → Verbindungen** ein — Twitch, OBS, Notion, Discord; den Stream-Deck-Token findest du unter **Einstellungen → Daten**.
+Links stehen die Bereiche nach Situation: **Im Stream** (alles, was du live auslöst), **Chat & Bot**, **Overlays & Alerts**, **Nach dem Stream**, darunter **Einstellungen** und **Hilfe**. Unten in der Leiste siehst du immer, ob Twitch, OBS und der Worldbuilder verbunden sind. Fehlt vor dem Stream etwas, steht es oben auf „Im Stream“ in einem Balken – mit dem, was es im Stream bedeutet, und einem Knopf, der dich hinbringt. Alle Verbindungen richtest du unter **Einstellungen → Verbindungen** ein — Twitch, OBS, Notion, Discord; den API-Token für externe Werkzeuge findest du unter **Einstellungen → Daten**.
 
 **Voraussetzungen:**
 - OBS Studio (Version 28+) mit aktiviertem WebSocket Server
 - Twitch-Account mit einer App auf dev.twitch.tv
-- Optional: Notion-Account für Clip-Sync
-- Optional: Elgato Stream Deck`,
+- Optional: Notion-Account für Clip-Sync`,
   },
   {
     title: 'Einrichtung: Was dein Stream kann',
@@ -316,38 +315,6 @@ Das Template unter /overlay/_template/index.html enthält:
 **Sync:**
 - Clips Panel → "Sync to Notion" Button
 - Synct alle Clips der aktuellen Session`,
-  },
-  {
-    title: 'Stream Deck',
-    content: `Das "NST Deck" Stream Deck Plugin bietet 10 Buttons mit Live-Status.
-
-**Installation:**
-- Die Datei assets/com.nst.deck.streamDeckPlugin doppelklicken — die Stream-Deck-App fragt, ob sie das Plugin installieren soll
-- Oder: .streamDeckPlugin Datei manuell öffnen
-
-**Einrichtung:**
-1. Beliebigen "NST" Button aufs Deck ziehen
-2. Button anklicken → Property Inspector unten
-3. API Token eintragen (einmalig, gilt für alle Buttons)
-4. Button-spezifische Settings konfigurieren
-
-**Verfügbare Buttons:**
-| Button | Aktion | Live-Anzeige |
-|--------|--------|-------------|
-| Scene Switch | OBS-Szene wechseln | Aktuelle Szene |
-| Clip Marker | Clip markieren | Session Clip-Anzahl |
-| Neuer Eintrag | Eintrag erstellen | Offene Einträge |
-| Challenge | Start/Stop/Done/Fail | Status + Titel |
-| Todo Check | Nächstes Todo abhaken | Offene Todos |
-| Hype Moment | Hype Moment auslösen | Flash-Animation |
-| Glücksrad | Roulette drehen | Spin-Animation |
-| Milestone | Milestone abschließen | Pending-Anzahl |
-| Figur wechseln | Nächste Figur ins Overlay (pinnt fest) | Name der Figur |
-| Karte festpinnen | Festpinnen oder wieder dem Worldbuilder folgen | Folgt / Festgepinnt / Folgen aus |
-
-**API Token:**
-- Findest du unter Einstellungen → Daten → Stream Deck API Token
-- Bleibt gleich nach Neustart der App`,
   },
   {
     title: 'API Referenz',

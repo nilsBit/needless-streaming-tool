@@ -189,7 +189,7 @@ export const AREAS: readonly Area[] = [
       {
         key: 'daten',
         label: 'Daten',
-        sentence: 'Stream-Deck-Token, Sicherung und Sync-Ordner.',
+        sentence: 'API-Token, Sicherung und Sync-Ordner.',
         panels: ['settings-data'],
       },
     ],
@@ -198,7 +198,7 @@ export const AREAS: readonly Area[] = [
     key: 'help',
     label: 'Hilfe',
     sentence: 'Wie alles zusammenhängt, Schritt für Schritt.',
-    keywords: ['Erste Schritte', 'Befehle', 'Overlays', 'Stream Deck'],
+    keywords: ['Erste Schritte', 'Befehle', 'Overlays'],
     group: 'secondary',
     subTabs: [{ key: 'hilfe', label: 'Hilfe', sentence: '', panels: ['help'] }],
   },

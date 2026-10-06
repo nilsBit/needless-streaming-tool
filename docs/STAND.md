@@ -308,7 +308,14 @@ braucht den Bot.
   eine Belohnung per Twitch-ID (`leaderboards`), Einlösung zählt direkt, `!flex` und
   `flex_credits` wieder weg, Seite unter Overlays & Alerts → Bestenlisten, Overlays je Liste mit
   `?type=<key>`. Alte Overlay-Adressen ohne Parameter zeigen nichts mehr. Spec:
-  `docs/superpowers/specs/2026-10-06-bestenlisten-design.md`. **Twitch-Bot auf dem Mac nicht verbunden (06.10., Nacht):**
+  `docs/superpowers/specs/2026-10-06-bestenlisten-design.md`. **Stream-Deck-Plugin geparkt**
+  (Nils, 06.10., Abend: „weiß nicht ob so ein Plugin überhaupt sinnvoll ist … was ich brauche ist
+  Szenenwechsel"): Szenen wechselt die Stream-Deck-Software über ihre eigene OBS-Anbindung, die
+  App-Tastenkürzel decken den Rest. Raus sind die Route `/settings/streamdeck/install`, das
+  Hilfekapitel, `build:plugin` aus den Build-Skripten und die Extra-Ressource im Paket. Der
+  Ordner `streamdeck-plugin/` bleibt im Repo, die Server-Endpunkte und der API-Token
+  (jetzt „API-Token für externe Werkzeuge") auch. Issues #10 und #11 sind damit hinfällig —
+  schließen. Nicht wieder aufgreifen, solange Nils das Deck im Stream nicht nutzt. **Twitch-Bot auf dem Mac nicht verbunden (06.10., Nacht):**
   Seit Electron 44 meldet `safeStorage.isEncryptionAvailable()` auf dem Mac `false`, der
   verschlüsselte Twitch-Token lässt sich nicht lesen. Die App sagt das jetzt auf der Twitch-Karte
   und in der Seitenleiste (`getBotStatus().error`, `/api/auth/twitch/rewards` liefert `error`).
@@ -562,13 +569,7 @@ wurde verworfen: In OBS läuft sie ohnehin auf 71 %.
 
 **Offen (GitHub Issues)**
 
-- **#11** Installieren-Knopf fürs Stream-Deck-Plugin: Der Fix ist drin
-  (`40fe0bd`), es fehlt nur die Kontrolle an einem gepackten Build. Unter macOS
-  `npm run build:mac`, dann prüfen, ob
-  `release/mac-arm64/Needless Streaming Tool.app/Contents/Resources/assets/`
-  die Plugin-Datei enthält. Unter Windows `npm run build:win` und
-  `release/win-unpacked/resources/assets/`.
-- **#10** Hardware-Test am echten Stream Deck, inklusive „Karte festpinnen“.
+- **#11** und **#10** (Stream-Deck-Plugin): hinfällig, das Plugin ist seit 06.10. geparkt — siehe oben.
 - **#22** Die Tests wackeln unter hoher Last — Ursache offen. Neu belegt: der
   Fehler ist keine fehlgeschlagene Zusicherung, sondern
   `Error: Parse Error: Expected HTTP/` in `entries.test.ts`, also

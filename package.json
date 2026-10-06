@@ -8,11 +8,10 @@
     "dev": "concurrently --kill-others-on-fail \"npm run dev:renderer\" \"npm run dev:main\"",
     "dev:main": "nodemon",
     "dev:renderer": "vite",
-    "build:plugin": "npm --prefix streamdeck-plugin run package",
-    "build": "npm run build:plugin && tsc -p tsconfig.node.json && vite build && electron-builder",
-    "build:mac": "npm run build:plugin && tsc -p tsconfig.node.json && vite build && electron-builder --mac",
-    "build:win": "npm run build:plugin && tsc -p tsconfig.node.json && vite build && electron-builder --win",
-    "build:all": "npm run build:plugin && tsc -p tsconfig.node.json && vite build && electron-builder --mac --win",
+    "build": "tsc -p tsconfig.node.json && vite build && electron-builder",
+    "build:mac": "tsc -p tsconfig.node.json && vite build && electron-builder --mac",
+    "build:win": "tsc -p tsconfig.node.json && vite build && electron-builder --win",
+    "build:all": "tsc -p tsconfig.node.json && vite build && electron-builder --mac --win",
     "typecheck": "tsc --noEmit",
     "test": "cross-env ELECTRON_RUN_AS_NODE=1 electron ./node_modules/vitest/vitest.mjs run",
     "test:watch": "cross-env ELECTRON_RUN_AS_NODE=1 electron ./node_modules/vitest/vitest.mjs",
@@ -51,10 +50,6 @@
       {
         "from": "src/overlays",
         "to": "overlays"
-      },
-      {
-        "from": "assets/com.nst.deck.streamDeckPlugin",
-        "to": "assets/com.nst.deck.streamDeckPlugin"
       }
     ],
     "mac": {

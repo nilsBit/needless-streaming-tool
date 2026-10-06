@@ -10,7 +10,7 @@ export type SettingsCategory = 'connections' | 'app' | 'data';
 
 // Einstellungen: Verbindungen (the connection cards, shared with the setup),
 // Programm (what the stream can do, look, autostart; the hotkeys are their
-// own panel) and Daten (Stream Deck token, backup, sync folder).
+// own panel) and Daten (API token, backup, sync folder).
 export default function SettingsPanel({ category }: { category: SettingsCategory }) {
   const { data: tokenInfo } = useApi<{ token: string | null }>('/settings/api-token');
   const { data: syncStatus, refetch: refetchSync } = useApi<{
@@ -95,7 +95,7 @@ export default function SettingsPanel({ category }: { category: SettingsCategory
         <div className="s-card-header">
           <div className="s-card-info">
             <div>
-              <div className="s-card-title">Stream-Deck-Token</div>
+              <div className="s-card-title">API-Token für externe Werkzeuge</div>
               <div className="s-card-status" style={{ color: '#888' }}>
                 {tokenInfo?.token ? `${tokenInfo.token.substring(0, 8)}...` : 'Token wird geladen …'}
               </div>
