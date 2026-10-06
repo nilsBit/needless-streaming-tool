@@ -4,7 +4,7 @@ Einstieg für einen neuen Rechner oder eine neue Claude-Session. **Offene Arbeit
 steht in den GitHub Issues** (`gh issue list`) — dieses Dokument erklärt das
 Große Ganze, wie die beiden Projekte zusammenhängen und wo wir stehen.
 
-Stand: 5. Oktober 2026.
+Stand: 6. Oktober 2026.
 
 ## Worum es geht
 
@@ -155,6 +155,34 @@ braucht den Bot.
   Warum kein Sync: ADR-0023 im Worldbuilder.
 
 ## Wo wir stehen geblieben sind
+
+**Hier aufgehört (06.10., auf dem Mac)**
+
+- `main` gepullt, Typecheck, Tests und Lint grün. Der Branch `overlay-design-workflow`
+  ist vollständig in `main`; auf dem Mac wird jetzt auch auf `main` gearbeitet.
+- **Prototyp durchgeklickt und angepasst, Spezifikation freigegeben.** Nils hat alle
+  sieben Seiten gesehen. Entschieden (im Spec-Text mit „06.10.“ markiert): keine
+  Szenen-Knöpfe im Stream-Reiter, nur die laufende Szene als Hinweis · kein Filter
+  „Eingebaut“ bei den Befehlen · Overlays als Liste mit Detail und **echter Vorschau**
+  (Beispieldaten, solange das Overlay im Standard-Layout ist, sonst live) · Alerts als
+  Karten · das Song-Queue-Overlay fällt weg, `!sr` und `!queue` bleiben · Szenenfelder
+  sind Auswahllisten · Bearbeiten passiert in einem **Dialog in der Bildmitte**, nichts
+  klappt unten auf (Desktop-App) · „Gemerkte Momente“ heißt **Content planen** und ist
+  ein Brett mit vier Schritten – die eine neue Funktion im Umbau.
+- Die Vorschaubilder im Prototyp sind frische Aufnahmen aller 38 Showcase-Zustände
+  (`npm run showcase:capture`, Server ohne Fenster gestartet). Dabei bekam der
+  Beispielzustand des Musik-Overlays ein Cover (`src/overlays/showcase/cover.svg`,
+  `states.json`) – das Overlay zeigt Cover längst, nur die Vorschau nicht.
+- **Issues:** #25 der Umbau selbst mit den sechs Stufen · #26 Content-Planungsbrett
+  (Stufe 6) · #24 Belohnungen aus dem Tool heraus anlegen (nach dem Umbau).
+- **Umsetzungsplan für Stufe 1 (Gerüst) geschrieben:**
+  `docs/superpowers/plans/2026-10-06-bedienung-stufe-1-geruest.md`. Am Code des
+  Umbaus ist noch nichts geändert.
+- **Nächster Schritt:** Stufe 1 nach dem Plan bauen, dann Durchlauf in Chrome, dann
+  auf dem Windows-Rechner pullen und einmal durch alle Bereiche klicken.
+- Weiter offen wie zuvor: Alert-Töne hinterlegen, Szene `tft` ohne Spotify-Quellen,
+  Stream-Deck-Taste fürs Mithören, Test-Clip in der Clip-Liste, Figma-Pilot.
+
 
 **Hier aufgehört (05.10., unter Windows)**
 
