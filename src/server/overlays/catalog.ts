@@ -28,6 +28,8 @@ export interface CatalogEntry {
   base: string;
   /** The Bestenliste key this entry is for, null for every other overlay. */
   variant: string | null;
+  /** False for the bare Bestenliste overlay while no list exists: nothing to put in OBS yet. */
+  placeable: boolean;
   label: string;
   sentence: string;
   group: CatalogGroup;
@@ -124,6 +126,7 @@ export function overlayCatalog(host: string): CatalogEntry[] {
       name,
       base: name,
       variant: null,
+      placeable: true,
       label: meta?.label ?? name,
       sentence: meta?.sentence ?? '',
       group: meta?.group ?? 'custom',
@@ -143,7 +146,7 @@ export function overlayCatalog(host: string): CatalogEntry[] {
   const expanded: CatalogEntry[] = [];
   for (const entry of entries) {
     if (!PER_LIST.has(entry.name)) { expanded.push(entry); continue; }
-    if (lists.length === 0) { expanded.push({ ...entry, sentence: NO_LIST_YET }); continue; }
+    if (lists.length === 0) { expanded.push({ ...entry, sentence: NO_LIST_YET, placeable: false }); continue; }
     for (const list of lists) {
       expanded.push({
         ...entry,
@@ -161,6 +164,7 @@ export function overlayCatalog(host: string): CatalogEntry[] {
       name: `custom/${name}`,
       base: `custom/${name}`,
       variant: null,
+      placeable: true,
       label: name,
       sentence: 'Ein eigenes Overlay aus deiner HTML-Datei.',
       group: 'custom',

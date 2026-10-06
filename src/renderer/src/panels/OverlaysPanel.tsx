@@ -42,6 +42,12 @@ const WHY: Record<CatalogEntry['customizedBy'][number], string> = { html: 'HTML 
 // Overlays a test event exists for (POST /api/actions/overlay-test/<name>).
 const TESTABLE = new Set(['alerts', 'song', 'poll', 'milestone', 'roulette', 'challenge', 'todos', 'progress', 'reward-leaderboard', 'reward-rankchange', 'character', 'chat']);
 
+/** The overlay with its sample state, unless it is customized (then live). A list overlay's address already carries ?type=. */
+function withSampleState(entry: CatalogEntry): string {
+  if (entry.customized || !entry.previewState) return entry.url;
+  return `${entry.url}${entry.url.includes('?') ? '&' : '?'}state=${encodeURIComponent(entry.previewState)}`;
+}
+
 /** The preview box scales the overlay down to fit; this measures the box once it exists. */
 function useBoxWidth(): [(el: HTMLDivElement | null) => void, number] {
   const [box, setBox] = useState<HTMLDivElement | null>(null);
@@ -100,7 +106,7 @@ export default function OverlaysPanel() {
   };
 
   const openLarge = (entry: CatalogEntry) => {
-    const url = entry.customized || !entry.previewState ? entry.url : `${entry.url}?state=${encodeURIComponent(entry.previewState)}`;
+    const url = withSampleState(entry);
     const size = entry.size ?? { width: 1280, height: 720 };
     window.open(url, '_blank', `noopener,width=${size.width},height=${size.height}`);
   };
@@ -184,7 +190,7 @@ export default function OverlaysPanel() {
   const boxHeight = 320;
   const scale = boxWidth > 0 ? Math.min((boxWidth - 24) / previewSize.width, (boxHeight - 24) / previewSize.height, 1) : 0;
   const previewUrl = selected
-    ? (selected.customized || !selected.previewState ? selected.url : `${selected.url}?state=${encodeURIComponent(selected.previewState)}`)
+    ? withSampleState(selected)
     : null;
   const sampleData = !!selected && !selected.customized && !!selected.previewState;
 

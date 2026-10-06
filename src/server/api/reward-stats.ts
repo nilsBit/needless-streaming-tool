@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { forgetViewer } from '../retention';
 import { getDb } from '../db/index';
 import { checkAndBroadcast } from '../reward-leaderboard';
+import { listLeaderboards } from '../leaderboards';
 
 // The counts per viewer and reward type. A Bestenliste's counts live here
 // under its key (src/server/leaderboards.ts); corrections by hand come through.
@@ -57,7 +58,6 @@ router.post('/', (req, res) => {
     DO UPDATE SET count = ?, last_redeemed_at = CURRENT_TIMESTAMP
   `).run(normalizedName, normalizedType, numCount, numCount);
 
-  checkAndBroadcast('all');
   checkAndBroadcast(normalizedType);
   res.json({ ok: true });
 });
@@ -70,7 +70,8 @@ router.post('/forget', (req, res) => {
     return;
   }
   const removed = forgetViewer(user_name);
-  checkAndBroadcast('all');
+  // The viewer may have stood in any list's Top 3 — every overlay follows.
+  for (const list of listLeaderboards()) checkAndBroadcast(list.key);
   res.json({ ok: true, removed });
 });
 
@@ -78,7 +79,6 @@ router.post('/forget', (req, res) => {
 router.delete('/:username/:type', (req, res) => {
   const { username, type } = req.params;
   getDb().prepare('DELETE FROM reward_stats WHERE user_name = ? AND reward_type = ?').run(username, type);
-  checkAndBroadcast('all');
   checkAndBroadcast(type);
   res.json({ ok: true });
 });

@@ -82,4 +82,21 @@ describe('overlay catalog', () => {
     expect(after.find((e: { name: string }) => e.name === 'reward-leaderboard')).toBeUndefined();
     for (const entry of after) expect(typeof entry.base).toBe('string');
   });
+
+  it('does not let the setup place the bare Bestenliste overlays while there is no list', async () => {
+    await request(app).delete('/api/leaderboards/flex').set(auth()).expect(200);
+    await request(app).delete('/api/leaderboards/angeben').set(auth()).expect(200);
+    const catalog = (await request(app).get('/api/overlays/catalog').set(auth()).expect(200)).body;
+    const placeholder = catalog.find((e: { name: string }) => e.name === 'reward-leaderboard');
+    expect(placeholder.placeable).toBe(false);
+    expect(catalog.find((e: { name: string }) => e.name === 'chat').placeable).toBe(true);
+    const refused = await request(app).post('/api/obs/place-overlay').set(auth()).send({ overlay: 'reward-leaderboard', scene: 'Main' }).expect(400);
+    expect(refused.body.error).toMatch(/Bestenliste/);
+
+    await request(app).post('/api/leaderboards').set(auth()).send({ title: 'Flex', reward: { id: 'rw-1', title: 'Flex!' } }).expect(201);
+    const after = (await request(app).get('/api/overlays/catalog').set(auth()).expect(200)).body;
+    expect(after.find((e: { name: string }) => e.name === 'reward-leaderboard:flex').placeable).toBe(true);
+    // Past the gate: only OBS is missing now.
+    await request(app).post('/api/obs/place-overlay').set(auth()).send({ overlay: 'reward-leaderboard:flex', scene: 'Main' }).expect(503);
+  });
 });
