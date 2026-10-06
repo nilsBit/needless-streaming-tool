@@ -65,7 +65,7 @@
 </head>
 <body>
 <div class="leaderboard lex lex-voll" id="leaderboard">
-  <div class="header lex-kicker">Top Redeemer</div>
+  <div class="header lex-kicker" id="title">Bestenliste</div>
 </div>
 
 <script src="/overlay/boot.js" data-overlay="reward-leaderboard"></script>
@@ -82,6 +82,7 @@ async function fetchLeaderboard() {
     const res = await fetch(`${window.__overlayOrigin}/public/reward-stats/top?type=${configuredType}&limit=3`);
     const data = await res.json();
     leaderboard = data.leaderboard || [];
+    if (data.title) document.getElementById('title').textContent = data.title;
     render();
   } catch (err) {
     console.error('[Leaderboard] Fetch failed:', err);

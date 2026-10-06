@@ -107,7 +107,7 @@
       "size": { "width": 700, "height": 260 },
       "states": {
         "top-three": {
-          "public": { "/public/reward-stats/top": { "type": "all", "leaderboard": [{ "rank": 1, "userName": "Lesezeichen42", "count": 42, "previousRank": 1 }, { "rank": 2, "userName": "Kartograph", "count": 38, "previousRank": 2 }, { "rank": 3, "userName": "Tintenfass", "count": 15, "previousRank": null }] } },
+          "public": { "/public/reward-stats/top": { "type": "all", "title": "Flex", "leaderboard": [{ "rank": 1, "userName": "Lesezeichen42", "count": 42, "previousRank": 1 }, { "rank": 2, "userName": "Kartograph", "count": 38, "previousRank": 2 }, { "rank": 3, "userName": "Tintenfass", "count": 15, "previousRank": null }] } },
           "freezeAfterMs": 1200
         }
       }

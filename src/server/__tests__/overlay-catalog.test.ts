@@ -65,4 +65,21 @@ describe('overlay catalog', () => {
     expect(song.customizedBy).toEqual(['palette']);
     expect(after.body.find((e: { name: string }) => e.name === 'chat').customized).toBe(false);
   });
+
+  it('lists the Bestenliste overlays once per list, with the list key in the address', async () => {
+    const before = (await request(app).get('/api/overlays/catalog').set(auth()).expect(200)).body;
+    const placeholder = before.find((e: { name: string }) => e.name === 'reward-leaderboard');
+    expect(placeholder).toMatchObject({ base: 'reward-leaderboard', variant: null, group: 'rewards' });
+    expect(placeholder.sentence).toMatch(/Bestenlisten/);
+
+    await request(app).post('/api/leaderboards').set(auth()).send({ title: 'Flex', reward: { id: 'rw-1', title: 'Flex!' } }).expect(201);
+    await request(app).post('/api/leaderboards').set(auth()).send({ title: 'Angeben', reward: { id: 'rw-2', title: 'Angeben' } }).expect(201);
+    const after = (await request(app).get('/api/overlays/catalog').set(auth()).expect(200)).body;
+    const rewards = after.filter((e: { group: string }) => e.group === 'rewards');
+    expect(rewards.map((e: { name: string }) => e.name)).toEqual(['reward-leaderboard:flex', 'reward-rankchange:flex', 'reward-leaderboard:angeben', 'reward-rankchange:angeben']);
+    expect(rewards[0]).toMatchObject({ base: 'reward-leaderboard', variant: 'flex', label: 'Bestenliste: Flex', size: { width: 700, height: 260 }, previewState: 'top-three', feature: 'bestenliste' });
+    expect(rewards[0].url.endsWith('/overlay/reward-leaderboard/index.html?type=flex')).toBe(true);
+    expect(after.find((e: { name: string }) => e.name === 'reward-leaderboard')).toBeUndefined();
+    for (const entry of after) expect(typeof entry.base).toBe('string');
+  });
 });

@@ -168,11 +168,13 @@ const STATIC_TEST_EVENTS: Record<string, { event: string; data: unknown }[]> = {
 };
 
 function getTestEvents(name: string): { event: string; data: unknown }[] {
-  if (STATIC_TEST_EVENTS[name]) return STATIC_TEST_EVENTS[name];
+  // A Bestenliste overlay is named `<overlay>:<list key>` in the catalog.
+  const [base, variant] = name.split(':');
+  if (STATIC_TEST_EVENTS[base]) return STATIC_TEST_EVENTS[base];
 
   // Worded by the same function as the real thing (bot/alerts.ts), with the
   // streamer's own wording and sounds — read now, not when the server started.
-  if (name === 'alerts') {
+  if (base === 'alerts') {
     return [
       { event: 'reward-redeemed', data: { reward_type: 'feature_request', user_name: 'TestViewer' } },
       ...(['follow', 'sub', 'raid', 'cheer'] as const).map((slot) => ({ event: 'alert', data: sampleAlert(slot) })),
@@ -181,7 +183,7 @@ function getTestEvents(name: string): { event: string; data: unknown }[] {
 
   // Preview the entry that is actually pinned, so the test shows what will
   // really be on screen. Falls back to a demo when nothing is picked yet.
-  if (name === 'character') {
+  if (base === 'character') {
     const demo: EntryCard = {
       id: 'test',
       title: 'Aldric',
@@ -203,7 +205,7 @@ function getTestEvents(name: string): { event: string; data: unknown }[] {
     return [{ event: 'entry-changed', data: activeCard() ?? demo }];
   }
 
-  if (name === 'roulette') {
+  if (base === 'roulette') {
     const issues = getDb().prepare('SELECT * FROM issues WHERE status = ?').all('open') as Array<{ id: number; title: string }>;
     if (issues.length === 0) {
       const fakeIssues = [
@@ -217,11 +219,11 @@ function getTestEvents(name: string): { event: string; data: unknown }[] {
     return [{ event: 'roulette-spin', data: { issues, winner_id: winner.id } }];
   }
 
-  if (name === 'reward-leaderboard' || name === 'reward-rankchange') {
+  if (base === 'reward-leaderboard' || base === 'reward-rankchange') {
     return [{
       event: 'reward-leaderboard-update',
       data: {
-        type: 'all',
+        type: variant ?? 'all',
         leaderboard: [
           { rank: 1, userName: 'TestUser_A', count: 42, previousRank: 2 },
           { rank: 2, userName: 'TestUser_B', count: 38, previousRank: 1 },
@@ -239,12 +241,12 @@ function getTestEvents(name: string): { event: string; data: unknown }[] {
 
   // Both overlays reload /public/progress on this event — the one the server
   // really sends. The old names (todo-created, progress-updated) do not exist.
-  if (name === 'todos' || name === 'progress') {
+  if (base === 'todos' || base === 'progress') {
     return [{ event: 'progress-update', data: {} }];
   }
 
   // Three lines as if from chat; taken back after a while like a moderator would.
-  if (name === 'chat') {
+  if (base === 'chat') {
     const lines = [
       ['test-1', 'TestViewer', 'Hallo aus dem Chat!'],
       ['test-2', 'Kartograph', 'wer hat eigentlich die Portale gebaut?'],

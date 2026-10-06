@@ -37,7 +37,7 @@ const item = (sourceName: string): Item => ({ sourceName, sceneItemEnabled: true
 describe('placing an overlay in OBS', () => {
   it('creates a browser source with the catalog size in the chosen scene', async () => {
     const obs = fakeObs({ main: [item('Camera')], brb: [] }, { Camera: 'rtsp://cam' });
-    const result = await placeOverlay(obs, 4000, { name: 'chat', label: 'Chat', size: { width: 420, height: 620 } }, 'main');
+    const result = await placeOverlay(obs, 4000, { name: 'chat', base: 'chat', variant: null, label: 'Chat', size: { width: 420, height: 620 } }, 'main');
     expect(result).toEqual({ overlay: 'chat', scene: 'main', status: 'created', inputName: 'NST Chat' });
     expect(obs.created).toEqual([{
       sceneName: 'main',
@@ -49,20 +49,20 @@ describe('placing an overlay in OBS', () => {
 
   it('takes the canvas size when the catalog knows none', async () => {
     const obs = fakeObs({ main: [] }, {});
-    await placeOverlay(obs, 4000, { name: 'alerts', label: 'Alerts', size: null }, 'main');
+    await placeOverlay(obs, 4000, { name: 'alerts', base: 'alerts', variant: null, label: 'Alerts', size: null }, 'main');
     expect(obs.created[0]).toMatchObject({ inputSettings: { width: 1920, height: 1080 } });
   });
 
   it('reports where the overlay already sits instead of placing it twice', async () => {
     const obs = fakeObs({ main: [item('music')], Camera: [] }, { music: 'http://localhost:4000/overlay/song/index.html' });
-    const result = await placeOverlay(obs, 4000, { name: 'song', label: 'Musik', size: { width: 350, height: 110 } }, 'Camera');
+    const result = await placeOverlay(obs, 4000, { name: 'song', base: 'song', variant: null, label: 'Musik', size: { width: 350, height: 110 } }, 'Camera');
     expect(result).toEqual({ overlay: 'song', scene: 'main', status: 'exists' });
     expect(obs.created).toEqual([]);
   });
 
   it('adds an existing source of ours to the scene rather than a second input', async () => {
     const obs = fakeObs({ main: [], brb: [] }, {}, ['NST Chat']);
-    const result = await placeOverlay(obs, 4000, { name: 'chat', label: 'Chat', size: { width: 420, height: 620 } }, 'brb');
+    const result = await placeOverlay(obs, 4000, { name: 'chat', base: 'chat', variant: null, label: 'Chat', size: { width: 420, height: 620 } }, 'brb');
     expect(result.status).toBe('created');
     expect(obs.created).toEqual([]);
     expect(obs.added).toEqual([{ sceneName: 'brb', sourceName: 'NST Chat' }]);
@@ -70,8 +70,15 @@ describe('placing an overlay in OBS', () => {
 
   it('refuses a scene OBS does not have', async () => {
     const obs = fakeObs({ main: [] }, {});
-    const result = await placeOverlay(obs, 4000, { name: 'chat', label: 'Chat', size: null }, 'Studio');
+    const result = await placeOverlay(obs, 4000, { name: 'chat', base: 'chat', variant: null, label: 'Chat', size: null }, 'Studio');
     expect(result.status).toBe('no-scene');
     expect(obs.created).toEqual([]);
+  });
+
+  it('places a list overlay with the list key in its address', async () => {
+    const obs = fakeObs({ main: [] }, {});
+    const result = await placeOverlay(obs, 4000, { name: 'reward-leaderboard:flex', base: 'reward-leaderboard', variant: 'flex', label: 'Bestenliste: Flex', size: { width: 700, height: 260 } }, 'main');
+    expect(result.status).toBe('created');
+    expect(obs.created[0]).toMatchObject({ inputName: 'NST Bestenliste: Flex', inputSettings: { url: 'http://localhost:4000/overlay/reward-leaderboard/index.html?type=flex' } });
   });
 });
