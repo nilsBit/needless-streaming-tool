@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useApi, apiPost, apiPatch, apiDelete, getApiToken, getApiBase } from '../hooks/useApi';
+import { useApi, apiPost, apiPatch, apiDelete, apiDownload } from '../hooks/useApi';
 import { ProjectItem, StreamState, Milestone } from '../../../shared/types';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { useToast } from '../contexts/ToastContext';
@@ -100,7 +100,7 @@ export default function ProgressPanel() {
     refetch();
   };
   const exportCsv = () => {
-    window.open(`${getApiBase()}/progress/export?token=${getApiToken()}`, '_blank');
+    void apiDownload('/progress/export', 'fortschritt.csv');
   };
 
   // Drag & drop between the three columns of the board.

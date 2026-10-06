@@ -4,7 +4,8 @@ import { startVote, castVote, getActiveVote, endVote } from './voting';
 import { StreamState, Issue } from '../../shared/types';
 import { changeScene, getScenes } from '../obs/index';
 import { broadcast } from '../websocket/index';
-import { resolveOEmbed, detectSource } from '../api/song-requests';
+import { resolveOEmbed } from '../api/song-requests';
+import { parseSongUrl } from '../song-url';
 import { sayInParts } from './chat-message';
 import { builtinKeyOf, triggerOf, canonicalTrigger } from './command-names';
 import { commandEnabled } from '../features';
@@ -200,17 +201,21 @@ export function registerCommands(client: Client) {
       }
 
       case 'sr': {
-        const url = message.trim().split(/\s+/)[1];
+        const word = message.trim().split(/\s+/)[1];
         const username = tags['display-name'] || tags.username || 'anon';
-        if (!url) {
+        if (!word) {
           say('❌ Benutzung: !sr <YouTube oder Spotify URL>');
           break;
         }
-        const source = detectSource(url);
-        if (!source) {
-          say('❌ Nur YouTube- und Spotify-Links erlaubt.');
+        // One link to one track, rebuilt from its id — never the viewer's raw text.
+        const link = parseSongUrl(word);
+        if (!link) {
+          say('❌ Nur Links zu YouTube-Videos oder Spotify-Titeln.');
           break;
         }
+        const url = link.url;
+        // One request every 20 seconds per viewer: each costs a call to YouTube or Spotify.
+        if (!passCooldown(`sr:${tags.username ?? username}`, 20, isPrivileged(tags), { viewer: tags.username })) break;
         try {
           const db = getDb();
           const maxRow = db.prepare('SELECT value FROM settings WHERE key = ?').get('sr_max_per_user') as { value: string } | undefined;

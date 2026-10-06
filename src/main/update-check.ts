@@ -1,5 +1,6 @@
 import { app, BrowserWindow } from 'electron';
 import https from 'https';
+import { isReleaseTag, isReleaseUrl } from './release-url';
 
 const REPO = 'nilsBit/needless-streaming-tool';
 const API_URL = `https://api.github.com/repos/${REPO}/releases/latest`;
@@ -32,6 +33,11 @@ export function checkForUpdates(mainWindow: BrowserWindow): void {
       try {
         if (res.statusCode !== 200) return;
         const release: GitHubRelease = JSON.parse(data);
+        // Only a release page of this repository is ever handed to the renderer.
+        if (!isReleaseTag(release.tag_name) || !isReleaseUrl(release.html_url)) {
+          console.warn('[Update] Release data has an unexpected shape, ignored');
+          return;
+        }
         if (compareVersions(currentVersion, release.tag_name)) {
           console.log(`[Update] New version available: ${release.tag_name} (current: ${currentVersion})`);
           mainWindow.webContents.send('update-available', {
@@ -50,5 +56,6 @@ export function checkForUpdates(mainWindow: BrowserWindow): void {
 
   // Silent fail — no internet is fine
   req.on('error', () => {});
+  req.setTimeout(10_000, () => req.destroy());
   req.end();
 }

@@ -263,9 +263,14 @@ braucht den Bot.
   Einmal-`state`, `/api/auth/twitch/save` verlangt ihn; Kanalpunkt „Szene“ wechselt nur noch in
   Szenen aus „Szene per Kanalpunkt“ (`obs/scene-request.ts`); `~/.nst/connection.json` nur für
   den Besitzer lesbar, Tokens nicht mehr im Log; `!design` nur für Mods; die generischen
-  Einstellungs-Routen verweigern geheime Schlüssel (403). **Offen:** Block 2 (Electron-Hülle:
-  `setWindowOpenHandler`, CSP ohne `unsafe-eval`, Songwunsch-Adressen, Token nur im Header),
-  Block 3 (Electron 44, `npm audit fix`, Dependabot-PRs #9 und #15, Signatur), Block 4
+  Einstellungs-Routen verweigern geheime Schlüssel (403). **Block 2 behoben:** neue Fenster gehen in den
+  System-Browser (`setWindowOpenHandler`, `will-navigate`), nur https und der eigene Server;
+  CSP ohne `unsafe-eval` – in der Entwicklung als Header nur für die Vite-Seite, im Build als
+  Meta-Tag aus `vite.config.ts`; Berechtigungen nur Zwischenablage; Token nur noch im Header,
+  Vergleich in konstanter Zeit, geschlossen bis zur Initialisierung; Songwünsche über
+  `src/server/song-url.ts` (nur YouTube/Spotify, kanonische Adresse, 20 s Abklingzeit je
+  Zuschauer); CSV-Downloads über `apiDownload` statt Links mit Token; Update-Prüfung nimmt nur
+  Release-Seiten dieses Repos an. **Offen:** Block 3 (Electron 44, `npm audit fix`, Dependabot-PRs #9 und #15, Signatur), Block 4
   (WebSocket-Herkunft, CSV, Lesebereich des Claude-Laufs, Aufbewahrung der Zuschauerdaten).
 - **Nächster Schritt:** Auf dem Windows-Rechner pullen, `npm run dev`, OBS verbinden und einmal
   alles durchklicken – Chips auf „Im Stream“, Overlay-Liste, Content-Brett (die alten

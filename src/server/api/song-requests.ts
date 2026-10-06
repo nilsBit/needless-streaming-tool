@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
+import { parseSongUrl } from '../song-url';
 
 const router = Router();
 
@@ -10,24 +11,24 @@ export function getActiveQueue() {
   ).all();
 }
 
-const YOUTUBE_RE = /(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([\w-]+)/i;
-const SPOTIFY_RE = /open\.spotify\.com\/track\/([\w]+)/i;
-
 interface OEmbedResult {
   title: string;
   artist: string | null;
   source: 'youtube' | 'spotify';
 }
 
-export async function resolveOEmbed(url: string): Promise<OEmbedResult | null> {
+export async function resolveOEmbed(text: string): Promise<OEmbedResult | null> {
+  const link = parseSongUrl(text);
+  if (!link) return null;
+  const url = link.url;
   try {
-    if (YOUTUBE_RE.test(url)) {
+    if (link.source === 'youtube') {
       const res = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`, { signal: AbortSignal.timeout(5000) });
       if (!res.ok) return null;
       const data = await res.json() as { title: string; author_name?: string };
       return { title: data.title, artist: data.author_name || null, source: 'youtube' };
     }
-    if (SPOTIFY_RE.test(url)) {
+    if (link.source === 'spotify') {
       const res = await fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`, { signal: AbortSignal.timeout(5000) });
       if (!res.ok) return null;
       const data = await res.json() as { title: string };
@@ -45,9 +46,7 @@ export async function resolveOEmbed(url: string): Promise<OEmbedResult | null> {
 }
 
 export function detectSource(url: string): 'youtube' | 'spotify' | null {
-  if (YOUTUBE_RE.test(url)) return 'youtube';
-  if (SPOTIFY_RE.test(url)) return 'spotify';
-  return null;
+  return parseSongUrl(url)?.source ?? null;
 }
 
 // GET / — queue (pending + playing)

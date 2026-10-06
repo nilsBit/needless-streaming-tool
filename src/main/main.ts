@@ -1,4 +1,4 @@
-import { app, BrowserWindow, nativeImage, ipcMain, dialog } from 'electron';
+import { app, BrowserWindow, nativeImage, ipcMain, dialog, shell, session } from 'electron';
 import path from 'path';
 import { startServer } from '../server/index';
 import { deleteConnectionFile } from '../server/connection-file';
@@ -29,19 +29,44 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      sandbox: true,
       preload: path.join(__dirname, 'preload.js'),
     },
   });
 
-  // Set CSP
-  mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
-    callback({
-      responseHeaders: {
-        ...details.responseHeaders,
-        'Content-Security-Policy': ["default-src 'self' http://localhost:* ws://localhost:*; script-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:*; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' http://localhost:* https://i.scdn.co data:"],
-      },
-    });
+  // A link out of the app opens in the system browser, never in a second
+  // window of ours (which would carry the preload): https pages, and our own
+  // server for the overlay previews. Everything else is dropped. The window
+  // itself never navigates away from the app (security review 2026-10-06, H4).
+  const ownServer = (url: string) => /^http:\/\/(localhost|127\.0\.0\.1):\d+\//.test(url);
+  const openOutside = (url: string) => {
+    if (/^https:\/\//.test(url) || ownServer(url)) void shell.openExternal(url);
+  };
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    openOutside(url);
+    return { action: 'deny' };
   });
+  const appUrlPrefix = isDev ? 'http://localhost:5273' : 'file://';
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    if (url.startsWith(appUrlPrefix)) return;
+    event.preventDefault();
+    openOutside(url);
+  });
+
+  // CSP for the renderer. In development it comes as a header on the Vite
+  // page only ('unsafe-inline' for React Refresh, never eval); in production
+  // the built index.html carries it as a meta tag (vite.config.ts), so the
+  // header filter does not override the server's own overlay CSP.
+  if (isDev) {
+    mainWindow.webContents.session.webRequest.onHeadersReceived({ urls: ['http://localhost:5273/*'] }, (details, callback) => {
+      callback({
+        responseHeaders: {
+          ...details.responseHeaders,
+          'Content-Security-Policy': ["default-src 'self' http://localhost:* ws://localhost:*; script-src 'self' 'unsafe-inline' http://localhost:*; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' http://localhost:* https://i.scdn.co data: blob:; frame-src http://localhost:*; object-src 'none'; base-uri 'none'"],
+        },
+      });
+    });
+  }
 
   // Pass API token to renderer via URL hash (not visible in server logs)
   if (isDev) {
@@ -73,6 +98,12 @@ app.whenReady().then(async () => {
     const dockIcon = nativeImage.createFromPath(path.join(process.cwd(), 'assets', 'icon.png'));
     app.dock.setIcon(dockIcon);
   }
+
+  // The renderer needs the clipboard for "Kopieren" and nothing else: no
+  // camera, microphone, notifications or location for any page in this session.
+  const clipboardOnly = (permission: string) => permission === 'clipboard-sanitized-write';
+  session.defaultSession.setPermissionRequestHandler((_contents, permission, callback) => callback(clipboardOnly(permission)));
+  session.defaultSession.setPermissionCheckHandler((_contents, permission) => clipboardOnly(permission));
 
   // IPC: folder picker for sync config
   ipcMain.handle('select-sync-folder', async () => {

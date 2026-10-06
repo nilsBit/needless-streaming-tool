@@ -109,6 +109,27 @@ export async function apiDelete(endpoint: string): Promise<boolean> {
   }
 }
 
+/**
+ * Downloads a file the API serves (a CSV, a backup) — over fetch with the
+ * token in the header, so no token ever lands in a URL, history or log.
+ */
+export async function apiDownload(endpoint: string, filename: string): Promise<boolean> {
+  try {
+    const res = await apiFetch(endpoint);
+    if (!res.ok) return false;
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function apiGet<T>(endpoint: string): Promise<T | null> {
   try {
     const res = await fetch(`${API_BASE}${endpoint}`, {

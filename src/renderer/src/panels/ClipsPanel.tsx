@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { useApi, apiPost, apiPatch, apiDelete, getApiToken, getApiBase } from '../hooks/useApi';
+import { useApi, apiPost, apiPatch, apiDelete, apiDownload } from '../hooks/useApi';
 import { useToast } from '../contexts/ToastContext';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { Clip, ClipStatus } from '../../../shared/types';
@@ -94,9 +94,10 @@ export default function ClipsPanel() {
     if (!result) { toast.error('Nicht nach Notion geschickt'); return; }
     toast.success(`${result.synced} von ${result.total} nach Notion geschickt`);
   };
-  const exportCsv = () => {
+  const exportCsv = async () => {
     if (!exportDay) return;
-    window.open(`${getApiBase()}/clips/export?session_date=${exportDay}&token=${getApiToken()}`, '_blank');
+    const ok = await apiDownload(`/clips/export?session_date=${encodeURIComponent(exportDay)}`, `clips-${exportDay}.csv`);
+    if (!ok) toast.error('Export fehlgeschlagen');
   };
 
   const statusLine = (c: Clip): string | null => {

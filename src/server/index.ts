@@ -111,11 +111,10 @@ export function createApp(): express.Express {
       return;
     }
 
+    // Header only: a token in the query string ends up in browser history,
+    // shell history and OBS logs. (The WebSocket upgrade is the one exception.)
     const authHeader = req.headers.authorization;
-    const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
-    const queryToken = req.query.token as string | undefined;
-
-    const token = bearerToken || queryToken;
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
     // The Figma plugin's token opens its own routes and nothing else.
     const designRoute = req.path.startsWith('/design/') && validateDesignToken(token);
     if (!designRoute && !validateApiToken(token)) {

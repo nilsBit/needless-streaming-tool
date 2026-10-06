@@ -47,14 +47,21 @@ export function getDesignToken(): string | null {
   return designToken;
 }
 
+/** Equal in constant time — a token compared with `===` leaks its length and prefix through timing. */
+function same(given: string | undefined, expected: string | null): boolean {
+  if (!given || !expected) return false;
+  const a = Buffer.from(given);
+  const b = Buffer.from(expected);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
 /** The Figma token — the caller checks that the request is for /api/design/*. */
 export function validateDesignToken(token: string | undefined): boolean {
-  return Boolean(designToken && token === designToken);
+  return same(token, designToken);
 }
 
 export function validateApiToken(token: string | undefined): boolean {
-  if (!sessionToken) return true; // Not initialized yet
-  if (token === sessionToken) return true;
-  if (fixedToken && token === fixedToken) return true;
-  return false;
+  // Closed until the tokens exist: nothing is open just because the start is not through yet.
+  if (!sessionToken) return false;
+  return same(token, sessionToken) || same(token, fixedToken);
 }
