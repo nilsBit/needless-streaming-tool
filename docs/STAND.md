@@ -203,8 +203,15 @@ braucht den Bot.
     und legt Bilder unter `design/ui-walk/` ab (nicht eingecheckt). Braucht Server und
     Vite (`npx vite`). Ergebnis am 06.10.: 21 Panels wie erwartet, kein Überlauf bei
     1360 und 900 px, keine unbehandelten Fehler.
-- **Nächster Schritt:** Stufe 2 (Start mit Zustandsmarken und Prüfliste, `/api/readiness`)
-  planen. Vorher auf dem Windows-Rechner pullen und einmal durch alle Bereiche klicken.
+- **Start gestrichen, Stufe 2 in kleiner Form gebaut** (Nils beim ersten Blick: „Brauchen
+  wir Start überhaupt, wenn alles verbunden ist?“): Verbindungsmarken unten in der Leiste
+  (`components/ux/ConnectionMarks.tsx`), Hinweisbalken oben auf „Im Stream“, nur solange
+  etwas fehlt (`ReadinessBanner.tsx`, `GET /api/readiness`, `src/server/readiness.ts` mit
+  Test an der HTTP-Naht). Die App öffnet auf „Im Stream“. Ein gespeichertes `start` aus der
+  ersten Fassung landet dort.
+- **Nächster Schritt:** Stufe 4, „Im Stream“ als Karten mit „im Bild“ – Nils sieht die Seite
+  am meisten, und sie sieht innen noch aus wie vorher. Davor Stufe 3 (Befehlsliste) nur, wenn
+  Nils es so will; die Reihenfolge im Spec ist 3 vor 4.
 - Weiter offen wie zuvor: Alert-Töne hinterlegen, Szene `tft` ohne Spotify-Quellen,
   Stream-Deck-Taste fürs Mithören, Test-Clip in der Clip-Liste, Figma-Pilot.
 

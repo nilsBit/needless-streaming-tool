@@ -8,7 +8,7 @@ import { PANEL_KEYS } from '../panelKeys';
 const OLD_NAMES = [
   'Settings', 'Progress Tracker', 'Clip Moments', 'Reward Stats', 'Now Playing',
   'Challenge', 'Milestones', 'OBS Scenes', 'Live', 'Produktion', 'Projekt',
-  'Features', 'App', 'Daten & API', 'Erklär-Commands', 'Chat Commands',
+  'Features', 'App', 'Daten & API', 'Erklär-Commands', 'Chat Commands', 'Start',
 ];
 
 function allLabels(): string[] {
@@ -37,11 +37,10 @@ describe('navigation', () => {
     for (const key of PANEL_KEYS) expect(PANEL_LABELS[key], `label for "${key}"`).toBeTruthy();
   });
 
-  it('has content in every sub tab except Start', () => {
+  it('has content in every sub tab', () => {
     for (const area of AREAS) {
       expect(area.subTabs.length, `area "${area.key}" has no sub tab`).toBeGreaterThan(0);
       for (const tab of area.subTabs) {
-        if (area.key === 'start') continue;
         expect(tab.panels.length, `sub tab "${area.key}/${tab.key}" is empty`).toBeGreaterThan(0);
       }
     }
@@ -53,8 +52,8 @@ describe('navigation', () => {
     for (const label of labels) expect(label, `label "${label}" carries an emoji or symbol`).toMatch(/^[\p{L}\p{N} &!'’„“.·-]+$/u);
   });
 
-  it('keeps Start first and Einstellungen and Hilfe below the divider', () => {
-    expect(AREAS[0].key).toBe('start');
+  it('opens on Im Stream and keeps Einstellungen and Hilfe below the divider', () => {
+    expect(AREAS[0].key).toBe('stream');
     for (const area of AREAS) {
       const secondary = area.key === 'settings' || area.key === 'help';
       expect(area.group).toBe(secondary ? 'secondary' : 'main');
@@ -62,15 +61,17 @@ describe('navigation', () => {
   });
 
   it('falls back to the first area and sub tab for unknown keys', () => {
-    expect(findArea('nope').key).toBe('start');
-    expect(findArea(null).key).toBe('start');
+    expect(findArea('nope').key).toBe('stream');
+    expect(findArea(null).key).toBe('stream');
+    // A stored 'start' from the first build of the shell lands on Im Stream too.
+    expect(findArea('start').key).toBe('stream');
     const overlays = findArea('overlays');
     expect(findSubTab(overlays, 'alerts').key).toBe('alerts');
     expect(findSubTab(overlays, 'nope').key).toBe(overlays.subTabs[0].key);
     expect(findSubTab(overlays, undefined).key).toBe(overlays.subTabs[0].key);
   });
 
-  it('gives every area a sentence and keywords for the start card', () => {
+  it('gives every area a sentence and keywords', () => {
     for (const area of AREAS) {
       expect(area.sentence.length, `area "${area.key}" has no sentence`).toBeGreaterThan(10);
       expect(area.keywords.length, `area "${area.key}" has no keywords`).toBeGreaterThan(0);

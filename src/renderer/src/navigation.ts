@@ -1,12 +1,13 @@
 // The one source for the app's navigation: areas by situation, their sub tabs,
-// the German names and the one sentence each. The sidebar, the page headers and
-// the start cards all read from here. Pure data — no React — so it is tested
+// the German names and the one sentence each. The sidebar and the page headers
+// read from here. There is no start page: what is missing before going live is
+// a banner on "Im Stream", the connections are marks in the sidebar (06.10.). Pure data — no React — so it is tested
 // under Node (src/renderer/src/__tests__/navigation.test.ts).
 //
 // Spec: docs/superpowers/specs/2026-10-05-bedienung-neuaufbau-design.md
 import type { PanelKey } from './panelKeys';
 
-export type AreaKey = 'start' | 'stream' | 'chat' | 'overlays' | 'after' | 'settings' | 'help';
+export type AreaKey = 'stream' | 'chat' | 'overlays' | 'after' | 'settings' | 'help';
 
 export interface SubTab {
   key: string;
@@ -19,9 +20,9 @@ export interface SubTab {
 export interface Area {
   key: AreaKey;
   label: string;
-  /** One sentence for the page header and the start card. */
+  /** One sentence for the page header. */
   sentence: string;
-  /** What lies here, for the start card. */
+  /** What lies here — the sidebar tooltip and the help page use it. */
   keywords: string[];
   /** `secondary` areas sit below the divider in the sidebar. */
   group: 'main' | 'secondary';
@@ -55,14 +56,6 @@ export const PANEL_LABELS: Record<PanelKey, string> = {
 };
 
 export const AREAS: readonly Area[] = [
-  {
-    key: 'start',
-    label: 'Start',
-    sentence: 'Bereit für den Stream? Hier siehst du, was verbunden ist, und findest jeden Bereich.',
-    keywords: ['Verbindungen', 'Prüfliste', 'Bereiche'],
-    group: 'main',
-    subTabs: [{ key: 'start', label: 'Start', sentence: '', panels: [] }],
-  },
   {
     key: 'stream',
     label: 'Im Stream',

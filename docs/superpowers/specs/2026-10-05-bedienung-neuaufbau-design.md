@@ -31,13 +31,12 @@ Gelungen ist der Umbau, wenn Nils ohne Nachfragen
 
 ## Der neue Aufbau
 
-Eine feste Leiste links mit fünf Bereichen nach Situation, darunter Einstellungen und
-Hilfe. Ein Bereich zeigt eine Seite; hat er mehrere Themen, stehen sie als Unterreiter
+Eine feste Leiste links mit vier Bereichen nach Situation, darunter Einstellungen und
+Hilfe, ganz unten die Verbindungsmarken (Twitch, OBS, Worldbuilder). Ein Bereich zeigt eine Seite; hat er mehrere Themen, stehen sie als Unterreiter
 oben auf der Seite. Die Kopfzeile jeder Seite nennt den Bereich und einen Satz dazu.
 
 | Bereich | Unterreiter | Kommt aus (heute) |
 |---|---|---|
-| **Start** | — | neu |
 | **Im Stream** | — (Karten) | ChallengePanel, IssuesPanel, DesignsPanel, ProgressPanel, SongPanel, laufende OBS-Szene als Hinweis (neu, nur Anzeige), „Moment merken“ aus ClipsPanel |
 | **Chat & Bot** | Befehle · Von selbst · Ausprobieren | TextCommandsPanel, CommandOverview, Settings → Features → Chat Commands (Erinnerung, Shoutout) |
 | **Overlays & Alerts** | Overlays · Alerts · Meilensteine · Szenen in OBS · Aussehen | OverlaysPanel (Overlays, Design, Figma), AlertSettings, MilestonesPanel, ObsPanel (Szenen anlegen, Zuordnung) |
@@ -91,15 +90,17 @@ Die Befehle im Chat selbst (`!challenge`, `!progress` …) bleiben unverändert.
 
 ## Die Seiten
 
-**Start.** Oben vier Zustandsmarken (Twitch, Bot im Chat, OBS, Worldbuilder). Darunter
-„Bereit für den Stream?“: eine Liste von Prüfpunkten; ein offener Punkt nennt die Folge
-und hat einen Knopf, der zur richtigen Stelle springt. Darunter je Bereich eine Karte
-mit einem Satz und den Stichworten, was dort liegt.
-
-Prüfpunkte der ersten Fassung: Twitch verbunden und Bot im Kanal · OBS verbunden ·
-Szenen `start`/`end`/`brb` vorhanden · Overlays als Quellen in OBS gefunden ·
-Worldbuilder erreichbar · mindestens ein aktiver Befehl · Alert-Töne hinterlegt
-(Hinweis, kein Fehler).
+**Kein Start mehr** (entschieden am 06.10. nach dem ersten Blick auf Stufe 1: „Brauchen wir
+Start überhaupt, wenn alles verbunden ist?“). Was die Startseite leisten sollte, liegt dort,
+wo man es ohnehin sieht: **Verbindungsmarken** unten in der Leiste – Twitch, OBS, Worldbuilder
+als Punkt mit Wort, grün/rot/grau, ein Klick führt zur richtigen Stelle – und ein
+**Hinweisbalken oben auf „Im Stream“**, nur solange etwas fehlt: je Punkt, was fehlt, was es
+im Stream bedeutet und „Dorthin“. Ist alles da, gibt es den Balken nicht. Die App öffnet auf
+„Im Stream“. Die Prüfpunkte liefert `GET /api/readiness` (`src/server/readiness.ts`): Twitch
+verbunden und Bot im Kanal · OBS verbunden · Szenen `start`/`brb`/`end` vorhanden (nur
+beurteilbar, wenn OBS verbunden ist) · Worldbuilder erreichbar (Fehler, wenn er die Quelle
+ist; Hinweis, wenn Notion gewählt ist) · mindestens ein eigener Befehl an · alle Alerts mit
+Ton (Hinweis). „Overlays als Quellen in OBS gefunden“ kommt mit Stufe 4 dazu.
 
 **Im Stream.** Karten in einem Raster, jede mit Titel, einem Satz, der einen Eingabe
 und der einen Auslösung. Rechts oben an der Karte steht „im Bild“ / „nicht im Bild“ —
@@ -186,8 +187,9 @@ das Glücksrad gedreht.“), keine Tabellenspalten.
 Jede Stufe ist für sich benutzbar und wird einzeln geplant und gebaut.
 
 1. **Gerüst.** Leiste, Kopfzeilen, Unterreiter, neue Namen; alle heutigen Panels an
-   ihren neuen Ort; Brett-Funktionen entfernt. Danach ist schon alles auffindbar.
-2. **Start.** Zustandsmarken, `readiness`, Prüfliste, Bereichskarten.
+   ihren neuen Ort; Brett-Funktionen entfernt. Danach ist schon alles auffindbar. (Gebaut am 06.10.)
+2. **Bereitschaft.** Verbindungsmarken in der Leiste, `readiness`, Hinweisbalken auf „Im
+   Stream“ (statt einer Startseite; gebaut am 06.10. direkt nach Stufe 1).
 3. **Chat & Bot.** Eine Befehlsliste mit Filtern und Bearbeiten-Dialog.
 4. **Im Stream.** Einheitliche Karten, „im Bild“.
 5. **Overlays & Alerts.** Overlay-Liste mit OBS-Zustand; Unterreiter aufgeräumt.

@@ -38,6 +38,7 @@ import commandsRouter from './api/commands';
 import textCommandsRouter from './api/text-commands';
 import lookupCommandsRouter from './api/lookup-commands';
 import chatRouter from './api/chat';
+import readinessRouter from './api/readiness';
 import { connectBot } from './bot/index';
 import { connectObs } from './obs/index';
 import { initAutoClips } from './auto-clips';
@@ -161,6 +162,7 @@ export function createApp(): express.Express {
   app.use('/api/text-commands', textCommandsRouter);
   app.use('/api/lookup-commands', lookupCommandsRouter);
   app.use('/api/chat', chatRouter);
+  app.use('/api/readiness', readinessRouter);
   app.use('/api/design', designRouter);
   app.use('/api/dev', devRouter);
 
