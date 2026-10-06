@@ -4,7 +4,7 @@ import type { Express } from 'express';
 import { initDatabase } from '../db/index';
 import { generateApiToken } from '../auth-token';
 import { createApp } from '../index';
-import { countRedemption, keyFromTitle, standing } from '../leaderboards';
+import { countRedemption, keyFromTitle, standing, standingsText } from '../leaderboards';
 
 /**
  * A Bestenliste hangs on one Twitch reward and ranks who redeemed it most.
@@ -112,5 +112,16 @@ describe('a redemption on a list', () => {
     expect(gone).toEqual({ type: 'nope', title: null, leaderboard: [] });
     const unset = (await request(app).get('/public/reward-stats/top').expect(200)).body;
     expect(unset.leaderboard).toEqual([]);
+  });
+  it('tells a viewer where they stand in every list', async () => {
+    await request(app).post('/api/leaderboards').set(auth()).send({ title: 'Angeben', reward: { id: 'rw-2', title: 'Angeben' } }).expect(201);
+    expect(standingsText('kartograph')).toBe('@kartograph hat noch nichts eingelöst.');
+    countRedemption('rw-1', 'kartograph');
+    countRedemption('rw-1', 'kartograph');
+    countRedemption('rw-2', 'kartograph');
+    countRedemption('rw-2', 'tintenfass');
+    countRedemption('rw-2', 'tintenfass');
+    expect(standingsText('Kartograph')).toBe('@Kartograph: Flex 2 (Platz 1), Angeben 1 (Platz 2).');
+    expect(standingsText('tintenfass')).toBe('@tintenfass: Angeben 2 (Platz 1).');
   });
 });

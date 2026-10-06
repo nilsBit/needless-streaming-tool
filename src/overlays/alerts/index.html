@@ -78,7 +78,6 @@
     const REWARDS = {
       feature_request: 'schlägt etwas vor.',
       change_music: 'wechselt die Musik.',
-      flex: 'schaltet einen Flex frei.',
     };
 
     // Size and time on screen, by kind. Whatever isn't listed is small.
@@ -161,8 +160,11 @@
       if (event === 'overlay-config' && window.__applyOverlayConfig) window.__applyOverlayConfig(data);
 
       switch (event) {
-        case 'reward-redeemed':
-          if (data.reward_type === 'roulette') break;
+        case 'reward-redeemed': {
+          // A redemption that counts in a Bestenliste gets its own alert below.
+          let extra = {};
+          try { extra = JSON.parse(data.data || '{}'); } catch {}
+          if (data.reward_type === 'roulette' || extra.leaderboard) break;
           showAlert({
             label: 'Kanalpunkte',
             who: data.user_name,
@@ -170,12 +172,13 @@
             kind: 'reward',
           });
           break;
+        }
 
-        case 'flex':
+        case 'leaderboard-point':
           showAlert({
-            label: 'Flex',
+            label: data.title,
             who: data.user,
-            text: `flext! Nr. ${data.count}${data.rank ? ` – Platz ${data.rank}` : ''}`,
+            text: `löst ${data.title} ein – Nr. ${data.count}${data.rank ? `, Platz ${data.rank}` : ''}`,
             kind: 'reward',
           });
           break;

@@ -36,7 +36,7 @@ const SELECT = `
   FROM leaderboards l`;
 
 export function listLeaderboards(): Leaderboard[] {
-  return getDb().prepare(`${SELECT} ORDER BY l.created_at, l.key`).all() as Leaderboard[];
+  return getDb().prepare(`${SELECT} ORDER BY l.rowid`).all() as Leaderboard[];
 }
 
 export function getLeaderboard(key: string): Leaderboard | null {
@@ -146,4 +146,13 @@ export function countRedemption(rewardId: string, login: string, shownName: stri
   checkAndBroadcast(leaderboard.key);
   broadcast('leaderboard-point', { key: leaderboard.key, title: leaderboard.title, user: shownName, login: name, count, rank });
   return { leaderboard, count, rank: rank ?? 1 };
+}
+
+/** `!stats [Name]`: the viewer's count and place in every list they are in, in list order. */
+export function standingsText(login: string): string {
+  const parts = listLeaderboards()
+    .map((l) => ({ l, s: standing(l.key, login) }))
+    .filter(({ s }) => s.count > 0)
+    .map(({ l, s }) => `${l.title} ${s.count} (Platz ${s.rank})`);
+  return parts.length ? `@${login}: ${parts.join(', ')}.` : `@${login} hat noch nichts eingelöst.`;
 }

@@ -152,4 +152,9 @@ describe('the command list', () => {
     expect(panel).toContain('Deine Daten');
     expect(panel).toContain('90 Tage');
   });
+
+  it('knows !stats and no longer knows !flex', async () => {
+    expect(await find('!stats')).toMatchObject({ group: 'builtin', description: 'Zeigt deinen Stand in jeder Bestenliste: !stats, oder !stats <Name>.' });
+    expect(await find('!flex')).toBeUndefined();
+  });
 });
