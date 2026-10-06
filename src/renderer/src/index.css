@@ -348,17 +348,13 @@ body {
 /* "Kanalpunkte" */
 .rewards { gap: 16px; }
 .rewards input[type="text"], .rewards input[type="number"] { min-height: 44px; box-sizing: border-box; padding: 0 12px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font: inherit; }
-.rewards-layout { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
-.rewards-ranking { flex: 1 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
-.rewards-log { flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.rewards-ranking { display: flex; flex-direction: column; gap: 8px; max-width: 860px; }
 .rewards-row { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 12px 14px; border: 1px solid var(--border-subtle); border-radius: 8px; }
 .rewards-rank { flex: 0 0 28px; font-size: 20px; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
 .rewards-who { flex: 1 1 200px; min-width: 0; }
 .rewards-name { font-size: 15px; font-weight: 600; }
 .rewards-total { text-align: right; }
 .rewards-total-n { font-size: 15px; font-weight: 600; }
-.rewards-event { padding: 10px 14px; border: 1px solid var(--border-subtle); border-radius: 8px; font-size: 14px; }
-.rewards-input { margin-top: 2px; color: var(--text-secondary); font-style: italic; font-size: 13px; }
 
 /* The setup on first start: a step rail in place of the sidebar, one step at a time */
 .setup { height: 100vh; display: grid; grid-template-columns: 240px minmax(0, 1fr); background: var(--bg-body); color: var(--text); }

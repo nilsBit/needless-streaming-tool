@@ -87,24 +87,21 @@ async function handleRedemption(event: Record<string, unknown>) {
 
   const result = getDb().prepare(
     'INSERT INTO rewards (user_name, reward_type, data) VALUES (?, ?, ?)'
-  ).run(userName, rewardType, JSON.stringify({ reward_title: rewardTitle, reward_id: rewardId, user_input: userInput }));
+  // The row is for alerts and the statistics count; what the viewer typed is used right here and not kept.
+  ).run(userName, rewardType, JSON.stringify({ reward_title: rewardTitle, reward_id: rewardId }));
 
   const reward = getDb().prepare('SELECT * FROM rewards WHERE id = ?').get(result.lastInsertRowid);
   broadcast('reward-redeemed', reward);
 
+  // Only the count per viewer and reward is kept — no log of who typed what
+  // when (the streamer decided against a history, 2026-10-06).
   const normalizedName = userName.toLowerCase();
-  getDb().transaction(() => {
-    getDb().prepare(
-      'INSERT INTO reward_log (user_name, reward_type, reward_title, user_input) VALUES (?, ?, ?, ?)'
-    ).run(normalizedName, rewardType, rewardTitle, userInput);
-
-    getDb().prepare(`
-      INSERT INTO reward_stats (user_name, reward_type, count, last_redeemed_at)
-      VALUES (?, ?, 1, CURRENT_TIMESTAMP)
-      ON CONFLICT(user_name, reward_type)
-      DO UPDATE SET count = count + 1, last_redeemed_at = CURRENT_TIMESTAMP
-    `).run(normalizedName, rewardType);
-  })();
+  getDb().prepare(`
+    INSERT INTO reward_stats (user_name, reward_type, count, last_redeemed_at)
+    VALUES (?, ?, 1, CURRENT_TIMESTAMP)
+    ON CONFLICT(user_name, reward_type)
+    DO UPDATE SET count = count + 1, last_redeemed_at = CURRENT_TIMESTAMP
+  `).run(normalizedName, rewardType);
 
   // Update leaderboard tracking
   checkAndBroadcast('all');

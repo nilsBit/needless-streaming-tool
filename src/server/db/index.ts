@@ -95,6 +95,13 @@ function runMigrations(from: number, to: number) {
     console.log('[DB] Migrated: existing installation keeps every feature, setup counts as done');
   }
 
+  if (from < 27) {
+    // The redemption log (who typed what, when) is not kept any more — only the
+    // counts per viewer and reward, which the leaderboard needs (2026-10-06).
+    db.exec('DROP TABLE IF EXISTS reward_log');
+    console.log('[DB] Migrated: redemption log dropped');
+  }
+
   if (from < 24) {
     // The overlay test button used to remove its three songs on a timer. A
     // restart in those eight seconds left them in the real queue (three from

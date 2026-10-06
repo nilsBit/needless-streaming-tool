@@ -5,56 +5,35 @@ import { useToast } from '../contexts/ToastContext';
 import Dialog from '../components/ux/Dialog';
 
 interface BreakdownRow { user_name: string; reward_type: string; count: number; last_redeemed_at: string }
-interface LogRow { id: number; user_name: string; reward_type: string; reward_title: string; user_input: string; created_at: string }
-interface LogResponse { items: LogRow[]; total: number }
 
 interface Viewer { name: string; total: number; last: string; byType: Array<{ type: string; count: number }> }
 
-const TYPE_LABELS: Record<string, string> = { roulette: 'Glücksrad drehen', feature: 'Vorschlag einreichen', song: 'Musik ändern', music: 'Musik ändern', scene: 'Szene wechseln' };
+const TYPE_LABELS: Record<string, string> = { roulette: 'Glücksrad drehen', feature_request: 'Vorschlag einreichen', change_music: 'Musik ändern', scene_change: 'Szene wechseln' };
 const typeLabel = (t: string) => TYPE_LABELS[t] ?? t;
-const verb = (row: LogRow) => {
-  switch (row.reward_type) {
-    case 'roulette': return 'hat das Glücksrad gedreht.';
-    case 'feature': return 'hat einen Vorschlag eingereicht.';
-    case 'song': case 'music': return 'hat die Musik geändert.';
-    case 'scene': return 'hat die Szene gewechselt.';
-    default: return `hat „${row.reward_title}“ eingelöst.`;
-  }
-};
-const when = (iso: string) => new Date(iso.includes('T') ? iso : iso + 'Z').toLocaleString('de-DE', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 const day = (iso: string) => new Date(iso.includes('T') ? iso : iso + 'Z').toLocaleDateString('de-DE', { day: 'numeric', month: 'short' });
 
-const PAGE = 20;
-
 // "Kanalpunkte" under Nach dem Stream: who redeemed what, as a ranking per
-// viewer — the same order the Bestenliste overlay shows — next to the last
-// redemptions told in sentences. Corrections by hand live in dialogs.
+// viewer — the same order the Bestenliste overlay shows. Only counts are
+// kept, no log of who typed what when. Corrections by hand live in dialogs;
+// "Zuschauer vergessen" removes everything stored under a login.
 export default function RewardStatsPanel() {
   const { toast } = useToast();
   const { data: rows, refetch } = useApi<BreakdownRow[]>('/reward-stats/breakdown');
   const [types, setTypes] = useState<string[]>([]);
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
-  const [log, setLog] = useState<LogResponse | null>(null);
-  const [logLimit, setLogLimit] = useState(PAGE);
   const [editing, setEditing] = useState<Viewer | null>(null);
   const [edits, setEdits] = useState<Record<string, string>>({});
   const [adding, setAdding] = useState<{ user: string; type: string; count: string } | null>(null);
 
   const fetchTypes = useCallback(() => { apiGet<string[]>('/reward-stats/types').then((r) => { if (r) setTypes(r); }); }, []);
-  const fetchLog = useCallback(() => {
-    const params = new URLSearchParams({ limit: String(logLimit), offset: '0' });
-    if (typeFilter) params.set('type', typeFilter);
-    apiGet<LogResponse>(`/reward-stats/log?${params}`).then((r) => { if (r) setLog(r); });
-  }, [logLimit, typeFilter]);
   useEffect(() => { fetchTypes(); }, [fetchTypes]);
-  useEffect(() => { fetchLog(); }, [fetchLog]);
 
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
   useWebSocket((event) => {
     if (event !== 'reward-redeemed') return;
     if (debounce.current) clearTimeout(debounce.current);
-    debounce.current = setTimeout(() => { refetch(); fetchTypes(); fetchLog(); }, 2000);
+    debounce.current = setTimeout(() => { refetch(); fetchTypes(); }, 2000);
   });
   useEffect(() => () => { if (debounce.current) clearTimeout(debounce.current); }, []);
 
@@ -94,12 +73,12 @@ export default function RewardStatsPanel() {
   };
   const forget = async () => {
     if (!editing) return;
-    if (!window.confirm(`${editing.name} vergessen? Alles, was unter diesem Namen gespeichert ist – Zählungen, Protokoll, Songwünsche –, wird gelöscht.`)) return;
+    if (!window.confirm(`${editing.name} vergessen? Alles, was unter diesem Namen gespeichert ist – Zählungen, Songwünsche –, wird gelöscht.`)) return;
     const result = await apiPost('/reward-stats/forget', { user_name: editing.name });
     if (!result) { toast.error('Nicht gelöscht'); return; }
     toast.success(`${editing.name} vergessen`);
     setEditing(null);
-    refetch(); fetchTypes(); fetchLog();
+    refetch(); fetchTypes();
   };
   const add = async () => {
     if (!adding || !adding.user.trim() || !adding.type.trim() || adding.count.trim() === '') return;
@@ -115,7 +94,7 @@ export default function RewardStatsPanel() {
       <div className="card-line card-wrap">
         <div className="card-row card-wrap">
           <input type="text" placeholder="Zuschauer suchen" aria-label="Zuschauer suchen" value={search} onChange={(e) => setSearch(e.target.value)} style={{ width: 220 }} />
-          <select className="card-select" aria-label="Belohnung" value={typeFilter} onChange={(e) => { setTypeFilter(e.target.value); setLogLimit(PAGE); }}>
+          <select className="card-select" aria-label="Belohnung" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
             <option value="">Alle Belohnungen</option>
             {types.map((t) => <option key={t} value={t}>{typeLabel(t)}</option>)}
           </select>
@@ -123,40 +102,22 @@ export default function RewardStatsPanel() {
         <button type="button" className="card-secondary" onClick={() => setAdding({ user: '', type: types[0] ?? '', count: '' })}>+ Eintrag von Hand</button>
       </div>
 
-      <div className="rewards-layout">
-        <section className="rewards-ranking" aria-label="Rangliste">
-          <h3 className="alert-card-name">Rangliste</h3>
-          <p className="dialog-hint">Wer am meisten eingelöst hat. Genau so steht sie als Bestenliste im Stream.</p>
-          {viewers.length === 0 && <p className="dialog-empty">{rows && rows.length ? 'Niemand passt zur Suche.' : 'Noch hat niemand Kanalpunkte eingelöst.'}</p>}
-          {viewers.map((v, i) => (
-            <div key={v.name} className="rewards-row">
-              <span className="rewards-rank">{i + 1}</span>
-              <div className="rewards-who">
-                <div className="rewards-name">{v.name}</div>
-                <div className="dialog-hint">{v.byType.map((t) => `${t.count} × ${typeLabel(t.type)}`).join(' · ')} · zuletzt {day(v.last)}</div>
-              </div>
-              <div className="rewards-total"><div className="rewards-total-n">{v.total}</div><div className="dialog-hint">{v.total === 1 ? 'Einlösung' : 'Einlösungen'}</div></div>
-              <button type="button" className="card-secondary" onClick={() => openEdit(v)}>Bearbeiten</button>
+      <section className="rewards-ranking" aria-label="Rangliste">
+        <h3 className="alert-card-name">Rangliste</h3>
+        <p className="dialog-hint">Wer am meisten eingelöst hat. Genau so steht sie als Bestenliste im Stream. Gezählt wird jede eigene Belohnung deines Kanals; wer ein Jahr nichts einlöst, fällt heraus.</p>
+        {viewers.length === 0 && <p className="dialog-empty">{rows && rows.length ? 'Niemand passt zur Suche.' : 'Noch hat niemand Kanalpunkte eingelöst. Belohnungen legst du in Twitch an, das Tool zählt sie.'}</p>}
+        {viewers.map((v, i) => (
+          <div key={v.name} className="rewards-row">
+            <span className="rewards-rank">{i + 1}</span>
+            <div className="rewards-who">
+              <div className="rewards-name">{v.name}</div>
+              <div className="dialog-hint">{v.byType.map((t) => `${t.count} × ${typeLabel(t.type)}`).join(' · ')} · zuletzt {day(v.last)}</div>
             </div>
-          ))}
-        </section>
-
-        <section className="rewards-log" aria-label="Zuletzt passiert">
-          <h3 className="alert-card-name">Zuletzt passiert</h3>
-          <p className="dialog-hint">Die letzten Einlösungen, neueste oben.</p>
-          {log && log.items.length === 0 && <p className="dialog-empty">Noch nichts.</p>}
-          {(log?.items ?? []).map((row) => (
-            <div key={row.id} className="rewards-event">
-              <div className="dialog-hint">{when(row.created_at)}</div>
-              <div><strong>{row.user_name}</strong> {verb(row)}</div>
-              {row.user_input && <div className="rewards-input">„{row.user_input}“</div>}
-            </div>
-          ))}
-          {log && log.total > log.items.length && (
-            <button type="button" className="card-link" onClick={() => setLogLimit((l) => l + PAGE)}>Mehr anzeigen · {log.total - log.items.length} weitere</button>
-          )}
-        </section>
-      </div>
+            <div className="rewards-total"><div className="rewards-total-n">{v.total}</div><div className="dialog-hint">{v.total === 1 ? 'Einlösung' : 'Einlösungen'}</div></div>
+            <button type="button" className="card-secondary" onClick={() => openEdit(v)}>Bearbeiten</button>
+          </div>
+        ))}
+      </section>
 
       {editing && (
         <Dialog

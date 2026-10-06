@@ -1,4 +1,4 @@
-export const SCHEMA_VERSION = 26;
+export const SCHEMA_VERSION = 27;
 
 export const SCHEMA = `
 CREATE TABLE IF NOT EXISTS schema_version (
@@ -146,17 +146,6 @@ CREATE TABLE IF NOT EXISTS reward_stats (
   UNIQUE(user_name, reward_type)
 );
 
-CREATE TABLE IF NOT EXISTS reward_log (
-  id            INTEGER PRIMARY KEY AUTOINCREMENT,
-  user_name     TEXT NOT NULL,
-  reward_type   TEXT NOT NULL,
-  reward_title  TEXT NOT NULL,
-  user_input    TEXT DEFAULT '',
-  created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX IF NOT EXISTS idx_reward_log_user ON reward_log(user_name);
-CREATE INDEX IF NOT EXISTS idx_reward_log_type ON reward_log(reward_type);
 CREATE INDEX IF NOT EXISTS idx_clips_session_date ON clips(session_date);
 CREATE INDEX IF NOT EXISTS idx_project_items_status ON project_items(status);
 CREATE INDEX IF NOT EXISTS idx_song_requests_status ON song_requests(status);

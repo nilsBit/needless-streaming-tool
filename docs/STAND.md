@@ -292,7 +292,13 @@ braucht den Bot.
   Zuschauer ohne Einlösung seit einem Jahr fallen aus der Bestenliste; `!datenschutz` (auch
   `!privacy`) antwortet mit dem einen Satz aus `src/server/privacy-text.ts`, der auch den Text fürs
   Kanal-Panel abschließt; Hilfe-Abschnitt „Daten: was gespeichert wird, was den Rechner
-  verlässt“. Offen bleibt nur die Signatur der Releases.
+  verlässt“. **Historie gestrichen** (Nils: „brauchen wir nicht“): kein `reward_log` mehr, Schema
+  **v27** löscht die Tabelle, die Spalte „Zuletzt passiert“ ist weg, `/api/reward-stats/log`
+  auch; gezählt wird weiter je Zuschauer und Belohnung (`reward_stats`), die rohen Einlösungen
+  in `rewards` bleiben für Alerts und Statistik, aber ohne den eingetippten Text. **Hinweis
+  Windows:** Beim ersten Start löscht die Migration das alte Protokoll, und der Jahres-Verfall
+  nimmt Zuschauer ohne Einlösung seit einem Jahr aus der Bestenliste – vorher sichern, falls die
+  alte Rangliste gebraucht wird. Offen bleibt nur die Signatur der Releases.
 - **Nächster Schritt:** Auf dem Windows-Rechner pullen, **`npm ci`** (baut better-sqlite3 für
   Electron 44 – dauert beim ersten Mal einen Moment; meldet sich `windows-smtc-monitor` mit einem
   Modul-Fehler, einmal `npx electron-builder install-app-deps`), `npm run dev`, OBS verbinden und einmal

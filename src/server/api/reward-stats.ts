@@ -11,33 +11,6 @@ router.get('/types', (_req, res) => {
   res.json(rows.map(r => r.reward_type));
 });
 
-// Paginated detail log (MUST be before /:username to avoid route collision)
-router.get('/log', (req, res) => {
-  const { user, type, offset, limit } = req.query;
-  const maxLimit = Math.min(Number(limit) || 50, 200);
-  const skip = Number(offset) || 0;
-
-  let query = 'SELECT * FROM reward_log';
-  let countQuery = 'SELECT COUNT(*) as total FROM reward_log';
-  const conditions: string[] = [];
-  const values: unknown[] = [];
-
-  if (user) { conditions.push('user_name = ?'); values.push(user); }
-  if (type) { conditions.push('reward_type = ?'); values.push(type); }
-
-  if (conditions.length > 0) {
-    const where = ' WHERE ' + conditions.join(' AND ');
-    query += where;
-    countQuery += where;
-  }
-
-  query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
-
-  const total = (getDb().prepare(countQuery).get(...values) as { total: number }).total;
-  const items = getDb().prepare(query).all(...values, maxLimit, skip);
-  res.json({ items, total });
-});
-
 // Every viewer with every reward type — the app builds its per-viewer ranking
 // with a breakdown from this (MUST be before /:username).
 router.get('/breakdown', (_req, res) => {

@@ -53,9 +53,9 @@ Auf „Im Stream“ steht an jeder Karte, ob ihr Overlay in der laufenden OBS-Sz
     title: 'Daten: was gespeichert wird, was den Rechner verlässt',
     content: `Alles liegt in einer Datenbank auf deinem Rechner. Das Tool hat keinen eigenen Server, keine Telemetrie, keine Werbe-IDs. Die einzige Verbindung nach draußen, die es von sich aus aufbaut, ist die Update-Prüfung bei GitHub – ohne Daten von dir.
 
-**Über Zuschauer gespeichert:** der Twitch-Login mit dem, was die Person getan hat – Einlösungen (mit dem eingetippten Text), Songwünsche, Themen und Vorschläge, dazu Namen in Moment-Notizen aus der Hype-Erkennung. Chatzeilen bleiben nur im Speicher und sind nach dem Neustart weg.
+**Über Zuschauer gespeichert:** der Twitch-Login mit einer Zählung je Belohnung (für die Bestenliste), Songwünsche, Themen und Vorschläge, dazu Namen in Moment-Notizen aus der Hype-Erkennung. Es gibt kein Protokoll, wer wann was eingelöst oder eingetippt hat. Chatzeilen bleiben nur im Speicher und sind nach dem Neustart weg.
 
-**Wie lange:** Das Einlösungsprotokoll und erledigte Songwünsche löscht das Tool nach 90 Tagen von selbst. Wer ein Jahr nichts eingelöst hat, verschwindet aus der Zählung für die Bestenliste. Unter **Nach dem Stream → Kanalpunkte → Bearbeiten → Zuschauer vergessen** verschwindet alles, was unter einem Namen gespeichert ist, sofort.
+**Wie lange:** Erledigte Songwünsche löscht das Tool nach 90 Tagen von selbst. Wer ein Jahr nichts eingelöst hat, verschwindet aus der Zählung für die Bestenliste. Unter **Nach dem Stream → Kanalpunkte → Bearbeiten → Zuschauer vergessen** verschwindet alles, was unter einem Namen gespeichert ist, sofort.
 
 **Was den Rechner verlässt – nur wenn du es anschließt:**
 - **Notion:** Moment-Notizen mit Schlagwort, Zeitmarke und Text, also auch Zuschauernamen aus der Hype-Erkennung. Notion ist ein US-Anbieter.
@@ -233,7 +233,7 @@ Alle Befehle lassen sich unter Chat & Bot → Von selbst umbenennen. Antworten, 
 | "musik" oder "song" | Musik ändern |
 | "scene" oder "szene" | Szene wechseln – nur in Szenen, die unter Szenen in OBS → Szene per Kanalpunkt stehen |
 
-**Zuschauerdaten:** Einlösungen werden mit dem Twitch-Login gespeichert. Das Protokoll der Einlösungen und erledigte Songwünsche löscht das Tool nach 90 Tagen von selbst. Unter **Nach dem Stream → Kanalpunkte → Bearbeiten → Zuschauer vergessen** verschwindet alles, was unter einem Namen gespeichert ist. Sicherung und Sync-Ordner enthalten keine Zugangsdaten.
+**Zuschauerdaten:** Einlösungen werden mit dem Twitch-Login gezählt, nicht protokolliert. Erledigte Songwünsche löscht das Tool nach 90 Tagen von selbst, Zuschauer ohne Einlösung seit einem Jahr fallen aus der Zählung. Unter **Nach dem Stream → Kanalpunkte → Bearbeiten → Zuschauer vergessen** verschwindet alles, was unter einem Namen gespeichert ist. Sicherung und Sync-Ordner enthalten keine Zugangsdaten.
 
 **Feste Scene-Rewards (ohne User-Input):**
 Konfiguriere Mappings über die API:
@@ -400,7 +400,7 @@ Auth-Header: Authorization: Bearer <token>
 - POST /api/song-requests/:id/play — POST /api/song-requests/:id/skip — DELETE /api/song-requests/:id
 
 **Reward Stats:**
-- GET /api/reward-stats — GET /api/reward-stats/types — GET /api/reward-stats/log — GET /api/reward-stats/:username
+- GET /api/reward-stats — GET /api/reward-stats/types — GET /api/reward-stats/:username
 - POST /api/reward-stats — DELETE /api/reward-stats/:username/:type
 
 **Clip-Tags & Overlay-Farben:**
