@@ -103,6 +103,8 @@ export interface BotConfig {
 export interface BotStatus {
   connected: boolean;
   channel: string | null;
+  /** Why the bot is not connected, when it is not. */
+  error?: string | null;
 }
 
 export interface TwitchConfigResponse {

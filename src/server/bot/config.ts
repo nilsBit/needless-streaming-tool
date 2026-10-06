@@ -9,16 +9,32 @@ function encryptToken(token: string): string {
   return token;
 }
 
+/** Why the stored token is unusable, if it is — shown on the Twitch card. */
+let tokenProblem: string | null = null;
+export function botTokenProblem(): string | null {
+  return tokenProblem;
+}
+
 function decryptToken(encrypted: string): string {
-  if (safeStorage.isEncryptionAvailable()) {
-    try {
-      return safeStorage.decryptString(Buffer.from(encrypted, 'base64'));
-    } catch {
-      // Fallback: might be a plain-text token from before encryption was added
-      return encrypted;
-    }
+  // A token from before encryption was added is stored as it is and starts with "oauth:".
+  if (encrypted.startsWith('oauth:')) { tokenProblem = null; return encrypted; }
+  let available = false;
+  try { available = safeStorage.isEncryptionAvailable(); } catch { /* not inside Electron */ }
+  if (!available) {
+    tokenProblem = 'Die Verschlüsselung des Systems ist nicht verfügbar, der gespeicherte Twitch-Token lässt sich nicht lesen.';
+    return '';
   }
-  return encrypted;
+  try {
+    const token = safeStorage.decryptString(Buffer.from(encrypted, 'base64'));
+    tokenProblem = null;
+    return token;
+  } catch {
+    // The key lives in the system keychain. After an update of the app (a new
+    // Electron binary) macOS asks once whether it may be used; a refused dialog
+    // lands here. A fresh login stores the token under the new key.
+    tokenProblem = 'Der gespeicherte Twitch-Token lässt sich nicht entschlüsseln – meist hat macOS den Zugriff auf den Schlüsselbund verweigert. Einmal neu mit Twitch anmelden.';
+    return '';
+  }
 }
 
 export function getBotConfig(): BotConfig | null {

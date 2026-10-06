@@ -1,5 +1,5 @@
 import tmi from 'tmi.js';
-import { getBotConfig } from './config';
+import { getBotConfig, botTokenProblem } from './config';
 import { registerCommands } from './commands';
 import { sayInParts } from './chat-message';
 import { registerEvents } from './events';
@@ -15,15 +15,22 @@ export const reminder = createReminder();
 let reminderTimer: ReturnType<typeof setInterval> | null = null;
 const REMINDER_TICK_MS = 30_000;
 
-export function getBotStatus(): { connected: boolean; channel: string | null } {
+let lastError: string | null = null;
+
+/** What the connection marks and the Twitch card show: connected, the channel, and if not connected, why. */
+export function getBotStatus(): { connected: boolean; channel: string | null; error: string | null } {
   const config = getBotConfig();
-  return { connected, channel: config?.channel || null };
+  return { connected, channel: config?.channel || null, error: connected ? null : (botTokenProblem() ?? lastError) };
 }
 
 export async function connectBot(): Promise<boolean> {
   const config = getBotConfig();
   if (!config) {
     console.log('[Bot] No config found — skipping connection');
+    return false;
+  }
+  if (!config.oauth_token) {
+    console.error(`[Bot] ${botTokenProblem() ?? 'No token stored'}`);
     return false;
   }
 
@@ -47,6 +54,7 @@ export async function connectBot(): Promise<boolean> {
   try {
     await client.connect();
     connected = true;
+    lastError = null;
     broadcast('bot-status', { connected: true, channel: config.channel });
     console.log(`[Bot] Connected to #${config.channel}`);
 
@@ -67,7 +75,11 @@ export async function connectBot(): Promise<boolean> {
   } catch (err) {
     console.error('[Bot] Connection failed:', err);
     connected = false;
-    broadcast('bot-status', { connected: false, channel: null });
+    const text = String(err);
+    lastError = /authentication|login/i.test(text)
+      ? 'Twitch hat die Anmeldung abgelehnt – der Token ist abgelaufen oder ungültig. Einmal neu mit Twitch anmelden.'
+      : `Verbindung zu Twitch fehlgeschlagen: ${text.slice(0, 120)}`;
+    broadcast('bot-status', { connected: false, channel: null, error: lastError });
     return false;
   }
 }

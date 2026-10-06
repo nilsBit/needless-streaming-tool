@@ -304,7 +304,12 @@ braucht den Bot.
   (`reward_stats` mit Typ `flex`), Bot-Antwort, Overlays, Alert-Tafel, Rangwechsel folgen;
   `!stats [Name]` zeigt den Stand. Alles in `src/server/flex.ts`. Der Unterreiter heißt jetzt
   „Bestenliste“, die Overlay-Gruppe auch. Alte Zählungen anderer Typen bleiben in der Tabelle,
-  werden aber nirgends mehr gezeigt. Offen bleibt nur die Signatur der Releases.
+  werden aber nirgends mehr gezeigt. **Twitch-Bot auf dem Mac nicht verbunden (06.10., Nacht):**
+  Seit Electron 44 meldet `safeStorage.isEncryptionAvailable()` auf dem Mac `false`, der
+  verschlüsselte Twitch-Token lässt sich nicht lesen. Die App sagt das jetzt auf der Twitch-Karte
+  und in der Seitenleiste (`getBotStatus().error`, `/api/auth/twitch/rewards` liefert `error`).
+  Ursache noch offen (Schlüsselbund-Dialog verweigert? Electron-Änderung?). Offen bleibt sonst
+  nur die Signatur der Releases.
 - **Nächster Schritt:** Auf dem Windows-Rechner pullen, **`npm ci`** (baut better-sqlite3 für
   Electron 44 – dauert beim ersten Mal einen Moment; meldet sich `windows-smtc-monitor` mit einem
   Modul-Fehler, einmal `npx electron-builder install-app-deps`), `npm run dev`, OBS verbinden und einmal

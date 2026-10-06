@@ -210,7 +210,7 @@ router.get('/twitch/rewards', async (_req, res) => {
     res.json({ rewards });
   } catch (err) {
     console.error('[Auth] Failed to fetch rewards:', err);
-    res.json({ rewards: [] });
+    res.json({ rewards: [], error: err instanceof Error ? err.message : String(err) });
   }
 });
 

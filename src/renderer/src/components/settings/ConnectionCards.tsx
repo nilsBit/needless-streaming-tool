@@ -154,7 +154,7 @@ export default function ConnectionCards({ only }: Props) {
         <Card
           id="twitch" title="Twitch" expanded={false}
           note={only ? 'Bot, Alerts und Kanalpunkte' : undefined}
-          status={botStatus?.connected ? `Verbunden mit #${botStatus.channel}` : 'Nicht verbunden'}
+          status={botStatus?.connected ? `Verbunden mit #${botStatus.channel}` : (botStatus?.error ?? 'Nicht verbunden')}
           statusColor={botStatus?.connected ? OK : BAD}
           action={botStatus?.connected ? 'Trennen' : 'Mit Twitch verbinden'}
           actionColor={botStatus?.connected ? 'danger' : 'primary'}

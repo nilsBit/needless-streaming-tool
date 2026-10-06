@@ -4,7 +4,7 @@ import { useWebSocket } from '../../hooks/useWebSocket';
 import { useNavigate } from '../../NavigationContext';
 import { useFeatures } from '../../contexts/FeaturesContext';
 
-interface BotStatus { connected: boolean; channel: string | null }
+interface BotStatus { connected: boolean; channel: string | null; error?: string | null }
 interface ObsStatus { connected: boolean }
 interface SourceInfo { source: 'notion' | 'worldbuilder'; world?: string | null; error?: string; message?: string }
 
@@ -36,7 +36,7 @@ export default function ConnectionMarks() {
     {
       key: 'twitch',
       label: 'Twitch',
-      detail: bot?.connected ? `Bot im Kanal #${bot.channel}` : 'nicht verbunden',
+      detail: bot?.connected ? `Bot im Kanal #${bot.channel}` : (bot?.error ? 'nicht verbunden – siehe Verbindungen' : 'nicht verbunden'),
       tone: bot?.connected ? 'ok' : 'bad',
       onClick: () => go({ area: 'settings', subTab: 'verbindungen' }),
     },
