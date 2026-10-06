@@ -111,6 +111,15 @@ let hideTimer = null;
 let fallbackInterval = null;
 
 if (standing) panel.classList.add('standing');
+// An address without ?type= belongs to no list: say so instead of staying dark
+// (the catalog's "Adresse kopieren" carries the parameter).
+if (!params.get('type') && !standing) {
+  panel.classList.add('standing');
+  const hint = document.createElement('div');
+  hint.className = 'entry';
+  hint.innerHTML = '<span class="name" style="white-space:normal">Diese Adresse gehört zu keiner Bestenliste. Kopiere die Adresse des Overlays „Bestenliste: …“ aus der App – sie endet auf ?type=…</span>';
+  panel.appendChild(hint);
+}
 
 async function fetchLeaderboard() {
   try {
@@ -240,8 +249,7 @@ function connectWS() {
   ws.onerror = () => ws.close();
 }
 
-connectWS();
-startFallbackPolling();
+if (params.get('type') || standing) { connectWS(); startFallbackPolling(); }
 </script>
 </body>
 </html>
