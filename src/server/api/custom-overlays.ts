@@ -129,10 +129,10 @@ router.get('/builtin/:name/default', (req, res) => {
 
 // Override a builtin overlay with custom HTML
 router.put('/builtin/:name', (req, res) => {
-  const { html } = req.body;
+  const { html } = (req.body ?? {}) as { html?: unknown };
   const name = req.params.name;
 
-  if (!html) {
+  if (typeof html !== 'string' || !html) {
     res.status(400).json({ error: 'html required' });
     return;
   }
@@ -168,8 +168,8 @@ router.delete('/builtin/:name/override', (req, res) => {
 
 // Create new custom overlay from uploaded HTML
 router.post('/', (req, res) => {
-  const { name, html } = req.body;
-  if (!name || !html) {
+  const { name, html } = (req.body ?? {}) as { name?: unknown; html?: unknown };
+  if (typeof name !== 'string' || typeof html !== 'string' || !name || !html) {
     res.status(400).json({ error: 'name and html required' });
     return;
   }

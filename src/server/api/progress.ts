@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { csvRow } from '../csv';
 import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
 import { VALID_PROJECT_ITEM_STATUS } from '../../shared/types';
@@ -156,11 +157,11 @@ router.get('/export', (_req, res) => {
   const rows = items.map(item => {
     const totalSeconds = item.status === 'in_progress' ? item.time_spent + state.timer_seconds : item.time_spent;
     const minutes = Math.round(totalSeconds / 60);
-    const escapedTitle = item.title.includes(',') ? `"${item.title}"` : item.title;
-    return `${escapedTitle},${item.status},${minutes},${item.created_at}`;
+    // Titles may come from GitHub issues: quoted and disarmed, never a formula.
+    return csvRow([item.title, item.status, minutes, item.created_at]);
   });
 
-  const csv = 'Title,Status,Time Spent (minutes),Created At\n' + rows.join('\n');
+  const csv = csvRow(['Title', 'Status', 'Time Spent (minutes)', 'Created At']) + '\n' + rows.join('\n');
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', 'attachment; filename=project-progress.csv');
   res.send(csv);

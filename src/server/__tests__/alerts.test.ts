@@ -62,7 +62,11 @@ describe('alerts for followers, subs, raids and bits', () => {
     const test = async (slot: string) => (await request(app).post(`/api/alerts/test/${slot}`).set(auth()).expect(200)).body.sent;
     // Sounds are files in the data folder — a name no streamer would pick, taken away again.
     const SOUND = `test-${process.pid}-glocke.mp3`;
-    const upload = (name: string, body: Buffer = Buffer.from('not really a sound')) =>
+    // The server looks at the first bytes: a file has to start like the sound its name claims.
+    const soundBytes = (name: string) => name.endsWith('.wav')
+      ? Buffer.concat([Buffer.from('RIFF'), Buffer.alloc(4), Buffer.from('WAVE'), Buffer.alloc(16)])
+      : name.endsWith('.ogg') ? Buffer.concat([Buffer.from('OggS'), Buffer.alloc(24)]) : Buffer.concat([Buffer.from('ID3'), Buffer.alloc(24)]);
+    const upload = (name: string, body: Buffer = soundBytes(name)) =>
       request(app).post('/api/alerts/sounds').query({ name }).set(auth()).set('Content-Type', 'audio/mpeg').send(body);
 
     afterEach(async () => {

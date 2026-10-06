@@ -250,7 +250,7 @@ function show(data) {
   el.className = 'achievement lex lex-schlank ' + level;
 
   // Icon
-  document.getElementById('icon').innerHTML = ICONS[level] || ICONS.minor;
+  document.getElementById('icon').innerHTML = Object.prototype.hasOwnProperty.call(ICONS, level) ? ICONS[level] : ICONS.minor;
 
   // Text
   document.getElementById('label').textContent = LABELS[level] || 'ACHIEVEMENT';

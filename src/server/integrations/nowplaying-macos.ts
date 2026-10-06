@@ -1,4 +1,4 @@
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import { broadcast } from '../websocket/index';
 import { getDb } from '../db/index';
 import type { SongData } from '../../shared/types';
@@ -15,8 +15,8 @@ function tryPlayer(appName: string, sourceId: string): SongData | null {
     const script = appName === 'Spotify'
       ? `tell application "Spotify" to if player state is playing then return name of current track & "|||" & artist of current track & "|||" & artwork url of current track`
       : `tell application "${appName}" to if player state is playing then return name of current track & "|||" & artist of current track`;
-    const result = execSync(
-      `osascript -e '${script}'`,
+    const result = execFileSync(
+      'osascript', ['-e', script],
       { timeout: 2000, encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] }
     ).trim();
     if (!result) return null;
@@ -40,8 +40,8 @@ function tryBrowserTab(): SongData | null {
   ];
   for (const browser of browsers) {
     try {
-      const result = execSync(
-        `osascript -e 'tell application "${browser.app}" to get {title, URL} of active tab of front window'`,
+      const result = execFileSync(
+        'osascript', ['-e', `tell application "${browser.app}" to get {title, URL} of active tab of front window`],
         { timeout: 2000, encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] }
       ).trim();
       if (!result) continue;

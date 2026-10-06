@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
+import { csvRow } from '../csv';
 import { syncClipToNotion, archiveNotionPage } from './notion-sync';
 import { getStreamTimecodes } from '../obs/index';
 import { CLIP_STATUSES, type Clip, type ClipStatus } from '../../shared/types';
@@ -136,9 +137,7 @@ router.get('/export', (req, res) => {
       const offsetSeconds = Math.floor((clipTime - firstClipTime) / 1000);
       timecode = formatTimecode(offsetSeconds);
     }
-    const name = clip.tag;
-    const note = (clip.note || '').replace(/,/g, ';').replace(/"/g, "'");
-    csvRows.push(`${name},${timecode},${timecode},${note}`);
+    csvRows.push(csvRow([clip.tag, timecode, timecode, clip.note || '']));
   }
 
   const csv = csvRows.join('\n');

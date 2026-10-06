@@ -148,7 +148,7 @@ const SAFE_SELECTOR = /^[a-zA-Z0-9_\-.#:>()[\]\s]+$/;
 // What toCss produces: numbers with units, #hex, var(), color-mix(), rgba(), keywords.
 const SAFE_VALUE = /^[a-zA-Z0-9#%.,()\s-]+$/;
 
-function safeRule(change: AppliedChange): boolean {
+export function safeRule(change: AppliedChange): boolean {
   return change.kind === 'style' && typeof change.target === 'string' && typeof change.value === 'string'
     && typeof change.overlay === 'string' && /^[a-z0-9-]+$/.test(change.overlay) && CSS_PROPERTIES.has(change.property)
     && SAFE_SELECTOR.test(change.target) && !change.target.includes('/*') && change.target.length <= MAX_SELECTOR

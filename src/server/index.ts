@@ -19,6 +19,8 @@ import votingRouter from './api/voting';
 import progressRouter from './api/progress';
 import clipsRouter, { archivePublishedClips } from './api/clips';
 import setupRouter from './api/setup';
+import { allowedOrigin } from './origins';
+import { pruneViewerData } from './retention';
 import clipTagsRouter from './api/clip-tags';
 import milestonesRouter from './api/milestones';
 import obsRouter from './api/obs';
@@ -72,17 +74,20 @@ export function createApp(): express.Express {
 
   // CORS — muss VOR allen anderen Middleware kommen
   app.use((req, res, next) => {
-    const origin = req.headers.origin || '';
-    // The Figma plugin runs in a sandboxed iframe and sends `Origin: null`.
-    // Allowed only where the plugin talks — everything there needs the token.
-    const figmaPlugin = origin === 'null' && req.path.startsWith('/api/design/');
-    const allowed = figmaPlugin || !origin || origin.startsWith('http://localhost:') || origin.startsWith('file://') ||
-      (HOST === '0.0.0.0' && /^https?:\/\/\d+\.\d+\.\d+\.\d+/.test(origin));
-    if (allowed) {
+    const origin = req.headers.origin;
+    // Exact origins only (see origins.ts): the app, our own server, the Vite
+    // page in development, the Figma plugin on its routes. No other local
+    // dev server may read /public/* through the browser.
+    res.header('Vary', 'Origin');
+    if (allowedOrigin(origin, { port: PORT, host: HOST, path: req.path })) {
       res.header('Access-Control-Allow-Origin', origin || '*');
       res.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
       res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     }
+    // Plain hardening for every response: no MIME sniffing, no referrer out, no framing of the API.
+    res.header('X-Content-Type-Options', 'nosniff');
+    res.header('Referrer-Policy', 'no-referrer');
+    if (req.path.startsWith('/api/')) res.header('X-Frame-Options', 'DENY');
     if (req.method === 'OPTIONS') { res.sendStatus(204); return; }
     next();
   });
@@ -260,7 +265,7 @@ export async function startServer(): Promise<{ token: string; port: number }> {
 
   const app = createApp();
   const server = http.createServer(app);
-  initWebSocket(server);
+  initWebSocket(server, { port: PORT, host: HOST });
   restoreTimerState();
 
   server.on('error', (err: NodeJS.ErrnoException) => {
@@ -284,6 +289,10 @@ export async function startServer(): Promise<{ token: string; port: number }> {
   process.on('SIGTERM', shutdown);
   process.on('SIGINT', shutdown);
 
+  if (HOST === '0.0.0.0') {
+    console.warn('[Server] NST_HOST=0.0.0.0: /public/*, the overlays and the WebSocket feed (chat lines, viewer names, redemptions) are readable by every device on this network. Only for a network you trust.');
+  }
+
   return new Promise((resolve) => {
     server.listen(PORT, HOST, () => {
       console.log(`[Server] Running on http://localhost:${PORT}`);
@@ -299,6 +308,9 @@ export async function startServer(): Promise<{ token: string; port: number }> {
       // Published moments leave the content board after 30 days — checked at start and every six hours.
       archivePublishedClips();
       setInterval(() => archivePublishedClips(), 6 * 60 * 60 * 1000);
+      // Viewer data has a shelf life: the redemption log and finished song requests go after 90 days.
+      pruneViewerData();
+      setInterval(() => pruneViewerData(), 24 * 60 * 60 * 1000);
 
       // Init auto-clips after bot connects (needs a small delay for bot to be ready)
       setTimeout(() => initAutoClips(), 3000);

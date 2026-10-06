@@ -278,8 +278,18 @@ braucht den Bot.
   Releases (braucht ein Apple-Entwicklerkonto und ein Windows-Zertifikat) und die Prüfung des
   fertigen Pakets mit Fuses und Meta-CSP beim nächsten Release; 14 Meldungen in reinen
   Entwicklungs- und Build-Werkzeugen (electron-builder-Innereien, nodemon, vitest) bleiben, ein
-  Sprung auf Vite 8 und Vitest 5 wäre ein eigener Schritt mit Neustart des Dev-Servers. Block 4
-  (WebSocket-Herkunft, CSV, Lesebereich des Claude-Laufs, Aufbewahrung der Zuschauerdaten).
+  Sprung auf Vite 8 und Vitest 5 wäre ein eigener Schritt mit Neustart des Dev-Servers.
+  **Block 4 behoben:** CORS und WebSocket-Upgrade prüfen die Herkunft gegen eine feste Liste
+  (`src/server/origins.ts`: App, eigener Server, Vite-Seite, Figma-Plugin auf seinen Routen);
+  Hardening-Header auf jeder Antwort; CSV-Exporte über `csv.ts` (alles gequotet, Formeln
+  entschärft); der Claude-Lauf darf nur noch im Arbeitsordner lesen, Überschreibungen laufen durch
+  `safeRule`, Entwürfe sind auf 2 MB begrenzt; Tastenkürzel und Sync-Ordner werden geprüft,
+  Registrierung der Kürzel in `try/catch`; Tondateien nach Magic Bytes; `!stats` nur mit Login;
+  Fehlerantworten ohne Innereien; Rate-Limit je Adresse und Token; LAN-Modus warnt beim Start.
+  **Zuschauerdaten:** `src/server/retention.ts` löscht Einlösungsprotokoll und erledigte Songwünsche
+  nach 90 Tagen (Start und täglich), `POST /api/reward-stats/forget` und der Knopf „Zuschauer
+  vergessen“ im Bearbeiten-Dialog entfernen alles unter einem Login. Offen bleibt nur die
+  Signatur der Releases.
 - **Nächster Schritt:** Auf dem Windows-Rechner pullen, **`npm ci`** (baut better-sqlite3 für
   Electron 44 – dauert beim ersten Mal einen Moment; meldet sich `windows-smtc-monitor` mit einem
   Modul-Fehler, einmal `npx electron-builder install-app-deps`), `npm run dev`, OBS verbinden und einmal

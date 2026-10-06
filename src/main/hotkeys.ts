@@ -9,6 +9,16 @@ export function setHotkeyPort(port: number) {
   serverPort = port;
 }
 
+/** Registers one shortcut; a taken or malformed accelerator is logged, never thrown, so the rest still register. */
+function register(accelerator: string | undefined, handler: () => void): void {
+  if (!accelerator) return;
+  try {
+    if (!globalShortcut.register(accelerator, handler)) console.warn(`[Hotkeys] "${accelerator}" is taken by another app`);
+  } catch (err) {
+    console.warn(`[Hotkeys] "${accelerator}" is not a valid shortcut:`, err);
+  }
+}
+
 function apiCall(method: string, path: string, body?: unknown) {
   const data = body ? JSON.stringify(body) : undefined;
   const options: http.RequestOptions = {
@@ -59,7 +69,7 @@ export async function registerHotkeys(config?: Partial<HotkeyConfig>) {
   }
 
   // Ctrl+Shift+E — Challenge toggle
-  globalShortcut.register(hotkeys.challenge_toggle, async () => {
+  register(hotkeys.challenge_toggle, async () => {
     try {
       const state = await apiGet('/api/stream-state') as { challenge_status: string };
       if (state.challenge_status === 'in_progress') {
@@ -74,7 +84,7 @@ export async function registerHotkeys(config?: Partial<HotkeyConfig>) {
   });
 
   // Timer toggle
-  globalShortcut.register(hotkeys.timer_toggle, async () => {
+  register(hotkeys.timer_toggle, async () => {
     try {
       const state = await apiGet('/api/stream-state') as { timer_running: number };
       apiCall('PATCH', '/api/stream-state', { timer_running: state.timer_running ? 0 : 1 });
@@ -85,43 +95,43 @@ export async function registerHotkeys(config?: Partial<HotkeyConfig>) {
   });
 
   // Hype Moment
-  globalShortcut.register(hotkeys.hype_moment, () => {
+  register(hotkeys.hype_moment, () => {
     apiCall('POST', '/api/actions/compile-pray', {});
     console.log(`[Hotkey] ${hotkeys.hype_moment} — Hype Moment`);
   });
 
   // Challenge Done
-  globalShortcut.register(hotkeys.challenge_done, () => {
+  register(hotkeys.challenge_done, () => {
     apiCall('PATCH', '/api/stream-state', { challenge_status: 'done', timer_running: 0 });
     console.log(`[Hotkey] ${hotkeys.challenge_done} — Done`);
   });
 
   // Challenge Failed
-  globalShortcut.register(hotkeys.challenge_failed, () => {
+  register(hotkeys.challenge_failed, () => {
     apiCall('PATCH', '/api/stream-state', { challenge_status: 'failed', timer_running: 0 });
     console.log(`[Hotkey] ${hotkeys.challenge_failed} — Failed`);
   });
 
   // Glücksrad
-  globalShortcut.register(hotkeys.roulette, () => {
+  register(hotkeys.roulette, () => {
     apiCall('POST', '/api/actions/roulette', {});
     console.log(`[Hotkey] ${hotkeys.roulette} — Roulette`);
   });
 
   // Milestone Minor
-  globalShortcut.register(hotkeys.milestone_minor, () => {
+  register(hotkeys.milestone_minor, () => {
     apiCall('POST', '/api/milestones', { level: 'minor' });
     console.log(`[Hotkey] ${hotkeys.milestone_minor} — Milestone Minor`);
   });
 
   // Milestone Major
-  globalShortcut.register(hotkeys.milestone_major, () => {
+  register(hotkeys.milestone_major, () => {
     apiCall('POST', '/api/milestones', { level: 'major' });
     console.log(`[Hotkey] ${hotkeys.milestone_major} — Milestone Major`);
   });
 
   // Milestone Epic
-  globalShortcut.register(hotkeys.milestone_epic, () => {
+  register(hotkeys.milestone_epic, () => {
     apiCall('POST', '/api/milestones', { level: 'epic' });
     console.log(`[Hotkey] ${hotkeys.milestone_epic} — Milestone Epic`);
   });

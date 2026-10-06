@@ -57,6 +57,8 @@ router.post('/inbox', express.json({ limit: '30mb' }), (req, res) => {
     return;
   }
   if (typeof draft !== 'object' || draft === null) { res.status(400).json({ error: 'draft must be an object' }); return; }
+  // The draft goes into a prompt later; two megabytes of JSON is already far beyond any real capture.
+  if (JSON.stringify(draft).length > 2_000_000) { res.status(413).json({ error: 'draft too large' }); return; }
   const one = png(image);
   const two = png(image2x);
   if (!one || !two) { res.status(400).json({ error: 'image and image2x must be PNG (base64)' }); return; }

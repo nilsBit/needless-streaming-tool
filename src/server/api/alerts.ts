@@ -1,4 +1,5 @@
 import express, { Router } from 'express';
+import { looksLikeSound } from '../sound-sniff';
 import fs from 'fs';
 import path from 'path';
 import { broadcast } from '../websocket/index';
@@ -63,6 +64,10 @@ router.post('/sounds', express.raw({ type: () => true, limit: MAX_SOUND_BYTES })
   }
   if (!Buffer.isBuffer(req.body) || req.body.length === 0) {
     res.status(400).json({ error: 'sound file required as the request body' });
+    return;
+  }
+  if (!looksLikeSound(req.body, name)) {
+    res.status(400).json({ error: 'the file is not an MP3, WAV or OGG sound' });
     return;
   }
   fs.mkdirSync(ALERT_SOUND_DIR, { recursive: true });

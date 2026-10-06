@@ -50,7 +50,8 @@ router.post('/connect', async (_req, res) => {
     const success = await connectObs();
     res.json({ connected: success });
   } catch (err) {
-    res.status(500).json({ error: 'OBS connection failed', details: String(err) });
+    console.error('[OBS] Connection failed:', err);
+    res.status(500).json({ error: 'OBS connection failed' });
   }
 });
 
@@ -59,7 +60,8 @@ router.post('/disconnect', async (_req, res) => {
     await disconnectObs();
     res.json({ connected: false });
   } catch (err) {
-    res.status(500).json({ error: 'OBS disconnect failed', details: String(err) });
+    console.error('[OBS] Disconnect failed:', err);
+    res.status(500).json({ error: 'OBS disconnect failed' });
   }
 });
 
@@ -112,7 +114,8 @@ router.post('/screens', async (_req, res) => {
     }
     res.json({ screens });
   } catch (err) {
-    res.status(500).json({ error: 'Creating the scenes in OBS failed', details: String(err) });
+    console.error('[OBS] Creating the scenes failed:', err);
+    res.status(500).json({ error: 'Creating the scenes in OBS failed' });
   }
 });
 
@@ -132,7 +135,8 @@ router.post('/place-overlay', async (req, res) => {
     if (result.status === 'no-scene') { res.status(400).json({ error: `no scene "${scene}" in OBS`, ...result }); return; }
     res.json(result);
   } catch (err) {
-    res.status(500).json({ error: 'Placing the overlay in OBS failed', details: String(err) });
+    console.error('[OBS] Placing the overlay failed:', err);
+    res.status(500).json({ error: 'Placing the overlay in OBS failed' });
   }
 });
 

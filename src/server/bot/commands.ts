@@ -255,7 +255,9 @@ export function registerCommands(client: Client) {
 
       case 'rewardstats': {
         const args = message.trim().split(' ').slice(1);
-        const target = args[0] || tags['display-name'] || tags.username || 'Unknown';
+        // Only a login is looked up and echoed — never arbitrary text from the message.
+        const asked = args[0]?.replace(/^@/, '') ?? '';
+        const target = /^[a-z0-9_]{1,25}$/i.test(asked) ? asked : (tags['display-name'] || tags.username || 'Unknown');
 
         const byType = getDb().prepare(
           'SELECT reward_type, count FROM reward_stats WHERE user_name = ? ORDER BY count DESC'

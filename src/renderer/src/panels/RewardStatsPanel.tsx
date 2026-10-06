@@ -92,6 +92,15 @@ export default function RewardStatsPanel() {
     setEditing((v) => (v ? { ...v, byType: v.byType.filter((t) => t.type !== type) } : v));
     refetch(); fetchTypes();
   };
+  const forget = async () => {
+    if (!editing) return;
+    if (!window.confirm(`${editing.name} vergessen? Alles, was unter diesem Namen gespeichert ist – Zählungen, Protokoll, Songwünsche –, wird gelöscht.`)) return;
+    const result = await apiPost('/reward-stats/forget', { user_name: editing.name });
+    if (!result) { toast.error('Nicht gelöscht'); return; }
+    toast.success(`${editing.name} vergessen`);
+    setEditing(null);
+    refetch(); fetchTypes(); fetchLog();
+  };
   const add = async () => {
     if (!adding || !adding.user.trim() || !adding.type.trim() || adding.count.trim() === '') return;
     const result = await apiPost('/reward-stats', { user_name: adding.user.trim(), reward_type: adding.type.trim(), count: Number(adding.count) });
@@ -155,6 +164,11 @@ export default function RewardStatsPanel() {
           sentence="Zahlen korrigieren oder einen Eintrag entfernen, etwa nach einem Fehlgriff im Chat."
           onClose={() => setEditing(null)}
           width={560}
+          footer={<>
+            <button type="button" className="card-link" onClick={forget}>Zuschauer vergessen</button>
+            <span style={{ flex: 1 }} />
+            <button type="button" className="card-primary" onClick={() => setEditing(null)}>Fertig</button>
+          </>}
         >
           {editing.byType.length === 0 && <p className="dialog-empty">Keine Einträge mehr.</p>}
           <ul className="dialog-list">

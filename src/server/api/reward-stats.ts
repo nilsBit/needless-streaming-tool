@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { forgetViewer } from '../retention';
 import { getDb } from '../db/index';
 import { checkAndBroadcast } from '../reward-leaderboard';
 
@@ -95,6 +96,18 @@ router.post('/', (req, res) => {
   checkAndBroadcast('all');
   checkAndBroadcast(normalizedType);
   res.json({ ok: true });
+});
+
+// Forget a viewer: every row stored under the login — counts, log, raw redemptions, song requests.
+router.post('/forget', (req, res) => {
+  const { user_name } = (req.body ?? {}) as { user_name?: unknown };
+  if (typeof user_name !== 'string' || !/^[a-z0-9_]{1,25}$/i.test(user_name.trim())) {
+    res.status(400).json({ error: 'user_name must be a Twitch login' });
+    return;
+  }
+  const removed = forgetViewer(user_name);
+  checkAndBroadcast('all');
+  res.json({ ok: true, removed });
 });
 
 // Delete a reward stat entry

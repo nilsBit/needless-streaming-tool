@@ -124,7 +124,7 @@
     const MAX_ROWS = 3;
 
     const stage = document.body;
-    const esc = (value) => String(value).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const esc = (value) => String(value).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
     // Only a portrait sits in the corner; the draft has no emblem for an entry without one.
     function seal(card) {

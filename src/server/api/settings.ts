@@ -9,6 +9,8 @@ import { getDb } from '../db/index';
 import path from 'path';
 import fs from 'fs';
 import { DEFAULT_HOTKEYS } from '../../shared/types';
+import { isAccelerator } from '../hotkey-accelerator';
+import { getUserDataPath } from '../paths';
 import { listDatabases, listPages, createDatabase, healDatabase, checkDatabase } from './notion-sync';
 import { getSyncStatus, syncToRemoteManual, readSyncConfig, writeSyncConfig } from '../sync';
 import { getLiveSettings, saveLiveSettings } from '../discord/live';
@@ -50,7 +52,8 @@ router.post('/bot/connect', async (_req, res) => {
     const success = await connectBot();
     res.json({ connected: success });
   } catch (err) {
-    res.status(500).json({ error: 'Bot connection failed', details: String(err) });
+    console.error('[Settings] Bot connection failed:', err);
+    res.status(500).json({ error: 'Bot connection failed' });
   }
 });
 
@@ -59,7 +62,8 @@ router.post('/bot/disconnect', async (_req, res) => {
     await disconnectBot();
     res.json({ connected: false });
   } catch (err) {
-    res.status(500).json({ error: 'Bot disconnect failed', details: String(err) });
+    console.error('[Settings] Bot disconnect failed:', err);
+    res.status(500).json({ error: 'Bot disconnect failed' });
   }
 });
 
@@ -190,7 +194,8 @@ router.post('/streamdeck/install', async (_req, res) => {
     await shell.openPath(pluginPath);
     res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to open plugin', details: String(err) });
+    console.error('[Settings] Could not open the plugin:', err);
+    res.status(500).json({ error: 'Failed to open plugin' });
   }
 });
 
@@ -255,11 +260,16 @@ router.get('/hotkeys', (_req, res) => {
 });
 
 router.post('/hotkeys', (req, res) => {
-  const config = req.body;
-  if (!config || typeof config !== 'object') {
+  const config = req.body as Record<string, unknown> | null;
+  if (!config || typeof config !== 'object' || Array.isArray(config)) {
     res.status(400).json({ error: 'hotkey config object required' });
     return;
   }
+  // Known keys only, each a shortcut Electron can register (or empty for none).
+  const unknown = Object.keys(config).filter((k) => !(k in DEFAULT_HOTKEYS));
+  if (unknown.length) { res.status(400).json({ error: `unknown hotkey: ${unknown.join(', ')}` }); return; }
+  const bad = Object.entries(config).filter(([, v]) => !isAccelerator(v)).map(([k]) => k);
+  if (bad.length) { res.status(400).json({ error: `not a shortcut: ${bad.join(', ')}` }); return; }
   getDb().prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('hotkeys', JSON.stringify(config));
   res.json({ success: true });
 });
@@ -282,7 +292,8 @@ router.post('/autostart', (req, res) => {
     app.setLoginItemSettings({ openAtLogin: !!enabled });
     res.json({ success: true, enabled: !!enabled });
   } catch (err) {
-    res.status(500).json({ error: 'Autostart nicht verfügbar', details: String(err) });
+    console.error('[Settings] Autostart not available:', err);
+    res.status(500).json({ error: 'Autostart nicht verfügbar' });
   }
 });
 
@@ -369,8 +380,20 @@ router.get('/sync/config', (_req, res) => {
 });
 
 router.post('/sync/config', (req, res) => {
-  const { enabled, syncPath } = req.body as { enabled?: boolean; syncPath?: string };
-  writeSyncConfig({ enabled: !!enabled, syncPath: syncPath || '' });
+  const { enabled, syncPath } = req.body as { enabled?: unknown; syncPath?: unknown };
+  const wanted = typeof syncPath === 'string' ? syncPath.trim() : '';
+  if (enabled) {
+    // The database is copied there on quit and taken from there on start:
+    // an existing folder, named absolutely, and not our own data folder.
+    if (!wanted || !path.isAbsolute(wanted)) { res.status(400).json({ error: 'syncPath must be an absolute folder path' }); return; }
+    let isDirectory = false;
+    try { isDirectory = fs.statSync(wanted).isDirectory(); } catch { /* does not exist */ }
+    if (!isDirectory) { res.status(400).json({ error: 'syncPath must be an existing folder' }); return; }
+    const userData = path.resolve(getUserDataPath(''));
+    const target = path.resolve(wanted);
+    if (target === userData || target.startsWith(userData + path.sep)) { res.status(400).json({ error: 'syncPath must not be inside the app data folder' }); return; }
+  }
+  writeSyncConfig({ enabled: !!enabled, syncPath: wanted });
   res.json({ success: true });
 });
 

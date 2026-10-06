@@ -213,7 +213,9 @@ Alle Befehle lassen sich unter Chat & Bot → Von selbst umbenennen. Antworten, 
 | "roulette" | Glücksrad drehen |
 | "feature" | Vorschlag einreichen |
 | "musik" oder "song" | Musik ändern |
-| "scene" oder "szene" | Szene wechseln (mit User-Input) |
+| "scene" oder "szene" | Szene wechseln – nur in Szenen, die unter Szenen in OBS → Szene per Kanalpunkt stehen |
+
+**Zuschauerdaten:** Einlösungen werden mit dem Twitch-Login gespeichert. Das Protokoll der Einlösungen und erledigte Songwünsche löscht das Tool nach 90 Tagen von selbst. Unter **Nach dem Stream → Kanalpunkte → Bearbeiten → Zuschauer vergessen** verschwindet alles, was unter einem Namen gespeichert ist. Sicherung und Sync-Ordner enthalten keine Zugangsdaten.
 
 **Feste Scene-Rewards (ohne User-Input):**
 Konfiguriere Mappings über die API:

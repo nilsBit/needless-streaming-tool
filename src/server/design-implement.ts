@@ -2,7 +2,7 @@ import { execFileSync, spawn, type ChildProcess } from 'child_process';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { appliedChanges, draftStatuses, markDone, setNeedsScript, undoApplied, type AppliedChange, type DraftStatus } from './design-apply';
+import { appliedChanges, draftStatuses, markDone, setNeedsScript, undoApplied, type AppliedChange, type DraftStatus, safeRule } from './design-apply';
 import { violations } from './design-guard';
 import { designDir, overlaysDir } from './showcase';
 import { getApiToken, getDesignToken, getFixedToken } from './auth-token';
@@ -151,12 +151,15 @@ export function permissionPath(dir: string): string {
 }
 
 function args(work: string): string[] {
+  const root = permissionPath(work);
   const overlays = permissionPath(path.join(work, 'overlays'));
   return [
     '-p', '--restricted', '--strict-mcp-config',
     '--add-dir', path.join(work, 'drafts'),
+    // Every tool confined to the working copy: a note from Figma must not be
+    // able to make the run read ~/.nst or the database (security review 2026-10-06, M7).
     '--tools', 'Read,Glob,Grep,Edit,Write',
-    '--allowedTools', 'Read', 'Glob', 'Grep', `Edit(${overlays}/**)`, `Write(${overlays}/**)`,
+    '--allowedTools', `Read(${root}/**)`, `Glob(${root}/**)`, `Grep(${root}/**)`, `Edit(${overlays}/**)`, `Write(${overlays}/**)`,
     '--permission-mode', 'dontAsk', '--permission-prompts', 'none',
     '--no-session-persistence', '--output-format', 'json',
   ];
@@ -344,7 +347,8 @@ export function startImplement(onChange: () => void): 'started' | 'not-available
   const drafts = draftStatuses().filter((d) => !d.done);
   if (drafts.length === 0) return 'nothing';
   const overlays = new Set(drafts.map((d) => d.overlay));
-  const overrides = appliedChanges().filter((c) => c.kind === 'style' && overlays.has(c.overlay));
+  // Only rules the guard would serve go into the prompt — a tampered database must not inject text.
+  const overrides = appliedChanges().filter((c) => c.kind === 'style' && overlays.has(c.overlay) && safeRule(c));
 
   run = { state: 'running', startedAt: new Date().toISOString() };
   let work = '';

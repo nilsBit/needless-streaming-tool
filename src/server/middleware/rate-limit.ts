@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { Request, Response, NextFunction } from 'express';
 
 const WINDOW_MS = 60_000; // 1 minute
@@ -16,7 +17,12 @@ function createRateLimiter(windowMs: number, maxRequests: number) {
   cleanup.unref();
 
   return (req: Request, res: Response, next: NextFunction) => {
-    const ip = req.ip || 'unknown';
+    // One bucket per address and token: on loopback everything shares one
+    // address, so the renderer, the Stream Deck and anonymous overlay traffic
+    // would otherwise count against each other.
+    const auth = req.headers.authorization;
+    const who = auth ? crypto.createHash('sha256').update(auth).digest('hex').slice(0, 12) : 'anon';
+    const ip = `${req.ip || 'unknown'}|${who}`;
     const now = Date.now();
 
     let entry = store.get(ip);
