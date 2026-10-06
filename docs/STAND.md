@@ -298,7 +298,13 @@ braucht den Bot.
   in `rewards` bleiben für Alerts und Statistik, aber ohne den eingetippten Text. **Hinweis
   Windows:** Beim ersten Start löscht die Migration das alte Protokoll, und der Jahres-Verfall
   nimmt Zuschauer ohne Einlösung seit einem Jahr aus der Bestenliste – vorher sichern, falls die
-  alte Rangliste gebraucht wird. Offen bleibt nur die Signatur der Releases.
+  alte Rangliste gebraucht wird. **Bestenliste = Flexe** (Nils, 06.10., spät): Einlösungen
+  zählen nicht mehr; eine Belohnung mit „Flex“ im Namen (Wort einstellbar unter Nach dem Stream →
+  Bestenliste) schaltet einen Flex frei (`flex_credits`), `!flex` im Chat löst ihn ein und zählt
+  (`reward_stats` mit Typ `flex`), Bot-Antwort, Overlays, Alert-Tafel, Rangwechsel folgen;
+  `!stats [Name]` zeigt den Stand. Alles in `src/server/flex.ts`. Der Unterreiter heißt jetzt
+  „Bestenliste“, die Overlay-Gruppe auch. Alte Zählungen anderer Typen bleiben in der Tabelle,
+  werden aber nirgends mehr gezeigt. Offen bleibt nur die Signatur der Releases.
 - **Nächster Schritt:** Auf dem Windows-Rechner pullen, **`npm ci`** (baut better-sqlite3 für
   Electron 44 – dauert beim ersten Mal einen Moment; meldet sich `windows-smtc-monitor` mit einem
   Modul-Fehler, einmal `npx electron-builder install-app-deps`), `npm run dev`, OBS verbinden und einmal

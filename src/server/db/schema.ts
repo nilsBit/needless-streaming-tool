@@ -146,6 +146,13 @@ CREATE TABLE IF NOT EXISTS reward_stats (
   UNIQUE(user_name, reward_type)
 );
 
+-- One row per viewer: flexes unlocked by the "Flex" reward and not yet spent with !flex.
+CREATE TABLE IF NOT EXISTS flex_credits (
+  user_name  TEXT PRIMARY KEY,
+  credits    INTEGER NOT NULL DEFAULT 0,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE INDEX IF NOT EXISTS idx_clips_session_date ON clips(session_date);
 CREATE INDEX IF NOT EXISTS idx_project_items_status ON project_items(status);
 CREATE INDEX IF NOT EXISTS idx_song_requests_status ON song_requests(status);

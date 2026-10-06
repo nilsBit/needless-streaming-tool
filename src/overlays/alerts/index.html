@@ -78,6 +78,7 @@
     const REWARDS = {
       feature_request: 'schlägt etwas vor.',
       change_music: 'wechselt die Musik.',
+      flex: 'schaltet einen Flex frei.',
     };
 
     // Size and time on screen, by kind. Whatever isn't listed is small.
@@ -166,6 +167,15 @@
             label: 'Kanalpunkte',
             who: data.user_name,
             text: REWARDS[data.reward_type] || 'löst eine Belohnung ein.',
+            kind: 'reward',
+          });
+          break;
+
+        case 'flex':
+          showAlert({
+            label: 'Flex',
+            who: data.user,
+            text: `flext! Nr. ${data.count}${data.rank ? ` – Platz ${data.rank}` : ''}`,
             kind: 'reward',
           });
           break;

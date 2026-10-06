@@ -25,11 +25,12 @@ export function pruneViewerData(days: number = RETENTION_DAYS, inactiveDays: num
   return { songRequests, leaderboard };
 }
 
-export function forgetViewer(name: string): { rewardStats: number; rewards: number; songRequests: number } {
+export function forgetViewer(name: string): { rewardStats: number; flexCredits: number; rewards: number; songRequests: number } {
   const login = name.trim().toLowerCase();
   const db = getDb();
   return {
     rewardStats: db.prepare('DELETE FROM reward_stats WHERE user_name = ?').run(login).changes,
+    flexCredits: db.prepare('DELETE FROM flex_credits WHERE user_name = ?').run(login).changes,
     rewards: db.prepare('DELETE FROM rewards WHERE LOWER(user_name) = ?').run(login).changes,
     songRequests: db.prepare('DELETE FROM song_requests WHERE LOWER(requested_by) = ?').run(login).changes,
   };

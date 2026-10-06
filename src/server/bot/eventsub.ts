@@ -4,7 +4,7 @@ import { broadcast } from '../websocket/index';
 import { getBotConfig } from './config';
 import { triggerRoulette } from '../api/actions';
 import { changeScene, sceneMappingForRedemption, getCurrentScene } from '../obs/index';
-import { checkAndBroadcast } from '../reward-leaderboard';
+import { grantFlexCredit, isFlexReward } from '../flex';
 import { getClientId } from '../twitch-config';
 import { sendAlert } from './alerts';
 
@@ -80,7 +80,8 @@ async function handleRedemption(event: Record<string, unknown>) {
   // Map reward title to our reward types
   let rewardType = rewardTitle;
   const titleLower = rewardTitle.toLowerCase();
-  if (titleLower.includes('roulette')) rewardType = 'roulette';
+  if (isFlexReward(rewardTitle)) rewardType = 'flex';
+  else if (titleLower.includes('roulette')) rewardType = 'roulette';
   else if (titleLower.includes('feature')) rewardType = 'feature_request';
   else if (titleLower.includes('musik') || titleLower.includes('song')) rewardType = 'change_music';
   else if (titleLower.includes('scene') || titleLower.includes('szene')) rewardType = 'scene_change';
@@ -93,19 +94,12 @@ async function handleRedemption(event: Record<string, unknown>) {
   const reward = getDb().prepare('SELECT * FROM rewards WHERE id = ?').get(result.lastInsertRowid);
   broadcast('reward-redeemed', reward);
 
-  // Only the count per viewer and reward is kept — no log of who typed what
-  // when (the streamer decided against a history, 2026-10-06).
-  const normalizedName = userName.toLowerCase();
-  getDb().prepare(`
-    INSERT INTO reward_stats (user_name, reward_type, count, last_redeemed_at)
-    VALUES (?, ?, 1, CURRENT_TIMESTAMP)
-    ON CONFLICT(user_name, reward_type)
-    DO UPDATE SET count = count + 1, last_redeemed_at = CURRENT_TIMESTAMP
-  `).run(normalizedName, rewardType);
-
-  // Update leaderboard tracking
-  checkAndBroadcast('all');
-  checkAndBroadcast(rewardType);
+  // Redemptions do not count for the Bestenliste. A "Flex" reward unlocks one
+  // flex; the viewer spends it with !flex, and that is what counts (2026-10-06).
+  if (rewardType === 'flex') {
+    const credits = grantFlexCredit(userName);
+    console.log(`[EventSub] ${userName} unlocked a flex (${credits} open)`);
+  }
 
   // Auto-trigger roulette when someone redeems roulette
   if (rewardType === 'roulette') {

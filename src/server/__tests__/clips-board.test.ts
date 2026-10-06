@@ -101,15 +101,15 @@ describe('reward breakdown', () => {
     app = createApp();
   });
 
-  it('lists every viewer with every reward type for the per-viewer ranking', async () => {
-    await request(app).post('/api/reward-stats').set(auth()).send({ user_name: 'Kartograph', reward_type: 'roulette', count: 12 }).expect(200);
-    await request(app).post('/api/reward-stats').set(auth()).send({ user_name: 'Kartograph', reward_type: 'song', count: 3 }).expect(200);
-    await request(app).post('/api/reward-stats').set(auth()).send({ user_name: 'Tintenfass', reward_type: 'song', count: 7 }).expect(200);
+  it('ranks viewers by their flexes, most first, and shows open credits', async () => {
+    await request(app).post('/api/reward-stats').set(auth()).send({ user_name: 'Kartograph', reward_type: 'flex', count: 12 }).expect(200);
+    await request(app).post('/api/reward-stats').set(auth()).send({ user_name: 'Tintenfass', reward_type: 'flex', count: 7 }).expect(200);
+    // Other rewards never reach the Bestenliste.
+    await request(app).post('/api/reward-stats').set(auth()).send({ user_name: 'Tintenfass', reward_type: 'roulette', count: 30 }).expect(200);
+    await request(app).post('/api/reward-stats/flex/credit').set(auth()).send({ user_name: 'Tintenfass' }).expect(200);
 
-    const rows = (await request(app).get('/api/reward-stats/breakdown').set(auth()).expect(200)).body;
+    const rows = (await request(app).get('/api/reward-stats/breakdown').set(auth()).expect(200)).body as Array<{ user_name: string; count: number; credits: number }>;
     // Names are stored lowercased, the way Twitch logins come in.
-    const kartograph = rows.filter((r: { user_name: string }) => r.user_name === 'kartograph');
-    expect(kartograph.map((r: { reward_type: string; count: number }) => [r.reward_type, r.count])).toEqual([['roulette', 12], ['song', 3]]);
-    expect(rows.find((r: { user_name: string }) => r.user_name === 'tintenfass').count).toBe(7);
+    expect(rows.map((r) => [r.user_name, r.count, r.credits])).toEqual([['kartograph', 12, 0], ['tintenfass', 7, 1]]);
   });
 });

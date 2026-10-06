@@ -26,6 +26,7 @@ export const DEFAULT_COMMANDS: Record<string, string> = {
   commands: '!befehle',
   shoutout: '!so',
   privacy: '!datenschutz',
+  flex: '!flex',
 };
 
 /**
@@ -116,6 +117,7 @@ export const VIEWER_COMMAND_KEYS = [
   'queue',
   'vote',
   'hype',
+  'flex',
   'rewardstats',
   'uptime',
   'privacy',

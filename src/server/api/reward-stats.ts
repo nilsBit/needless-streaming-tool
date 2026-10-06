@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { forgetViewer } from '../retention';
+import { flexBoard, flexRewardKeyword, grantFlexCredit, saveFlexRewardKeyword } from '../flex';
 import { getDb } from '../db/index';
 import { checkAndBroadcast } from '../reward-leaderboard';
 
@@ -11,17 +12,32 @@ router.get('/types', (_req, res) => {
   res.json(rows.map(r => r.reward_type));
 });
 
-// Every viewer with every reward type — the app builds its per-viewer ranking
-// with a breakdown from this (MUST be before /:username).
+// The Bestenliste: everyone with flexes or open credits, most flexes first.
 router.get('/breakdown', (_req, res) => {
-  const rows = getDb().prepare(
-    `SELECT user_name, reward_type, count, last_redeemed_at
-     FROM reward_stats ORDER BY user_name, count DESC`
-  ).all();
-  res.json(rows);
+  res.json(flexBoard());
 });
 
-// Leaderboard — aggregated stats
+// Which reward in Twitch unlocks a flex — any reward whose name contains this.
+router.get('/flex-settings', (_req, res) => {
+  res.json({ reward: flexRewardKeyword() });
+});
+
+router.post('/flex-settings', (req, res) => {
+  const result = saveFlexRewardKeyword((req.body as { reward?: unknown } | undefined)?.reward);
+  if ('error' in result) { res.status(400).json(result); return; }
+  res.json(result);
+});
+
+// A flex unlocked by hand — for a redemption the tool missed, or as a gift.
+router.post('/flex/credit', (req, res) => {
+  const { user_name } = (req.body ?? {}) as { user_name?: unknown };
+  if (typeof user_name !== 'string' || !/^[a-z0-9_]{1,25}$/i.test(user_name.trim())) {
+    res.status(400).json({ error: 'user_name must be a Twitch login' });
+    return;
+  }
+  res.json({ ok: true, credits: grantFlexCredit(user_name.trim()) });
+});
+
 router.get('/', (req, res) => {
   const { type, sort, limit } = req.query;
   const maxLimit = Math.min(Number(limit) || 50, 200);

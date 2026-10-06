@@ -6,6 +6,7 @@ import { changeScene, getScenes } from '../obs/index';
 import { broadcast } from '../websocket/index';
 import { resolveOEmbed } from '../api/song-requests';
 import { parseSongUrl } from '../song-url';
+import { flexRewardKeyword, flexStanding, useFlex } from '../flex';
 import { sayInParts } from './chat-message';
 import { builtinKeyOf, triggerOf, canonicalTrigger } from './command-names';
 import { commandEnabled } from '../features';
@@ -253,24 +254,31 @@ export function registerCommands(client: Client) {
         break;
       }
 
+      case 'flex': {
+        // One unlocked flex (the "Flex" reward) becomes one point on the Bestenliste.
+        const login = tags.username ?? '';
+        const shown = tags['display-name'] || login || 'jemand';
+        if (!login) break;
+        const result = useFlex(login, shown);
+        if (result.counted) {
+          say(`💪 @${shown} flext! Flex Nr. ${result.count}${result.rank ? ` – Platz ${result.rank}` : ''}.`);
+        } else if (passCooldown(`flex-none:${login}`, 20, false, { viewer: login })) {
+          say(`@${shown} du hast keinen Flex offen – die Belohnung „${flexRewardKeyword()}“ schaltet einen frei.${result.count ? ` Bisher ${result.count} ${result.count === 1 ? 'Flex' : 'Flexe'}.` : ''}`);
+        }
+        break;
+      }
+
       case 'rewardstats': {
         const args = message.trim().split(' ').slice(1);
         // Only a login is looked up and echoed — never arbitrary text from the message.
         const asked = args[0]?.replace(/^@/, '') ?? '';
-        const target = /^[a-z0-9_]{1,25}$/i.test(asked) ? asked : (tags['display-name'] || tags.username || 'Unknown');
-
-        const byType = getDb().prepare(
-          'SELECT reward_type, count FROM reward_stats WHERE user_name = ? ORDER BY count DESC'
-        ).all(target.toLowerCase()) as Array<{ reward_type: string; count: number }>;
-
-        if (byType.length === 0) {
-          say(`@${target} hat noch keine Rewards eingelöst.`);
-          break;
+        const target = /^[a-z0-9_]{1,25}$/i.test(asked) ? asked : (tags.username || 'Unknown');
+        const standing = flexStanding(target);
+        if (standing.count === 0) {
+          say(`@${target} hat noch nicht geflext.${standing.credits ? ` ${standing.credits} ${standing.credits === 1 ? 'Flex' : 'Flexe'} offen – !flex!` : ''}`);
+        } else {
+          say(`@${target}: ${standing.count} ${standing.count === 1 ? 'Flex' : 'Flexe'}, Platz ${standing.rank}${standing.credits ? `, ${standing.credits} offen` : ''}.`);
         }
-
-        const total = byType.reduce((sum, r) => sum + r.count, 0);
-        const breakdown = byType.map(r => `${r.reward_type}: ${r.count}`).join(', ');
-        say(`@${target} — ${total} Rewards gesamt (${breakdown})`);
         break;
       }
 

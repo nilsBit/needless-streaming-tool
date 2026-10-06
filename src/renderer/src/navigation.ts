@@ -50,7 +50,7 @@ export const PANEL_LABELS: Record<PanelKey, string> = {
   clips: 'Content planen',
   autoclips: 'Von selbst merken',
   stats: 'Statistik',
-  rewardstats: 'Kanalpunkte',
+  rewardstats: 'Bestenliste',
   'settings-connections': 'Verbindungen',
   'settings-app': 'Programm',
   hotkeys: 'Tastenkürzel',
@@ -144,7 +144,7 @@ export const AREAS: readonly Area[] = [
     key: 'after',
     label: 'Nach dem Stream',
     sentence: 'Was passiert ist – und was daraus wird.',
-    keywords: ['Content planen', 'Statistik', 'Kanalpunkte'],
+    keywords: ['Content planen', 'Statistik', 'Bestenliste'],
     group: 'main',
     subTabs: [
       {
@@ -161,8 +161,8 @@ export const AREAS: readonly Area[] = [
       },
       {
         key: 'kanalpunkte',
-        label: 'Kanalpunkte',
-        sentence: 'Wer welche Belohnung wie oft eingelöst hat. Daraus entsteht die Bestenliste im Stream.',
+        label: 'Bestenliste',
+        sentence: 'Wer am meisten geflext hat. Die Belohnung „Flex“ in Twitch schaltet einen Flex frei, !flex im Chat zählt ihn – nur das zählt hier.',
         panels: ['rewardstats'],
       },
     ],

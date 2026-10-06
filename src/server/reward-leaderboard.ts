@@ -23,11 +23,12 @@ function queryTop(type: string, limit = 3): LeaderboardEntry[] {
     let rows: Array<{ user_name: string; count: number }>;
 
     if (type === 'all') {
+      // The Bestenliste is the flex ranking — nothing else counts (2026-10-06).
       rows = db
         .prepare(
-          `SELECT user_name, SUM(count) as count
+          `SELECT user_name, count
            FROM reward_stats
-           GROUP BY user_name
+           WHERE reward_type = 'flex'
            ORDER BY count DESC, user_name ASC
            LIMIT ?`
         )

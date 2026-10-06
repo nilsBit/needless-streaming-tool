@@ -53,9 +53,9 @@ Auf „Im Stream“ steht an jeder Karte, ob ihr Overlay in der laufenden OBS-Sz
     title: 'Daten: was gespeichert wird, was den Rechner verlässt',
     content: `Alles liegt in einer Datenbank auf deinem Rechner. Das Tool hat keinen eigenen Server, keine Telemetrie, keine Werbe-IDs. Die einzige Verbindung nach draußen, die es von sich aus aufbaut, ist die Update-Prüfung bei GitHub – ohne Daten von dir.
 
-**Über Zuschauer gespeichert:** der Twitch-Login mit einer Zählung je Belohnung (für die Bestenliste), Songwünsche, Themen und Vorschläge, dazu Namen in Moment-Notizen aus der Hype-Erkennung. Es gibt kein Protokoll, wer wann was eingelöst oder eingetippt hat. Chatzeilen bleiben nur im Speicher und sind nach dem Neustart weg.
+**Über Zuschauer gespeichert:** der Twitch-Login mit der Zahl seiner Flexe und offenen Flexe (für die Bestenliste), Songwünsche, Themen und Vorschläge, dazu Namen in Moment-Notizen aus der Hype-Erkennung. Es gibt kein Protokoll, wer wann was eingelöst oder eingetippt hat. Chatzeilen bleiben nur im Speicher und sind nach dem Neustart weg.
 
-**Wie lange:** Erledigte Songwünsche löscht das Tool nach 90 Tagen von selbst. Wer ein Jahr nichts eingelöst hat, verschwindet aus der Zählung für die Bestenliste. Unter **Nach dem Stream → Kanalpunkte → Bearbeiten → Zuschauer vergessen** verschwindet alles, was unter einem Namen gespeichert ist, sofort.
+**Wie lange:** Erledigte Songwünsche löscht das Tool nach 90 Tagen von selbst. Wer ein Jahr nicht geflext hat, verschwindet aus der Bestenliste. Unter **Nach dem Stream → Kanalpunkte → Bearbeiten → Zuschauer vergessen** verschwindet alles, was unter einem Namen gespeichert ist, sofort.
 
 **Was den Rechner verlässt – nur wenn du es anschließt:**
 - **Notion:** Moment-Notizen mit Schlagwort, Zeitmarke und Text, also auch Zuschauernamen aus der Hype-Erkennung. Notion ist ein US-Anbieter.
@@ -114,6 +114,8 @@ Auf „Im Stream“ steht an jeder Karte, ob ihr Overlay in der laufenden OBS-Sz
 | !scene | Listet OBS-Szenen (nur Mods) |
 | !scene <name> | Wechselt OBS-Szene (nur Mods) |
 | !uptime | Zeigt Stream-Laufzeit |
+| !flex | Löst einen freigeschalteten Flex ein – zählt für die Bestenliste |
+| !stats [Name] | Stand auf der Bestenliste |
 | !datenschutz (auch !privacy) | Sagt, was das Tool über Zuschauer speichert, wie lange, und dass es auf Wunsch gelöscht wird |
 
 Alle Befehle lassen sich unter Chat & Bot → Von selbst umbenennen. Antworten, die länger als eine Chat-Nachricht (500 Zeichen) sind, verteilt der Bot automatisch auf mehrere Nachrichten.`,
@@ -222,24 +224,26 @@ Alle Befehle lassen sich unter Chat & Bot → Von selbst umbenennen. Antworten, 
 - GET /api/obs/scenes listet alle Szenen`,
   },
   {
-    title: 'Channel Points & Rewards',
-    content: `Das Toolkit erkennt Channel-Point-Rewards automatisch über Twitch EventSub.
+    title: 'Kanalpunkte & Bestenliste',
+    content: `Belohnungen legst du in Twitch an (Creator-Dashboard → Zuschauer belohnen → Kanalpunkte). Löst jemand eine ein, meldet Twitch das dem Tool, und das Tool erkennt am Namen, was zu tun ist.
 
-**Eingebaute Reward-Typen:**
-| Reward-Name enthält | Aktion |
-|---------------------|--------|
+| Name enthält | Aktion |
+|---|---|
+| "Flex" | schaltet für die Person einen Flex frei – \`!flex\` im Chat zählt ihn für die Bestenliste |
 | "roulette" | Glücksrad drehen |
 | "feature" | Vorschlag einreichen |
 | "musik" oder "song" | Musik ändern |
 | "scene" oder "szene" | Szene wechseln – nur in Szenen, die unter Szenen in OBS → Szene per Kanalpunkt stehen |
 
-**Zuschauerdaten:** Einlösungen werden mit dem Twitch-Login gezählt, nicht protokolliert. Erledigte Songwünsche löscht das Tool nach 90 Tagen von selbst, Zuschauer ohne Einlösung seit einem Jahr fallen aus der Zählung. Unter **Nach dem Stream → Kanalpunkte → Bearbeiten → Zuschauer vergessen** verschwindet alles, was unter einem Namen gespeichert ist. Sicherung und Sync-Ordner enthalten keine Zugangsdaten.
+Welches Wort den Flex freischaltet, stellst du unter **Nach dem Stream → Bestenliste** ein („Flex“ ist die Vorgabe).
 
-**Feste Scene-Rewards (ohne User-Input):**
-Konfiguriere Mappings über die API:
-- POST /api/obs/mappings mit Reward-Titel → Szenen-Name
-- Beispiel: Reward "Gameplay" → wechselt automatisch zur Szene "Gameplay"
-- Viewer muss nichts eingeben, nur die Reward einlösen`,
+**Die Bestenliste** zählt nur Flexe. Eine Einlösung allein zählt noch nicht: Die Person löst die Belohnung ein und tippt dann \`!flex\`, wann sie will. Der Bot antwortet „@Name flext! Flex Nr. 12 – Platz 3“, das Overlay **Bestenliste** zeigt die Top 3, **Rangwechsel** meldet Überholer, die Alert-Tafel zeigt den Flex. Ohne offenen Flex sagt der Bot, welche Belohnung einen freischaltet. \`!stats\` zeigt den eigenen Stand, \`!stats <Name>\` den eines anderen.
+
+Unter Nach dem Stream → Bestenliste siehst du die Rangliste mit offenen Flexen je Person, kannst Zahlen korrigieren, einen Flex von Hand freischalten und einen Zuschauer vergessen.
+
+**Zuschauerdaten:** Flexe werden mit dem Twitch-Login gezählt, nicht protokolliert. Erledigte Songwünsche löscht das Tool nach 90 Tagen von selbst, Zuschauer ohne Flex seit einem Jahr fallen aus der Zählung. Sicherung und Sync-Ordner enthalten keine Zugangsdaten.
+
+**Feste Szenen-Belohnungen:** Unter Overlays & Alerts → Szenen in OBS → Szene per Kanalpunkt ordnest du einer Belohnung eine Szene zu, mit Dauer und Rückwechsel.`,
   },
   {
     title: 'Overlays',
