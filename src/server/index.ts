@@ -17,7 +17,7 @@ import actionsRouter, { currentSong, rouletteTitle } from './api/actions';
 import authRouter from './api/auth';
 import votingRouter from './api/voting';
 import progressRouter from './api/progress';
-import clipsRouter from './api/clips';
+import clipsRouter, { archivePublishedClips } from './api/clips';
 import clipTagsRouter from './api/clip-tags';
 import milestonesRouter from './api/milestones';
 import obsRouter from './api/obs';
@@ -295,6 +295,9 @@ export async function startServer(): Promise<{ token: string; port: number }> {
       connectObs().catch(() => {});
       // Follow Mode looks at Worldbuilder once a second — a connection, so here and not in createApp().
       startFollowing();
+      // Published moments leave the content board after 30 days — checked at start and every six hours.
+      archivePublishedClips();
+      setInterval(() => archivePublishedClips(), 6 * 60 * 60 * 1000);
 
       // Init auto-clips after bot connects (needs a small delay for bot to be ready)
       setTimeout(() => initAutoClips(), 3000);

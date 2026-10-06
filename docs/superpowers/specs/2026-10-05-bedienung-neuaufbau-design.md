@@ -198,7 +198,9 @@ Jede Stufe ist für sich benutzbar und wird einzeln geplant und gebaut.
 5. **Overlays & Alerts.** Overlay-Liste mit OBS-Zustand; Unterreiter aufgeräumt. (Gebaut am 06.10.;
    Plan `docs/superpowers/plans/2026-10-06-bedienung-stufe-5-overlays-alerts.md`.)
 6. **Nach dem Stream** mit dem Content-Planungsbrett, **Einstellungen** bereinigt; Hilfe-Texte
-   auf die neuen Wege.
+   auf die neuen Wege. (Gebaut am 06.10.; Plan
+   `docs/superpowers/plans/2026-10-06-bedienung-stufe-6-nach-dem-stream.md`. Damit sind alle
+   sechs Stufen gebaut.)
 
 ## Prüfen
 

@@ -236,9 +236,20 @@ braucht den Bot.
   Windows-Rechner steht die Quelle „music“ in *clip studio paint* womöglich noch darauf,
   dort auf `/overlay/song/` umstellen. Bereitschaft prüft jetzt auch, ob in OBS überhaupt
   eine Browserquelle auf das Tool zeigt. Plan: `docs/superpowers/plans/2026-10-06-bedienung-stufe-5-overlays-alerts.md`.
-- **Nächster Schritt:** Stufe 6 – Content-Planungsbrett (#26), Einstellungen ohne „Features“
-  bereinigt, Nach dem Stream (Statistik mit Satz, Kanalpunkte als Rangliste), Hilfe-Feinschliff.
-  Davor auf dem Windows-Rechner pullen, OBS verbinden, Chips und Overlay-Liste ansehen.
+- **Stufe 6 gebaut – der Umbau ist durch.** Nach dem Stream → **Content planen** ist das
+  Brett aus dem Prototyp (Neu · Geplant · Geschnitten · Veröffentlicht, Karten mit Plattform,
+  Termin, Hook, Ziehen oder Dialog, „+ Idee“, Archiv nach 30 Tagen). Dafür Schema **v25**:
+  `clips` trägt `status`, `platforms`, `planned_for`, `published_at`, `hook`, `archived_at`;
+  `PATCH /api/clips/:id`, `POST /api/clips` mit `idea`, `POST /api/clips/archive-run`.
+  Statistik beginnt mit einem Satz; Kanalpunkte sind eine Rangliste je Zuschauer
+  (`GET /api/reward-stats/breakdown`) neben einem Verlauf in Sätzen. Einstellungen und
+  Tastenkürzel ohne Symbole, deutsch. Hilfe hat „Content planen“. Plan:
+  `docs/superpowers/plans/2026-10-06-bedienung-stufe-6-nach-dem-stream.md`.
+- **Nächster Schritt:** Auf dem Windows-Rechner pullen, `npm run dev`, OBS verbinden und einmal
+  alles durchklicken – Chips auf „Im Stream“, Overlay-Liste, Content-Brett (die alten
+  Test-Momente in „Neu“ verwerfen). Danach #24 (Belohnungen aus dem Tool heraus anlegen) oder
+  die offenen Kleinigkeiten: Alert-Töne hinterlegen, Szene `tft`, Stream-Deck-Taste fürs
+  Mithören.
 - Weiter offen wie zuvor: Alert-Töne hinterlegen, Szene `tft` ohne Spotify-Quellen,
   Stream-Deck-Taste fürs Mithören, Test-Clip in der Clip-Liste, Figma-Pilot.
 

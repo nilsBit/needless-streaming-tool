@@ -320,6 +320,46 @@ body {
 .appearance { gap: 20px; }
 .appearance-section { display: flex; flex-direction: column; gap: 10px; }
 
+/* "Content planen": the board */
+.board-panel { gap: 16px; }
+.board { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 20px; align-items: start; }
+.board-col { display: flex; flex-direction: column; gap: 8px; min-height: 120px; padding: 4px; border-radius: 8px; border: 1px dashed transparent; }
+.board-col.drag-over { border-color: var(--accent); background: rgba(230, 126, 34, 0.06); }
+.board-col-head { display: flex; justify-content: space-between; align-items: baseline; padding: 0 2px 8px; border-bottom: 2px solid var(--border); }
+.board-col-head h3 { font-size: 14px; font-weight: 600; }
+.board-col-head span { color: var(--muted); font-size: 13px; }
+.board-empty { color: var(--muted); font-size: 13px; padding: 8px 2px; }
+.board-card { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; width: 100%; text-align: left; padding: 12px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-header); color: var(--text); font: inherit; cursor: grab; }
+.board-card:hover { border-color: var(--border-strong); background: var(--bg-hover); }
+.board-card.dragging { opacity: 0.4; }
+.board-card.auto { border-color: var(--accent); background: #221a12; cursor: default; }
+.board-card-title { font-size: 15px; line-height: 1.35; }
+.board-card-meta { color: var(--muted); font-size: 12px; }
+.board-card-status { color: var(--text-secondary); font-size: 13px; }
+.board-small { min-height: 36px; padding: 0 12px; font-size: 13px; }
+.board-foot { padding-top: 12px; border-top: 1px solid var(--border-subtle); }
+.board-steps { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px 14px; border: 1px solid var(--border-subtle); border-radius: 8px; background: var(--bg-body); }
+
+/* "Statistik" */
+.stats { gap: 18px; }
+.stats-sentence { font-size: 15px; line-height: 1.6; padding: 14px 16px; border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text); max-width: 820px; }
+.stat-card .stat-value.stat-value-small { font-size: 15px; white-space: nowrap; }
+
+/* "Kanalpunkte" */
+.rewards { gap: 16px; }
+.rewards input[type="text"], .rewards input[type="number"] { min-height: 44px; box-sizing: border-box; padding: 0 12px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font: inherit; }
+.rewards-layout { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
+.rewards-ranking { flex: 1 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.rewards-log { flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.rewards-row { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 12px 14px; border: 1px solid var(--border-subtle); border-radius: 8px; }
+.rewards-rank { flex: 0 0 28px; font-size: 20px; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+.rewards-who { flex: 1 1 200px; min-width: 0; }
+.rewards-name { font-size: 15px; font-weight: 600; }
+.rewards-total { text-align: right; }
+.rewards-total-n { font-size: 15px; font-weight: 600; }
+.rewards-event { padding: 10px 14px; border: 1px solid var(--border-subtle); border-radius: 8px; font-size: 14px; }
+.rewards-input { margin-top: 2px; color: var(--text-secondary); font-style: italic; font-size: 13px; }
+
 /* Dialog — the shared building block for editing */
 .dialog-overlay { position: fixed; inset: 0; z-index: 50; background: rgba(0, 0, 0, 0.62); display: flex; align-items: center; justify-content: center; padding: 24px; }
 .dialog {

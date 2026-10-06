@@ -126,8 +126,8 @@ export default function SettingsPanel({ category }: { category: SettingsCategory
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a'); a.href = url; a.download = 'nst-backup.json'; a.click();
       URL.revokeObjectURL(url);
-      toast.success('Backup exportiert!');
-    } catch { toast.error('Export fehlgeschlagen'); }
+      toast.success('Sicherung erstellt');
+    } catch { toast.error('Sicherung fehlgeschlagen'); }
   };
 
   const importBackup = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -137,21 +137,20 @@ export default function SettingsPanel({ category }: { category: SettingsCategory
       const text = await file.text();
       const data = JSON.parse(text);
       const res = await apiFetch('/backup/import', { method: 'POST', body: JSON.stringify(data) });
-      if (res.ok) toast.success('Backup erfolgreich importiert!');
-      else toast.error('Import fehlgeschlagen');
+      if (res.ok) toast.success('Sicherung zurückgespielt');
+      else toast.error('Zurückspielen fehlgeschlagen');
     } catch { toast.error('Import fehlgeschlagen'); }
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   // --- Card Component ---
-  const SettingsCard = ({ id, icon, title, status, statusColor, action, actionColor, onAction, children }: {
-    id: string; icon: string; title: string; status: string; statusColor: string;
+  const SettingsCard = ({ id, title, status, statusColor, action, actionColor, onAction, children }: {
+    id: string; title: string; status: string; statusColor: string;
     action: string; actionColor?: string; onAction: () => void; children?: React.ReactNode;
   }) => (
     <div className={`s-card ${expanded === id ? 'expanded' : ''}`}>
       <div className="s-card-header">
         <div className="s-card-info">
-          <span className="s-card-icon">{icon}</span>
           <div>
             <div className="s-card-title">{title}</div>
             <div className="s-card-status" style={{ color: statusColor }}>{status}</div>
@@ -169,7 +168,7 @@ export default function SettingsPanel({ category }: { category: SettingsCategory
   const renderConnections = () => (
     <>
       <SettingsCard
-        id="twitch" icon="🟣" title="Twitch"
+        id="twitch" title="Twitch"
         status={botStatus?.connected ? `Verbunden mit #${botStatus.channel}` : 'Nicht verbunden'}
         statusColor={botStatus?.connected ? '#2ecc71' : '#e74c3c'}
         action={botStatus?.connected ? 'Trennen' : 'Mit Twitch verbinden'}
@@ -178,7 +177,7 @@ export default function SettingsPanel({ category }: { category: SettingsCategory
       />
 
       <SettingsCard
-        id="obs" icon="🎥" title="OBS"
+        id="obs" title="OBS"
         status={obsStatus?.connected ? 'Verbunden mit OBS' : 'Nicht verbunden'}
         statusColor={obsStatus?.connected ? '#2ecc71' : '#e74c3c'}
         action={obsStatus?.connected ? 'OBS trennen' : (obsConfig?.configured ? 'Mit OBS verbinden' : 'Setup')}
@@ -201,7 +200,7 @@ export default function SettingsPanel({ category }: { category: SettingsCategory
       </SettingsCard>
 
       <SettingsCard
-        id="notion" icon="📝" title="Notion"
+        id="notion" title="Notion"
         status={notionInfo?.configured ? `Token: ${notionInfo.preview}` : 'Nicht verbunden'}
         statusColor={notionInfo?.configured ? '#2ecc71' : '#888'}
         action={notionInfo?.configured ? 'Token ändern' : 'Setup'}
@@ -216,7 +215,7 @@ export default function SettingsPanel({ category }: { category: SettingsCategory
       </SettingsCard>
 
       <SettingsCard
-        id="discord" icon="📣" title="Discord — Live-Meldung"
+        id="discord" title="Discord — Live-Meldung"
         status={discordLive?.configured ? 'Meldet, wenn der Stream startet' : 'Nicht eingerichtet'}
         statusColor={discordLive?.configured ? '#2ecc71' : '#888'}
         action={discordLive?.configured ? 'Ändern' : 'Setup'}
@@ -245,7 +244,7 @@ export default function SettingsPanel({ category }: { category: SettingsCategory
       </SettingsCard>
 
       <SettingsCard
-        id="github" icon="🐙" title="GitHub"
+        id="github" title="GitHub"
         status={githubInfo?.configured ? `Token: ${githubInfo.preview}` : 'Nicht verbunden'}
         statusColor={githubInfo?.configured ? '#2ecc71' : '#888'}
         action={githubInfo?.configured ? 'Token ändern' : 'Setup'}
@@ -263,7 +262,7 @@ export default function SettingsPanel({ category }: { category: SettingsCategory
             <>
               <input type="text" placeholder="owner/repo" value={githubRepo} onChange={e => setGithubRepo(e.target.value)} onKeyDown={e => e.key === 'Enter' && importGithub()} />
               <button className="s-card-action primary" onClick={importGithub} disabled={importing || !githubRepo.trim()}>
-                {importing ? '...' : '📥 Importieren'}
+                {importing ? 'Importiert …' : 'Importieren'}
               </button>
               <button className="s-card-action ghost" onClick={async () => { await apiPost('/progress/github', { token: '' }); refetchGithub(); }}>Token ändern</button>
             </>
@@ -278,12 +277,11 @@ export default function SettingsPanel({ category }: { category: SettingsCategory
       <div className="s-card">
         <div className="s-card-header">
           <div className="s-card-info">
-            <span className="s-card-icon">🎨</span>
-            <div><div className="s-card-title">Design</div></div>
+            <div><div className="s-card-title">Erscheinungsbild der App</div></div>
           </div>
           <div className="s-toggle-row compact">
-            <button className={`s-toggle-btn ${theme === 'dark' ? 'active' : ''}`} onClick={() => setTheme('dark')}>Dark</button>
-            <button className={`s-toggle-btn ${theme === 'light' ? 'active' : ''}`} onClick={() => setTheme('light')}>Light</button>
+            <button className={`s-toggle-btn ${theme === 'dark' ? 'active' : ''}`} onClick={() => setTheme('dark')}>Dunkel</button>
+            <button className={`s-toggle-btn ${theme === 'light' ? 'active' : ''}`} onClick={() => setTheme('light')}>Hell</button>
           </div>
         </div>
       </div>
@@ -291,12 +289,11 @@ export default function SettingsPanel({ category }: { category: SettingsCategory
       <div className="s-card">
         <div className="s-card-header">
           <div className="s-card-info">
-            <span className="s-card-icon">🚀</span>
-            <div><div className="s-card-title">Autostart</div></div>
+            <div><div className="s-card-title">Mit dem Rechner starten</div></div>
           </div>
           <div className="s-toggle-row compact">
-            <button className={`s-toggle-btn ${autostartInfo?.enabled ? 'active' : ''}`} onClick={async () => { await apiPost('/settings/autostart', { enabled: true }); refetchAutostart(); }}>Aktiviert</button>
-            <button className={`s-toggle-btn ${!autostartInfo?.enabled ? 'active' : ''}`} onClick={async () => { await apiPost('/settings/autostart', { enabled: false }); refetchAutostart(); }}>Deaktiviert</button>
+            <button className={`s-toggle-btn ${autostartInfo?.enabled ? 'active' : ''}`} onClick={async () => { await apiPost('/settings/autostart', { enabled: true }); refetchAutostart(); }}>An</button>
+            <button className={`s-toggle-btn ${!autostartInfo?.enabled ? 'active' : ''}`} onClick={async () => { await apiPost('/settings/autostart', { enabled: false }); refetchAutostart(); }}>Aus</button>
           </div>
         </div>
       </div>
@@ -310,11 +307,10 @@ export default function SettingsPanel({ category }: { category: SettingsCategory
       <div className="s-card">
         <div className="s-card-header">
           <div className="s-card-info">
-            <span className="s-card-icon">🔑</span>
             <div>
-              <div className="s-card-title">Stream Deck API Token</div>
+              <div className="s-card-title">Stream-Deck-Token</div>
               <div className="s-card-status" style={{ color: '#888' }}>
-                {tokenInfo?.token ? `${tokenInfo.token.substring(0, 8)}...` : 'Token wird geladen...'}
+                {tokenInfo?.token ? `${tokenInfo.token.substring(0, 8)}...` : 'Token wird geladen …'}
               </div>
             </div>
           </div>
@@ -331,18 +327,17 @@ export default function SettingsPanel({ category }: { category: SettingsCategory
       <div className="s-card">
         <div className="s-card-header">
           <div className="s-card-info">
-            <span className="s-card-icon">💾</span>
             <div>
-              <div className="s-card-title">Daten-Backup</div>
-              <div className="s-card-status" style={{ color: '#888' }}>Alle Daten als JSON exportieren oder ein Backup importieren.</div>
+              <div className="s-card-title">Sicherung</div>
+              <div className="s-card-status" style={{ color: '#888' }}>Alle Daten als Datei sichern oder eine Sicherung zurückspielen. Die Datei enthält die Zugangsdaten, also nicht weitergeben.</div>
             </div>
           </div>
         </div>
         <div className="s-card-body" style={{ paddingTop: 0 }}>
           <div className="s-card-input-row">
-            <button className="s-card-action primary" onClick={exportBackup}>💾 Backup exportieren</button>
+            <button className="s-card-action primary" onClick={exportBackup}>Sicherung erstellen</button>
             <label className="s-card-action primary" style={{ cursor: 'pointer', textAlign: 'center' }}>
-              📂 Backup importieren
+              Sicherung zurückspielen
               <input ref={fileInputRef} type="file" accept=".json" onChange={importBackup} style={{ display: 'none' }} />
             </label>
           </div>
@@ -352,11 +347,10 @@ export default function SettingsPanel({ category }: { category: SettingsCategory
       <div className="s-card">
         <div className="s-card-header">
           <div className="s-card-info">
-            <span className="s-card-icon">☁️</span>
             <div>
-              <div className="s-card-title">Cloud Sync</div>
+              <div className="s-card-title">Sync-Ordner</div>
               <div className="s-card-status" style={{ color: syncEnabled ? '#2ecc71' : '#888' }}>
-                {syncEnabled ? (syncStatus?.lastSync ? `Letzter Sync: ${new Date(syncStatus.lastSync).toLocaleString('de-DE')}` : 'Aktiviert') : 'Deaktiviert'}
+                {syncEnabled ? (syncStatus?.lastSync ? `Zuletzt abgeglichen ${new Date(syncStatus.lastSync).toLocaleString('de-DE')}` : 'An') : 'Aus'}
               </div>
             </div>
           </div>
@@ -368,23 +362,23 @@ export default function SettingsPanel({ category }: { category: SettingsCategory
           <div className="s-card-body">
             <label className="s-checkbox">
               <input type="checkbox" checked={syncEnabled} onChange={e => { setSyncEnabled(e.target.checked); apiPost('/settings/sync/config', { enabled: e.target.checked, syncPath }); refetchSync(); }} />
-              Sync aktiviert
+              Mit einem Ordner abgleichen, etwa in Dropbox
             </label>
             <div className="s-card-input-row">
-              <input type="text" value={syncPath} readOnly placeholder="Kein Ordner" style={{ flex: 1 }} />
+              <input type="text" value={syncPath} readOnly placeholder="Kein Ordner gewählt" style={{ flex: 1 }} />
               <button className="s-card-action ghost" onClick={async () => {
                 const folder = await window.electronAPI?.selectSyncFolder();
                 if (folder) { setSyncPath(folder); await apiPost('/settings/sync/config', { enabled: syncEnabled, syncPath: folder }); refetchSync(); }
-              }}>Auswählen</button>
+              }}>Ordner wählen</button>
             </div>
             {syncStatus?.error && <div className="s-card-status" style={{ color: '#e74c3c' }}>{syncStatus.error}</div>}
             <button className="s-card-action primary" onClick={async () => {
               setSyncing(true);
               const result = await apiPost<{ success: boolean; error?: string }>('/settings/sync/trigger', {});
               setSyncing(false); refetchSync();
-              if (result?.success) toast.success('Sync OK'); else toast.error(result?.error || 'Sync failed');
+              if (result?.success) toast.success('Abgeglichen'); else toast.error(result?.error || 'Abgleich fehlgeschlagen');
             }} disabled={!syncEnabled || !syncPath || syncing}>
-              {syncing ? '...' : 'Jetzt synchronisieren'}
+              {syncing ? 'Gleicht ab …' : 'Jetzt abgleichen'}
             </button>
           </div>
         )}

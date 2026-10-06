@@ -11,15 +11,15 @@ export default function HotkeysPanel() {
   const [saved, setSaved] = useState(false);
 
   const HOTKEY_LABELS: Record<string, string> = {
-    challenge_toggle: 'Challenge umschalten',
-    timer_toggle: 'Timer umschalten',
-    hype_moment: 'Hype Moment',
-    challenge_done: 'Challenge geschafft',
-    challenge_failed: 'Challenge fehlgeschlagen',
-    roulette: 'Glücksrad',
-    milestone_minor: 'Milestone (Minor)',
-    milestone_major: 'Milestone (Major)',
-    milestone_epic: 'Milestone (Epic)',
+    challenge_toggle: 'Ziel für heute starten oder beenden',
+    timer_toggle: 'Uhr anhalten oder weiterlaufen lassen',
+    hype_moment: 'Hype-Moment merken',
+    challenge_done: 'Ziel geschafft',
+    challenge_failed: 'Ziel nicht geschafft',
+    roulette: 'Glücksrad drehen',
+    milestone_minor: 'Kleinen Meilenstein abhaken',
+    milestone_major: 'Großen Meilenstein abhaken',
+    milestone_epic: 'Epischen Meilenstein abhaken',
   };
 
   useEffect(() => {
@@ -40,15 +40,15 @@ export default function HotkeysPanel() {
     setTimeout(() => setSaved(false), 3000);
   };
 
-  if (!hotkeys) return <div className="panel"><p>Laden...</p></div>;
+  if (!hotkeys) return <div className="panel"><p>Laden …</p></div>;
 
   return (
     <div className="panel settings-panel">
-      <p className="panel-desc">Globale Tastenkürzel konfigurieren.</p>
+      <p className="panel-desc">Tastenkürzel, die überall gelten – auch wenn das Tool im Hintergrund läuft.</p>
 
       <div className="settings-section">
         <h3>Tastenkürzel</h3>
-        <p className="setup-info" dangerouslySetInnerHTML={{ __html: 'Format: <code>CommandOrControl+Shift+Taste</code> — Verwende <code>CommandOrControl</code> für plattformübergreifende Kompatibilität.' }} />
+        <p className="setup-info" dangerouslySetInnerHTML={{ __html: 'Schreibweise: <code>CommandOrControl+Shift+Taste</code>. <code>CommandOrControl</code> ist unter Windows Strg, auf dem Mac Cmd.' }} />
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px' }}>
           {Object.keys(HOTKEY_LABELS).map((key) => (
@@ -65,15 +65,15 @@ export default function HotkeysPanel() {
                 style={{ padding: '4px 12px', fontSize: '13px' }}
                 onClick={() => setEditing(editing === key ? null : key)}
               >
-                {editing === key ? 'OK' : 'Ändern'}
+                {editing === key ? 'Fertig' : 'Ändern'}
               </button>
             </div>
           ))}
         </div>
 
         <div style={{ marginTop: '16px', display: 'flex', gap: '12px', alignItems: 'center' }}>
-          <button className="btn-connect" onClick={saveHotkeys}>💾 Speichern</button>
-          {saved && <span style={{ color: '#2ecc71', fontSize: '14px' }}>Gespeichert!</span>}
+          <button className="btn-connect" onClick={saveHotkeys}>Speichern</button>
+          {saved && <span style={{ color: '#2ecc71', fontSize: '14px' }}>Gespeichert</span>}
         </div>
 
         <p className="setup-info" style={{ marginTop: '12px', fontStyle: 'italic' }}>

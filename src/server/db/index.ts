@@ -49,10 +49,20 @@ export function initDatabase(dbPath?: string): Database.Database {
  * The milestone list joined over `todos.milestone_id` and answered 500 on
  * this machine for that reason. Checked on every start; it costs two PRAGMAs.
  */
+const CLIP_BOARD_COLUMNS: [string, string][] = [
+  ['status', "TEXT NOT NULL DEFAULT 'new'"],
+  ['platforms', "TEXT NOT NULL DEFAULT '[]'"],
+  ['planned_for', 'TEXT'],
+  ['published_at', 'DATETIME'],
+  ['hook', 'TEXT'],
+  ['archived_at', 'DATETIME'],
+];
+
 function ensureColumns(): void {
   const missing: [string, string, string][] = [
     ['todos', 'milestone_id', 'INTEGER'],
     ['milestones', 'project_id', 'INTEGER'],
+    ...CLIP_BOARD_COLUMNS.map(([column, type]): [string, string, string] => ['clips', column, type]),
   ];
   for (const [table, column, type] of missing) {
     const columns = db.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>;
@@ -65,6 +75,15 @@ function ensureColumns(): void {
 }
 
 function runMigrations(from: number, to: number) {
+  if (from < 25) {
+    // Clip Moments became the start of content planning (2026-10-06): a step
+    // on the board, platforms, a date, a hook, and an archive for what is out.
+    for (const [column, type] of CLIP_BOARD_COLUMNS) {
+      try { db.exec(`ALTER TABLE clips ADD COLUMN ${column} ${type}`); } catch { /* already there */ }
+    }
+    console.log('[DB] Migrated: clips carry status, platforms, planned_for, published_at, hook, archived_at');
+  }
+
   if (from < 24) {
     // The overlay test button used to remove its three songs on a timer. A
     // restart in those eight seconds left them in the real queue (three from

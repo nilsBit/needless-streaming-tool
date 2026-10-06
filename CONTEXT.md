@@ -25,8 +25,8 @@ A time-boxed goal the streamer commits to on air, with a live status of `idle`, 
 _Avoid_: Experiment, task, goal. The Stream Deck action is still named `experiment` — that identifier is frozen for parity with the shipped plugin and must not be renamed, but prose and new code say Challenge.
 
 **Clip Moment**:
-A marked point in the session worth clipping later, carrying two timecodes and an optional tag. Created by hand or detected automatically.
-_Avoid_: Highlight, clip marker. "Clip" alone is fine when the context is unambiguous.
+A marked point in the session worth clipping later, carrying two timecodes and an optional tag. Created by hand or detected automatically. Since 2026-10-06 also the unit of content planning: each Clip Moment stands in one **Step** of the board (`status`: new · planned · cut · published, in the UI „Neu · Geplant · Geschnitten · Veröffentlicht“) and carries `platforms`, `planned_for`, `hook` and, once published for 30 days, `archived_at`. An **Idea** is a Clip Moment created without a stream (`idea: true`, tag `idee`, no timecodes).
+_Avoid_: Highlight, clip marker. "Clip" alone is fine when the context is unambiguous. In the UI the whole thing is „Content planen“, a card is „Moment“.
 
 **Stream Timecode**:
 Time elapsed since the Twitch stream went live. Distinct from Recording Timecode — a Clip Moment carries both, because the OBS recording and the Twitch broadcast rarely start at the same instant.

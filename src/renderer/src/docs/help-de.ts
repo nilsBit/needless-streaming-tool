@@ -41,6 +41,16 @@ Die Kästen lassen sich nicht mehr verschieben, anpinnen oder ausblenden — jed
 Auf „Im Stream“ steht an jeder Karte, ob ihr Overlay in der laufenden OBS-Szene an ist („in der Szene“ / „nicht in der Szene“) — sobald OBS verbunden ist; oben rechts der Name der Szene. „Moment merken“ setzt dort eine Marke für später (Nach dem Stream → Content planen).`,
   },
   {
+    title: 'Content planen',
+    content: `Aus Momenten wird Content. Jeder Moment, den du im Stream mit „Moment merken“, am Stream Deck oder per Tastenkürzel setzt, landet unter **Nach dem Stream → Content planen** in der Spalte **Neu**. Von dort schiebst du ihn weiter: **Geplant** (du weißt, wohin und wann), **Geschnitten** (der Clip ist fertig), **Veröffentlicht**.
+
+- Eine Karte anklicken öffnet den Dialog: Schritt, Plattformen (TikTok, Shorts, Reels, Discord, Twitch-Clip), Termin, Titel oder Hook, Schlagwort, Notiz. Ziehen in eine andere Spalte geht auch.
+- Was das Tool von selbst gemerkt hat (Kanalpunkte, Meilensteine, Hype), steht in Neu mit „Behalten“ oder „Verwerfen“.
+- **+ Idee** legt Content an, der nicht aus einem Stream-Moment kommt.
+- Veröffentlichtes bleibt 30 Tage auf dem Brett und wandert dann ins Archiv („Archiv anzeigen“). Nichts wird dabei gelöscht.
+- Unten: einen Stream-Tag als CSV für DaVinci Resolve exportieren oder nach Notion schicken; die Notion-Übergabe von selbst lässt sich dort an- und ausschalten.`,
+  },
+  {
     title: 'Twitch verbinden',
     content: `**1. Twitch App erstellen:**
 - Gehe auf dev.twitch.tv → Applications → Register Your Application

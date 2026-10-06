@@ -37,6 +37,16 @@ router.get('/log', (req, res) => {
   res.json({ items, total });
 });
 
+// Every viewer with every reward type — the app builds its per-viewer ranking
+// with a breakdown from this (MUST be before /:username).
+router.get('/breakdown', (_req, res) => {
+  const rows = getDb().prepare(
+    `SELECT user_name, reward_type, count, last_redeemed_at
+     FROM reward_stats ORDER BY user_name, count DESC`
+  ).all();
+  res.json(rows);
+});
+
 // Leaderboard — aggregated stats
 router.get('/', (req, res) => {
   const { type, sort, limit } = req.query;

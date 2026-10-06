@@ -1,4 +1,4 @@
-export const SCHEMA_VERSION = 24;
+export const SCHEMA_VERSION = 25;
 
 export const SCHEMA = `
 CREATE TABLE IF NOT EXISTS schema_version (
@@ -103,6 +103,13 @@ CREATE TABLE IF NOT EXISTS clips (
   stream_timecode     TEXT,
   recording_timecode  TEXT,
   confidence          TEXT,
+  -- Content planning (v25): where a moment stands on the board, and what is planned for it.
+  status              TEXT NOT NULL DEFAULT 'new',
+  platforms           TEXT NOT NULL DEFAULT '[]',
+  planned_for         TEXT,
+  published_at        DATETIME,
+  hook                TEXT,
+  archived_at         DATETIME,
   created_at          DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 

@@ -132,8 +132,22 @@ export interface Clip {
   recording_timecode: string | null;
   confidence: 'high' | 'medium' | null;
   notion_page_id: string | null;
+  /** Where the moment stands on the content board. */
+  status: ClipStatus;
+  /** Where it is meant to go: 'tiktok', 'shorts', 'reels', 'discord', … */
+  platforms: string[];
+  /** YYYY-MM-DD, when it is planned to go out. */
+  planned_for: string | null;
+  published_at: string | null;
+  /** The title or hook for the post. */
+  hook: string | null;
+  /** Set once a published moment left the board (30 days after publishing). */
+  archived_at: string | null;
   created_at: string;
 }
+
+export type ClipStatus = 'new' | 'planned' | 'cut' | 'published';
+export const CLIP_STATUSES: ClipStatus[] = ['new', 'planned', 'cut', 'published'];
 
 export interface Milestone {
   id: number;

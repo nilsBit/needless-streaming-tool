@@ -1,347 +1,300 @@
-import React, { useState, useRef } from 'react';
-import { useApi, apiPost, apiDelete, apiPatch, getApiToken, getApiBase } from '../hooks/useApi';
+import React, { useRef, useState } from 'react';
+import { useApi, apiPost, apiPatch, apiDelete, getApiToken, getApiBase } from '../hooks/useApi';
 import { useToast } from '../contexts/ToastContext';
-import ClipSyncBadge, { SyncState } from '../components/ClipSyncBadge';
-import { celebrate } from '../components/ux/celebrate';
+import { useWebSocket } from '../hooks/useWebSocket';
+import { Clip, ClipStatus } from '../../../shared/types';
+import Dialog from '../components/ux/Dialog';
 import NotionSetupModal from '../components/NotionSetupModal';
 
-interface SyncResult {
-  synced: number;
-  failed: number;
-  total: number;
-}
-import { Clip } from '../../../shared/types';
-import { useWebSocket } from '../hooks/useWebSocket';
+// "Content planen" under Nach dem Stream: the moments marked during the
+// stream — and ideas without one — on a board with four steps. A card is a
+// single click; the dialog holds step, platforms, date, hook, tag, note. What
+// the tool marked itself waits in "Neu" with "Behalten" / "Verwerfen".
+// Published moments leave the board after 30 days into the archive.
 
-const PRESET_TAGS = ['highlight', 'fail', 'funny', 'tutorial', 'issue'];
+const STEPS: { key: ClipStatus; label: string }[] = [
+  { key: 'new', label: 'Neu' },
+  { key: 'planned', label: 'Geplant' },
+  { key: 'cut', label: 'Geschnitten' },
+  { key: 'published', label: 'Veröffentlicht' },
+];
+const PLATFORMS: { key: string; label: string }[] = [
+  { key: 'tiktok', label: 'TikTok' }, { key: 'shorts', label: 'Shorts' }, { key: 'reels', label: 'Reels' }, { key: 'discord', label: 'Discord' }, { key: 'twitch', label: 'Twitch-Clip' },
+];
+const TAG_LABELS: Record<string, string> = { highlight: 'Highlight', fail: 'Panne', funny: 'Lustig', tutorial: 'Erklärt', issue: 'Thema', idee: 'Idee', milestone: 'Meilenstein', reward: 'Kanalpunkt', hype: 'Hype' };
 
-const TAG_EMOJI: Record<string, string> = {
-  highlight: '⭐',
-  fail: '💀',
-  funny: '😂',
-  tutorial: '📚',
-  issue: '⚠️',
-};
+interface ClipTag { tag: string; emoji: string; preset: boolean }
+interface SessionInfo { session_date: string; count: number }
 
-interface ClipTag {
-  tag: string;
-  emoji: string;
-  preset: boolean;
-}
-
-interface SessionInfo {
-  session_date: string;
-  count: number;
-}
+const tagLabel = (tag: string) => { const base = tag.replace(/^auto-/, ''); return TAG_LABELS[base] ?? base; };
+const dayOf = (iso: string) => new Date(iso.includes('T') ? iso : iso + 'Z');
+const shortDate = (d: Date) => d.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' });
+const longDate = (ymd: string) => new Date(ymd + 'T12:00:00').toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'short' });
+const minute = (tc: string | null) => { if (!tc) return null; const [h, m] = tc.split(':'); return `${Number(h)}:${m}`; };
 
 export default function ClipsPanel() {
   const { toast } = useToast();
-  const today = new Date().toISOString().split('T')[0];
+  const { data: all, refetch } = useApi<Clip[]>('/clips?archived=all');
   const { data: sessions, refetch: refetchSessions } = useApi<SessionInfo[]>('/clips/sessions');
-  const { data: allClips, refetch: refetchClips } = useApi<Clip[]>('/clips');
-  const [activeFilter, setActiveFilter] = useState<string | null>(null);
-  const [note, setNote] = useState('');
-  const [selectedTag, setSelectedTag] = useState('highlight');
-  const [collapsedDays, setCollapsedDays] = useState<Set<string>>(new Set());
-  const [syncingDay, setSyncingDay] = useState<string | null>(null);
-  const { data: clipTags, refetch: refetchTags } = useApi<ClipTag[]>('/clip-tags');
-  const [newTagName, setNewTagName] = useState('');
-  const [showNewTagInput, setShowNewTagInput] = useState(false);
+  const { data: clipTags } = useApi<ClipTag[]>('/clip-tags');
   const { data: dbInfo } = useApi<{ configured: boolean }>('/settings/notion/database');
   const { data: autoSyncRaw, refetch: refetchAutoSync } = useApi<{ value: string | null }>('/settings/get/notion_auto_sync');
   const notionConfigured = !!dbInfo?.configured;
   const autoSync = autoSyncRaw?.value === 'true';
-  const [failedIds, setFailedIds] = useState<Set<number>>(new Set());
-  const [notionModalOpen, setNotionModalOpen] = useState(false);
-  const autoSyncToggleRef = useRef<HTMLButtonElement>(null);
 
-  useWebSocket((event, data) => {
-    if (event.startsWith('clip-')) { refetchClips(); refetchSessions(); }
-    if (event === 'clip-tags-changed') { refetchTags(); }
-    if (event === 'clip-sync-failed' && data && typeof data === 'object' && 'id' in data) {
-      setFailedIds((prev) => new Set(prev).add((data as { id: number }).id));
-    }
-    if (event === 'clip-updated' && data && typeof data === 'object' && 'id' in data) {
-      setFailedIds((prev) => { const n = new Set(prev); n.delete((data as { id: number }).id); return n; });
-    }
+  const [openId, setOpenId] = useState<number | null>(null);
+  const [idea, setIdea] = useState<{ hook: string; note: string } | null>(null);
+  const [showArchive, setShowArchive] = useState(false);
+  const [dragId, setDragId] = useState<number | null>(null);
+  const [dragOver, setDragOver] = useState<ClipStatus | null>(null);
+  const [exportDay, setExportDay] = useState('');
+  const [notionModal, setNotionModal] = useState(false);
+  const noteTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useWebSocket((event) => {
+    if (event.startsWith('clip-')) { refetch(); refetchSessions(); }
   });
 
-  const addClip = async (tag: string) => {
-    const result = await apiPost('/clips', { tag, note: note || undefined });
-    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
-    setNote('');
-    refetchClips();
-    refetchSessions();
-  };
+  const clips = all ?? [];
+  const board = clips.filter((c) => !c.archived_at);
+  const archived = clips.filter((c) => !!c.archived_at);
+  const open = clips.find((c) => c.id === openId) ?? null;
+  const isAuto = (c: Clip) => c.tag.startsWith('auto-');
 
-  const deleteClip = async (id: number) => {
-    const ok = await apiDelete(`/clips/${id}`);
-    if (!ok) { toast.error('Aktion fehlgeschlagen'); return; }
-    refetchClips();
-    refetchSessions();
+  const patch = async (id: number, change: Record<string, unknown>) => {
+    const result = await apiPatch(`/clips/${id}`, change);
+    if (!result) { toast.error('Nicht gespeichert'); return false; }
+    refetch();
+    return true;
   };
-
-  const syncToNotion = async (sessionDate: string) => {
-    setSyncingDay(sessionDate);
-    const result = await apiPost<SyncResult>('/clips/sync', { session_date: sessionDate });
-    if (!result) {
-      toast.error('Aktion fehlgeschlagen');
-    } else {
-      console.log(`[Clips] Synced ${result.synced}/${result.total} clips to Notion`);
-    }
-    setSyncingDay(null);
+  const move = (id: number, status: ClipStatus) => patch(id, { status });
+  const keep = (c: Clip) => patch(c.id, { tag: c.tag.replace(/^auto-/, '') || 'highlight' });
+  const remove = async (c: Clip) => {
+    if (!window.confirm(`„${c.hook || c.note || tagLabel(c.tag)}“ löschen?`)) return;
+    const ok = await apiDelete(`/clips/${c.id}`);
+    if (!ok) { toast.error('Löschen fehlgeschlagen'); return; }
+    if (openId === c.id) setOpenId(null);
+    refetch(); refetchSessions();
   };
-
-  const exportDay = (sessionDate: string) => {
-    const token = getApiToken();
-    window.open(`${getApiBase()}/clips/export?session_date=${sessionDate}&token=${token}`, '_blank');
+  const createIdea = async () => {
+    if (!idea || !idea.hook.trim()) return;
+    const result = await apiPost<Clip>('/clips', { idea: true, hook: idea.hook.trim(), note: idea.note.trim() || undefined });
+    if (!result) { toast.error('Idee nicht gespeichert'); return; }
+    setIdea(null);
+    refetch();
+    setOpenId(result.id);
   };
-
-  const toggleDay = (date: string) => {
-    const next = new Set(collapsedDays);
-    if (next.has(date)) next.delete(date);
-    else next.add(date);
-    setCollapsedDays(next);
-  };
-
-  const addCustomTag = async () => {
-    const trimmed = newTagName.trim().toLowerCase();
-    if (!trimmed) return;
-    const result = await apiPost('/clip-tags', { tag: trimmed });
-    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
-    setNewTagName('');
-    setShowNewTagInput(false);
-    refetchTags();
-  };
-
-  const deleteCustomTag = async (tag: string) => {
-    const ok = await apiDelete(`/clip-tags/${tag}`);
-    if (!ok) { toast.error('Aktion fehlgeschlagen'); return; }
-    refetchTags();
-  };
-
   const toggleAutoSync = async () => {
-    if (!notionConfigured) {
-      if (!notionModalOpen) setNotionModalOpen(true);
-      return;
-    }
-    const next = autoSync ? 'false' : 'true';
-    await apiPost('/settings/set', { key: 'notion_auto_sync', value: next });
+    if (!notionConfigured) { setNotionModal(true); return; }
+    await apiPost('/settings/set', { key: 'notion_auto_sync', value: autoSync ? 'false' : 'true' });
     refetchAutoSync();
   };
-
-  const handleNotionSetupComplete = async () => {
-    setNotionModalOpen(false);
-    await apiPost('/settings/set', { key: 'notion_auto_sync', value: 'true' });
-    refetchAutoSync();
-    if (autoSyncToggleRef.current) celebrate('success', autoSyncToggleRef.current);
-    toast.success('Notion verbunden — Auto-Sync aktiv');
+  const syncDay = async (sessionDate: string) => {
+    const result = await apiPost<{ synced: number; total: number }>('/clips/sync', { session_date: sessionDate });
+    if (!result) { toast.error('Nicht nach Notion geschickt'); return; }
+    toast.success(`${result.synced} von ${result.total} nach Notion geschickt`);
+  };
+  const exportCsv = () => {
+    if (!exportDay) return;
+    window.open(`${getApiBase()}/clips/export?session_date=${exportDay}&token=${getApiToken()}`, '_blank');
   };
 
-  const retryClip = async (id: number) => {
-    setFailedIds((prev) => { const n = new Set(prev); n.delete(id); return n; });
-    const clip = allClips?.find((c) => c.id === id);
-    if (clip) syncToNotion(clip.session_date);
+  const statusLine = (c: Clip): string | null => {
+    if (c.status === 'new') return null;
+    const names = c.platforms.map((p) => PLATFORMS.find((x) => x.key === p)?.label ?? p);
+    const when = c.status === 'published'
+      ? (c.published_at ? `seit ${shortDate(dayOf(c.published_at))}` : '')
+      : (c.planned_for ? longDate(c.planned_for) : '');
+    const parts = [names.join(', '), when].filter(Boolean);
+    return parts.length ? parts.join(' · ') : 'Noch ohne Plattform und Termin';
+  };
+  const meta = (c: Clip): string => {
+    const parts = [shortDate(dayOf(c.created_at))];
+    const m = minute(c.stream_timecode);
+    if (m) parts.push(`${m} im Stream`);
+    if (c.tag !== 'idee') parts.push(tagLabel(c.tag));
+    else parts.push('Idee');
+    return parts.join(' · ');
+  };
+  const title = (c: Clip) => c.hook || c.note || tagLabel(c.tag);
+
+  const onDrop = async (status: ClipStatus) => {
+    setDragOver(null);
+    if (dragId === null) return;
+    const c = clips.find((x) => x.id === dragId);
+    setDragId(null);
+    if (c && c.status !== status) await move(c.id, status);
   };
 
-  const syncStateFor = (clip: Clip): SyncState => {
-    if (!notionConfigured) return 'disabled';
-    if (clip.notion_page_id) return 'synced';
-    if (failedIds.has(clip.id)) return 'failed';
-    return 'pending';
-  };
-
-  const customTags = clipTags?.filter((t) => !t.preset) || [];
-  const allTagNames = [...PRESET_TAGS, ...customTags.map((t) => t.tag)];
-
-  // Group clips by session_date
-  const clipsByDay = new Map<string, Clip[]>();
-  if (allClips) {
-    for (const clip of allClips) {
-      const list = clipsByDay.get(clip.session_date) || [];
-      list.push(clip);
-      clipsByDay.set(clip.session_date, list);
-    }
-  }
-
-  // Sort days descending (newest first)
-  const sortedDays = Array.from(clipsByDay.keys()).sort((a, b) => b.localeCompare(a));
-
-  const filterClips = (clips: Clip[]) => {
-    if (!activeFilter) return clips;
-    if (activeFilter === 'auto') return clips.filter((c) => c.tag.startsWith('auto-'));
-    return clips.filter((c) => c.tag === activeFilter);
-  };
-
-  const isAutoClip = (clip: Clip) => clip.tag.startsWith('auto-');
-
-  const confirmClip = async (clip: Clip) => {
-    const newTag = clip.tag.replace('auto-', '');
-    const result = await apiPatch(`/clips/${clip.id}`, { tag: newTag || 'highlight' });
-    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
-    refetchClips();
-  };
-
-  const buildTimecodeTooltip = (clip: Clip): string => {
-    const parts: string[] = [];
-    const wallClock = new Date(clip.created_at + 'Z').toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    parts.push(`Wall: ${wallClock}`);
-    if (clip.stream_timecode) parts.push(`Stream: ${clip.stream_timecode}`);
-    if (clip.recording_timecode) parts.push(`Recording: ${clip.recording_timecode}`);
-    return parts.join(' | ');
-  };
+  const tagOptions = Array.from(new Set([...(clipTags ?? []).map((t) => t.tag), 'idee', ...(open ? [open.tag.replace(/^auto-/, '')] : [])]));
+  const nextStep = open ? STEPS[STEPS.findIndex((s) => s.key === open.status) + 1] : undefined;
 
   return (
-    <div className="panel clips-panel">
-      <div className="clips-panel-header">
-        <button
-          ref={autoSyncToggleRef}
-          className={`auto-sync-toggle ${notionConfigured && autoSync ? 'on' : 'off'}`}
-          onClick={toggleAutoSync}
-          title="Auto-Sync"
-        >
-          ☁️ Auto-Sync: {notionConfigured && autoSync ? 'An' : 'Aus'}
-        </button>
+    <div className="panel card-slim board-panel">
+      <div className="card-line card-wrap">
+        <span className="card-status"><span>Aus Momenten wird Content. Karte anklicken, um sie weiterzuschieben und Plattform, Termin und Hook festzulegen. Ziehen in eine andere Spalte geht auch.</span></span>
+        <button type="button" className="card-primary" onClick={() => setIdea({ hook: '', note: '' })}>+ Idee</button>
       </div>
 
-      <div className="clip-tags">
-        {PRESET_TAGS.map((tag) => (
-          <button
-            key={tag}
-            className={`tag-btn ${activeFilter === tag ? 'active' : ''}`}
-            onClick={() => { setActiveFilter(activeFilter === tag ? null : tag); }}
-          >
-            {TAG_EMOJI[tag] || '🏷️'} {tag}
-          </button>
-        ))}
-        {customTags.map((ct) => (
-          <button
-            key={ct.tag}
-            className={`tag-btn ${activeFilter === ct.tag ? 'active' : ''}`}
-            onClick={() => { setActiveFilter(activeFilter === ct.tag ? null : ct.tag); }}
-          >
-            🏷️ {ct.tag}
-            <span className="tag-delete" onClick={(e) => { e.stopPropagation(); deleteCustomTag(ct.tag); }}>✕</span>
-          </button>
-        ))}
-        <button
-          key="auto"
-          className={`tag-btn ${activeFilter === 'auto' ? 'active' : ''}`}
-          onClick={() => { setActiveFilter(activeFilter === 'auto' ? null : 'auto'); }}
-        >
-          🤖 Auto
-        </button>
-        {showNewTagInput ? (
-          <span className="tag-add-input">
-            <input
-              type="text"
-              placeholder="Tag name..."
-              value={newTagName}
-              onChange={(e) => setNewTagName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') addCustomTag();
-                if (e.key === 'Escape') { setShowNewTagInput(false); setNewTagName(''); }
-              }}
-              autoFocus
-            />
-            <button onClick={addCustomTag}>✓</button>
-          </span>
-        ) : (
-          <button className="tag-btn tag-add" onClick={() => { setShowNewTagInput(true); }}>+</button>
-        )}
-      </div>
-
-      <div className="clip-custom">
-        <select value={selectedTag} onChange={(e) => { setSelectedTag(e.target.value); }}>
-          {allTagNames.map((t) => <option key={t} value={t}>{t}</option>)}
-        </select>
-        <input
-          type="text"
-          placeholder="Notiz (optional)..."
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && addClip(selectedTag)}
-        />
-        <button onClick={() => addClip(selectedTag)}>+ Clip</button>
-      </div>
-
-      <div className="clip-sessions">
-        {sortedDays.length === 0 && <p className="empty">Keine Clips</p>}
-        {sortedDays.map((date) => {
-          const dayClips = filterClips(clipsByDay.get(date) || []);
-          const isToday = date === today;
-          const isCollapsed = collapsedDays.has(date);
-
-          return (
-            <div key={date} className={`clip-day ${isToday ? 'today' : ''}`}>
-              <div className="clip-day-header" onClick={() => toggleDay(date)}>
-                <span className="day-toggle">{isCollapsed ? '▶' : '▼'}</span>
-                <span className="day-date">{isToday ? `Heute (${date})` : date}</span>
-                <span className="day-breakdown">
-                  {Array.from(
-                    (clipsByDay.get(date) || []).reduce((m, c) => {
-                      const key = c.tag.startsWith('auto-') ? c.tag.replace('auto-', '') : c.tag;
-                      m.set(key, (m.get(key) || 0) + 1);
-                      return m;
-                    }, new Map<string, number>()).entries()
-                  ).map(([tag, count]) => (
-                    <span key={tag} className="tag-chip">{TAG_EMOJI[tag] || '🏷️'}{count}</span>
-                  ))}
-                </span>
-                <span className="day-count">{dayClips.length} Clips</span>
-                {notionConfigured && (
-                  <button className="btn-export" onClick={(e) => { e.stopPropagation(); syncToNotion(date); }} disabled={syncingDay === date}>
-                    {syncingDay === date ? '⏳' : '📤'} Re-Sync
+      {!showArchive ? (
+        <div className="board">
+          {STEPS.map((step) => {
+            const cards = board.filter((c) => c.status === step.key);
+            return (
+              <section
+                key={step.key}
+                className={`board-col ${dragOver === step.key ? 'drag-over' : ''}`}
+                aria-label={step.label}
+                onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }}
+                onDragEnter={() => setDragOver(step.key)}
+                onDragLeave={(e) => { const related = e.relatedTarget as HTMLElement | null; if (!related || !(e.currentTarget as HTMLElement).contains(related)) setDragOver((v) => (v === step.key ? null : v)); }}
+                onDrop={(e) => { e.preventDefault(); void onDrop(step.key); }}
+              >
+                <div className="board-col-head"><h3>{step.label}</h3><span>{cards.length}</span></div>
+                {cards.length === 0 && <p className="board-empty">{step.key === 'new' ? 'Nichts Neues. „Moment merken“ unter Im Stream legt hier ab.' : 'Hierher ziehen'}</p>}
+                {cards.map((c) => isAuto(c) ? (
+                  <div key={c.id} className="board-card auto">
+                    <span className="board-card-title">{title(c)}</span>
+                    <span className="board-card-meta">{meta(c)} · vom Tool gemerkt</span>
+                    <div className="card-row"><button type="button" className="card-primary board-small" onClick={() => keep(c)}>Behalten</button><button type="button" className="card-secondary board-small" onClick={() => remove(c)}>Verwerfen</button></div>
+                  </div>
+                ) : (
+                  <button
+                    key={c.id}
+                    type="button"
+                    className={`board-card ${dragId === c.id ? 'dragging' : ''}`}
+                    draggable
+                    onDragStart={(e) => { e.dataTransfer.setData('text/plain', String(c.id)); e.dataTransfer.effectAllowed = 'move'; setDragId(c.id); }}
+                    onDragEnd={() => { setDragId(null); setDragOver(null); }}
+                    onClick={() => setOpenId(c.id)}
+                  >
+                    <span className="board-card-title">{title(c)}</span>
+                    <span className="board-card-meta">{meta(c)}</span>
+                    {statusLine(c) && <span className="board-card-status">{statusLine(c)}</span>}
                   </button>
-                )}
-                <button className="btn-export" onClick={(e) => { e.stopPropagation(); exportDay(date); }}>📥 DaVinci</button>
-              </div>
+                ))}
+              </section>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="board-archive">
+          {archived.length === 0 && <p className="dialog-empty">Noch nichts im Archiv. Veröffentlichtes wandert nach 30 Tagen hierher.</p>}
+          <ul className="dialog-list">
+            {archived.map((c) => (
+              <li key={c.id}>
+                <span className="dialog-list-text">{title(c)} <span className="dialog-hint">· {meta(c)}{c.published_at ? ` · veröffentlicht ${shortDate(dayOf(c.published_at))}` : ''}</span></span>
+                <button type="button" className="card-link" onClick={() => setOpenId(c.id)}>Öffnen</button>
+                <button type="button" className="card-link" onClick={() => patch(c.id, { status: 'cut' })}>Zurück aufs Brett</button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
-              {!isCollapsed && (
-                <div className="clip-list">
-                  {dayClips.length === 0 && <p className="empty">{activeFilter ? `Keine Clips mit Tag "${activeFilter}"` : 'Keine Clips'}</p>}
-                  {dayClips.map((clip) => (
-                    <div key={clip.id} className={`clip-row ${isAutoClip(clip) ? 'auto-clip' : ''}`}>
-                      <span className="clip-row-time" title={buildTimecodeTooltip(clip)}>
-                        {(() => {
-                          const wall = new Date(clip.created_at + 'Z').toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                          const parts: string[] = [];
-                          if (clip.stream_timecode) parts.push(`🔴 ${clip.stream_timecode}`);
-                          if (clip.recording_timecode) parts.push(`⏺ ${clip.recording_timecode}`);
-                          return parts.length === 0 ? wall : `${parts.join(' ')} | ${wall}`;
-                        })()}
-                      </span>
-                      <span className="clip-row-tag">
-                        {isAutoClip(clip) && '🤖 '}
-                        {TAG_EMOJI[clip.tag.replace('auto-', '')] || '🏷️'} {clip.tag}
-                        {clip.confidence && (
-                          <span className={`confidence-dot ${clip.confidence}`} title={clip.confidence}>
-                            {clip.confidence === 'high' ? '🟢' : '🟡'}
-                          </span>
-                        )}
-                      </span>
-                      <span className="clip-row-note">{clip.note && `"${clip.note}"`}</span>
-                      <ClipSyncBadge state={syncStateFor(clip)} onRetry={() => retryClip(clip.id)} />
-                      {isAutoClip(clip) ? (
-                        <>
-                          <button className="btn-clip-confirm" onClick={() => confirmClip(clip)} title="Bestätigen">✓</button>
-                          <button className="btn-clip-reject" onClick={() => deleteClip(clip.id)} title="Verwerfen">✕</button>
-                        </>
-                      ) : (
-                        <button className="btn-row-action" onClick={() => deleteClip(clip.id)} title="Löschen">✕</button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        })}
+      <div className="card-line card-wrap board-foot">
+        <div className="card-links">
+          <button type="button" className="card-link" onClick={() => setShowArchive((v) => !v)}>{showArchive ? 'Zurück zum Brett' : `Archiv anzeigen${archived.length ? ` · ${archived.length}` : ''}`}</button>
+          <button type="button" className="card-link" onClick={toggleAutoSync}>Notion-Übergabe von selbst: {notionConfigured && autoSync ? 'an' : 'aus'}</button>
+        </div>
+        <div className="card-row card-wrap">
+          <select className="card-select" aria-label="Stream-Tag" value={exportDay} onChange={(e) => setExportDay(e.target.value)}>
+            <option value="">Stream-Tag wählen …</option>
+            {(sessions ?? []).map((s) => <option key={s.session_date} value={s.session_date}>{longDate(s.session_date)} · {s.count}</option>)}
+          </select>
+          <button type="button" className="card-secondary" onClick={exportCsv} disabled={!exportDay}>Als CSV für DaVinci</button>
+          {notionConfigured && <button type="button" className="card-link" onClick={() => exportDay && syncDay(exportDay)} disabled={!exportDay}>Tag nach Notion schicken</button>}
+        </div>
       </div>
+
+      {open && (
+        <Dialog
+          title={title(open)}
+          sentence={meta(open)}
+          onClose={() => setOpenId(null)}
+          footer={<>
+            <button type="button" className="card-link" onClick={() => remove(open)}>Löschen</button>
+            <span style={{ flex: 1 }} />
+            <button type="button" className="card-primary" onClick={() => setOpenId(null)}>Fertig</button>
+          </>}
+        >
+          <div className="board-steps">
+            <span className="dialog-field-label">Schritt</span>
+            {STEPS.map((s) => (
+              <button key={s.key} type="button" className={`pill ${open.status === s.key ? 'active' : ''}`} aria-pressed={open.status === s.key} onClick={() => open.status !== s.key && move(open.id, s.key)}>{s.label}</button>
+            ))}
+            <span style={{ flex: 1 }} />
+            {nextStep && <button type="button" className="card-primary" onClick={() => move(open.id, nextStep.key)}>Weiter zu {nextStep.label}</button>}
+          </div>
+          <div className="dialog-grid">
+            <div className="dialog-field">
+              <span className="dialog-field-label">Plattformen</span>
+              <div className="card-row card-wrap">
+                {PLATFORMS.map((p) => (
+                  <label key={p.key} className="card-check">
+                    <input type="checkbox" checked={open.platforms.includes(p.key)} onChange={(e) => patch(open.id, { platforms: e.target.checked ? [...open.platforms, p.key] : open.platforms.filter((x) => x !== p.key) })} />
+                    <span>{p.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div className="dialog-field">
+              <label htmlFor="clip-date">Termin</label>
+              <input id="clip-date" type="date" className="card-select" value={open.planned_for ?? ''} onChange={(e) => patch(open.id, { planned_for: e.target.value || null })} style={{ colorScheme: 'dark' }} />
+            </div>
+          </div>
+          <div className="dialog-grid">
+            <div className="dialog-field">
+              <label htmlFor="clip-hook">Titel oder Hook</label>
+              <input id="clip-hook" type="text" maxLength={200} defaultValue={open.hook ?? ''} key={`hook-${open.id}`} placeholder="Wie das Posting anfängt" onBlur={(e) => e.target.value !== (open.hook ?? '') && patch(open.id, { hook: e.target.value })} onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()} />
+            </div>
+            <div className="dialog-field">
+              <label htmlFor="clip-tag">Schlagwort</label>
+              <select id="clip-tag" className="card-select" value={open.tag.replace(/^auto-/, '')} onChange={(e) => patch(open.id, { tag: e.target.value })}>
+                {tagOptions.map((t) => <option key={t} value={t}>{tagLabel(t)}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="dialog-field">
+            <label htmlFor="clip-note">Notiz</label>
+            <textarea id="clip-note" rows={4} defaultValue={open.note ?? ''} key={`note-${open.id}`} placeholder="Was im Clip zu sehen sein soll, Schnittidee, Text fürs Posting …"
+              onChange={(e) => { const value = e.target.value; if (noteTimer.current) clearTimeout(noteTimer.current); noteTimer.current = setTimeout(() => patch(open.id, { note: value }), 600); }} />
+          </div>
+          <div className="card-status">
+            {open.stream_timecode && <span>Im Stream bei {minute(open.stream_timecode)}{open.recording_timecode ? ` · in der Aufnahme bei ${minute(open.recording_timecode)}` : ''}.</span>}
+            {open.confidence && <span>Erkannt mit {open.confidence === 'high' ? 'hoher' : 'mittlerer'} Sicherheit.</span>}
+            {notionConfigured && <button type="button" className="card-link" onClick={() => syncDay(open.session_date)}>Stream-Tag nach Notion schicken</button>}
+            {open.notion_page_id && <span>In Notion vorhanden.</span>}
+          </div>
+        </Dialog>
+      )}
+
+      {idea && (
+        <Dialog
+          title="Neue Idee"
+          sentence="Content, der nicht aus einem Stream-Moment kommt. Landet unter „Neu“."
+          onClose={() => setIdea(null)}
+          width={560}
+          footer={<>
+            <button type="button" className="card-secondary" onClick={() => setIdea(null)}>Abbrechen</button>
+            <button type="button" className="card-primary" onClick={createIdea} disabled={!idea.hook.trim()}>Anlegen</button>
+          </>}
+        >
+          <div className="dialog-field">
+            <label htmlFor="idea-hook">Titel oder Hook</label>
+            <input id="idea-hook" type="text" maxLength={200} value={idea.hook} onChange={(e) => setIdea({ ...idea, hook: e.target.value })} onKeyDown={(e) => e.key === 'Enter' && createIdea()} autoFocus />
+          </div>
+          <div className="dialog-field">
+            <label htmlFor="idea-note">Notiz</label>
+            <textarea id="idea-note" rows={3} value={idea.note} onChange={(e) => setIdea({ ...idea, note: e.target.value })} />
+          </div>
+        </Dialog>
+      )}
+
       <NotionSetupModal
-        open={notionModalOpen}
-        onClose={() => setNotionModalOpen(false)}
-        onComplete={handleNotionSetupComplete}
+        open={notionModal}
+        onClose={() => setNotionModal(false)}
+        onComplete={async () => { setNotionModal(false); await apiPost('/settings/set', { key: 'notion_auto_sync', value: 'true' }); refetchAutoSync(); toast.success('Notion verbunden – Übergabe von selbst ist an'); }}
       />
     </div>
   );

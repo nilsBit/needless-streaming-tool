@@ -1,367 +1,192 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useApi, apiGet, apiPost, apiDelete } from '../hooks/useApi';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { useToast } from '../contexts/ToastContext';
+import Dialog from '../components/ux/Dialog';
 
-interface StatRow {
-  user_name: string;
-  reward_type?: string;
-  count: number;
-  last_redeemed_at: string;
-}
+interface BreakdownRow { user_name: string; reward_type: string; count: number; last_redeemed_at: string }
+interface LogRow { id: number; user_name: string; reward_type: string; reward_title: string; user_input: string; created_at: string }
+interface LogResponse { items: LogRow[]; total: number }
 
-interface LogRow {
-  id: number;
-  user_name: string;
-  reward_type: string;
-  reward_title: string;
-  user_input: string;
-  created_at: string;
-}
+interface Viewer { name: string; total: number; last: string; byType: Array<{ type: string; count: number }> }
 
-interface LogResponse {
-  items: LogRow[];
-  total: number;
-}
+const TYPE_LABELS: Record<string, string> = { roulette: 'Glücksrad drehen', feature: 'Vorschlag einreichen', song: 'Musik ändern', music: 'Musik ändern', scene: 'Szene wechseln' };
+const typeLabel = (t: string) => TYPE_LABELS[t] ?? t;
+const verb = (row: LogRow) => {
+  switch (row.reward_type) {
+    case 'roulette': return 'hat das Glücksrad gedreht.';
+    case 'feature': return 'hat einen Vorschlag eingereicht.';
+    case 'song': case 'music': return 'hat die Musik geändert.';
+    case 'scene': return 'hat die Szene gewechselt.';
+    default: return `hat „${row.reward_title}“ eingelöst.`;
+  }
+};
+const when = (iso: string) => new Date(iso.includes('T') ? iso : iso + 'Z').toLocaleString('de-DE', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+const day = (iso: string) => new Date(iso.includes('T') ? iso : iso + 'Z').toLocaleDateString('de-DE', { day: 'numeric', month: 'short' });
 
-type View = 'leaderboard' | 'log';
+const PAGE = 20;
 
-const DEBOUNCE_MS = 2000;
-
+// "Kanalpunkte" under Nach dem Stream: who redeemed what, as a ranking per
+// viewer — the same order the Bestenliste overlay shows — next to the last
+// redemptions told in sentences. Corrections by hand live in dialogs.
 export default function RewardStatsPanel() {
   const { toast } = useToast();
-  const [view, setView] = useState<View>('leaderboard');
-  const [typeFilter, setTypeFilter] = useState('');
-  const [userFilter, setUserFilter] = useState('');
-  const [logOffset, setLogOffset] = useState(0);
-  const [logData, setLogData] = useState<LogResponse | null>(null);
+  const { data: rows, refetch } = useApi<BreakdownRow[]>('/reward-stats/breakdown');
   const [types, setTypes] = useState<string[]>([]);
-  const [sortField, setSortField] = useState<'count' | 'last_redeemed_at' | 'user_name'>('count');
-  const [sortAsc, setSortAsc] = useState(false);
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [addUser, setAddUser] = useState('');
-  const [addType, setAddType] = useState('');
-  const [addCount, setAddCount] = useState('');
-  const [editingRow, setEditingRow] = useState<{ user_name: string; reward_type: string } | null>(null);
-  const [editCount, setEditCount] = useState('');
+  const [search, setSearch] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
+  const [log, setLog] = useState<LogResponse | null>(null);
+  const [logLimit, setLogLimit] = useState(PAGE);
+  const [editing, setEditing] = useState<Viewer | null>(null);
+  const [edits, setEdits] = useState<Record<string, string>>({});
+  const [adding, setAdding] = useState<{ user: string; type: string; count: string } | null>(null);
 
-  // Leaderboard data
-  const leaderboardUrl = typeFilter
-    ? `/reward-stats?type=${encodeURIComponent(typeFilter)}&limit=50`
-    : '/reward-stats?limit=50';
-  const { data: leaderboard, loading, refetch } = useApi<StatRow[]>(leaderboardUrl);
-
-  const fetchTypes = useCallback(() => {
-    apiGet<string[]>('/reward-stats/types').then((res) => {
-      if (res) setTypes(res);
-    });
-  }, []);
-
-  useEffect(() => { fetchTypes(); }, [fetchTypes]);
-
+  const fetchTypes = useCallback(() => { apiGet<string[]>('/reward-stats/types').then((r) => { if (r) setTypes(r); }); }, []);
   const fetchLog = useCallback(() => {
-    const params = new URLSearchParams();
-    if (userFilter) params.set('user', userFilter);
+    const params = new URLSearchParams({ limit: String(logLimit), offset: '0' });
     if (typeFilter) params.set('type', typeFilter);
-    params.set('offset', String(logOffset));
-    params.set('limit', '50');
-    apiGet<LogResponse>(`/reward-stats/log?${params}`).then((res) => {
-      if (res) setLogData(res);
-    });
-  }, [userFilter, typeFilter, logOffset]);
+    apiGet<LogResponse>(`/reward-stats/log?${params}`).then((r) => { if (r) setLog(r); });
+  }, [logLimit, typeFilter]);
+  useEffect(() => { fetchTypes(); }, [fetchTypes]);
+  useEffect(() => { fetchLog(); }, [fetchLog]);
 
-  const viewRef = useRef(view);
-  viewRef.current = view;
-  const fetchLogRef = useRef(fetchLog);
-  fetchLogRef.current = fetchLog;
-
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
   useWebSocket((event) => {
-    if (event === 'reward-redeemed') {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => {
-        refetch();
-        fetchTypes();
-        if (viewRef.current === 'log') fetchLogRef.current();
-      }, DEBOUNCE_MS);
-    }
+    if (event !== 'reward-redeemed') return;
+    if (debounce.current) clearTimeout(debounce.current);
+    debounce.current = setTimeout(() => { refetch(); fetchTypes(); fetchLog(); }, 2000);
   });
+  useEffect(() => () => { if (debounce.current) clearTimeout(debounce.current); }, []);
 
-  useEffect(() => () => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-  }, []);
+  const viewers = useMemo<Viewer[]>(() => {
+    const map = new Map<string, Viewer>();
+    for (const r of rows ?? []) {
+      if (typeFilter && r.reward_type !== typeFilter) continue;
+      const v = map.get(r.user_name) ?? { name: r.user_name, total: 0, last: r.last_redeemed_at, byType: [] };
+      v.total += r.count;
+      if (new Date(r.last_redeemed_at) > new Date(v.last)) v.last = r.last_redeemed_at;
+      v.byType.push({ type: r.reward_type, count: r.count });
+      map.set(r.user_name, v);
+    }
+    const q = search.trim().toLowerCase();
+    return [...map.values()]
+      .filter((v) => !q || v.name.toLowerCase().includes(q))
+      .sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, 'de'));
+  }, [rows, typeFilter, search]);
 
-  useEffect(() => {
-    if (view === 'log') fetchLog();
-  }, [view, fetchLog]);
-
-  const sorted = useMemo(() => {
-    if (!leaderboard) return null;
-    return [...leaderboard].sort((a, b) => {
-      let cmp = 0;
-      if (sortField === 'count') cmp = a.count - b.count;
-      else if (sortField === 'user_name') cmp = a.user_name.localeCompare(b.user_name);
-      else if (sortField === 'last_redeemed_at') cmp = new Date(a.last_redeemed_at).getTime() - new Date(b.last_redeemed_at).getTime();
-      return sortAsc ? cmp : -cmp;
-    });
-  }, [leaderboard, sortField, sortAsc]);
-
-  const toggleSort = useCallback((field: typeof sortField) => {
-    if (sortField === field) setSortAsc(!sortAsc);
-    else { setSortField(field); setSortAsc(false); }
-  }, [sortField, sortAsc]);
-
-  const sortIcon = (field: 'count' | 'last_redeemed_at' | 'user_name') => sortField === field ? (sortAsc ? ' ▲' : ' ▼') : '';
-
-  const showUserLog = (username: string) => {
-    setUserFilter(username);
-    setLogOffset(0);
-    setView('log');
-  };
-
-  const handleAdd = async () => {
-    if (!addUser.trim() || !addType.trim() || !addCount.trim()) return;
-    const result = await apiPost('/reward-stats', { user_name: addUser.trim(), reward_type: addType.trim(), count: Number(addCount) });
-    if (!result) { toast.error('Speichern fehlgeschlagen'); return; }
-    toast.info('Gespeichert');
-    setAddUser(''); setAddType(''); setAddCount('');
-    setShowAddForm(false);
-    refetch(); fetchTypes();
-  };
-
-  const handleEdit = async (userName: string, rewardType: string) => {
-    if (!editCount.trim()) return;
-    const result = await apiPost('/reward-stats', { user_name: userName, reward_type: rewardType, count: Number(editCount) });
-    if (!result) { toast.error('Speichern fehlgeschlagen'); return; }
-    toast.info('Gespeichert');
-    setEditingRow(null); setEditCount('');
+  const openEdit = (v: Viewer) => { setEditing(v); setEdits(Object.fromEntries(v.byType.map((t) => [t.type, String(t.count)]))); };
+  const saveEdit = async (type: string) => {
+    if (!editing) return;
+    const count = Number(edits[type]);
+    if (!Number.isInteger(count) || count < 0) { toast.error('Eine Anzahl ist eine ganze Zahl.'); return; }
+    const result = await apiPost('/reward-stats', { user_name: editing.name, reward_type: type, count });
+    if (!result) { toast.error('Nicht gespeichert'); return; }
+    toast.success('Gespeichert');
     refetch();
   };
-
-  const handleDelete = async (userName: string, rewardType: string) => {
-    const ok = await apiDelete(`/reward-stats/${encodeURIComponent(userName)}/${encodeURIComponent(rewardType)}`);
+  const deleteEntry = async (type: string) => {
+    if (!editing) return;
+    if (!window.confirm(`„${typeLabel(type)}“ bei ${editing.name} löschen?`)) return;
+    const ok = await apiDelete(`/reward-stats/${encodeURIComponent(editing.name)}/${encodeURIComponent(type)}`);
     if (!ok) { toast.error('Löschen fehlgeschlagen'); return; }
-    toast.info('Gelöscht');
+    setEditing((v) => (v ? { ...v, byType: v.byType.filter((t) => t.type !== type) } : v));
+    refetch(); fetchTypes();
+  };
+  const add = async () => {
+    if (!adding || !adding.user.trim() || !adding.type.trim() || adding.count.trim() === '') return;
+    const result = await apiPost('/reward-stats', { user_name: adding.user.trim(), reward_type: adding.type.trim(), count: Number(adding.count) });
+    if (!result) { toast.error('Nicht gespeichert'); return; }
+    toast.success('Eingetragen');
+    setAdding(null);
     refetch(); fetchTypes();
   };
 
-  const thStyle = { padding: '6px 8px', cursor: 'pointer', userSelect: 'none' as const };
-
   return (
-    <div className="panel reward-stats-panel">
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button
-            className={`tab-btn ${view === 'leaderboard' ? 'active' : ''}`}
-            onClick={() => setView('leaderboard')}
-          >
-            Leaderboard
-          </button>
-          <button
-            className={`tab-btn ${view === 'log' ? 'active' : ''}`}
-            onClick={() => { setView('log'); setLogOffset(0); }}
-          >
-            Log
-          </button>
-          <button
-            onClick={() => setShowAddForm(!showAddForm)}
-            style={{ padding: '4px 10px', background: showAddForm ? '#333' : '#1a1a1a', border: '1px solid #444', borderRadius: 4, color: '#ccc', cursor: 'pointer', fontSize: 12 }}
-          >
-            + Nachtragen
-          </button>
+    <div className="panel card-slim rewards">
+      <div className="card-line card-wrap">
+        <div className="card-row card-wrap">
+          <input type="text" placeholder="Zuschauer suchen" aria-label="Zuschauer suchen" value={search} onChange={(e) => setSearch(e.target.value)} style={{ width: 220 }} />
+          <select className="card-select" aria-label="Belohnung" value={typeFilter} onChange={(e) => { setTypeFilter(e.target.value); setLogLimit(PAGE); }}>
+            <option value="">Alle Belohnungen</option>
+            {types.map((t) => <option key={t} value={t}>{typeLabel(t)}</option>)}
+          </select>
         </div>
+        <button type="button" className="card-secondary" onClick={() => setAdding({ user: '', type: types[0] ?? '', count: '' })}>+ Eintrag von Hand</button>
       </div>
 
-      {/* Type filter */}
-      <div style={{ marginBottom: 12, display: 'flex', gap: 8, alignItems: 'center' }}>
-        <select
-          value={typeFilter}
-          onChange={(e) => { setTypeFilter(e.target.value); setLogOffset(0); }}
-          style={{ padding: '4px 8px', background: '#1a1a1a', border: '1px solid #333', borderRadius: 4, color: '#ccc', fontSize: 12 }}
-        >
-          <option value="">Alle Typen</option>
-          {types.map((t) => (
-            <option key={t} value={t}>{t}</option>
-          ))}
-        </select>
-        {view === 'log' && (
-          <input
-            type="text"
-            placeholder="Username suchen..."
-            value={userFilter}
-            onChange={(e) => { setUserFilter(e.target.value); setLogOffset(0); }}
-            style={{ padding: '4px 8px', background: '#1a1a1a', border: '1px solid #333', borderRadius: 4, color: '#ccc', fontSize: 12, flex: 1 }}
-          />
-        )}
-      </div>
-
-      {showAddForm && (
-        <div style={{ marginBottom: 12, padding: 10, background: '#1a1a1a', border: '1px solid #333', borderRadius: 6, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          <input
-            type="text"
-            placeholder="Username"
-            value={addUser}
-            onChange={(e) => setAddUser(e.target.value)}
-            style={{ padding: '4px 8px', background: '#111', border: '1px solid #333', borderRadius: 4, color: '#ccc', fontSize: 12, width: 140 }}
-          />
-          <input
-            type="text"
-            placeholder="Reward-Typ"
-            value={addType}
-            onChange={(e) => setAddType(e.target.value)}
-            list="reward-types"
-            style={{ padding: '4px 8px', background: '#111', border: '1px solid #333', borderRadius: 4, color: '#ccc', fontSize: 12, width: 140 }}
-          />
-          <datalist id="reward-types">
-            {types.map((t) => <option key={t} value={t} />)}
-          </datalist>
-          <input
-            type="number"
-            placeholder="Anzahl"
-            value={addCount}
-            onChange={(e) => setAddCount(e.target.value)}
-            min="0"
-            style={{ padding: '4px 8px', background: '#111', border: '1px solid #333', borderRadius: 4, color: '#ccc', fontSize: 12, width: 80 }}
-          />
-          <button
-            onClick={handleAdd}
-            disabled={!addUser.trim() || !addType.trim() || !addCount.trim()}
-            style={{ padding: '4px 12px', background: '#2d5a27', border: '1px solid #3a7a33', borderRadius: 4, color: '#ccc', cursor: 'pointer', fontSize: 12 }}
-          >
-            Speichern
-          </button>
-        </div>
-      )}
-
-      {view === 'leaderboard' && (
-        <div>
-          {loading ? (
-            <p style={{ color: '#666' }}>Laden...</p>
-          ) : !sorted || sorted.length === 0 ? (
-            <p style={{ color: '#666' }}>Noch keine Reward-Daten vorhanden.</p>
-          ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid #333', color: '#888' }}>
-                  <th style={{ textAlign: 'left', padding: '6px 8px' }}>#</th>
-                  <th style={{ textAlign: 'left', ...thStyle }} onClick={() => toggleSort('user_name')}>User{sortIcon('user_name')}</th>
-                  {typeFilter && <th style={{ textAlign: 'left', padding: '6px 8px' }}>Typ</th>}
-                  <th style={{ textAlign: 'right', ...thStyle }} onClick={() => toggleSort('count')}>Anzahl{sortIcon('count')}</th>
-                  <th style={{ textAlign: 'right', ...thStyle }} onClick={() => toggleSort('last_redeemed_at')}>Letztes Mal{sortIcon('last_redeemed_at')}</th>
-                  {typeFilter && <th style={{ textAlign: 'right', padding: '6px 8px' }}></th>}
-                </tr>
-              </thead>
-              <tbody>
-                {sorted.map((row, i) => {
-                  const isEditing = editingRow && editingRow.user_name === row.user_name && editingRow.reward_type === (row.reward_type || '');
-                  return (
-                  <tr key={row.user_name + (row.reward_type || '')} style={{ borderBottom: '1px solid #222' }}>
-                    <td style={{ padding: '6px 8px', color: '#666' }}>{i + 1}</td>
-                    <td style={{ padding: '6px 8px' }}>
-                      <button
-                        onClick={() => showUserLog(row.user_name)}
-                        style={{ background: 'none', border: 'none', color: '#e67e22', cursor: 'pointer', padding: 0, fontSize: 12 }}
-                      >
-                        {row.user_name}
-                      </button>
-                    </td>
-                    {typeFilter && <td style={{ padding: '6px 8px', color: '#888' }}>{row.reward_type}</td>}
-                    <td style={{ textAlign: 'right', padding: '6px 8px', fontWeight: 600 }}>
-                      {isEditing ? (
-                        <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
-                          <input
-                            type="number"
-                            value={editCount}
-                            onChange={(e) => setEditCount(e.target.value)}
-                            autoFocus
-                            onKeyDown={(e) => { if (e.key === 'Enter') handleEdit(row.user_name, row.reward_type || ''); if (e.key === 'Escape') setEditingRow(null); }}
-                            style={{ width: 60, padding: '2px 4px', background: '#111', border: '1px solid #444', borderRadius: 3, color: '#ccc', fontSize: 12, textAlign: 'right' }}
-                          />
-                          <button onClick={() => handleEdit(row.user_name, row.reward_type || '')} style={{ background: 'none', border: 'none', color: '#4caf50', cursor: 'pointer', fontSize: 12 }}>✓</button>
-                          <button onClick={() => setEditingRow(null)} style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: 12 }}>✕</button>
-                        </span>
-                      ) : row.count}
-                    </td>
-                    <td style={{ textAlign: 'right', padding: '6px 8px', color: '#888' }}>
-                      {new Date(row.last_redeemed_at).toLocaleDateString('de-DE')}
-                    </td>
-                    {typeFilter && (
-                      <td style={{ textAlign: 'right', padding: '6px 8px', whiteSpace: 'nowrap' }}>
-                        <button
-                          onClick={() => { setEditingRow({ user_name: row.user_name, reward_type: row.reward_type || '' }); setEditCount(String(row.count)); }}
-                          style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: 11, marginRight: 4 }}
-                          title="Bearbeiten"
-                        >✎</button>
-                        <button
-                          onClick={() => { if (confirm(`"${row.user_name}" (${row.reward_type}) wirklich löschen?`)) handleDelete(row.user_name, row.reward_type || ''); }}
-                          style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', fontSize: 11 }}
-                          title="Löschen"
-                        >🗑</button>
-                      </td>
-                    )}
-                  </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          )}
-        </div>
-      )}
-
-      {view === 'log' && (
-        <div>
-          {!logData ? (
-            <p style={{ color: '#666' }}>Laden...</p>
-          ) : logData.items.length === 0 ? (
-            <p style={{ color: '#666' }}>Keine Einträge gefunden.</p>
-          ) : (
-            <>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
-                <thead>
-                  <tr style={{ borderBottom: '1px solid #333', color: '#888' }}>
-                    <th style={{ textAlign: 'left', padding: '6px 8px' }}>Zeit</th>
-                    <th style={{ textAlign: 'left', padding: '6px 8px' }}>User</th>
-                    <th style={{ textAlign: 'left', padding: '6px 8px' }}>Reward</th>
-                    <th style={{ textAlign: 'left', padding: '6px 8px' }}>Input</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {logData.items.map((row) => (
-                    <tr key={row.id} style={{ borderBottom: '1px solid #222' }}>
-                      <td style={{ padding: '6px 8px', color: '#888', whiteSpace: 'nowrap' }}>
-                        {new Date(row.created_at).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                      </td>
-                      <td style={{ padding: '6px 8px' }}>{row.user_name}</td>
-                      <td style={{ padding: '6px 8px', color: '#888' }}>{row.reward_title}</td>
-                      <td style={{ padding: '6px 8px', color: '#666', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {row.user_input || '—'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, fontSize: 11, color: '#666' }}>
-                <span>{logData.total} Einträge</span>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button
-                    disabled={logOffset === 0}
-                    onClick={() => setLogOffset(Math.max(0, logOffset - 50))}
-                    style={{ padding: '2px 8px', background: '#1a1a1a', border: '1px solid #333', borderRadius: 4, color: '#ccc', cursor: 'pointer', fontSize: 11 }}
-                  >
-                    ← Zurück
-                  </button>
-                  <button
-                    disabled={logOffset + 50 >= logData.total}
-                    onClick={() => setLogOffset(logOffset + 50)}
-                    style={{ padding: '2px 8px', background: '#1a1a1a', border: '1px solid #333', borderRadius: 4, color: '#ccc', cursor: 'pointer', fontSize: 11 }}
-                  >
-                    Weiter →
-                  </button>
-                </div>
+      <div className="rewards-layout">
+        <section className="rewards-ranking" aria-label="Rangliste">
+          <h3 className="alert-card-name">Rangliste</h3>
+          <p className="dialog-hint">Wer am meisten eingelöst hat. Genau so steht sie als Bestenliste im Stream.</p>
+          {viewers.length === 0 && <p className="dialog-empty">{rows && rows.length ? 'Niemand passt zur Suche.' : 'Noch hat niemand Kanalpunkte eingelöst.'}</p>}
+          {viewers.map((v, i) => (
+            <div key={v.name} className="rewards-row">
+              <span className="rewards-rank">{i + 1}</span>
+              <div className="rewards-who">
+                <div className="rewards-name">{v.name}</div>
+                <div className="dialog-hint">{v.byType.map((t) => `${t.count} × ${typeLabel(t.type)}`).join(' · ')} · zuletzt {day(v.last)}</div>
               </div>
-            </>
+              <div className="rewards-total"><div className="rewards-total-n">{v.total}</div><div className="dialog-hint">{v.total === 1 ? 'Einlösung' : 'Einlösungen'}</div></div>
+              <button type="button" className="card-secondary" onClick={() => openEdit(v)}>Bearbeiten</button>
+            </div>
+          ))}
+        </section>
+
+        <section className="rewards-log" aria-label="Zuletzt passiert">
+          <h3 className="alert-card-name">Zuletzt passiert</h3>
+          <p className="dialog-hint">Die letzten Einlösungen, neueste oben.</p>
+          {log && log.items.length === 0 && <p className="dialog-empty">Noch nichts.</p>}
+          {(log?.items ?? []).map((row) => (
+            <div key={row.id} className="rewards-event">
+              <div className="dialog-hint">{when(row.created_at)}</div>
+              <div><strong>{row.user_name}</strong> {verb(row)}</div>
+              {row.user_input && <div className="rewards-input">„{row.user_input}“</div>}
+            </div>
+          ))}
+          {log && log.total > log.items.length && (
+            <button type="button" className="card-link" onClick={() => setLogLimit((l) => l + PAGE)}>Mehr anzeigen · {log.total - log.items.length} weitere</button>
           )}
-        </div>
+        </section>
+      </div>
+
+      {editing && (
+        <Dialog
+          title={editing.name}
+          sentence="Zahlen korrigieren oder einen Eintrag entfernen, etwa nach einem Fehlgriff im Chat."
+          onClose={() => setEditing(null)}
+          width={560}
+        >
+          {editing.byType.length === 0 && <p className="dialog-empty">Keine Einträge mehr.</p>}
+          <ul className="dialog-list">
+            {editing.byType.map((t) => (
+              <li key={t.type}>
+                <span className="dialog-list-text">{typeLabel(t.type)}</span>
+                <input type="number" min={0} aria-label={`Anzahl ${typeLabel(t.type)}`} value={edits[t.type] ?? ''} onChange={(e) => setEdits({ ...edits, [t.type]: e.target.value })} style={{ width: 90 }} />
+                <button type="button" className="card-secondary" onClick={() => saveEdit(t.type)}>Speichern</button>
+                <button type="button" className="card-link" onClick={() => deleteEntry(t.type)}>Löschen</button>
+              </li>
+            ))}
+          </ul>
+        </Dialog>
+      )}
+
+      {adding && (
+        <Dialog
+          title="Eintrag von Hand"
+          sentence="Für Einlösungen, die das Tool nicht mitbekommen hat."
+          onClose={() => setAdding(null)}
+          width={560}
+          footer={<>
+            <button type="button" className="card-secondary" onClick={() => setAdding(null)}>Abbrechen</button>
+            <button type="button" className="card-primary" onClick={add} disabled={!adding.user.trim() || !adding.type.trim() || adding.count.trim() === ''}>Eintragen</button>
+          </>}
+        >
+          <div className="dialog-grid">
+            <div className="dialog-field"><label htmlFor="rw-user">Zuschauer</label><input id="rw-user" type="text" value={adding.user} onChange={(e) => setAdding({ ...adding, user: e.target.value })} autoFocus /></div>
+            <div className="dialog-field"><label htmlFor="rw-type">Belohnung</label><input id="rw-type" type="text" list="rw-types" value={adding.type} onChange={(e) => setAdding({ ...adding, type: e.target.value })} /><datalist id="rw-types">{types.map((t) => <option key={t} value={t} />)}</datalist></div>
+          </div>
+          <div className="dialog-field"><label htmlFor="rw-count">Anzahl</label><input id="rw-count" type="number" min={0} value={adding.count} onChange={(e) => setAdding({ ...adding, count: e.target.value })} style={{ width: 120 }} /></div>
+        </Dialog>
       )}
     </div>
   );
