@@ -1,4 +1,4 @@
-export const SCHEMA_VERSION = 27;
+export const SCHEMA_VERSION = 28;
 
 export const SCHEMA = `
 CREATE TABLE IF NOT EXISTS schema_version (
@@ -144,6 +144,16 @@ CREATE TABLE IF NOT EXISTS reward_stats (
   count            INTEGER DEFAULT 0,
   last_redeemed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(user_name, reward_type)
+);
+
+-- A Bestenliste: one Twitch reward, ranked by redemptions. Its key is the
+-- reward_type of its counts in reward_stats and the ?type= of its overlays.
+CREATE TABLE IF NOT EXISTS leaderboards (
+  key          TEXT PRIMARY KEY,
+  title        TEXT NOT NULL,
+  reward_id    TEXT NOT NULL UNIQUE,
+  reward_title TEXT NOT NULL,
+  created_at   DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 -- One row per viewer: flexes unlocked by the "Flex" reward and not yet spent with !flex.

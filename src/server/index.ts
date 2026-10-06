@@ -27,6 +27,7 @@ import obsRouter from './api/obs';
 import customOverlaysRouter from './api/custom-overlays';
 import statsRouter from './api/stats';
 import rewardStatsRouter from './api/reward-stats';
+import leaderboardsRouter from './api/leaderboards';
 import backupRouter from './api/backup';
 import designRouter from './api/design';
 import devRouter from './api/dev';
@@ -155,6 +156,7 @@ export function createApp(): express.Express {
   app.use('/api/clip-tags', clipTagsRouter);
   app.use('/api/milestones', milestonesRouter);
   app.use('/api/reward-stats', rewardStatsRouter);
+  app.use('/api/leaderboards', leaderboardsRouter);
   app.use('/api/obs', obsRouter);
   app.use('/api/overlays', customOverlaysRouter);
   app.use('/api/stats', statsRouter);
