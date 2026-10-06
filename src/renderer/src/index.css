@@ -121,7 +121,7 @@ body {
 .readiness-go { min-height: 40px; padding: 0 14px; border: 1px solid var(--border-strong); border-radius: 6px; background: none; color: var(--text); font: inherit; cursor: pointer; flex: none; }
 .readiness-go:hover { background: var(--bg-hover); }
 
-/* "Im Stream" — cards in a grid, each with a chip for "im Bild" */
+/* "Im Stream" — cards in a grid, each with a chip for "in der Szene" */
 .stream-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; align-items: stretch; }
 .stream-card { border: 1px solid var(--border); border-radius: 8px; padding: 18px; display: flex; flex-direction: column; gap: 10px; min-width: 0; height: 100%; box-sizing: border-box; }
 .stream-card.on-screen { border-color: var(--accent); }

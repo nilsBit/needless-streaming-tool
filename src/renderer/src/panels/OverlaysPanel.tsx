@@ -28,8 +28,8 @@ interface CatalogEntry {
 interface OverlayScenes { connected: boolean; byOverlay: Record<string, string[]> }
 
 const GROUP_LABELS: Record<Group, string> = {
-  always: 'Immer im Bild', join: 'Mitmachen', today: 'Heute im Stream', rewards: 'Kanalpunkte',
-  screens: 'Ganze Bilder', alerts: 'Meldungen', custom: 'Eigene Overlays',
+  always: 'Immer da', join: 'Mitmachen', today: 'Heute im Stream', rewards: 'Kanalpunkte',
+  screens: 'Start, Pause, Ende', alerts: 'Meldungen', custom: 'Eigene Overlays',
 };
 const GROUP_ORDER: Group[] = ['always', 'join', 'today', 'rewards', 'screens', 'alerts', 'custom'];
 const WHY: Record<CatalogEntry['customizedBy'][number], string> = { html: 'HTML geändert', palette: 'eigene Farben', figma: 'Figma-Entwurf übernommen' };

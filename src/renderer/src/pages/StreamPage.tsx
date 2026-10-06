@@ -17,7 +17,7 @@ const CARDS: Record<string, { sentence: string; overlays: string[] }> = {
   issues: { sentence: 'Du sammelst Themen, das Rad entscheidet. Der Chat sieht sie mit !themen.', overlays: ['roulette'] },
   designs: { sentence: 'Du sammelst Vorschläge, der Chat stimmt mit !vote ab.', overlays: ['poll'] },
   progress: { sentence: 'Woran du heute arbeitest, mit Balken und Aufgaben im Stream. Der Chat sieht es mit !progress und !todo.', overlays: ['progress', 'todos'] },
-  song: { sentence: 'Zeigt im Bild nur den Titel, der gerade läuft. Zuschauer wünschen sich Songs mit !sr und sehen die Reihe mit !queue.', overlays: ['song'] },
+  song: { sentence: 'Zeigt im Stream nur den Titel, der gerade läuft. Zuschauer wünschen sich Songs mit !sr und sehen die Reihe mit !queue.', overlays: ['song'] },
   world: { sentence: 'Die Karte im Stream zeigt den Eintrag, den du im Worldbuilder offen hast.', overlays: ['character'] },
 };
 

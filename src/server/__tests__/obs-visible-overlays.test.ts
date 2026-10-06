@@ -6,7 +6,7 @@ import { generateApiToken } from '../auth-token';
 import { createApp } from '../index';
 import { visibleOverlays, overlaysByScene, overlayNameFromUrl } from '../obs/visible-overlays';
 
-// "im Bild / nicht im Bild": which overlays the current OBS scene shows.
+// "in der Szene / nicht in der Szene": which overlays the current OBS scene shows.
 // The walk over scene items runs against a stand-in for OBS, the way the
 // overlay refresh is tested; the route is checked over HTTP while nothing
 // is connected.

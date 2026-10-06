@@ -68,7 +68,7 @@ router.get('/overlay-scenes', async (_req, res) => {
   res.json(await getOverlayScenes());
 });
 
-// GET /visible-overlays — which overlays the current scene shows ("im Bild").
+// GET /visible-overlays — which overlays the current scene shows ("in der Szene").
 router.get('/visible-overlays', async (_req, res) => {
   res.json(await getVisibleOverlays());
 });

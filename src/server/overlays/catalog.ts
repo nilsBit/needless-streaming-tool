@@ -37,11 +37,11 @@ export interface CatalogEntry {
 }
 
 export const GROUP_LABELS: Record<CatalogGroup, string> = {
-  always: 'Immer im Bild',
+  always: 'Immer da',
   join: 'Mitmachen',
   today: 'Heute im Stream',
   rewards: 'Kanalpunkte',
-  screens: 'Ganze Bilder',
+  screens: 'Start, Pause, Ende',
   alerts: 'Meldungen',
   custom: 'Eigene Overlays',
 };
@@ -55,12 +55,12 @@ const META: Record<string, { label: string; sentence: string; group: CatalogGrou
   progress: { label: 'Fortschritt', sentence: 'Deine Schritte für heute mit Balken.', group: 'today', preview: 'in-progress' },
   todos: { label: 'Aufgaben', sentence: 'Deine Liste zum Abhaken.', group: 'today', preview: 'open-todos' },
   challenge: { label: 'Ziel für heute', sentence: 'Dein Ziel mit laufender Uhr.', group: 'today', preview: 'running' },
-  milestone: { label: 'Meilenstein', sentence: 'Feiert einen abgehakten Meilenstein über das ganze Bild.', group: 'today', preview: 'major' },
+  milestone: { label: 'Meilenstein', sentence: 'Feiert einen abgehakten Meilenstein groß, über allem anderen.', group: 'today', preview: 'major' },
   'reward-leaderboard': { label: 'Bestenliste', sentence: 'Wer am meisten Kanalpunkte eingelöst hat.', group: 'rewards', preview: 'top-three' },
   'reward-rankchange': { label: 'Rangwechsel', sentence: 'Meldet, wenn jemand in der Bestenliste aufsteigt.', group: 'rewards', preview: 'overtake' },
-  start: { label: 'Startbild', sentence: 'Ganzes Bild, bevor es losgeht.', group: 'screens', preview: 'mit-eintrag' },
-  pause: { label: 'Pausenbild', sentence: 'Ganzes Bild, wenn du kurz weg bist.', group: 'screens', preview: 'mit-eintrag' },
-  end: { label: 'Endbild', sentence: 'Ganzes Bild zum Abschluss.', group: 'screens', preview: 'mit-eintrag' },
+  start: { label: 'Startbild', sentence: 'Füllt den ganzen Stream, bevor es losgeht.', group: 'screens', preview: 'mit-eintrag' },
+  pause: { label: 'Pausenbild', sentence: 'Füllt den ganzen Stream, wenn du kurz weg bist.', group: 'screens', preview: 'mit-eintrag' },
+  end: { label: 'Endbild', sentence: 'Füllt den ganzen Stream zum Abschluss.', group: 'screens', preview: 'mit-eintrag' },
   alerts: { label: 'Alerts', sentence: 'Tafel bei Follow, Abo, Geschenk, Raid und Bits.', group: 'alerts', preview: 'follow' },
 };
 

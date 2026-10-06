@@ -124,7 +124,7 @@ export async function connectObs(): Promise<boolean> {
     });
 
     // Scene changes made in OBS itself, and sources switched on or off:
-    // the panels show "im Bild / nicht im Bild" and need to hear about both.
+    // the panels show "in der Szene / nicht in der Szene" and need to hear about both.
     obs.on('CurrentProgramSceneChanged', (event) => {
       broadcast('obs-scene-changed', { scene: event.sceneName });
     });
