@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import express from 'express';
 import { getDb } from '../db/index';
+import { isSecretSetting, withoutSecrets } from '../secret-settings';
 
 const router = Router();
 
@@ -23,7 +24,10 @@ router.get('/export', (_req, res) => {
   const backup: Record<string, unknown[]> = {};
 
   for (const table of TABLES) {
-    backup[table] = db.prepare(`SELECT * FROM ${table}`).all();
+    const rows = db.prepare(`SELECT * FROM ${table}`).all() as Array<Record<string, unknown>>;
+    // Tokens, the OBS password, the Discord webhook: a backup is for the
+    // streamer's data, not for the keys to the accounts.
+    backup[table] = table === 'settings' ? withoutSecrets(rows) : rows;
   }
 
   res.setHeader('Content-Disposition', 'attachment; filename=nst-backup.json');
@@ -45,11 +49,19 @@ router.post('/import', (req, res) => {
     delete data['bugs'];
   }
 
+  let secretsSkipped = 0;
   const importTransaction = db.transaction(() => {
     for (const table of TABLES) {
       if (!data[table]) continue;
-      const rows = data[table];
+      let rows = data[table];
       if (!Array.isArray(rows) || rows.length === 0) continue;
+      if (table === 'settings') {
+        // A backup never brings keys in, and never removes the ones this machine has.
+        const kept = withoutSecrets(rows);
+        secretsSkipped += rows.length - kept.length;
+        rows = kept;
+        if (rows.length === 0) continue;
+      }
 
       // Validate columns against actual DB schema to prevent SQL injection
       const validColumns = getTableColumns(table);
@@ -58,7 +70,13 @@ router.post('/import', (req, res) => {
 
       if (safeColumns.length === 0) continue;
 
-      db.prepare(`DELETE FROM ${table}`).run();
+      if (table === 'settings') {
+        const existing = db.prepare('SELECT key FROM settings').all() as Array<{ key: string }>;
+        const remove = db.prepare('DELETE FROM settings WHERE key = ?');
+        for (const row of existing) if (!isSecretSetting(row.key)) remove.run(row.key);
+      } else {
+        db.prepare(`DELETE FROM ${table}`).run();
+      }
 
       const placeholders = safeColumns.map(() => '?').join(', ');
       const insert = db.prepare(`INSERT INTO ${table} (${safeColumns.join(', ')}) VALUES (${placeholders})`);
@@ -71,7 +89,7 @@ router.post('/import', (req, res) => {
 
   try {
     importTransaction();
-    res.json({ success: true, tables: Object.keys(data).filter((t) => TABLES.includes(t)) });
+    res.json({ success: true, tables: Object.keys(data).filter((t) => TABLES.includes(t)), secretsSkipped });
   } catch (err) {
     console.error('[Backup] Import failed:', err);
     res.status(500).json({ error: 'Import failed' });

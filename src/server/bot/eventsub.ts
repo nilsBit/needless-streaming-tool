@@ -3,7 +3,7 @@ import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
 import { getBotConfig } from './config';
 import { triggerRoulette } from '../api/actions';
-import { changeScene, findSceneForReward, getCurrentScene } from '../obs/index';
+import { changeScene, sceneMappingForRedemption, getCurrentScene } from '../obs/index';
 import { checkAndBroadcast } from '../reward-leaderboard';
 import { getClientId } from '../twitch-config';
 import { sendAlert } from './alerts';
@@ -115,8 +115,10 @@ async function handleRedemption(event: Record<string, unknown>) {
     triggerRoulette();
   }
 
-  // Scene change: check mappings first (fixed reward → scene), then fallback to user input
-  const mapping = findSceneForReward(rewardTitle);
+  // Scene change: a mapped reward, or a "Szene" reward naming one of the
+  // mapped scenes. Never an arbitrary scene by name — the viewer must not be
+  // able to put a desktop scene on stream (security review 2026-10-06, H5).
+  const mapping = sceneMappingForRedemption(rewardTitle, rewardType, userInput);
   if (mapping) {
     // Capture current scene before switching so we can revert to it
     const previousScene = await getCurrentScene();
@@ -139,13 +141,6 @@ async function handleRedemption(event: Record<string, unknown>) {
       }
     } else {
       console.log(`[EventSub] Mapped scene change failed for "${mapping.scene_name}": ${sceneResult.error}`);
-    }
-  } else if (rewardType === 'scene_change' && userInput) {
-    const sceneResult = await changeScene(userInput.trim());
-    if (sceneResult.success) {
-      console.log(`[EventSub] Scene changed to "${userInput}" by ${userName}`);
-    } else {
-      console.log(`[EventSub] Scene change failed for "${userInput}": ${sceneResult.error}`);
     }
   }
 }

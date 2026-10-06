@@ -4,6 +4,7 @@ import os from 'os';
 import Database from 'better-sqlite3';
 import { getDb } from './db/index';
 import { getUserDataPath } from './paths';
+import { isSecretSetting } from './secret-settings';
 
 interface SyncConfig {
   enabled: boolean;
@@ -40,8 +41,47 @@ function getActiveSyncConfig(): SyncConfig | null {
 }
 
 export function writeSyncConfig(config: SyncConfig): void {
-  fs.mkdirSync(CONFIG_DIR, { recursive: true });
-  fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
+  fs.mkdirSync(CONFIG_DIR, { recursive: true, mode: 0o700 });
+  fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2), { mode: 0o600 });
+}
+
+type SettingRow = { key: string; value: string };
+
+/** The secret settings of a database file — what must not travel and must not be lost. */
+function secretRows(file: string): SettingRow[] {
+  if (!fs.existsSync(file)) return [];
+  try {
+    const db = new Database(file, { readonly: true });
+    const rows = db.prepare('SELECT key, value FROM settings').all() as SettingRow[];
+    db.close();
+    return rows.filter((r) => isSecretSetting(r.key));
+  } catch {
+    return [];
+  }
+}
+
+/** Removes tokens, the OBS password and the Discord webhook from a copy meant for the sync folder. */
+function stripSecrets(file: string): void {
+  const db = new Database(file);
+  try {
+    const remove = db.prepare('DELETE FROM settings WHERE key = ?');
+    for (const row of secretRows(file)) remove.run(row.key);
+    db.pragma('wal_checkpoint(TRUNCATE)');
+  } finally {
+    db.close();
+  }
+}
+
+/** Puts this machine's secrets back into a database that came from the sync folder. */
+function restoreSecrets(file: string, rows: SettingRow[]): void {
+  if (rows.length === 0) return;
+  const db = new Database(file);
+  try {
+    const put = db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)');
+    for (const row of rows) put.run(row.key, row.value);
+  } finally {
+    db.close();
+  }
 }
 
 function getLocalDbPath(): string {
@@ -113,9 +153,12 @@ export function syncFromRemote(): { synced: boolean; error?: string } {
   if (fs.existsSync(localDb)) {
     fs.copyFileSync(localDb, localDb + '.bak');
   }
+  // The remote copy carries no secrets (see stripSecrets); this machine keeps its own.
+  const ownSecrets = secretRows(localDb);
 
   try {
     fs.copyFileSync(remoteDb, localDb);
+    restoreSecrets(localDb, ownSecrets);
     if (fs.existsSync(remoteMeta)) {
       fs.copyFileSync(remoteMeta, localMeta);
     }
@@ -155,6 +198,7 @@ export function syncToRemoteOnQuit(): void {
   try {
     fs.mkdirSync(config.syncPath, { recursive: true });
     fs.copyFileSync(localDb, remoteDb);
+    stripSecrets(remoteDb);
     writeMeta(remoteMeta);
     writeMeta(localMeta);
     console.log('[Sync] Pushed DB to remote');
@@ -180,6 +224,7 @@ export async function syncToRemoteManual(): Promise<{ success: boolean; lastSync
   try {
     fs.mkdirSync(config.syncPath, { recursive: true });
     await getDb().backup(remoteDb);
+    stripSecrets(remoteDb);
     writeMeta(remoteMeta);
     writeMeta(localMeta);
     const meta = readMeta(remoteMeta);

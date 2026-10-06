@@ -19,13 +19,15 @@ export function writeConnectionFile(port: number): void {
       console.warn('[Connection] No fixed token available, skipping connection file');
       return;
     }
-    fs.mkdirSync(DIR, { recursive: true });
+    // Owner-only: the file holds the fixed token, which opens the whole API.
+    fs.mkdirSync(DIR, { recursive: true, mode: 0o700 });
     fs.writeFileSync(FILE, JSON.stringify({
       version: 1,
       token,
       port,
       pid: process.pid,
-    }, null, 2));
+    }, null, 2), { mode: 0o600 });
+    try { fs.chmodSync(DIR, 0o700); fs.chmodSync(FILE, 0o600); } catch { /* Windows: ACLs, no mode bits */ }
     console.log(`[Connection] Wrote ${FILE}`);
   } catch (err) {
     console.error('[Connection] Failed to write connection file:', err);

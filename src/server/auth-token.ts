@@ -24,9 +24,9 @@ export function generateApiToken(): string {
   // Load or create fixed token from DB
   try {
     fixedToken = persistedToken('api_token');
-    console.log(`[Auth] Fixed API token: ${fixedToken}`);
     designToken = persistedToken('design_token');
-    console.log(`[Auth] Figma token: ${designToken}`);
+    // The values stay out of the log: a log is read by more eyes than the DB.
+    console.log('[Auth] Fixed API token and Figma token ready');
   } catch {
     // DB not ready yet — fixed token will be null
   }

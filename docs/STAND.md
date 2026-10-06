@@ -256,6 +256,17 @@ braucht den Bot.
   Quelle). Ändern: Einstellungen → Programm → „Was dein Stream kann“. Spec
   `docs/superpowers/specs/2026-10-06-einrichtung-design.md`, Plan
   `docs/superpowers/plans/2026-10-06-einrichtung.md`.
+- **Sicherheitsprüfung (06.10., Abend).** Code-Review gegen Electron-Checkliste, OWASP und
+  `npm audit`: 24 Funde, Bericht als private Claude-Seite bei Nils. **Block 1 behoben:**
+  Sicherung und Sync-Ordner ohne Tokens, OBS-Passwort und Webhook (`src/server/secret-settings.ts`,
+  der Sync stellt die eigenen Geheimnisse nach einem Pull wieder her); Twitch-Anmeldung mit
+  Einmal-`state`, `/api/auth/twitch/save` verlangt ihn; Kanalpunkt „Szene“ wechselt nur noch in
+  Szenen aus „Szene per Kanalpunkt“ (`obs/scene-request.ts`); `~/.nst/connection.json` nur für
+  den Besitzer lesbar, Tokens nicht mehr im Log; `!design` nur für Mods; die generischen
+  Einstellungs-Routen verweigern geheime Schlüssel (403). **Offen:** Block 2 (Electron-Hülle:
+  `setWindowOpenHandler`, CSP ohne `unsafe-eval`, Songwunsch-Adressen, Token nur im Header),
+  Block 3 (Electron 44, `npm audit fix`, Dependabot-PRs #9 und #15, Signatur), Block 4
+  (WebSocket-Herkunft, CSV, Lesebereich des Claude-Laufs, Aufbewahrung der Zuschauerdaten).
 - **Nächster Schritt:** Auf dem Windows-Rechner pullen, `npm run dev`, OBS verbinden und einmal
   alles durchklicken – Chips auf „Im Stream“, Overlay-Liste, Content-Brett (die alten
   Test-Momente in „Neu“ verwerfen), und in Einstellungen → Programm → „Ändern“ den Schritt

@@ -6,6 +6,7 @@ import { refreshOwnBrowserSources } from './refresh-overlays';
 import { visibleOverlays, overlaysByScene } from './visible-overlays';
 import { createScreenScenes, type ScreenResult } from './screens';
 import { placeOverlay, type PlaceableOverlay, type PlaceResult } from './place-overlay';
+import { resolveSceneMapping } from './scene-request';
 import { PORT } from '../index';
 
 let obs: OBSWebSocket | null = null;
@@ -244,9 +245,16 @@ export function saveSceneMappings(mappings: SceneMapping[]): void {
 }
 
 export function findSceneForReward(rewardTitle: string): SceneMapping | null {
-  const mappings = getSceneMappings();
-  const titleLower = rewardTitle.toLowerCase();
-  return mappings.find((m) => titleLower.includes(m.reward_title.toLowerCase())) || null;
+  return resolveSceneMapping(getSceneMappings(), rewardTitle, '', null);
+}
+
+/**
+ * The mapping a redemption may switch to — by the reward's title, or for a
+ * "Szene" reward by the scene the viewer named, as long as that scene is one
+ * the streamer approved under "Szene per Kanalpunkt". See scene-request.ts.
+ */
+export function sceneMappingForRedemption(rewardTitle: string, rewardType: string, userInput: string | null | undefined): SceneMapping | null {
+  return resolveSceneMapping(getSceneMappings(), rewardTitle, rewardType, userInput);
 }
 
 

@@ -116,7 +116,7 @@ export default function SettingsPanel({ category }: { category: SettingsCategory
           <div className="s-card-info">
             <div>
               <div className="s-card-title">Sicherung</div>
-              <div className="s-card-status" style={{ color: '#888' }}>Alle Daten als Datei sichern oder eine Sicherung zurückspielen. Die Datei enthält die Zugangsdaten, also nicht weitergeben.</div>
+              <div className="s-card-status" style={{ color: '#888' }}>Alle Daten als Datei sichern oder eine Sicherung zurückspielen. Zugangsdaten und Tokens bleiben draußen und werden beim Zurückspielen nicht angerührt.</div>
             </div>
           </div>
         </div>

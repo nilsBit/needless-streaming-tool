@@ -87,6 +87,8 @@ export function registerCommands(client: Client) {
       }
 
       case 'design': {
+        // Starting, ending or reading out a vote is the streamer's and the mods' call.
+        if (!isPrivileged(tags)) break;
         const args = message.trim().split(/\s+/).slice(1);
         const subCommand = args[0]?.toLowerCase();
 

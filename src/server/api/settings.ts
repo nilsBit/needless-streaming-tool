@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { isSecretSetting } from '../secret-settings';
 import { getBotConfig, saveBotConfig } from '../bot/config';
 import { connectBot, disconnectBot, getBotStatus } from '../bot/index';
 import { getCommandNames, normalizeTrigger } from '../bot/command-names';
@@ -285,8 +286,16 @@ router.post('/autostart', (req, res) => {
   }
 });
 
-// Generic key/value endpoints for arbitrary settings
+// Generic key/value endpoints for arbitrary settings — except the secrets,
+// which have their own routes that never give them back in full.
+const refuseSecret = (res: import('express').Response, key: string): boolean => {
+  if (!isSecretSetting(key)) return false;
+  res.status(403).json({ error: 'key_protected', message: `"${key}" is a secret and has its own route` });
+  return true;
+};
+
 router.get('/get/:key', (req, res) => {
+  if (refuseSecret(res, req.params.key)) return;
   const row = getDb().prepare('SELECT value FROM settings WHERE key = ?').get(req.params.key) as { value: string } | undefined;
   res.json({ value: row?.value ?? null });
 });
@@ -294,6 +303,7 @@ router.get('/get/:key', (req, res) => {
 router.post('/set', (req, res) => {
   const { key, value } = req.body as { key?: string; value?: string };
   if (!key) { res.status(400).json({ error: 'key required' }); return; }
+  if (refuseSecret(res, key)) return;
   getDb().prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run(key, String(value ?? ''));
   res.json({ success: true });
 });
@@ -304,6 +314,8 @@ router.post('/batch', (req, res) => {
     res.status(400).json({ error: 'object of key/value pairs required' });
     return;
   }
+  const secret = Object.keys(settings).find(isSecretSetting);
+  if (secret && refuseSecret(res, secret)) return;
   const db = getDb();
   for (const [key, value] of Object.entries(settings)) {
     db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run(key, String(value));

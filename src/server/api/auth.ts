@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { Router } from 'express';
 import { shell } from 'electron';
 import { getBotConfig, saveBotConfig } from '../bot/config';
@@ -18,10 +19,33 @@ const TWITCH_SCOPES = [
   'moderator:read:followers',
 ].join('+');
 
+// A login the tool itself started carries a one-time `state`. Twitch hands it
+// back in the fragment; the callback page sends it along, and /save accepts a
+// token only with a state it issued and has not seen used. Without this, a
+// link with a foreign #access_token could make the bot run as a stranger.
+const STATE_TTL_MS = 10 * 60_000;
+const pendingStates = new Map<string, number>();
+
+function issueState(): string {
+  const now = Date.now();
+  for (const [state, expires] of pendingStates) if (expires < now) pendingStates.delete(state);
+  const state = crypto.randomBytes(16).toString('hex');
+  pendingStates.set(state, now + STATE_TTL_MS);
+  return state;
+}
+
+/** True once, for a state this process issued within the last ten minutes. */
+export function consumeState(state: unknown): boolean {
+  if (typeof state !== 'string' || !/^[0-9a-f]{32}$/.test(state)) return false;
+  const expires = pendingStates.get(state);
+  pendingStates.delete(state);
+  return expires !== undefined && expires >= Date.now();
+}
+
 function buildAuthUrl(host: string): string {
   const clientId = getClientId();
   const redirectUri = `http://${host}/auth/twitch/callback`;
-  return `https://id.twitch.tv/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${TWITCH_SCOPES}`;
+  return `https://id.twitch.tv/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${TWITCH_SCOPES}&state=${issueState()}`;
 }
 
 // GET — generate Twitch OAuth URL
@@ -44,6 +68,7 @@ router.get('/twitch/callback', (_req, res) => {
     <html>
     <head>
       <meta charset="UTF-8">
+      <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'">
       <title>Twitch Auth</title>
       <style>
         body { background: #0d0d0d; color: #e0e0e0; font-family: -apple-system, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; }
@@ -63,14 +88,15 @@ router.get('/twitch/callback', (_req, res) => {
         const hash = window.location.hash.substring(1);
         const params = new URLSearchParams(hash);
         const accessToken = params.get('access_token');
+        const state = params.get('state');
 
-        if (accessToken) {
+        if (accessToken && state) {
           fetch('/api/auth/twitch/save', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ access_token: accessToken })
+            body: JSON.stringify({ access_token: accessToken, state })
           })
-          .then(r => r.json())
+          .then(r => { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
           .then(data => {
             document.getElementById('title').textContent = '✅ Verbunden!';
             document.getElementById('title').className = 'success';
@@ -80,12 +106,12 @@ router.get('/twitch/callback', (_req, res) => {
           .catch(() => {
             document.getElementById('title').textContent = '❌ Fehler';
             document.getElementById('title').className = 'error';
-            document.getElementById('message').textContent = 'Token konnte nicht gespeichert werden.';
+            document.getElementById('message').textContent = 'Die Anmeldung wurde nicht von diesem Tool gestartet oder ist abgelaufen. Bitte in den Einstellungen neu anmelden.';
           });
         } else {
           document.getElementById('title').textContent = '❌ Fehler';
           document.getElementById('title').className = 'error';
-          document.getElementById('message').textContent = 'Kein Token erhalten. Bitte erneut versuchen.';
+          document.getElementById('message').textContent = 'Kein Token erhalten. Bitte in den Einstellungen neu anmelden.';
         }
       </script>
     </body>
@@ -95,8 +121,13 @@ router.get('/twitch/callback', (_req, res) => {
 
 // POST — save token from callback page
 router.post('/twitch/save', async (req, res) => {
-  const { access_token } = req.body;
-  if (!access_token) {
+  const { access_token, state } = (req.body ?? {}) as { access_token?: unknown; state?: unknown };
+  // Only a login this tool started may change whose account the bot runs as.
+  if (!consumeState(state)) {
+    res.status(403).json({ error: 'state_invalid', message: 'Diese Anmeldung wurde nicht von diesem Tool gestartet oder ist abgelaufen.' });
+    return;
+  }
+  if (typeof access_token !== 'string' || !access_token) {
     res.status(400).json({ error: 'access_token required' });
     return;
   }
@@ -137,7 +168,8 @@ router.post('/twitch/save', async (req, res) => {
 
     res.json({ success: true, channel, username: user.display_name });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to validate token', details: String(err) });
+    console.error('[Auth] Twitch token could not be validated:', err);
+    res.status(500).json({ error: 'Failed to validate token' });
   }
 });
 
