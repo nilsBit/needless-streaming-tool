@@ -6,6 +6,8 @@ import SubTabs from './components/ux/SubTabs';
 import ConnectionMarks from './components/ux/ConnectionMarks';
 import ReadinessBanner from './components/ux/ReadinessBanner';
 import AreaPage from './pages/AreaPage';
+import StreamPage from './pages/StreamPage';
+import SceneHint from './components/ux/SceneHint';
 import logoSvg from './assets/logo.svg';
 
 // Sidebar with the areas and the connection marks, then the page: header,
@@ -81,11 +83,13 @@ export default function Shell() {
           <ConnectionMarks />
         </nav>
         <div className="shell-page">
-          <PageHeader title={area.label} sentence={area.sentence} />
+          <PageHeader title={area.label} sentence={area.sentence} aside={area.key === 'stream' ? <SceneHint /> : undefined} />
           {hasTabRow && <SubTabs tabs={area.subTabs} active={subTab.key} onSelect={goSubTab} />}
           <main className="shell-main">
             {area.key === 'stream' && <ReadinessBanner />}
-            <AreaPage subTab={subTab} showSentence={hasTabRow} />
+            {area.key === 'stream'
+              ? <StreamPage />
+              : <AreaPage subTab={subTab} showSentence={hasTabRow} />}
           </main>
         </div>
       </div>

@@ -10,8 +10,7 @@ import {
   getCurrentScene,
   createScreens,
   getSceneMappings,
-  saveSceneMappings,
-} from '../obs/index';
+  saveSceneMappings, getVisibleOverlays } from '../obs/index';
 
 const router = Router();
 
@@ -64,6 +63,11 @@ router.post('/disconnect', async (_req, res) => {
 });
 
 // Scene management
+// GET /visible-overlays — which overlays the current scene shows ("im Bild").
+router.get('/visible-overlays', async (_req, res) => {
+  res.json(await getVisibleOverlays());
+});
+
 router.get('/scenes', async (_req, res) => {
   try {
     const scenes = await getScenes();

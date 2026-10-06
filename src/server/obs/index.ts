@@ -3,6 +3,7 @@ import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
 import { announceLive } from '../discord/live';
 import { refreshOwnBrowserSources } from './refresh-overlays';
+import { visibleOverlays } from './visible-overlays';
 import { createScreenScenes, type ScreenResult } from './screens';
 import { PORT } from '../index';
 
@@ -120,6 +121,15 @@ export async function connectObs(): Promise<boolean> {
       } catch { /* ignore */ }
       broadcast('obs-status', { connected: false });
       scheduleReconnect();
+    });
+
+    // Scene changes made in OBS itself, and sources switched on or off:
+    // the panels show "im Bild / nicht im Bild" and need to hear about both.
+    obs.on('CurrentProgramSceneChanged', (event) => {
+      broadcast('obs-scene-changed', { scene: event.sceneName });
+    });
+    obs.on('SceneItemEnableStateChanged', () => {
+      void getCurrentScene().then((scene) => broadcast('obs-scene-changed', { scene }));
     });
 
     console.log(`[OBS] Connected to ${url}`);
@@ -283,5 +293,18 @@ export async function getCurrentScene(): Promise<string | null> {
     return currentProgramSceneName;
   } catch {
     return null;
+  }
+}
+
+/** The overlays on screen in the current scene — `scene: null` while OBS is out of reach. */
+export async function getVisibleOverlays(): Promise<{ scene: string | null; overlays: string[] }> {
+  if (!obs || !connected) return { scene: null, overlays: [] };
+  const scene = await getCurrentScene();
+  if (!scene) return { scene: null, overlays: [] };
+  try {
+    return { scene, overlays: await visibleOverlays(obs, PORT, scene) };
+  } catch (err) {
+    console.error('[OBS] Reading the visible overlays failed:', err);
+    return { scene, overlays: [] };
   }
 }

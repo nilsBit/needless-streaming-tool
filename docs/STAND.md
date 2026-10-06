@@ -209,9 +209,17 @@ braucht den Bot.
   etwas fehlt (`ReadinessBanner.tsx`, `GET /api/readiness`, `src/server/readiness.ts` mit
   Test an der HTTP-Naht). Die App öffnet auf „Im Stream“. Ein gespeichertes `start` aus der
   ersten Fassung landet dort.
-- **Nächster Schritt:** Stufe 4, „Im Stream“ als Karten mit „im Bild“ – Nils sieht die Seite
-  am meisten, und sie sieht innen noch aus wie vorher. Davor Stufe 3 (Befehlsliste) nur, wenn
-  Nils es so will; die Reihenfolge im Spec ist 3 vor 4.
+- **Stufe 4 „Im Stream“ gebaut** (vor Stufe 3, weil Nils die Seite am meisten sieht):
+  Karten im Raster mit Name, Satz und Chip „im Bild“ / „nicht im Bild“, Kopfzeile mit
+  „Szene in OBS: …“, neue Karte „Moment merken“. Dahinter `GET /api/obs/visible-overlays`
+  (`src/server/obs/visible-overlays.ts`, liest die eigenen Browserquellen der laufenden
+  Szene, Gruppen und Unterszenen eingeschlossen) und zwei OBS-Events, die als
+  `obs-scene-changed` ankommen. Ohne OBS gibt es keinen Chip. Die Panels in den Karten sind
+  noch die alten Bausteine. Plan: `docs/superpowers/plans/2026-10-06-bedienung-stufe-4-im-stream.md`.
+  **Nicht geprüft:** die Chips gegen ein echtes OBS (auf dem Mac keins mit Szenen).
+- **Nächster Schritt:** Stufe 3 (eine Befehlsliste mit Filtern und Bearbeiten-Dialog), dann
+  5 (Overlay-Liste mit Vorschau) und 6 (Content-Brett #26, Einstellungen, Hilfe). Davor auf
+  dem Windows-Rechner pullen, OBS verbinden und die Chips auf „Im Stream“ ansehen.
 - Weiter offen wie zuvor: Alert-Töne hinterlegen, Szene `tft` ohne Spotify-Quellen,
   Stream-Deck-Taste fürs Mithören, Test-Clip in der Clip-Liste, Figma-Pilot.
 

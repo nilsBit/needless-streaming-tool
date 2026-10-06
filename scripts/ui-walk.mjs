@@ -52,7 +52,8 @@ try {
       for (const tab of tabs.length ? tabs : [null]) {
         if (tab) { await page.click(`.sub-tab:text-is("${tab}")`); await page.waitForTimeout(300); }
         await page.waitForTimeout(700); // panels fetch their data
-        const panels = await page.$$eval('.page-panel', (els) => els.length);
+        // A panel is wrapped as .page-panel on most pages and sits inside a card on "Im Stream" — both carry data-panel.
+        const panels = await page.$$eval('[data-panel]', (els) => els.length);
         const cards = await page.$$eval('.start-card', (els) => els.length);
         const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
         const file = `${size.w}x${size.h}-${slug(area)}${tab ? '-' + slug(tab) : ''}.png`;

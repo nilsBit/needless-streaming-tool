@@ -53,9 +53,12 @@ body {
 .shell-nav-divider { height: 1px; background: var(--border-subtle); margin: 12px 0; }
 
 .shell-page { display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; }
-.page-header { padding: 28px 32px 0; }
+.page-header { padding: 28px 32px 0; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 12px; }
 .page-header h1 { font-size: 26px; font-weight: 700; }
 .page-header p { margin-top: 4px; color: var(--muted); font-size: 14px; }
+.page-header-aside { padding-top: 8px; }
+.scene-hint { color: var(--muted); font-size: 14px; }
+.scene-hint strong { color: var(--text); font-weight: 600; }
 .sub-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 18px 32px 0; border-bottom: 1px solid var(--border); }
 .sub-tab {
   min-height: 44px;
@@ -114,6 +117,25 @@ body {
 .readiness-consequence { color: var(--muted); font-size: 13px; }
 .readiness-go { min-height: 40px; padding: 0 14px; border: 1px solid var(--border-strong); border-radius: 6px; background: none; color: var(--text); font: inherit; cursor: pointer; flex: none; }
 .readiness-go:hover { background: var(--bg-hover); }
+
+/* "Im Stream" — cards in a grid, each with a chip for "im Bild" */
+.stream-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; align-items: start; }
+.stream-card { border: 1px solid var(--border); border-radius: 8px; padding: 18px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.stream-card.on-screen { border-color: var(--accent); }
+.stream-card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.stream-card-head h2 { font-size: 16px; font-weight: 600; }
+.stream-chip { font-size: 12px; white-space: nowrap; }
+.stream-chip.on { color: var(--accent); font-weight: 600; }
+.stream-chip.off { color: var(--muted); }
+.stream-card-sentence { color: var(--muted); font-size: 14px; line-height: 1.45; }
+.stream-card-body { min-width: 0; }
+/* The panel inside brings its own frame and its own sentence — the card has both. */
+.stream-card-body .panel { border: none; border-radius: 0; padding: 0; background: transparent; }
+.stream-card-body .panel > .panel-desc { display: none; }
+.moment-card { display: flex; flex-direction: column; gap: 10px; }
+.moment-card input { min-height: 44px; box-sizing: border-box; padding: 0 12px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font: inherit; }
+.moment-mark { min-height: 44px; border: 1px solid var(--border-strong); border-radius: 6px; background: none; color: var(--text); font: inherit; font-weight: 600; cursor: pointer; }
+.moment-mark:hover { background: var(--bg-hover); }
 
 /* Small in-panel toggles (RewardStatsPanel: Rangliste / Verlauf) */
 .tab-btn {

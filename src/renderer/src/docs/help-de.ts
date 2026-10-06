@@ -36,7 +36,9 @@ Links stehen die Bereiche nach Situation: **Im Stream** (alles, was du live ausl
 | Settings → Verbindungen / App / Daten & API | Einstellungen → Verbindungen / Programm / Daten |
 | Hotkeys | Einstellungen → Programm → Tastenkürzel |
 
-Die Kästen lassen sich nicht mehr verschieben, anpinnen oder ausblenden — jedes Panel hat genau einen Ort. Welcher Bereich und welches Thema zuletzt offen waren, merkt sich das Tool.`,
+Die Kästen lassen sich nicht mehr verschieben, anpinnen oder ausblenden — jedes Panel hat genau einen Ort. Welcher Bereich und welches Thema zuletzt offen waren, merkt sich das Tool.
+
+Auf „Im Stream“ steht an jeder Karte, ob ihr Overlay gerade im Bild ist — sobald OBS verbunden ist; oben rechts die laufende Szene. „Moment merken“ setzt dort eine Marke für später (Nach dem Stream → Content planen).`,
   },
   {
     title: 'Twitch verbinden',

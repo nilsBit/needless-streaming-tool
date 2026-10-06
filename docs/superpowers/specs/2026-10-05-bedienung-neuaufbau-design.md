@@ -191,7 +191,8 @@ Jede Stufe ist für sich benutzbar und wird einzeln geplant und gebaut.
 2. **Bereitschaft.** Verbindungsmarken in der Leiste, `readiness`, Hinweisbalken auf „Im
    Stream“ (statt einer Startseite; gebaut am 06.10. direkt nach Stufe 1).
 3. **Chat & Bot.** Eine Befehlsliste mit Filtern und Bearbeiten-Dialog.
-4. **Im Stream.** Einheitliche Karten, „im Bild“.
+4. **Im Stream.** Einheitliche Karten, „im Bild“. (Gebaut am 06.10., vor Stufe 3: die Karten
+   rahmen die heutigen Panels; Plan `docs/superpowers/plans/2026-10-06-bedienung-stufe-4-im-stream.md`.)
 5. **Overlays & Alerts.** Overlay-Liste mit OBS-Zustand; Unterreiter aufgeräumt.
 6. **Nach dem Stream** mit dem Content-Planungsbrett, **Einstellungen** bereinigt; Hilfe-Texte
    auf die neuen Wege.
