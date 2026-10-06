@@ -103,7 +103,7 @@ ist; Hinweis, wenn Notion gewählt ist) · mindestens ein eigener Befehl an · a
 Ton (Hinweis). „Overlays als Quellen in OBS gefunden“ kommt mit Stufe 4 dazu.
 
 **Im Stream.** Karten in einem Raster, jede mit Titel, einem Satz, der einen Eingabe
-und der einen Auslösung. Rechts oben an der Karte steht „im Bild“ / „nicht im Bild“ —
+und der einen Auslösung. Rechts oben an der Karte steht „in der Szene“ / „nicht in der Szene“ —
 ob die zugehörige OBS-Quelle in der laufenden Szene sichtbar ist. Die Kopfzeile nennt die laufende
 OBS-Szene, nur als Hinweis. Umgeschaltet wird in OBS oder am Stream Deck, nicht im Tool
 (entschieden am 06.10.: eine dritte Stelle zum Umschalten verwirrt eher).
@@ -172,7 +172,7 @@ das Glücksrad gedreht.“), keine Tabellenspalten.
 - Neuer Server-Endpunkt `GET /api/readiness`: liefert die Prüfpunkte als Liste
   `{ id, ok, title, consequence?, target? }`. Die Logik liegt in
   `src/server/readiness.ts` und ist ohne Oberfläche prüfbar.
-- „im Bild“: `GET /api/obs/visible-overlays` — welche Overlay-Quellen in der
+- „in der Szene“: `GET /api/obs/visible-overlays` — welche Overlay-Quellen in der
   laufenden Szene sichtbar sind (Gruppen mitgelesen); bei jedem Szenenwechsel per
   WebSocket neu.
 - Vorschau in „Overlays“: ein `<iframe>` auf `/overlay/<name>/index.html?state=<Zustand>`,
@@ -191,7 +191,7 @@ Jede Stufe ist für sich benutzbar und wird einzeln geplant und gebaut.
 2. **Bereitschaft.** Verbindungsmarken in der Leiste, `readiness`, Hinweisbalken auf „Im
    Stream“ (statt einer Startseite; gebaut am 06.10. direkt nach Stufe 1).
 3. **Chat & Bot.** Eine Befehlsliste mit Filtern und Bearbeiten-Dialog.
-4. **Im Stream.** Einheitliche Karten, „im Bild“. (Gebaut am 06.10., vor Stufe 3; am selben Tag
+4. **Im Stream.** Einheitliche Karten, „in der Szene“. (Gebaut am 06.10., vor Stufe 3; am selben Tag
    die Karten innen auf eine Eingabe, einen Knopf, eine Zustandszeile gebracht, Verwaltung in
    Dialogen; Plan `docs/superpowers/plans/2026-10-06-bedienung-stufe-4-im-stream.md`.)
 5. **Overlays & Alerts.** Overlay-Liste mit OBS-Zustand; Unterreiter aufgeräumt.
