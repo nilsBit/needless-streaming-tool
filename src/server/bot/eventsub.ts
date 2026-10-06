@@ -7,7 +7,6 @@ import { changeScene, sceneMappingForRedemption, getCurrentScene } from '../obs/
 import { countRedemption } from '../leaderboards';
 import { getClientId } from '../twitch-config';
 import { sendAlert } from './alerts';
-import { sayInChat } from './index';
 
 let ws: WebSocket | null = null;
 let sessionId: string | null = null;
@@ -100,10 +99,9 @@ async function handleRedemption(event: Record<string, unknown>) {
   const reward = getDb().prepare('SELECT * FROM rewards WHERE id = ?').get(result.lastInsertRowid);
   broadcast('reward-redeemed', reward);
 
-  if (point) {
-    console.log(`[EventSub] ${userName}: ${point.leaderboard.title} Nr. ${point.count}, Platz ${point.rank}`);
-    sayInChat(`💪 @${userName}: ${point.leaderboard.title} Nr. ${point.count} – Platz ${point.rank}.`);
-  }
+  // No chat line for a point: the overlays and the alert board show it, !stats
+  // tells the standing on request (Nils, 06.10.: "jedesmal diese Notiz macht keinen Sinn").
+  if (point) console.log(`[EventSub] ${userName}: ${point.leaderboard.title} Nr. ${point.count}, Platz ${point.rank}`);
 
   // Auto-trigger roulette when someone redeems roulette
   if (rewardType === 'roulette') {

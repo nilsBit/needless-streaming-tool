@@ -107,8 +107,9 @@ Die Liste der Twitch-Belohnungen kommt weiter aus `/api/auth/twitch/rewards`
 - `!flex` entfällt (Befehlsnamen, Befehlsliste, Hilfe).
 - `!stats [Name]` zeigt den Stand in allen Listen: „@Name: Flex 12 (Platz 3), Angeben 4
   (Platz 1).“ Wer nirgends steht: „@Name hat noch nichts eingelöst.“
-- Beim Einlösen antwortet der Bot: „💪 @Name: Flex Nr. 12 – Platz 3.“ Das ist die einzige
-  Chat-Reaktion auf eine Einlösung.
+- Beim Einlösen sagt der Bot nichts. (Ursprünglich „💪 @Name: Flex Nr. 12 – Platz 3.“ — nach
+  dem ersten Stream-Test gestrichen, Nils 06.10.: „jedesmal diese Notiz macht keinen Sinn“.
+  Overlay, Rangwechsel und Alert-Tafel zeigen die Einlösung, `!stats` den Stand.)
 
 ## Oberfläche
 

@@ -305,7 +305,8 @@ braucht den Bot.
   `!stats [Name]` zeigt den Stand. Alles in `src/server/flex.ts`. Der Unterreiter heißt jetzt
   „Bestenliste“, die Overlay-Gruppe auch. Alte Zählungen anderer Typen bleiben in der Tabelle,
   werden aber nirgends mehr gezeigt. **Mehrere Bestenlisten** (Nils, 06.10., Abend): je Liste
-  eine Belohnung per Twitch-ID (`leaderboards`), Einlösung zählt direkt, `!flex` und
+  eine Belohnung per Twitch-ID (`leaderboards`), Einlösung zählt direkt (ohne Chat-Zeile,
+  die flog nach dem ersten Test wieder raus), `!flex` und
   `flex_credits` wieder weg, Seite unter Overlays & Alerts → Bestenlisten, Overlays je Liste mit
   `?type=<key>`. Alte Overlay-Adressen ohne Parameter zeigen nichts mehr. Spec:
   `docs/superpowers/specs/2026-10-06-bestenlisten-design.md`. **Stream-Deck-Plugin geparkt**

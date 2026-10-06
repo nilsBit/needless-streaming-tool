@@ -235,7 +235,7 @@ Alle Befehle lassen sich unter Chat & Bot → Von selbst umbenennen. Antworten, 
 
 Bestenlisten legst du unter **Overlays & Alerts → Bestenlisten** an: ein Name und die Belohnung aus deinem Kanal. Die Wahl hängt an der Belohnung selbst, nicht an ihrem Namen – umbenennen in Twitch ist kein Problem. Löschst du sie in Twitch, zeigt die Liste das an, bis du eine andere wählst.
 
-**Eine Bestenliste** zählt jede Einlösung ihrer Belohnung. Der Bot antwortet „@Name: Flex Nr. 12 – Platz 3“, das Overlay **Bestenliste** zeigt die Top 3 der Liste, **Rangwechsel** meldet Überholer, die Alert-Tafel zeigt die Einlösung. \`!stats\` zeigt den eigenen Stand in jeder Liste, \`!stats <Name>\` den eines anderen. Je Liste gibt es unter Overlays eine Bestenliste und einen Rangwechsel mit eigener Adresse.
+**Eine Bestenliste** zählt jede Einlösung ihrer Belohnung. Im Chat sagt der Bot dazu nichts; das Overlay **Bestenliste** zeigt die Top 3 der Liste, **Rangwechsel** meldet Überholer, die Alert-Tafel zeigt die Einlösung. \`!stats\` zeigt den eigenen Stand in jeder Liste, \`!stats <Name>\` den eines anderen. Je Liste gibt es unter Overlays eine Bestenliste und einen Rangwechsel mit eigener Adresse.
 
 In der Liste siehst du die Rangliste, kannst Zahlen korrigieren, Einträge von Hand setzen, die Liste umbenennen oder löschen und einen Zuschauer vergessen.
 
