@@ -6,6 +6,7 @@
 //
 // Spec: docs/superpowers/specs/2026-10-05-bedienung-neuaufbau-design.md
 import type { PanelKey } from './panelKeys';
+import { panelVisible } from '../../shared/features';
 
 export type AreaKey = 'stream' | 'chat' | 'overlays' | 'after' | 'settings' | 'help';
 
@@ -202,6 +203,23 @@ export const AREAS: readonly Area[] = [
     subTabs: [{ key: 'hilfe', label: 'Hilfe', sentence: '', panels: ['help'] }],
   },
 ];
+
+/**
+ * What is left of the navigation once the chosen features ("Was dein Stream
+ * kann") hide their panels: sub tabs without a panel go, areas without a sub
+ * tab go. "Im Stream" stays while the moment card (`momente`) is on, even
+ * with no card panel left. Einstellungen and Hilfe claim nothing and stay.
+ */
+export function visibleNavigation(on: ReadonlySet<string>): Area[] {
+  return AREAS
+    .map((area) => ({
+      ...area,
+      subTabs: area.subTabs
+        .map((tab) => ({ ...tab, panels: tab.panels.filter((p) => panelVisible(on, p)) }))
+        .filter((tab) => tab.panels.length > 0 || (area.key === 'stream' && on.has('momente'))),
+    }))
+    .filter((area) => area.subTabs.length > 0);
+}
 
 /** The area for a stored key; the first area when the key is unknown. */
 export function findArea(key: string | null | undefined): Area {

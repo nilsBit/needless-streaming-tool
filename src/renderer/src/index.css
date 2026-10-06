@@ -360,6 +360,84 @@ body {
 .rewards-event { padding: 10px 14px; border: 1px solid var(--border-subtle); border-radius: 8px; font-size: 14px; }
 .rewards-input { margin-top: 2px; color: var(--text-secondary); font-style: italic; font-size: 13px; }
 
+/* The setup on first start: a step rail in place of the sidebar, one step at a time */
+.setup { height: 100vh; display: grid; grid-template-columns: 240px minmax(0, 1fr); background: var(--bg-body); color: var(--text); }
+.setup-rail { background: var(--bg-header); border-right: 1px solid var(--border); padding: 24px 18px 28px; display: flex; flex-direction: column; gap: 6px; min-height: 0; }
+.setup-rail-title { margin: -8px 0 18px; padding: 0 10px; color: var(--muted); }
+.setup-rail-hint { margin: 18px 0 0; padding: 0 10px; color: var(--muted); font-size: 13px; line-height: 1.45; }
+.setup-step { display: flex; gap: 12px; align-items: flex-start; width: 100%; text-align: left; padding: 11px 12px; border-radius: 6px; border: 1px solid transparent; background: none; color: var(--text); font: inherit; cursor: pointer; transition: none; }
+.setup-step:disabled { opacity: 0.7; cursor: default; }
+.setup-step:hover { background: var(--bg-hover); }
+.setup-step.current { border-color: var(--accent); }
+.setup-step.current strong { color: var(--accent); }
+.setup-step-n { flex: 0 0 26px; width: 26px; min-width: 26px; height: 26px; box-sizing: border-box; border-radius: 13px; border: 1px solid var(--border-strong); color: var(--text-secondary); display: flex; align-items: center; justify-content: center; font-size: 13px; }
+.setup-step.current .setup-step-n { background: var(--accent); border-color: var(--accent); color: #161616; font-weight: 700; }
+.setup-step.done .setup-step-n { border-color: var(--accent); color: var(--accent); }
+.setup-step-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.setup-step-text span { color: var(--muted); font-size: 13px; }
+.setup-page { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.setup-head { padding: 32px 36px 0; display: flex; flex-direction: column; gap: 6px; max-width: 860px; }
+.setup-eyebrow { margin: 0; color: var(--accent); font-weight: 600; font-size: 13px; letter-spacing: 0.4px; text-transform: uppercase; }
+.setup-head h1 { margin: 0; font-size: 28px; font-weight: 700; }
+.setup-head p:last-child { margin: 0; color: var(--text-secondary); font-size: 15px; line-height: 1.5; }
+.setup-body { flex: 1; min-height: 0; overflow: auto; padding: 24px 36px; }
+.setup-foot { padding: 16px 36px 24px; border-top: 1px solid var(--border); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; }
+.setup-foot-text { margin: 0; color: var(--text-secondary); font-size: 15px; }
+.setup-foot-text strong { color: var(--text); }
+.setup-foot-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.setup-empty { margin: 0; padding: 14px 16px; border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-secondary); line-height: 1.5; max-width: 760px; }
+.setup-cards { display: flex; flex-direction: column; gap: 12px; max-width: 760px; }
+.setup-cards .s-card { margin: 0; }
+.s-card-note { color: var(--muted); font-weight: 400; font-size: 13px; }
+
+/* Step 1: features as cards to tick */
+.feature-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 28px 32px; }
+.feature-group { display: flex; flex-direction: column; gap: 10px; }
+.feature-group-head { display: flex; flex-direction: column; gap: 2px; padding-bottom: 6px; border-bottom: 1px solid var(--border-subtle); }
+.feature-group-head h2 { margin: 0; font-size: 16px; font-weight: 600; }
+.feature-group-head p { margin: 0; color: var(--muted); font-size: 13px; }
+.feature-card { display: flex; gap: 14px; align-items: flex-start; width: 100%; text-align: left; min-height: 56px; padding: 12px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text); font: inherit; cursor: pointer; }
+.feature-card:hover { border-color: var(--border-strong); background: var(--bg-hover); }
+.feature-card.on { border-color: var(--accent); background: #221a12; }
+.feature-box { flex: 0 0 22px; height: 22px; margin-top: 1px; border-radius: 5px; border: 1px solid var(--border-strong); background: var(--bg-input); display: flex; align-items: center; justify-content: center; color: #161616; }
+.feature-box.on { background: var(--accent); border-color: var(--accent); }
+.feature-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; line-height: 1.4; }
+.feature-text strong { font-size: 15px; }
+.feature-text span { color: var(--text-secondary); font-size: 14px; }
+.feature-text small { color: var(--muted); font-size: 12px; }
+
+/* Step 3: the browser sources */
+.obs-step { display: flex; flex-direction: column; gap: 14px; }
+.obs-step-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 16px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-header); }
+.obs-rows { display: flex; flex-direction: column; gap: 8px; }
+.obs-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; padding: 12px 16px; border: 1px solid var(--border); border-radius: 8px; }
+.obs-row.done { border-color: #2d5a3a; }
+.obs-row-dot { flex: 0 0 10px; width: 10px; height: 10px; border-radius: 5px; background: var(--border-strong); }
+.obs-row-dot.on { background: #3fb950; }
+.obs-row-dot.bad { background: #e5534b; }
+.obs-row-dot.warn { background: var(--accent); }
+.obs-row-text { flex: 1 1 240px; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.obs-row-text span { color: var(--muted); font-size: 13px; }
+.obs-row-size { flex: 0 0 100px; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+.obs-row-scene { display: flex; flex-direction: column; gap: 2px; }
+.obs-row-action { flex: 0 0 170px; display: flex; justify-content: flex-end; }
+.obs-row-ok { color: #3fb950; font-weight: 600; font-size: 14px; }
+
+/* Step 4: three columns */
+.setup-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+.setup-col { border: 1px solid var(--border); border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+.setup-col h2 { margin: 0; font-size: 17px; font-weight: 600; }
+.setup-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.setup-list li { display: flex; justify-content: space-between; gap: 10px; line-height: 1.4; }
+.setup-list-plain li { display: block; color: var(--text-secondary); }
+.setup-checks { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.setup-checks li { display: flex; gap: 10px; align-items: flex-start; line-height: 1.45; }
+.setup-checks .obs-row-dot { margin-top: 5px; }
+
+/* Einstellungen → Programm: the chips of what is on */
+.chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip-on { border-color: var(--accent); color: var(--text); }
+
 /* Dialog — the shared building block for editing */
 .dialog-overlay { position: fixed; inset: 0; z-index: 50; background: rgba(0, 0, 0, 0.62); display: flex; align-items: center; justify-content: center; padding: 24px; }
 .dialog {

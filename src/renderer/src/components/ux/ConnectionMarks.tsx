@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { useWebSocket } from '../../hooks/useWebSocket';
 import { useNavigate } from '../../NavigationContext';
+import { useFeatures } from '../../contexts/FeaturesContext';
 
 interface BotStatus { connected: boolean; channel: string | null }
 interface ObsStatus { connected: boolean }
@@ -13,6 +14,7 @@ type Tone = 'ok' | 'off' | 'bad';
 // Green: in place. Red: chosen but not reachable. Grey: not set up.
 export default function ConnectionMarks() {
   const go = useNavigate();
+  const { worldbuilder } = useFeatures();
   const { data: bot, refetch: refetchBot } = useApi<BotStatus>('/settings/bot-status');
   const { data: obs, refetch: refetchObs } = useApi<ObsStatus>('/obs/status');
   const { data: world, refetch: refetchWorld } = useApi<SourceInfo>('/characters/source');
@@ -57,9 +59,12 @@ export default function ConnectionMarks() {
     },
   ];
 
+  // Nils's Worldbuilder: a mark only on a machine where it is set up.
+  const shown = marks.filter((m) => m.key !== 'world' || worldbuilder);
+
   return (
     <div className="shell-marks" aria-label="Verbindungen">
-      {marks.map((m) => (
+      {shown.map((m) => (
         <button key={m.key} type="button" className={`shell-mark ${m.tone}`} onClick={m.onClick} title={`${m.label}: ${m.detail}`}>
           <span className="shell-mark-dot" aria-hidden="true" />
           <span className="shell-mark-text">

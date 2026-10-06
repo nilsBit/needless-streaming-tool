@@ -7,6 +7,7 @@ import { PANEL_LABELS, findArea } from '../navigation';
 import type { PanelKey } from '../panelKeys';
 import { useApi } from '../hooks/useApi';
 import { useWebSocket } from '../hooks/useWebSocket';
+import { useFeatures } from '../contexts/FeaturesContext';
 
 interface VisibleOverlays { scene: string | null; overlays: string[] }
 
@@ -24,7 +25,8 @@ const CARDS: Record<string, { sentence: string; overlays: string[] }> = {
 // "Im Stream": every trigger on one page, as cards. The order comes from
 // navigation.ts, so the panel test still sees one place per panel.
 export default function StreamPage() {
-  const panels = findArea('stream').subTabs[0].panels;
+  const { panelVisible, isOn } = useFeatures();
+  const panels = findArea('stream').subTabs[0].panels.filter((key) => panelVisible(key));
   const { data: visible, refetch } = useApi<VisibleOverlays>('/obs/visible-overlays');
   useWebSocket((event) => {
     if (event === 'obs-scene-changed' || event === 'obs-status') refetch();
@@ -48,13 +50,16 @@ export default function StreamPage() {
           </StreamCard>
         );
       })}
-      <StreamCard
+      {panels.length === 0 && !isOn('momente') && (
+        <p className="empty">Nichts gewählt. Unter Einstellungen → Programm → „Was dein Stream kann“ schaltest du Funktionen an.</p>
+      )}
+      {isOn('momente') && <StreamCard
         title="Moment merken"
         sentence="Setzt eine Marke im Stream. Danach landet sie unter „Nach dem Stream → Content planen“, wo du entscheidest, was daraus wird."
         onScreen={null}
       >
         <MomentCard />
-      </StreamCard>
+      </StreamCard>}
     </div>
   );
 }

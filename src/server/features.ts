@@ -1,5 +1,6 @@
 import { getDb } from './db/index';
 import { isWorldbuilderAvailable } from './api/worldbuilder';
+import { characterSource } from './api/characters';
 import {
   DEFAULT_FEATURES, FEATURE_KEYS, PERSONAL_FEATURES, isFeatureKey,
   commandVisible, overlayVisible, type FeatureKey,
@@ -36,15 +37,16 @@ export function markSetupDone(): void {
 }
 
 /**
- * The Worldbuilder has announced itself on this machine at some point: its
- * connection file exists. Asked on every chat command, so the file is read at
- * most every few seconds.
+ * The Worldbuilder is set up on this machine: it has announced itself (its
+ * connection file exists — only while it runs), or it is the chosen source for
+ * the world. Asked on every chat command, so the file is read at most every
+ * few seconds; the setting is a cheap read.
  */
 let worldbuilderSeen: { at: number; value: boolean } | null = null;
 export function worldbuilderInstalled(): boolean {
   const now = Date.now();
   if (!worldbuilderSeen || now - worldbuilderSeen.at > 5_000) worldbuilderSeen = { at: now, value: isWorldbuilderAvailable() };
-  return worldbuilderSeen.value;
+  return worldbuilderSeen.value || characterSource() === 'worldbuilder';
 }
 
 /** Forget the cached answer — for tests that create or remove the file. */

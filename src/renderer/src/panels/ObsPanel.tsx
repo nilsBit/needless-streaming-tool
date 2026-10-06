@@ -3,6 +3,7 @@ import { useApi, apiPost } from '../hooks/useApi';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { BotStatus } from '../../../shared/types';
 import { useToast } from '../contexts/ToastContext';
+import { useFeatures } from '../contexts/FeaturesContext';
 
 interface SceneMapping {
   reward_title: string;
@@ -35,6 +36,7 @@ function describeScreen(s: ScreenResult): string {
 
 export default function ObsPanel() {
   const { toast } = useToast();
+  const { isOn } = useFeatures();
 
   const { data: obsStatus, refetch: refetchObs } = useApi<{ connected: boolean }>('/obs/status');
   const { data: botStatus } = useApi<BotStatus>('/settings/bot-status');
@@ -126,6 +128,7 @@ export default function ObsPanel() {
         <p className="obs-hint">Twitch ist nicht verbunden.</p>
       )}
 
+      {isOn('bilder') && (
       <div className="obs-mappings-section">
         <h3>Start, Pause, Ende</h3>
         <p className="setup-info">Legt in OBS je eine Szene für Startbild („start“), Pausenbild („brb“) und Endbild („end“) an. Steht eine davon schon, werden die neuen wie sie aufgebaut: dieselben Quellen an denselben Stellen, nur das Bild getauscht. Vorhandene Szenen bleiben, wie sie sind.</p>
@@ -138,7 +141,9 @@ export default function ObsPanel() {
           <p key={s.overlay} className="setup-info">{describeScreen(s)}</p>
         ))}
       </div>
+      )}
 
+      {isOn('belohnungen') && (
       <div className="obs-mappings-section">
         <h3>Szene per Kanalpunkt</h3>
         <p className="setup-info">Löst jemand diese Belohnung ein, wechselt OBS in die Szene. Danach kann es von selbst zurückwechseln. Belohnungen legst du in Twitch an (Creator-Dashboard → Kanalpunkte); das Tool liest sie von dort.</p>
@@ -225,6 +230,7 @@ export default function ObsPanel() {
           </button>
         </div>
       </div>
+      )}
     </div>
   );
 }

@@ -1,43 +1,28 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useApi, apiGet, apiPost, apiFetch, getApiToken, getServerPort } from '../hooks/useApi';
-import { useWebSocket } from '../hooks/useWebSocket';
-import { TwitchConfigResponse, BotStatus } from '../../../shared/types';
+import { useApi, apiGet, apiPost, apiFetch, getServerPort } from '../hooks/useApi';
 import { useTheme } from '../contexts/ThemeContext';
 import { useToast } from '../contexts/ToastContext';
 import CopyButton from '../components/CopyButton';
-import NotionDatabasePicker from '../components/NotionDatabasePicker';
+import ConnectionCards from '../components/settings/ConnectionCards';
+import FeaturesCard from '../components/settings/FeaturesCard';
 
 export type SettingsCategory = 'connections' | 'app' | 'data';
 
+// Einstellungen: Verbindungen (the connection cards, shared with the setup),
+// Programm (what the stream can do, look, autostart; the hotkeys are their
+// own panel) and Daten (Stream Deck token, backup, sync folder).
 export default function SettingsPanel({ category }: { category: SettingsCategory }) {
-  const { data: botStatus, refetch: refetchBot } = useApi<BotStatus>('/settings/bot-status');
   const { data: tokenInfo } = useApi<{ token: string | null }>('/settings/api-token');
-  const { data: notionInfo, refetch: refetchNotion } = useApi<{ configured: boolean; preview: string | null }>('/settings/notion');
-  const { data: githubInfo, refetch: refetchGithub } = useApi<{ configured: boolean; preview: string | null; repo: string | null }>('/progress/github');
-  const { data: obsConfig, refetch: refetchObs } = useApi<{ configured: boolean; host?: string; port?: number; has_password?: boolean }>('/obs/config');
-  const { data: obsStatus, refetch: refetchObsStatus } = useApi<{ connected: boolean }>('/obs/status');
   const { data: syncStatus, refetch: refetchSync } = useApi<{
     enabled: boolean; syncPath?: string; lastSync?: string; device?: string; error?: string;
   }>('/settings/sync/status');
   const { data: autostartInfo, refetch: refetchAutostart } = useApi<{ enabled: boolean }>('/settings/autostart');
-  const { data: discordLive, refetch: refetchDiscordLive } = useApi<{ configured: boolean; message: string }>('/settings/discord-live');
-  const [discordWebhook, setDiscordWebhook] = useState('');
-  const [discordMessage, setDiscordMessage] = useState<string | null>(null);
 
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [expanded, setExpanded] = useState<string | null>(null);
-
-  // Form states
-  const [notionToken, setNotionToken] = useState('');
-  const [githubToken, setGithubToken] = useState('');
-  const [githubRepo, setGithubRepo] = useState('');
-  const [importing, setImporting] = useState(false);
-  const [obsHost, setObsHost] = useState('localhost');
-  const [obsPort, setObsPort] = useState('4455');
-  const [obsPassword, setObsPassword] = useState('');
   const [syncPath, setSyncPath] = useState('');
   const [syncEnabled, setSyncEnabled] = useState(false);
   const [syncing, setSyncing] = useState(false);
@@ -48,76 +33,7 @@ export default function SettingsPanel({ category }: { category: SettingsCategory
     });
   }, []);
 
-  useEffect(() => {
-    if (githubInfo?.repo && !githubRepo) setGithubRepo(githubInfo.repo);
-  }, [githubInfo]);
-
-  useWebSocket((event) => {
-    if (event === 'bot-status') refetchBot();
-    if (event === 'obs-status') refetchObsStatus();
-  });
-
-  const toggle = (key: string) => setExpanded(prev => prev === key ? null : key);
-
-  // --- Actions ---
-  const connectTwitch = async () => {
-    try {
-      await apiFetch('/auth/twitch/open', { method: 'POST' });
-    } catch { toast.error('Aktion fehlgeschlagen'); }
-  };
-
-  const disconnectBot = async () => {
-    await apiPost('/settings/bot/disconnect', {});
-    refetchBot();
-  };
-
-  const saveNotionToken = async () => {
-    const result = await apiPost('/settings/notion', { token: notionToken.trim() });
-    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
-    setNotionToken(''); setExpanded(null); refetchNotion();
-  };
-
-  const saveGithubToken = async () => {
-    const result = await apiPost('/progress/github', { token: githubToken.trim() });
-    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
-    setGithubToken(''); refetchGithub();
-  };
-
-  const importGithub = async () => {
-    const parts = githubRepo.trim().split('/');
-    if (parts.length !== 2) { toast.error('Format: owner/repo'); return; }
-    setImporting(true);
-    try {
-      const res = await apiFetch('/progress/import/github', { method: 'POST', body: JSON.stringify({ owner: parts[0], repo: parts[1] }) });
-      const data = await res.json();
-      if (res.ok) toast.success(`${data.imported} importiert, ${data.skipped} übersprungen`);
-      else toast.error(data.error || 'Aktion fehlgeschlagen');
-    } catch { toast.error('Aktion fehlgeschlagen'); }
-    setImporting(false);
-  };
-
-  const saveObsConfig = async () => {
-    const result = await apiPost('/obs/config', { host: obsHost.trim() || 'localhost', port: parseInt(obsPort) || 4455, password: obsPassword });
-    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
-    setObsPassword(''); setExpanded(null); refetchObs();
-    const connectResult = await apiPost('/obs/connect', {});
-    if (connectResult) refetchObsStatus();
-  };
-
-  const saveDiscordLive = async () => {
-    const body: { webhook_url?: string; message?: string } = {};
-    if (discordWebhook.trim() !== '') body.webhook_url = discordWebhook.trim();
-    if (discordMessage !== null) body.message = discordMessage;
-    const res = await apiFetch('/settings/discord-live', { method: 'POST', body: JSON.stringify(body) });
-    if (!res.ok) { toast.error((await res.json()).error || 'Aktion fehlgeschlagen'); return; }
-    setDiscordWebhook(''); setDiscordMessage(null); setExpanded(null); refetchDiscordLive();
-    toast.success('Discord gespeichert');
-  };
-
-  const removeDiscordLive = async () => {
-    await apiFetch('/settings/discord-live', { method: 'POST', body: JSON.stringify({ webhook_url: '' }) });
-    refetchDiscordLive();
-  };
+  const toggle = (key: string) => setExpanded((prev) => (prev === key ? null : key));
 
   const exportBackup = async () => {
     try {
@@ -143,137 +59,10 @@ export default function SettingsPanel({ category }: { category: SettingsCategory
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  // --- Card Component ---
-  const SettingsCard = ({ id, title, status, statusColor, action, actionColor, onAction, children }: {
-    id: string; title: string; status: string; statusColor: string;
-    action: string; actionColor?: string; onAction: () => void; children?: React.ReactNode;
-  }) => (
-    <div className={`s-card ${expanded === id ? 'expanded' : ''}`}>
-      <div className="s-card-header">
-        <div className="s-card-info">
-          <div>
-            <div className="s-card-title">{title}</div>
-            <div className="s-card-status" style={{ color: statusColor }}>{status}</div>
-          </div>
-        </div>
-        <button className={`s-card-action ${actionColor || 'primary'}`} onClick={onAction}>{action}</button>
-      </div>
-      {expanded === id && children && (
-        <div className="s-card-body">{children}</div>
-      )}
-    </div>
-  );
-
-  // --- Render Categories ---
-  const renderConnections = () => (
-    <>
-      <SettingsCard
-        id="twitch" title="Twitch"
-        status={botStatus?.connected ? `Verbunden mit #${botStatus.channel}` : 'Nicht verbunden'}
-        statusColor={botStatus?.connected ? '#2ecc71' : '#e74c3c'}
-        action={botStatus?.connected ? 'Trennen' : 'Mit Twitch verbinden'}
-        actionColor={botStatus?.connected ? 'danger' : 'primary'}
-        onAction={botStatus?.connected ? disconnectBot : connectTwitch}
-      />
-
-      <SettingsCard
-        id="obs" title="OBS"
-        status={obsStatus?.connected ? 'Verbunden mit OBS' : 'Nicht verbunden'}
-        statusColor={obsStatus?.connected ? '#2ecc71' : '#e74c3c'}
-        action={obsStatus?.connected ? 'OBS trennen' : (obsConfig?.configured ? 'Mit OBS verbinden' : 'Setup')}
-        actionColor={obsStatus?.connected ? 'danger' : 'primary'}
-        onAction={obsStatus?.connected
-          ? async () => { await apiPost('/obs/disconnect', {}); refetchObsStatus(); }
-          : obsConfig?.configured
-            ? async () => { await apiPost('/obs/connect', {}); refetchObsStatus(); }
-            : () => toggle('obs')
-        }
-      >
-        <div className="s-card-inputs">
-          <div className="s-card-input-row">
-            <input type="text" placeholder="Host (localhost)" value={obsHost} onChange={e => setObsHost(e.target.value)} style={{ flex: 2 }} />
-            <input type="text" placeholder="Port (4455)" value={obsPort} onChange={e => setObsPort(e.target.value)} style={{ flex: 1 }} />
-          </div>
-          <input type="password" placeholder="Passwort (optional)" value={obsPassword} onChange={e => setObsPassword(e.target.value)} />
-          <button className="s-card-action primary" onClick={saveObsConfig}>Mit OBS verbinden</button>
-        </div>
-      </SettingsCard>
-
-      <SettingsCard
-        id="notion" title="Notion"
-        status={notionInfo?.configured ? `Token: ${notionInfo.preview}` : 'Nicht verbunden'}
-        statusColor={notionInfo?.configured ? '#2ecc71' : '#888'}
-        action={notionInfo?.configured ? 'Token ändern' : 'Setup'}
-        actionColor={notionInfo?.configured ? 'ghost' : 'primary'}
-        onAction={() => toggle('notion')}
-      >
-        <div className="s-card-inputs">
-          <input type="text" placeholder="Notion Internal Integration Token (ntn_...)" value={notionToken} onChange={e => setNotionToken(e.target.value)} onKeyDown={e => e.key === 'Enter' && saveNotionToken()} />
-          <button className="s-card-action primary" onClick={saveNotionToken}>Speichern</button>
-          <NotionDatabasePicker compact />
-        </div>
-      </SettingsCard>
-
-      <SettingsCard
-        id="discord" title="Discord — Live-Meldung"
-        status={discordLive?.configured ? 'Meldet, wenn der Stream startet' : 'Nicht eingerichtet'}
-        statusColor={discordLive?.configured ? '#2ecc71' : '#888'}
-        action={discordLive?.configured ? 'Ändern' : 'Setup'}
-        actionColor={discordLive?.configured ? 'ghost' : 'primary'}
-        onAction={() => toggle('discord')}
-      >
-        <div className="s-card-inputs">
-          {/* The URL is a write permission for the channel: it goes in, never back out. */}
-          <input
-            type="password"
-            placeholder={discordLive?.configured ? 'Neue Webhook-URL (leer lassen = behalten)' : 'Discord-Webhook-URL (https://discord.com/api/webhooks/…)'}
-            value={discordWebhook}
-            onChange={e => setDiscordWebhook(e.target.value)}
-          />
-          <textarea
-            rows={3}
-            placeholder="Text — {channel} wird zum Twitch-Kanal"
-            value={discordMessage ?? discordLive?.message ?? ''}
-            onChange={e => setDiscordMessage(e.target.value)}
-          />
-          <button className="s-card-action primary" onClick={saveDiscordLive}>Speichern</button>
-          {discordLive?.configured && (
-            <button className="s-card-action danger" onClick={removeDiscordLive}>Webhook entfernen</button>
-          )}
-        </div>
-      </SettingsCard>
-
-      <SettingsCard
-        id="github" title="GitHub"
-        status={githubInfo?.configured ? `Token: ${githubInfo.preview}` : 'Nicht verbunden'}
-        statusColor={githubInfo?.configured ? '#2ecc71' : '#888'}
-        action={githubInfo?.configured ? 'Token ändern' : 'Setup'}
-        actionColor={githubInfo?.configured ? 'ghost' : 'primary'}
-        onAction={() => toggle('github')}
-      >
-        <div className="s-card-inputs">
-          {!githubInfo?.configured && (
-            <>
-              <input type="password" placeholder="GitHub Personal Access Token (ghp_...)" value={githubToken} onChange={e => setGithubToken(e.target.value)} onKeyDown={e => e.key === 'Enter' && saveGithubToken()} />
-              <button className="s-card-action primary" onClick={saveGithubToken}>Speichern</button>
-            </>
-          )}
-          {githubInfo?.configured && (
-            <>
-              <input type="text" placeholder="owner/repo" value={githubRepo} onChange={e => setGithubRepo(e.target.value)} onKeyDown={e => e.key === 'Enter' && importGithub()} />
-              <button className="s-card-action primary" onClick={importGithub} disabled={importing || !githubRepo.trim()}>
-                {importing ? 'Importiert …' : 'Importieren'}
-              </button>
-              <button className="s-card-action ghost" onClick={async () => { await apiPost('/progress/github', { token: '' }); refetchGithub(); }}>Token ändern</button>
-            </>
-          )}
-        </div>
-      </SettingsCard>
-    </>
-  );
-
   const renderApp = () => (
     <>
+      <FeaturesCard />
+
       <div className="s-card">
         <div className="s-card-header">
           <div className="s-card-info">
@@ -297,8 +86,6 @@ export default function SettingsPanel({ category }: { category: SettingsCategory
           </div>
         </div>
       </div>
-
-
     </>
   );
 
@@ -389,7 +176,7 @@ export default function SettingsPanel({ category }: { category: SettingsCategory
   return (
     <div className="panel settings-panel-v2 settings-plain">
       <div className="s-content">
-        {category === 'connections' && renderConnections()}
+        {category === 'connections' && <ConnectionCards />}
         {category === 'app' && renderApp()}
         {category === 'data' && renderData()}
       </div>

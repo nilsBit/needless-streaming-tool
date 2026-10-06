@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { AREAS, PANEL_LABELS, findArea, findSubTab } from '../navigation';
+import { FEATURES, FEATURE_KEYS } from '../../../shared/features';
+import { AREAS, PANEL_LABELS, findArea, findSubTab, visibleNavigation } from '../navigation';
 import { PANEL_KEYS } from '../panelKeys';
 
 // The one renderer test, agreed in the navigation spec: navigation.ts is pure
@@ -76,5 +77,31 @@ describe('navigation', () => {
       expect(area.sentence.length, `area "${area.key}" has no sentence`).toBeGreaterThan(10);
       expect(area.keywords.length, `area "${area.key}" has no keywords`).toBeGreaterThan(0);
     }
+  });
+
+  it('hides what the chosen features do not need, and never Einstellungen or Hilfe', () => {
+    // The setup's defaults: Chat im Stream, Alerts, Momente merken.
+    const few = visibleNavigation(new Set(['chat', 'alerts', 'momente']));
+    expect(few.map((a) => a.key)).toEqual(['stream', 'chat', 'overlays', 'after', 'settings', 'help']);
+    // Im Stream keeps its place for the moment card, with no card panel left.
+    expect(few.find((a) => a.key === 'stream')!.subTabs[0].panels).toEqual([]);
+    expect(few.find((a) => a.key === 'overlays')!.subTabs.map((t) => t.key)).toEqual(['overlays', 'alerts', 'aussehen']);
+    expect(few.find((a) => a.key === 'after')!.subTabs.map((t) => t.key)).toEqual(['content', 'statistik']);
+    expect(few.find((a) => a.key === 'after')!.subTabs[0].panels).toEqual(['clips']);
+
+    // Nothing chosen: only what belongs to no feature.
+    const none = visibleNavigation(new Set());
+    expect(none.map((a) => a.key)).toEqual(['chat', 'overlays', 'after', 'settings', 'help']);
+
+    // Everything chosen: the navigation as written.
+    expect(visibleNavigation(new Set(FEATURE_KEYS))).toEqual(AREAS);
+  });
+
+  it('claims only panels that exist, each overlay and hotkey once', () => {
+    const overlays = FEATURES.flatMap((f) => f.overlays);
+    const hotkeys = FEATURES.flatMap((f) => f.hotkeys);
+    for (const f of FEATURES) for (const p of f.panels) expect(PANEL_KEYS as readonly string[], `feature "${f.key}" claims unknown panel "${p}"`).toContain(p);
+    expect(new Set(overlays).size).toBe(overlays.length);
+    expect(new Set(hotkeys).size).toBe(hotkeys.length);
   });
 });

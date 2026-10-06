@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useToast } from './contexts/ToastContext';
 import Shell from './Shell';
+import { FeaturesProvider } from './contexts/FeaturesContext';
 
 interface UpdateInfo { version: string; url: string }
 
@@ -22,5 +23,5 @@ export default function App() {
     api.onUpdateAvailable(handler);
   }, []);
 
-  return <Shell />;
+  return <FeaturesProvider><Shell /></FeaturesProvider>;
 }

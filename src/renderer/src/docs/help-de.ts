@@ -14,6 +14,15 @@ Links stehen die Bereiche nach Situation: **Im Stream** (alles, was du live ausl
 - Optional: Elgato Stream Deck`,
   },
   {
+    title: 'Einrichtung: Was dein Stream kann',
+    content: `Beim ersten Start fragt das Tool **„Was soll dein Stream können?“** – sechzehn Funktionen in vier Gruppen (Im Chat, Overlays, Mit Kanalpunkten, Nach dem Stream), jede mit einem Satz und dem Hinweis, was sie braucht. Danach **Verbinden** (nur Twitch, OBS, Discord – was die Auswahl braucht), **In OBS einrichten** (das Tool legt die Browserquellen an, du wählst die Szene) und **Fertig** (was steht, was fehlt, welche Belohnungen in Twitch anzulegen sind).
+
+- Jeder Schritt lässt sich überspringen. Wer die Einrichtung überspringt, sieht die ganze App.
+- Die Auswahl **blendet aus, sie löscht nicht**: Karten auf „Im Stream“, Overlays in der Liste, Unterreiter, eingebaute Befehle, Tastenkürzel und Prüfpunkte im Balken richten sich danach. Der Bot antwortet auf einen ausgeschalteten Befehl nicht, und \`!befehle\` nennt ihn nicht.
+- Ändern: **Einstellungen → Programm → Was dein Stream kann → Ändern** öffnet die Einrichtung noch einmal, mit dem, was schon steht.
+- Die Gruppe **Welt** (Eintragskarte, Start-, Pausen- und Endbild) erscheint nur auf einem Rechner, auf dem der Worldbuilder eingerichtet ist.`,
+  },
+  {
     title: 'Wo finde ich was',
     content: `Die Oberfläche ist nach Situation sortiert, nicht nach Technik. Links die Bereiche, oben auf einer Seite die Themen.
 

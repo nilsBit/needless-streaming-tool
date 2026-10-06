@@ -30,7 +30,8 @@ erhalten und ist unter Einstellungen → Programm → „Was dein Stream kann“
 - **Nils' persönliche Funktionen** – die Worldbuilder-Anbindung, die Eintragskarte aus der Welt und
   Start-, Pausen- und Endbild – gehören nicht in die Einrichtung für andere. Sie bilden eine fünfte
   Gruppe **„Welt“**, die nur erscheint, wenn der Worldbuilder auf dem Rechner eingerichtet ist
-  (`~/.worldbuilder/anschluss.json` existiert). Niemand sonst hat die Datei, also sieht sie niemand
+  (`~/.worldbuilder/anschluss.json` existiert oder der Worldbuilder als Quelle für die Welt
+  gewählt ist). Niemand sonst hat die Datei, also sieht sie niemand
   sonst. Bei Nils sind sie an wie heute – auch wenn der Worldbuilder gerade nicht läuft, dann sagt
   es der Hinweisbalken.
 - **Bestehende Installationen sehen keine Einrichtung.** Die Migration auf Schema v26 setzt bei
@@ -106,7 +107,7 @@ Regeln:
 - **`src/server/features.ts`:** `getFeatures()` liest `features` (JSON-Liste) – fehlt sie, ist
   alles an; Welt-Schlüssel nur mit Worldbuilder. `saveFeatures()`
   prüft die Schlüssel. `featureOn(key)`, `commandEnabled(commandKey)`, `overlayEnabled(name)`.
-- **`GET /api/setup`** → `{ done, features, worldbuilder, defaults }`. **`PUT /api/setup/features`**
+- **`GET /api/setup`** → `{ done, features, worldbuilder, defaults }`. **`POST /api/setup/features`**
   `{ features: [] }` → speichert, antwortet mit der Liste, sendet `features-changed`.
   **`POST /api/setup/done`** setzt `setup_done`.
 - **`POST /api/obs/place-overlay`** `{ overlay, scene }` → legt die Browserquelle `NST <Name>` mit
@@ -140,6 +141,8 @@ Hauptprozess abschalten – sie bleiben registriert, nur die Zeilen verschwinden
 „Welt-Funktionen immer anzeigen“ – die Datei des Worldbuilders reicht.
 
 ## Stufen
+
+> Alle drei Stufen gebaut am 06.10.2026; Plan `docs/superpowers/plans/2026-10-06-einrichtung.md`.
 
 1. **Server:** `shared/features.ts`, `server/features.ts`, Schema v26, Setup-Routen, Katalog mit
    `feature`, Bereitschaft und Befehle gefiltert, `place-overlay`. Tests an der HTTP-Naht.

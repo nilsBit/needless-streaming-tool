@@ -245,11 +245,23 @@ braucht den Bot.
   (`GET /api/reward-stats/breakdown`) neben einem Verlauf in Sätzen. Einstellungen und
   Tastenkürzel ohne Symbole, deutsch. Hilfe hat „Content planen“. Plan:
   `docs/superpowers/plans/2026-10-06-bedienung-stufe-6-nach-dem-stream.md`.
+- **Einrichtung beim ersten Start gebaut (06.10., Abend).** Eine frische Installation fragt
+  „Was soll dein Stream können?“ – achtzehn Funktionen in `src/shared/features.ts`, vier
+  Schritte (Können · Verbinden · In OBS einrichten · Fertig), die Browserquellen legt das Tool
+  per `POST /api/obs/place-overlay` an. Die Auswahl (`features`, `GET/POST /api/setup…`) blendet
+  Karten, Overlays, Unterreiter, eingebaute Befehle, Tastenkürzel und Prüfpunkte aus; ohne
+  Auswahl ist alles an. Schema **v26** setzt bei bestehenden Datenbanken `setup_done`. Nils'
+  Welt-Funktionen (Eintragskarte, Start-/Pausen-/Endbild, Worldbuilder) bilden die Gruppe „Welt“,
+  die nur erscheint, wenn der Worldbuilder eingerichtet ist (Anschlussdatei oder gewählte
+  Quelle). Ändern: Einstellungen → Programm → „Was dein Stream kann“. Spec
+  `docs/superpowers/specs/2026-10-06-einrichtung-design.md`, Plan
+  `docs/superpowers/plans/2026-10-06-einrichtung.md`.
 - **Nächster Schritt:** Auf dem Windows-Rechner pullen, `npm run dev`, OBS verbinden und einmal
   alles durchklicken – Chips auf „Im Stream“, Overlay-Liste, Content-Brett (die alten
-  Test-Momente in „Neu“ verwerfen). Danach #24 (Belohnungen aus dem Tool heraus anlegen) oder
-  die offenen Kleinigkeiten: Alert-Töne hinterlegen, Szene `tft`, Stream-Deck-Taste fürs
-  Mithören.
+  Test-Momente in „Neu“ verwerfen), und in Einstellungen → Programm → „Ändern“ den Schritt
+  „In OBS einrichten“ gegen eine Testszene laufen lassen. Danach #24 (Belohnungen aus dem Tool
+  heraus anlegen) oder die offenen Kleinigkeiten: Alert-Töne hinterlegen, Szene `tft`,
+  Stream-Deck-Taste fürs Mithören.
 - Weiter offen wie zuvor: Alert-Töne hinterlegen, Szene `tft` ohne Spotify-Quellen,
   Stream-Deck-Taste fürs Mithören, Test-Clip in der Clip-Liste, Figma-Pilot.
 

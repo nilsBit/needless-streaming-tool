@@ -1,19 +1,23 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { AREAS, findArea, findSubTab, type AreaKey } from './navigation';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { visibleNavigation, type Area, type AreaKey } from './navigation';
 import { NavigationProvider, type NavTarget } from './NavigationContext';
+import { useFeatures } from './contexts/FeaturesContext';
 import PageHeader from './components/ux/PageHeader';
 import SubTabs from './components/ux/SubTabs';
 import ConnectionMarks from './components/ux/ConnectionMarks';
 import ReadinessBanner from './components/ux/ReadinessBanner';
 import AreaPage from './pages/AreaPage';
 import StreamPage from './pages/StreamPage';
+import SetupPage from './pages/SetupPage';
 import SceneHint from './components/ux/SceneHint';
 import logoSvg from './assets/logo.svg';
 
 // Sidebar with the areas and the connection marks, then the page: header,
 // sub tabs, panels. The last open area and sub tab are remembered in
 // localStorage. The app opens on "Im Stream"; what is missing before going
-// live shows up there as a banner, not on a page of its own.
+// live shows up there as a banner, not on a page of its own. On first start
+// the setup takes the whole window instead (06.10.); the areas and sub tabs
+// shown follow the features it chose.
 
 const STORAGE_KEY = 'nst.navigation';
 // Left behind by the old shell ("Live / Produktion" and the dashboard board).
@@ -30,7 +34,7 @@ function loadNav(): NavState {
     if (raw) {
       const parsed = JSON.parse(raw) as Partial<NavState>;
       return {
-        area: findArea(parsed.area).key,
+        area: (parsed.area ?? 'stream') as AreaKey,
         subTab: typeof parsed.subTab === 'string' ? parsed.subTab : null,
       };
     }
@@ -40,6 +44,8 @@ function loadNav(): NavState {
 
 export default function Shell() {
   const [nav, setNav] = useState<NavState>(loadNav);
+  const { loaded, done, features, setupOpen } = useFeatures();
+  const areas = useMemo(() => visibleNavigation(features), [features]);
 
   useEffect(() => {
     try {
@@ -48,14 +54,17 @@ export default function Shell() {
     } catch { /* ignore */ }
   }, [nav]);
 
-  const area = findArea(nav.area);
-  const subTab = findSubTab(area, nav.subTab);
+  // A stored place that the choice hid falls back to what is there.
+  const area: Area = areas.find((a) => a.key === nav.area) ?? areas[0];
+  const subTab = area.subTabs.find((t) => t.key === nav.subTab) ?? area.subTabs[0];
   const hasTabRow = area.subTabs.length > 1;
 
   const go = useCallback((target: NavTarget) => {
-    setNav({ area: findArea(target.area).key, subTab: target.subTab ?? null });
+    setNav({ area: target.area, subTab: target.subTab ?? null });
   }, []);
   const goSubTab = (key: string) => setNav({ area: area.key, subTab: key });
+
+  if (loaded && (!done || setupOpen)) return <SetupPage />;
 
   const renderNavButton = (key: AreaKey, label: string, secondary: boolean) => {
     const active = key === area.key;
@@ -77,9 +86,9 @@ export default function Shell() {
       <div className="shell">
         <nav className="shell-nav" aria-label="Bereiche">
           <img src={logoSvg} alt="NST" className="shell-logo" />
-          {AREAS.filter((a) => a.group === 'main').map((a) => renderNavButton(a.key, a.label, false))}
+          {areas.filter((a) => a.group === 'main').map((a) => renderNavButton(a.key, a.label, false))}
           <div className="shell-nav-divider" role="separator" />
-          {AREAS.filter((a) => a.group === 'secondary').map((a) => renderNavButton(a.key, a.label, true))}
+          {areas.filter((a) => a.group === 'secondary').map((a) => renderNavButton(a.key, a.label, true))}
           <ConnectionMarks />
         </nav>
         <div className="shell-page">

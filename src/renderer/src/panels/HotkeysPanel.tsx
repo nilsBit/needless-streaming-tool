@@ -2,9 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useApi, apiPost } from '../hooks/useApi';
 import { HotkeyConfig, DEFAULT_HOTKEYS } from '../../../shared/types';
 import { useToast } from '../contexts/ToastContext';
+import { useFeatures } from '../contexts/FeaturesContext';
+import { hotkeyVisible } from '../../../shared/features';
 
 export default function HotkeysPanel() {
   const { toast } = useToast();
+  const { features } = useFeatures();
   const { data: hotkeys, refetch } = useApi<HotkeyConfig>('/settings/hotkeys');
   const [editValues, setEditValues] = useState<HotkeyConfig>({ ...DEFAULT_HOTKEYS });
   const [editing, setEditing] = useState<string | null>(null);
@@ -51,7 +54,7 @@ export default function HotkeysPanel() {
         <p className="setup-info" dangerouslySetInnerHTML={{ __html: 'Schreibweise: <code>CommandOrControl+Shift+Taste</code>. <code>CommandOrControl</code> ist unter Windows Strg, auf dem Mac Cmd.' }} />
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px' }}>
-          {Object.keys(HOTKEY_LABELS).map((key) => (
+          {Object.keys(HOTKEY_LABELS).filter((key) => hotkeyVisible(features, key)).map((key) => (
             <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ flex: '0 0 200px', fontSize: '14px' }}>{HOTKEY_LABELS[key]}</span>
               <input

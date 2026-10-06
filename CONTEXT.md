@@ -24,6 +24,14 @@ What one Area shows: a header with the Area's name and one sentence, the Sub tab
 A time-boxed goal the streamer commits to on air, with a live status of `idle`, `in_progress`, `done`, or `failed`. Stored on `stream_state` as `challenge_title` / `challenge_status`.
 _Avoid_: Experiment, task, goal. The Stream Deck action is still named `experiment` — that identifier is frozen for parity with the shipped plugin and must not be renamed, but prose and new code say Challenge.
 
+**Feature** (UI: „Funktion“, „Was dein Stream kann“):
+One thing a stream can do, as the setup on first start asks it (2026-10-06): the eighteen entries of `src/shared/features.ts`, each naming what it needs connected and which overlays, built-in commands, panels, hotkeys and readiness checks are its own. A feature that is off hides its things; nothing is deleted. The two **personal** features (entry card, screens) exist only where the Worldbuilder is set up.
+_Avoid_: module, plugin, toggle. In the UI a feature is „an“ or „aus“, never „aktiviert“.
+
+**Setup** (UI: „Einrichtung“):
+The four steps on first start — Können · Verbinden · In OBS einrichten · Fertig — and the same page opened again from Einstellungen → Programm. `setup_done` records that it was walked through or skipped.
+_Avoid_: onboarding, wizard, assistant.
+
 **Clip Moment**:
 A marked point in the session worth clipping later, carrying two timecodes and an optional tag. Created by hand or detected automatically. Since 2026-10-06 also the unit of content planning: each Clip Moment stands in one **Step** of the board (`status`: new · planned · cut · published, in the UI „Neu · Geplant · Geschnitten · Veröffentlicht“) and carries `platforms`, `planned_for`, `hook` and, once published for 30 days, `archived_at`. An **Idea** is a Clip Moment created without a stream (`idea: true`, tag `idee`, no timecodes).
 _Avoid_: Highlight, clip marker. "Clip" alone is fine when the context is unambiguous. In the UI the whole thing is „Content planen“, a card is „Moment“.

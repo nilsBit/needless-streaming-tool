@@ -47,10 +47,10 @@ describe('setup and features', () => {
   });
 
   it('saves a choice once, refuses unknown keys and drops personal ones without the Worldbuilder', async () => {
-    const saved = await request(app).put('/api/setup/features').set(auth()).send({ features: ['rad', 'welt', 'rad'] }).expect(200);
+    const saved = await request(app).post('/api/setup/features').set(auth()).send({ features: ['rad', 'welt', 'rad'] }).expect(200);
     expect(saved.body.features).toEqual(['rad']);
-    await request(app).put('/api/setup/features').set(auth()).send({ features: ['leaderboard'] }).expect(400);
-    await request(app).put('/api/setup/features').set(auth()).send({ features: 'rad' }).expect(400);
+    await request(app).post('/api/setup/features').set(auth()).send({ features: ['leaderboard'] }).expect(400);
+    await request(app).post('/api/setup/features').set(auth()).send({ features: 'rad' }).expect(400);
     const again = await request(app).get('/api/setup').set(auth()).expect(200);
     expect(again.body.features).toEqual(['rad']);
   });
@@ -64,7 +64,7 @@ describe('setup and features', () => {
     expect(list).not.toContain('!sr');
     expect(list).not.toContain('!stats');
 
-    await request(app).put('/api/setup/features').set(auth()).send({ features: ['musik', 'bestenliste'] }).expect(200);
+    await request(app).post('/api/setup/features').set(auth()).send({ features: ['musik', 'bestenliste'] }).expect(200);
     list = await triggers();
     expect(list).toContain('!sr');
     expect(list).toContain('!queue');
@@ -75,12 +75,12 @@ describe('setup and features', () => {
   it('drops the readiness checks of features that are off', async () => {
     const ids = async () => ((await request(app).get('/api/readiness').set(auth()).expect(200)).body.items as Array<{ id: string }>).map((i) => i.id);
     // Only the moments: nothing needs a connection, so nothing can be missing.
-    await request(app).put('/api/setup/features').set(auth()).send({ features: ['momente'] }).expect(200);
+    await request(app).post('/api/setup/features').set(auth()).send({ features: ['momente'] }).expect(200);
     expect(await ids()).toEqual([]);
     expect((await request(app).get('/api/readiness').set(auth()).expect(200)).body.ready).toBe(true);
 
     // Alerts need Twitch, OBS and a browser source; their sound is their own check.
-    await request(app).put('/api/setup/features').set(auth()).send({ features: ['alerts'] }).expect(200);
+    await request(app).post('/api/setup/features').set(auth()).send({ features: ['alerts'] }).expect(200);
     const withAlerts = await ids();
     expect(withAlerts).toEqual(['twitch', 'obs', 'overlays', 'alertSounds']);
   });
@@ -108,12 +108,21 @@ describe('setup and features', () => {
     forgetWorldbuilder();
     const res = await request(app).get('/api/setup').set(auth()).expect(200);
     expect(res.body.worldbuilder).toBe(true);
-    const saved = await request(app).put('/api/setup/features').set(auth()).send({ features: ['welt', 'bilder'] }).expect(200);
+    const saved = await request(app).post('/api/setup/features').set(auth()).send({ features: ['welt', 'bilder'] }).expect(200);
     expect(saved.body.features).toEqual(['welt', 'bilder']);
     // Gone again: the choice stays stored, but the personal features count as off.
     fs.unlinkSync(anschluss);
     forgetWorldbuilder();
     const after = await request(app).get('/api/setup').set(auth()).expect(200);
     expect(after.body.features).toEqual([]);
+  });
+
+  it('also counts the Worldbuilder as set up once it is the chosen source for the world', async () => {
+    await request(app).post('/api/characters/source').set(auth()).send({ source: 'worldbuilder' }).expect(200);
+    const res = await request(app).get('/api/setup').set(auth()).expect(200);
+    expect(res.body.worldbuilder).toBe(true);
+    expect(res.body.features).toEqual(['welt', 'bilder']);
+    await request(app).post('/api/characters/source').set(auth()).send({ source: 'notion' }).expect(200);
+    expect((await request(app).get('/api/setup').set(auth()).expect(200)).body.worldbuilder).toBe(false);
   });
 });

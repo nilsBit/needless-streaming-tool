@@ -3,6 +3,8 @@ import { useApi, apiPost, apiFetch, getServerPort } from '../hooks/useApi';
 import { useToast } from '../contexts/ToastContext';
 import { useWebSocket } from '../hooks/useWebSocket';
 import Dialog from '../components/ux/Dialog';
+import { useFeatures } from '../contexts/FeaturesContext';
+import type { FeatureKey } from '../../../shared/features';
 
 // "Overlays" under Overlays & Alerts: on the left every overlay, grouped by
 // purpose, with a dot for "in OBS"; on the right the chosen one — a live
@@ -23,6 +25,7 @@ interface CatalogEntry {
   builtin: boolean;
   customized: boolean;
   customizedBy: Array<'html' | 'palette' | 'figma'>;
+  feature: FeatureKey | null;
 }
 
 interface OverlayScenes { connected: boolean; byOverlay: Record<string, string[]> }
@@ -54,6 +57,7 @@ function useBoxWidth(): [(el: HTMLDivElement | null) => void, number] {
 
 export default function OverlaysPanel() {
   const { toast } = useToast();
+  const { isOn } = useFeatures();
   const { data: catalog, loading, refetch: refetchCatalog } = useApi<CatalogEntry[]>('/overlays/catalog');
   const { data: placement, refetch: refetchPlacement } = useApi<OverlayScenes>('/obs/overlay-scenes');
   const [selectedName, setSelectedName] = useState<string | null>(null);
@@ -74,7 +78,8 @@ export default function OverlaysPanel() {
     return () => clearInterval(timer);
   }, [refetchPlacement]);
 
-  const entries = catalog ?? [];
+  // Overlays of features that are off stay out of the list — they are hidden, not gone.
+  const entries = (catalog ?? []).filter((e) => e.feature === null || isOn(e.feature));
   const selected = entries.find((e) => e.name === selectedName) ?? entries[0] ?? null;
 
   const scenesOf = (entry: CatalogEntry): string[] | null => {
