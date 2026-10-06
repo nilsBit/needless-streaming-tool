@@ -57,3 +57,46 @@ export async function visibleOverlays(obs: ObsCaller, port: number, scene: strin
   await walk(scene, 0);
   return [...found].sort();
 }
+
+/**
+ * Where each own overlay sits in OBS at all — every scene that holds a browser
+ * source pointing at us, enabled or not. For the overlay list's "in OBS · main,
+ * Camera". Groups and nested scenes are read the same way as above.
+ */
+export async function overlaysByScene(obs: ObsCaller, port: number): Promise<Record<string, string[]>> {
+  const { scenes } = (await obs.call('GetSceneList')) as { scenes: Array<{ sceneName: string }> };
+  const result: Record<string, Set<string>> = {};
+  for (const { sceneName } of scenes) {
+    const names = await placedOverlays(obs, port, sceneName);
+    for (const name of names) (result[name] ??= new Set()).add(sceneName);
+  }
+  return Object.fromEntries(Object.entries(result).map(([name, set]) => [name, [...set]]));
+}
+
+async function placedOverlays(obs: ObsCaller, port: number, scene: string): Promise<string[]> {
+  const found = new Set<string>();
+  const seen = new Set<string>();
+  async function walk(sceneName: string, depth: number): Promise<void> {
+    if (depth > 3 || seen.has(sceneName)) return;
+    seen.add(sceneName);
+    const { sceneItems } = (await obs.call('GetSceneItemList', { sceneName })) as { sceneItems: SceneItem[] };
+    for (const item of sceneItems) {
+      if (item.isGroup) {
+        const { sceneItems: inner } = (await obs.call('GetGroupSceneItemList', { sceneName: item.sourceName })) as { sceneItems: SceneItem[] };
+        for (const child of inner) await input(child);
+        continue;
+      }
+      if (item.sourceType === 'OBS_SOURCE_TYPE_SCENE') { await walk(item.sourceName, depth + 1); continue; }
+      await input(item);
+    }
+  }
+  async function input(item: SceneItem): Promise<void> {
+    try {
+      const { inputSettings } = (await obs.call('GetInputSettings', { inputName: item.sourceName })) as { inputSettings: { url?: string } };
+      const name = overlayNameFromUrl(inputSettings.url, port);
+      if (name) found.add(name);
+    } catch { /* not an input */ }
+  }
+  await walk(scene, 0);
+  return [...found];
+}

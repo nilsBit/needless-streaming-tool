@@ -3,7 +3,7 @@ import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
 import { announceLive } from '../discord/live';
 import { refreshOwnBrowserSources } from './refresh-overlays';
-import { visibleOverlays } from './visible-overlays';
+import { visibleOverlays, overlaysByScene } from './visible-overlays';
 import { createScreenScenes, type ScreenResult } from './screens';
 import { PORT } from '../index';
 
@@ -306,5 +306,16 @@ export async function getVisibleOverlays(): Promise<{ scene: string | null; over
   } catch (err) {
     console.error('[OBS] Reading the visible overlays failed:', err);
     return { scene, overlays: [] };
+  }
+}
+
+/** Every scene each own overlay is placed in — `connected: false` while OBS is out of reach. */
+export async function getOverlayScenes(): Promise<{ connected: boolean; byOverlay: Record<string, string[]> }> {
+  if (!obs || !connected) return { connected: false, byOverlay: {} };
+  try {
+    return { connected: true, byOverlay: await overlaysByScene(obs, PORT) };
+  } catch (err) {
+    console.error('[OBS] Reading where the overlays sit failed:', err);
+    return { connected: true, byOverlay: {} };
   }
 }

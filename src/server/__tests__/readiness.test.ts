@@ -12,7 +12,7 @@ import { assessReadiness, type ReadinessInput } from '../readiness';
 
 const complete: ReadinessInput = {
   bot: { connected: true, channel: 'chain_des' },
-  obs: { connected: true, scenes: ['main', 'Camera', 'start', 'brb', 'end'] },
+  obs: { connected: true, scenes: ['main', 'Camera', 'start', 'brb', 'end'], overlaysPlaced: 9 },
   world: { source: 'worldbuilder', reachable: true, name: 'Die Verborgene Stadt' },
   enabledCommands: 3,
   alerts: { slots: 7, withSound: 7 },
@@ -42,6 +42,7 @@ describe('readiness', () => {
     expect(byId.obs.ok).toBe(false);
     // Scenes cannot be judged while OBS is out of reach — not a problem of its own.
     expect(byId.scenes.ok).toBeNull();
+    expect(byId.overlays.ok).toBeNull();
     // Notion is the default source: a hint, not an error.
     expect(byId.worldbuilder.severity).toBe('hint');
     expect(byId.worldbuilder.ok).toBe(false);
@@ -74,10 +75,18 @@ describe('readiness', () => {
   });
 
   it('names the missing scenes once OBS is connected', () => {
-    const result = assessReadiness({ ...complete, obs: { connected: true, scenes: ['main', 'brb'] } });
+    const result = assessReadiness({ ...complete, obs: { connected: true, scenes: ['main', 'brb'], overlaysPlaced: 9 } });
     const scenes = result.items.find((i) => i.id === 'scenes');
     expect(scenes?.ok).toBe(false);
     expect(scenes?.problem).toBe('In OBS fehlen die Szenen „start“, „end“.');
+    expect(result.ready).toBe(false);
+  });
+
+  it('complains when OBS has no browser source pointing at the tool', () => {
+    const result = assessReadiness({ ...complete, obs: { connected: true, scenes: ['main', 'start', 'brb', 'end'], overlaysPlaced: 0 } });
+    const overlays = result.items.find((i) => i.id === 'overlays');
+    expect(overlays?.ok).toBe(false);
+    expect(overlays?.target).toEqual({ area: 'overlays', subTab: 'overlays' });
     expect(result.ready).toBe(false);
   });
 

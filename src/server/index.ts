@@ -29,7 +29,7 @@ import designRouter from './api/design';
 import devRouter from './api/dev';
 import overlayConfigRouter from './api/overlay-config';
 import { publicOverlayConfig } from './design-apply';
-import songRequestsRouter, { getActiveQueue } from './api/song-requests';
+import songRequestsRouter from './api/song-requests';
 import charactersRouter from './api/characters';
 import entriesRouter from './api/entries';
 import { activeCard, activeCharacter, CHARACTER_IMAGE_DIR } from './api/active-entry';
@@ -199,10 +199,6 @@ export function createApp(): express.Express {
   // The chat overlay hears new lines as they come; on load it asks for the last ones.
   app.get('/public/chat', (_req, res) => {
     res.json(recentChat());
-  });
-
-  app.get('/public/song-queue', (_req, res) => {
-    res.json(getActiveQueue());
   });
 
   app.get('/public/progress', (_req, res) => {

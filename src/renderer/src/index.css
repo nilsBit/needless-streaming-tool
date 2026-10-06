@@ -279,6 +279,47 @@ body {
 .chip code { color: var(--accent); }
 .cmd-try-answer { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 6px; min-height: 52px; }
 
+/* "Overlays": list on the left, the chosen overlay on the right */
+.ovl { gap: 16px; }
+.ovl-layout { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
+.ovl-list { flex: 1 1 260px; max-width: 380px; display: flex; flex-direction: column; gap: 12px; }
+.ovl-group { display: flex; flex-direction: column; gap: 4px; }
+.ovl-row { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid var(--border-subtle); border-radius: 6px; background: none; color: var(--text-secondary); font: inherit; text-align: left; cursor: pointer; }
+.ovl-row:hover { background: var(--bg-hover); border-color: var(--border); }
+.ovl-row.active { border-color: var(--accent); background: #221a12; color: var(--text); }
+.ovl-row.active .ovl-row-label { font-weight: 600; }
+.ovl-dot { width: 8px; height: 8px; border-radius: 50%; background: #555; flex: none; }
+.ovl-dot.on { background: #4ade80; }
+.ovl-row-label { flex: 1; min-width: 0; }
+.ovl-row-short { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 45%; }
+.ovl-add { border-style: dashed; color: var(--text-secondary); }
+.ovl-detail { flex: 2 1 420px; min-width: 0; border: 1px solid var(--border); border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.panel h2.ovl-title { display: block; font-size: 20px; font-weight: 700; }
+.ovl-sentence { margin-top: 4px; color: var(--text-secondary); }
+.ovl-preview { background: repeating-conic-gradient(#222222 0 25%, #2c2c2c 0 50%) 0 0 / 20px 20px; border: 1px solid var(--border); border-radius: 6px; display: flex; align-items: center; justify-content: center; padding: 12px; box-sizing: border-box; overflow: hidden; }
+.ovl-preview-frame { overflow: hidden; flex: none; }
+.ovl-chip { padding: 4px 10px; border-radius: 999px; background: var(--border-subtle); color: var(--text-secondary); font-size: 12px; white-space: nowrap; }
+.ovl-chip.on { background: #15241a; color: #4ade80; }
+.ovl-chip.warm { background: #2a1f12; color: var(--accent); }
+.ovl-scene { padding: 4px 10px; border: 1px solid var(--border); border-radius: 999px; color: var(--text-secondary); font-size: 12px; }
+.ovl-url { flex: 1 1 260px; min-width: 0; padding: 12px; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 6px; color: var(--text-secondary); font-size: 13px; overflow-wrap: anywhere; }
+.ovl-actions { padding-top: 12px; border-top: 1px solid var(--border-subtle); }
+.ovl-editor { width: 100%; min-height: 420px; box-sizing: border-box; padding: 12px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font: 13px/1.5 ui-monospace, 'JetBrains Mono', monospace; resize: vertical; }
+
+/* "Alerts": a card per occasion with the Tafel as preview */
+.alerts { gap: 14px; }
+.alert-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+.alert-card { border: 1px solid var(--border); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.alert-card-name { font-size: 16px; font-weight: 600; }
+.alert-tafel { padding: 12px 14px; background: #0b0b0b; border: 1px solid var(--border-subtle); border-radius: 6px; font-family: 'JetBrains Mono', ui-monospace, monospace; }
+.alert-tafel-kicker { font-size: 11px; font-style: italic; color: #c0392b; }
+.alert-tafel-text { color: #efe6d2; font-size: 14px; margin-top: 4px; }
+.alert-tafel-text strong { color: #e0201b; }
+
+/* "Aussehen" */
+.appearance { gap: 20px; }
+.appearance-section { display: flex; flex-direction: column; gap: 10px; }
+
 /* Dialog — the shared building block for editing */
 .dialog-overlay { position: fixed; inset: 0; z-index: 50; background: rgba(0, 0, 0, 0.62); display: flex; align-items: center; justify-content: center; padding: 24px; }
 .dialog {

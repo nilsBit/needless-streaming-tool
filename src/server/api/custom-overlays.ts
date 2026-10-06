@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { getUserDataPath } from '../paths';
 import { PORT } from '../index';
+import { overlayCatalog } from '../overlays/catalog';
 
 const router = Router();
 
@@ -71,6 +72,13 @@ router.get('/', (req, res) => {
 });
 
 // Get builtin overlays list (with override status)
+// GET /catalog — every overlay as the app shows it: name, sentence, group,
+// size, preview state, whether its look was changed. See ../overlays/catalog.ts.
+router.get('/catalog', (req, res) => {
+  const host = req.headers.host || `localhost:${PORT}`;
+  res.json(overlayCatalog(host));
+});
+
 router.get('/builtin', (req, res) => {
   const host = req.headers.host || `localhost:${PORT}`;
   const overrideDir = getOverrideDir();

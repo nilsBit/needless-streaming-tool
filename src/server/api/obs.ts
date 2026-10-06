@@ -10,7 +10,7 @@ import {
   getCurrentScene,
   createScreens,
   getSceneMappings,
-  saveSceneMappings, getVisibleOverlays } from '../obs/index';
+  saveSceneMappings, getVisibleOverlays, getOverlayScenes } from '../obs/index';
 
 const router = Router();
 
@@ -63,6 +63,11 @@ router.post('/disconnect', async (_req, res) => {
 });
 
 // Scene management
+// GET /overlay-scenes — in which scenes each own overlay sits ("in OBS · main, Camera").
+router.get('/overlay-scenes', async (_req, res) => {
+  res.json(await getOverlayScenes());
+});
+
 // GET /visible-overlays — which overlays the current scene shows ("im Bild").
 router.get('/visible-overlays', async (_req, res) => {
   res.json(await getVisibleOverlays());

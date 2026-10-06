@@ -225,10 +225,20 @@ braucht den Bot.
   Bearbeiten im Dialog mit Name, Antwort (Vorschau der Chat-Nachrichten), Satz, Zweitnamen,
   Pause. „Ausprobieren“ ist ein eigener Unterreiter. `CommandOverview` und `ChatCommands`
   sind weg. Keine Server-Änderung. Plan: `docs/superpowers/plans/2026-10-06-bedienung-stufe-3-chat-bot.md`.
-- **Nächster Schritt:** Stufe 5 (Overlay-Liste mit Vorschau und OBS-Zustand, Alerts als
-  Karten, Szenenfelder als Auswahllisten, Song-Queue-Overlay raus), dann 6 (Content-Brett
-  #26, Einstellungen, Hilfe). Davor auf dem Windows-Rechner pullen, OBS verbinden und die
-  Chips auf „Im Stream“ ansehen.
+- **Stufe 5 „Overlays & Alerts“ gebaut:** Overlays als Liste links (nach Zweck, Punkt „in
+  OBS“) und Detail rechts mit **echter Vorschau** – Beispieldaten, solange das Overlay im
+  Standard-Layout ist, sonst live mit Grund; OBS-Zustand mit Szenen; Adresse und Größe;
+  „Groß im Browser ansehen“, „Im Stream testen“, „HTML bearbeiten“. Dahinter der neue
+  **Katalog** `GET /api/overlays/catalog` (`src/server/overlays/catalog.ts`) und
+  `GET /api/obs/overlay-scenes`. Alerts als Karten mit der Tafel als Vorschau und Dialog;
+  „Aussehen“ eigener Unterreiter (`AppearancePanel`); Szenen-Panel heißt „Szene per
+  Kanalpunkt“. **Das Song-Queue-Overlay ist weg** (Ordner, Route, Test-Aktion) – auf dem
+  Windows-Rechner steht die Quelle „music“ in *clip studio paint* womöglich noch darauf,
+  dort auf `/overlay/song/` umstellen. Bereitschaft prüft jetzt auch, ob in OBS überhaupt
+  eine Browserquelle auf das Tool zeigt. Plan: `docs/superpowers/plans/2026-10-06-bedienung-stufe-5-overlays-alerts.md`.
+- **Nächster Schritt:** Stufe 6 – Content-Planungsbrett (#26), Einstellungen ohne „Features“
+  bereinigt, Nach dem Stream (Statistik mit Satz, Kanalpunkte als Rangliste), Hilfe-Feinschliff.
+  Davor auf dem Windows-Rechner pullen, OBS verbinden, Chips und Overlay-Liste ansehen.
 - Weiter offen wie zuvor: Alert-Töne hinterlegen, Szene `tft` ohne Spotify-Quellen,
   Stream-Deck-Taste fürs Mithören, Test-Clip in der Clip-Liste, Figma-Pilot.
 

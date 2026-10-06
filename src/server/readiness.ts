@@ -1,6 +1,6 @@
 import { getDb } from './db/index';
 import { getBotStatus } from './bot/index';
-import { getObsStatus, getScenes } from './obs/index';
+import { getObsStatus, getScenes, getOverlayScenes } from './obs/index';
 import { SCREENS } from './obs/screens';
 import { characterSource } from './api/characters';
 import { loadWorld } from './api/worldbuilder';
@@ -22,7 +22,7 @@ export interface ReadinessTarget {
 }
 
 export interface ReadinessItem {
-  id: 'twitch' | 'obs' | 'scenes' | 'worldbuilder' | 'commands' | 'alertSounds';
+  id: 'twitch' | 'obs' | 'scenes' | 'overlays' | 'worldbuilder' | 'commands' | 'alertSounds';
   ok: boolean | null;
   /** An `error` keeps the stream from working as intended; a `hint` is nice to have. */
   severity: 'error' | 'hint';
@@ -37,7 +37,7 @@ export interface ReadinessItem {
 
 export interface ReadinessInput {
   bot: { connected: boolean; channel: string | null };
-  obs: { connected: boolean; scenes: string[] | null };
+  obs: { connected: boolean; scenes: string[] | null; overlaysPlaced: number | null };
   world: { source: 'notion' | 'worldbuilder'; reachable: boolean | null; name: string | null };
   enabledCommands: number;
   alerts: { slots: number; withSound: number };
@@ -82,6 +82,15 @@ export function assessReadiness(input: ReadinessInput): Readiness {
         : 'In OBS fehlen Szenen für Start, Pause oder Ende.',
       consequence: 'Start-, Pausen- und Endbild lassen sich nicht aufrufen.',
       target: { area: 'overlays', subTab: 'szenen' },
+    },
+    {
+      id: 'overlays',
+      ok: input.obs.connected && input.obs.overlaysPlaced !== null ? input.obs.overlaysPlaced > 0 : null,
+      severity: 'error',
+      title: 'Overlays als Browserquellen in OBS',
+      problem: 'In OBS zeigt keine Browserquelle auf dieses Tool.',
+      consequence: 'Kein Overlay erscheint im Stream – weder Chat noch Musik noch die Eintragskarte.',
+      target: { area: 'overlays', subTab: 'overlays' },
     },
     input.world.source === 'worldbuilder'
       ? {
@@ -133,6 +142,7 @@ export async function readinessInput(): Promise<ReadinessInput> {
   const bot = getBotStatus();
   const obs = getObsStatus();
   const scenes = obs.connected ? await getScenes() : null;
+  const overlaysPlaced = obs.connected ? Object.keys((await getOverlayScenes()).byOverlay).length : null;
 
   const source = characterSource();
   let reachable: boolean | null = null;
@@ -150,7 +160,7 @@ export async function readinessInput(): Promise<ReadinessInput> {
 
   return {
     bot,
-    obs: { connected: obs.connected, scenes },
+    obs: { connected: obs.connected, scenes, overlaysPlaced },
     world: { source, reachable, name },
     enabledCommands: row.n,
     alerts: { slots, withSound },

@@ -195,7 +195,8 @@ Jede Stufe ist für sich benutzbar und wird einzeln geplant und gebaut.
 4. **Im Stream.** Einheitliche Karten, „in der Szene“. (Gebaut am 06.10., vor Stufe 3; am selben Tag
    die Karten innen auf eine Eingabe, einen Knopf, eine Zustandszeile gebracht, Verwaltung in
    Dialogen; Plan `docs/superpowers/plans/2026-10-06-bedienung-stufe-4-im-stream.md`.)
-5. **Overlays & Alerts.** Overlay-Liste mit OBS-Zustand; Unterreiter aufgeräumt.
+5. **Overlays & Alerts.** Overlay-Liste mit OBS-Zustand; Unterreiter aufgeräumt. (Gebaut am 06.10.;
+   Plan `docs/superpowers/plans/2026-10-06-bedienung-stufe-5-overlays-alerts.md`.)
 6. **Nach dem Stream** mit dem Content-Planungsbrett, **Einstellungen** bereinigt; Hilfe-Texte
    auf die neuen Wege.
 

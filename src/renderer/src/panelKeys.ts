@@ -15,6 +15,7 @@ export const PANEL_KEYS = [
   'trycommands',
   // Overlays & Alerts
   'overlays',
+  'appearance',
   'alerts',
   'milestones',
   'obs',

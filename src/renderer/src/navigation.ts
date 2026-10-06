@@ -42,6 +42,7 @@ export const PANEL_LABELS: Record<PanelKey, string> = {
   chatbot: 'Von selbst',
   trycommands: 'Ausprobieren',
   overlays: 'Overlays',
+  appearance: 'Aussehen',
   alerts: 'Alerts',
   milestones: 'Meilensteine',
   obs: 'Szenen in OBS',
@@ -103,13 +104,13 @@ export const AREAS: readonly Area[] = [
     key: 'overlays',
     label: 'Overlays & Alerts',
     sentence: 'Hier richtest du ein, was im Stream-Bild erscheint und wie es aussieht. Ausgelöst wird es unter „Im Stream“.',
-    keywords: ['Overlays', 'Alerts', 'Meilensteine', 'Szenen in OBS'],
+    keywords: ['Overlays', 'Alerts', 'Meilensteine', 'Aussehen', 'Szenen in OBS'],
     group: 'main',
     subTabs: [
       {
         key: 'overlays',
         label: 'Overlays',
-        sentence: 'Jedes Overlay ist eine Browserquelle in OBS mit einer eigenen Adresse. Hier siehst du alle, ihr Aussehen und eigene Kopien.',
+        sentence: 'Jedes Overlay ist eine Browserquelle in OBS mit einer eigenen Adresse. Links wählst du eines, rechts siehst du es und alles, was du damit tun kannst.',
         panels: ['overlays'],
       },
       {
@@ -123,6 +124,12 @@ export const AREAS: readonly Area[] = [
         label: 'Meilensteine',
         sentence: 'Ziele, die du dir setzt und im Stream abhakst. Beim Abhaken feiert sie eine Einblendung.',
         panels: ['milestones'],
+      },
+      {
+        key: 'aussehen',
+        label: 'Aussehen',
+        sentence: 'Ein Stil für alle Overlays auf einmal, Farben und Schrift, einzelne Overlays abweichend, Entwürfe aus Figma.',
+        panels: ['appearance'],
       },
       {
         key: 'szenen',

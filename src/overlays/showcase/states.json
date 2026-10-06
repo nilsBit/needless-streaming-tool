@@ -154,17 +154,6 @@
         "playing": { "public": { "/public/song": { "song": { "title": "Ashes of the Old City", "artist": "Lorewalker", "source": "spotify", "artworkUrl": "/overlay/showcase/cover.svg" } } }, "freezeAfterMs": 1000 }
       }
     },
-    "song-queue": {
-      "size": { "width": 400, "height": 300 },
-      "states": {
-        "queue": { "public": { "/public/song-queue": [
-          { "id": 1, "url": "https://www.youtube.com/watch?v=a", "title": "Ashes of the Old City", "artist": "Lorewalker", "source": "youtube", "requested_by": "Kartograph", "status": "playing" },
-          { "id": 2, "url": "https://www.youtube.com/watch?v=b", "title": "Candlelit Archive", "artist": "Quill & Ember", "source": "youtube", "requested_by": "Tintenfass", "status": "pending" },
-          { "id": 3, "url": "https://open.spotify.com/track/c", "title": "Under the Guildhall", "artist": "Mapmaker", "source": "spotify", "requested_by": "Lesezeichen42", "status": "pending" }
-        ] }, "freezeAfterMs": 1000 },
-        "empty": { "public": { "/public/song-queue": [] }, "freezeAfterMs": 1000 }
-      }
-    },
     "todos": {
       "size": { "width": 420, "height": 600 },
       "actions": [

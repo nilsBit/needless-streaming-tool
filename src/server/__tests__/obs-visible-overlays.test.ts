@@ -4,7 +4,7 @@ import type { Express } from 'express';
 import { initDatabase } from '../db/index';
 import { generateApiToken } from '../auth-token';
 import { createApp } from '../index';
-import { visibleOverlays, overlayNameFromUrl } from '../obs/visible-overlays';
+import { visibleOverlays, overlaysByScene, overlayNameFromUrl } from '../obs/visible-overlays';
 
 // "im Bild / nicht im Bild": which overlays the current OBS scene shows.
 // The walk over scene items runs against a stand-in for OBS, the way the
@@ -49,6 +49,7 @@ function fakeObs() {
   return {
     async call(request: string, data?: Record<string, unknown>) {
       const name = String(data?.sceneName ?? data?.inputName ?? '');
+      if (request === 'GetSceneList') return { scenes: Object.keys(scenes).map((sceneName) => ({ sceneName })) };
       if (request === 'GetSceneItemList') return { sceneItems: scenes[name] ?? [] };
       if (request === 'GetGroupSceneItemList') return { sceneItems: groups[name] ?? [] };
       if (request === 'GetInputSettings') {
@@ -64,6 +65,17 @@ describe('visible overlays', () => {
   it('names the enabled own browser sources of a scene, through groups and nested scenes', async () => {
     const names = await visibleOverlays(fakeObs(), PORT, 'main');
     expect(names).toEqual(['alerts', 'character', 'roulette']);
+  });
+
+  it('tells for every overlay in which scenes it sits, enabled or not', async () => {
+    const placed = await overlaysByScene(fakeObs(), PORT);
+    // "Unterszene" nests "main" as a source, so everything in main counts as placed there too.
+    expect(placed.roulette).toEqual(['main', 'Unterszene']);
+    expect(placed.poll).toEqual(['main', 'Unterszene']);     // placed, just switched off
+    expect(placed.song).toEqual(['main', 'Unterszene']);     // inside a disabled group
+    expect(placed.character).toEqual(['main', 'Unterszene']);
+    expect(placed.kamera).toBeUndefined();
+    expect(placed.streamelements).toBeUndefined();
   });
 
   it('reads the overlay name from the url and ignores foreign sources', () => {
@@ -82,6 +94,11 @@ describe('visible overlays', () => {
       initDatabase(':memory:');
       token = generateApiToken();
       app = createApp();
+    });
+
+    it('answers with no placement while OBS is out of reach', async () => {
+      const res = await request(app).get('/api/obs/overlay-scenes').set('Authorization', `Bearer ${token}`).expect(200);
+      expect(res.body).toEqual({ connected: false, byOverlay: {} });
     });
 
     it('answers with no scene and no overlays while OBS is out of reach', async () => {

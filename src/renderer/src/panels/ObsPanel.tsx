@@ -131,7 +131,7 @@ export default function ObsPanel() {
         <p className="setup-info">Legt in OBS je eine Szene für Startbild („start“), Pausenbild („brb“) und Endbild („end“) an. Steht eine davon schon, werden die neuen wie sie aufgebaut: dieselben Quellen an denselben Stellen, nur das Bild getauscht. Vorhandene Szenen bleiben, wie sie sind.</p>
         <div className="obs-mapping-actions">
           <button className="btn-settings-primary" onClick={createScreens} disabled={!obsConnected || creatingScreens}>
-            {creatingScreens ? 'Laden...' : 'Szenen anlegen'}
+            {creatingScreens ? 'Legt an …' : 'Szenen anlegen'}
           </button>
         </div>
         {screens && screens.map((s) => (
@@ -140,8 +140,8 @@ export default function ObsPanel() {
       </div>
 
       <div className="obs-mappings-section">
-        <h3>Scene Mappings</h3>
-        <p className="setup-info">Wenn ein Channel Point Reward eingelöst wird, wechselt OBS automatisch zur zugeordneten Szene.</p>
+        <h3>Szene per Kanalpunkt</h3>
+        <p className="setup-info">Löst jemand diese Belohnung ein, wechselt OBS in die Szene. Danach kann es von selbst zurückwechseln. Belohnungen legst du in Twitch an (Creator-Dashboard → Kanalpunkte); das Tool liest sie von dort.</p>
 
         <div className="obs-mappings-list">
           {mappings.map((mapping, i) => (
@@ -154,8 +154,8 @@ export default function ObsPanel() {
                 >
                   <option value="">{
                     !twitchConnected ? 'Twitch ist nicht verbunden.' :
-                    rewards.length === 0 ? 'Keine Rewards gefunden' :
-                    'Reward wählen...'
+                    rewards.length === 0 ? 'Keine Belohnungen gefunden' :
+                    'Belohnung wählen …'
                   }</option>
                   {rewards.map((r) => (
                     <option key={r.id} value={r.title}>{r.title}</option>
@@ -172,16 +172,14 @@ export default function ObsPanel() {
                   <option value="">{
                     !obsConnected ? 'OBS ist nicht verbunden. Verbinde OBS in den Einstellungen.' :
                     scenes.length === 0 ? 'Keine Szenen gefunden' :
-                    'Szene wählen...'
+                    'Szene wählen …'
                   }</option>
                   {scenes.map((s) => (
                     <option key={s} value={s}>{s}</option>
                   ))}
                 </select>
 
-                <button className="obs-mapping-delete" onClick={() => removeMapping(i)} title="Delete">
-                  ✕
-                </button>
+                <button type="button" className="card-link" onClick={() => removeMapping(i)}>Entfernen</button>
               </div>
 
               <div className="obs-mapping-timer-row">
@@ -216,14 +214,14 @@ export default function ObsPanel() {
             onClick={addMapping}
             disabled={!obsConnected || !twitchConnected}
           >
-            + Mapping hinzufügen
+            + Zuordnung hinzufügen
           </button>
           <button
             className="btn-settings-primary"
             onClick={save}
             disabled={!dirty || saving}
           >
-            {saving ? 'Laden...' : 'Speichern'}
+            {saving ? 'Speichert …' : 'Speichern'}
           </button>
         </div>
       </div>

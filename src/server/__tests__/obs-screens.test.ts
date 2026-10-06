@@ -119,7 +119,7 @@ describe('creating the screen scenes in OBS', () => {
         screen: { kind: 'monitor_capture', settings: {} },
         pause: browser('http://localhost:4000/overlay/pause/index.html'),
         chat: browser('http://localhost:4000/overlay/chat/index.html', 480, 304),
-        music: browser('http://localhost:4000/overlay/song-queue/index.html', 400, 300),
+        music: browser('http://localhost:4000/overlay/song/index.html', 350, 110),
       },
     );
   }

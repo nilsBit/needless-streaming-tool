@@ -10,6 +10,7 @@ import TextCommandsPanel from './panels/TextCommandsPanel';
 import ChatBotSettings from './components/settings/ChatBotSettings';
 import TryCommandsPanel from './panels/TryCommandsPanel';
 import OverlaysPanel from './panels/OverlaysPanel';
+import AppearancePanel from './panels/AppearancePanel';
 import AlertSettings from './components/AlertSettings';
 import MilestonesPanel from './panels/MilestonesPanel';
 import ObsPanel from './panels/ObsPanel';
@@ -38,6 +39,7 @@ export const PANEL_REGISTRY: Record<PanelKey, React.ComponentType> = {
   chatbot: ChatBotSettings,
   trycommands: TryCommandsPanel,
   overlays: OverlaysPanel,
+  appearance: AppearancePanel,
   alerts: AlertSettings,
   milestones: MilestonesPanel,
   obs: ObsPanel,

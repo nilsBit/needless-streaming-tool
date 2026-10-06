@@ -142,7 +142,7 @@ Alle Befehle lassen sich unter Chat & Bot → Von selbst umbenennen. Antworten, 
 
 **Damit sie immer in ihre Quelle passt,** auch bei langen Einträgen: Der Titel hat höchstens zwei Zeilen und wird kleiner, wenn er länger ist; Zweitname und Rolle eine Zeile; die Beschreibung höchstens vier Zeilen; Felder und Beziehungen zusammen höchstens drei, jede einzeilig — hat der Eintrag Beziehungen, ist mindestens eine davon dabei. Was darüber hinausgeht, endet mit „…“. Den ganzen Text gibt es mit !figur im Chat. Beziehungen zu verworfenen Einträgen erscheinen nicht. Jede Beziehung hat im Panel ihren eigenen 👁-Schalter (↔).
 
-**Umgestalten:** Farben und Schriften kommen aus Overlays & Alerts → Overlays → Design und gelten für alle Overlays zugleich; einzelne lassen sich dort übersteuern. Die Karte selbst nutzt den Kompendium-Stil aus /overlay/lexikon.css — dort liegen auch die drei Gewichte (voll, schlank, flüchtig), die alle Overlays teilen. Nur was dieser Karte allein gehört (Breite, das Wort „Kompendium“ über dem Titel) steht oben in ihrer Datei. Über Overlays & Alerts → Overlays lässt sich eine eigene Kopie anlegen.`,
+**Umgestalten:** Farben und Schriften kommen aus Overlays & Alerts → Aussehen und gelten für alle Overlays zugleich; einzelne lassen sich dort übersteuern. Die Karte selbst nutzt den Kompendium-Stil aus /overlay/lexikon.css — dort liegen auch die drei Gewichte (voll, schlank, flüchtig), die alle Overlays teilen. Nur was dieser Karte allein gehört (Breite, das Wort „Kompendium“ über dem Titel) steht oben in ihrer Datei. Über Overlays & Alerts → Overlays → „HTML bearbeiten“ lässt sich eine eigene Fassung anlegen.`,
   },
   {
     title: 'Discord: Live-Meldung',
@@ -174,7 +174,7 @@ Alle Befehle lassen sich unter Chat & Bot → Von selbst umbenennen. Antworten, 
 - Im OBS-Panel legt **Szenen anlegen** je eine Szene für das Startbild („start“), das Pausenbild („brb“) und das Endbild („end“) an — mit dem ganzseitigen Overlay als Browser-Quelle (startScreen, pauseScreen, endScreen).
 - Gibt es eine der drei schon, werden die neuen wie sie aufgebaut: dieselben Quellen (Chat, Musik …) an denselben Stellen, nur das Bild getauscht. Wer die Pausen-Szene eingerichtet hat, bekommt Start und Ende also passend dazu.
 - Was es schon gibt, bleibt unberührt: Eine Szene, die das Bild schon zeigt, wird erkannt, egal wie sie heißt. Eine Szene, die nur so heißt und etwas anderes zeigt, wird nicht angefasst. Ein zweiter Klick ändert nichts.
-- Die Hinweise auf den Bildern (!welt, !story, !discord) und der Kanalname stehen fest im Overlay — anpassen über Overlays & Alerts → Overlays, Stift-Knopf (✏️) am Overlay.
+- Die Hinweise auf den Bildern (!welt, !story, !discord) und der Kanalname stehen fest im Overlay — anpassen über Overlays & Alerts → Overlays → „HTML bearbeiten“.
 
 **Scene-Switching via Chat:**
 - Mods/Broadcaster: !scene <Szenenname> im Chat
@@ -213,7 +213,6 @@ Konfiguriere Mappings über die API:
 | Milestone | /overlay/milestone/index.html | Achievement-Benachrichtigungen |
 | Alerts | /overlay/alerts/index.html | Follower, Abos, Geschenk-Abos, Raids, Bits, Kanalpunkte |
 | Song | /overlay/song/index.html | Aktueller Song |
-| Song Queue | /overlay/song-queue/index.html | Aktueller Song und Song-Wünsche |
 | Chat | /overlay/chat/index.html | Die letzten acht Chat-Nachrichten, ohne Befehle; was Mods löschen, verschwindet auch hier |
 | Start | /overlay/start/index.html | Ganzes Bild vor dem Stream: „Gleich geht’s los.“, der zuletzt aufgeschlagene Eintrag und der Hinweis auf !welt und !story |
 | Pause | /overlay/pause/index.html | Ganzes Bild für die Pausen-Szene: „Gleich zurück.“ und der zuletzt aufgeschlagene Eintrag |
@@ -236,14 +235,14 @@ Konfiguriere Mappings über die API:
 
 **Showcase:** Über den eingebauten Overlays öffnet **🖼️ Showcase** jedes Overlay in jedem Zustand mit Testdaten — zum Ansehen und Gestalten, ohne dass etwas in OBS erscheint. Die Seite hält jeden Zustand an, so wie ihn das Erfassen für Figma sieht; **▶ In Bewegung** zeigt dasselbe mit laufenden Animationen und Knöpfen zum Ausprobieren: **↻ Nochmal** spielt einen Zustand von vorn — Alerts und das Glücksrad blenden sich wie im Stream nach ein paar Sekunden aus —, dazu je Overlay Aktionen wie Punkt abhaken, Rad drehen oder Song wechseln. Direkt erreichbar unter http://localhost:4000/overlay/showcase/. Wie ein Overlay in Figma gestaltet und zurückgeholt wird, steht in docs/design-workflow.md.
 
-**Aus Figma:** Sendest du im Figma-Plugin einen Frame, übernimmt das Toolkit sofort, was eindeutig ist — Palette, Textfarbe, Schriftgröße und -schnitt, Rahmen, Ecken, Deckkraft — und die Overlays zeigen es live. Was mehr verlangt (Verschieben, Größen, neue Ebenen, deine Wünsche aus der Notiz), wartet unter Overlays & Alerts → Overlays → **Figma**; der Reiter zeigt, wie viel offen ist. In der Entwicklungsversion startet **Umsetzen lassen** dort Claude im Hintergrund: Es setzt nur die offenen Entwürfe um, ändert nur Overlay-Dateien, und das Ergebnis erscheint im Reiter und im Showcase. Versucht der Lauf, Skripte oder externe Adressen in ein Overlay zu schreiben, wird das zurückgenommen und nichts verbucht. Dort lässt sich jede übernommene Änderung auch zurücknehmen; eine Palettenfarbe kannst du stattdessen „behalten“. Im Figma-Plugin gehört das **Figma-Token** eingetragen (im Log: „Figma token“) — es gilt nur für diese Figma-Verbindung, nicht für die ganze App.
+**Aus Figma:** Sendest du im Figma-Plugin einen Frame, übernimmt das Toolkit sofort, was eindeutig ist — Palette, Textfarbe, Schriftgröße und -schnitt, Rahmen, Ecken, Deckkraft — und die Overlays zeigen es live. Was mehr verlangt (Verschieben, Größen, neue Ebenen, deine Wünsche aus der Notiz), wartet unter Overlays & Alerts → Aussehen → **Entwürfe aus Figma**; der Reiter zeigt, wie viel offen ist. In der Entwicklungsversion startet **Umsetzen lassen** dort Claude im Hintergrund: Es setzt nur die offenen Entwürfe um, ändert nur Overlay-Dateien, und das Ergebnis erscheint im Reiter und im Showcase. Versucht der Lauf, Skripte oder externe Adressen in ein Overlay zu schreiben, wird das zurückgenommen und nichts verbucht. Dort lässt sich jede übernommene Änderung auch zurücknehmen; eine Palettenfarbe kannst du stattdessen „behalten“. Im Figma-Plugin gehört das **Figma-Token** eingetragen (im Log: „Figma token“) — es gilt nur für diese Figma-Verbindung, nicht für die ganze App.
 
 **Die Reihenfolge ist egal.** Startet OBS vor dem Toolkit, laden die Browser-Quellen ins Leere und bleiben leer — deshalb lädt das Toolkit jede Browser-Quelle, die auf localhost:4000 zeigt, selbst neu, sobald es OBS erreicht. Quellen anderer Dienste bleiben unangetastet.
 
-**Größe der Schrift:** Ein einziger Regler unter Overlays & Alerts → Overlays → Design stellt sie für alle Overlays zugleich — Titel, Kicker und Zahlen ziehen mit, nicht nur der Fließtext. Standard sind 18px. Wächst die Schrift, wächst auch der Kasten: Passt eine Browser-Quelle in OBS danach nicht mehr, gib ihr ein paar Pixel mehr Höhe.
+**Größe der Schrift:** Ein einziger Regler unter Overlays & Alerts → Aussehen stellt sie für alle Overlays zugleich — Titel, Kicker und Zahlen ziehen mit, nicht nur der Fließtext. Standard sind 18px. Wächst die Schrift, wächst auch der Kasten: Passt eine Browser-Quelle in OBS danach nicht mehr, gib ihr ein paar Pixel mehr Höhe.
 
 **Custom Overlays:**
-- Overlays & Alerts → Overlays → "Neues Overlay"
+- Overlays & Alerts → Overlays → „+ Eigenes Overlay“
 - Aus Template erstellen oder eigene HTML-Datei hochladen
 - URL: http://localhost:4000/overlay/custom/<name>/index.html
 
@@ -317,7 +316,6 @@ Auth-Header: Authorization: Bearer <token>
 - GET /public/stream-state
 - GET /public/issues
 - GET /public/progress — Projekt, Items und ihre Todos
-- GET /public/song-queue — aktueller Song und Warteschlange
 - GET /public/chat — die letzten Chat-Nachrichten
 - GET /public/reward-stats/top — Rangliste (?type=all&limit=3)
 - GET /public/overlay-config — Farben und Schriften
