@@ -104,11 +104,14 @@ body {
 .shell-mark-detail { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* "Bereit für den Stream?" — only while something is missing */
-.readiness { border: 1px solid var(--accent); border-radius: 8px; background: rgba(230, 126, 34, 0.08); padding: 14px 16px; margin-bottom: 20px; }
+.readiness { border: 1px solid var(--accent); border-radius: 8px; background: rgba(230, 126, 34, 0.08); padding: 8px 14px; margin-bottom: 20px; }
+.readiness.open { padding-bottom: 12px; }
+.readiness-line { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; min-height: 32px; }
+.readiness-summary { color: var(--text-secondary); font-size: 14px; flex: 1; min-width: 0; }
 .readiness-hint { border-color: var(--border-strong); background: transparent; }
-.readiness-title { font-weight: 600; color: var(--accent); margin-bottom: 8px; }
+.readiness-title { font-weight: 600; color: var(--accent); }
 .readiness-hint .readiness-title { color: var(--text-secondary); }
-.readiness-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.readiness-list { list-style: none; display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
 .readiness-item { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 6px; background: var(--bg-card); border: 1px solid var(--border-subtle); }
 .readiness-dot { width: 8px; height: 8px; border-radius: 50%; background: #e74c3c; flex: none; }
 .readiness-item.hint .readiness-dot { background: #666; }
@@ -119,16 +122,19 @@ body {
 .readiness-go:hover { background: var(--bg-hover); }
 
 /* "Im Stream" — cards in a grid, each with a chip for "im Bild" */
-.stream-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; align-items: start; }
-.stream-card { border: 1px solid var(--border); border-radius: 8px; padding: 18px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.stream-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; align-items: stretch; }
+.stream-card { border: 1px solid var(--border); border-radius: 8px; padding: 18px; display: flex; flex-direction: column; gap: 10px; min-width: 0; height: 100%; box-sizing: border-box; }
 .stream-card.on-screen { border-color: var(--accent); }
 .stream-card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
 .stream-card-head h2 { font-size: 16px; font-weight: 600; }
 .stream-chip { font-size: 12px; white-space: nowrap; }
 .stream-chip.on { color: var(--accent); font-weight: 600; }
 .stream-chip.off { color: var(--muted); }
-.stream-card-sentence { color: var(--muted); font-size: 14px; line-height: 1.45; }
-.stream-card-body { min-width: 0; }
+.stream-card-sentence { color: var(--muted); font-size: 14px; line-height: 1.45; min-height: 2.9em; }
+.stream-card-body { min-width: 0; flex: 1; display: flex; flex-direction: column; }
+.stream-card-body > [data-panel] { flex: 1; display: flex; flex-direction: column; }
+.stream-card-body .panel { flex: 1; }
+.stream-card-body .card-links { margin-top: auto; }
 /* The panel inside brings its own frame and its own sentence — the card has both. */
 .stream-card-body .panel { border: none; border-radius: 0; padding: 0; background: transparent; }
 .stream-card-body .panel > .panel-desc { display: none; }
@@ -136,6 +142,145 @@ body {
 .moment-card input { min-height: 44px; box-sizing: border-box; padding: 0 12px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font: inherit; }
 .moment-mark { min-height: 44px; border: 1px solid var(--border-strong); border-radius: 6px; background: none; color: var(--text); font: inherit; font-weight: 600; cursor: pointer; }
 .moment-mark:hover { background: var(--bg-hover); }
+
+/* Slim cards on "Im Stream": one field, one button, one line of state, word links */
+.card-slim { gap: 10px; }
+.card-row { display: flex; gap: 8px; }
+.card-row input { flex: 1; min-width: 0; }
+.card-slim input[type="text"], .dialog input[type="text"], .dialog textarea {
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 0 12px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font: inherit;
+}
+.dialog textarea { padding: 10px 12px; resize: vertical; }
+.card-primary {
+  min-height: 44px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #161616;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.card-primary:hover { background: #d35400; border-color: transparent; }
+.card-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+.card-secondary {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.card-secondary:hover { background: var(--bg-hover); border-color: var(--border-strong); }
+.card-secondary:disabled { opacity: 0.45; cursor: not-allowed; }
+.card-link {
+  min-height: 32px;
+  padding: 0 4px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.card-link:hover { color: var(--text); background: none; border-color: transparent; }
+.card-status { display: flex; flex-wrap: wrap; gap: 6px 14px; color: var(--muted); font-size: 13px; }
+.card-result { color: var(--text-secondary); }
+.card-result strong { color: var(--accent); }
+.card-links { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+
+.card-line { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.card-wrap { flex-wrap: wrap; }
+.card-grow { flex: 1; }
+.card-select { min-height: 44px; padding: 0 10px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font: inherit; }
+.card-check { display: flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: 14px; cursor: pointer; }
+.card-check input { width: 16px; height: 16px; accent-color: var(--accent); }
+.card-live-dot { width: 8px; height: 8px; border-radius: 50%; background: #4ade80; }
+.card-goal { display: flex; align-items: baseline; gap: 10px; }
+.card-goal-dot { width: 8px; height: 8px; border-radius: 50%; background: #e74c3c; flex: none; align-self: center; }
+.card-goal-dot.ok { background: #4ade80; }
+.card-goal-dot.bad { background: #e74c3c; }
+.card-goal-title { font-size: 15px; font-weight: 600; min-width: 0; }
+.card-goal-state { color: var(--muted); font-size: 13px; }
+.card-timer { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 0.5px; }
+.card-now { display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 6px; }
+.card-now-kicker { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.6px; }
+.card-now-title { font-size: 15px; font-weight: 600; }
+.card-now-sub { color: var(--muted); font-size: 13px; }
+.card-now-empty { color: var(--muted); font-size: 14px; }
+.card-active-item { display: flex; flex-direction: column; gap: 6px; }
+.card-active-title { font-size: 14px; font-weight: 600; }
+.card-todos { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+.card-todos li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.card-todos li.done .card-todo span { color: var(--muted); text-decoration: line-through; }
+.card-todo { display: flex; align-items: center; gap: 8px; min-height: 32px; cursor: pointer; flex: 1; min-width: 0; }
+.card-todo input { width: 16px; height: 16px; accent-color: var(--accent); flex: none; }
+.card-todo-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 0 6px; }
+.card-todo-add { margin-top: 4px; display: flex; gap: 8px; }
+.card-todo-add input { flex: 1; min-width: 0; }
+.card-picker { width: 100%; display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 0 4px 26px; }
+.card-secondary.active { border-color: var(--accent); color: var(--accent); }
+.world-pick { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
+.world-pick-list, .world-pick-detail { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.world-pick-detail { border-left: 1px solid var(--border-subtle); padding-left: 18px; }
+.dialog-field-label { color: var(--text-secondary); font-size: 13px; }
+.dialog-list-pos { color: var(--muted); font-variant-numeric: tabular-nums; width: 18px; text-align: right; }
+.dialog-list li.is-hidden .dialog-list-text { opacity: 0.55; }
+@media (max-width: 760px) { .world-pick { grid-template-columns: minmax(0, 1fr); } .world-pick-detail { border-left: none; padding-left: 0; } }
+
+/* The board inside the "Aufgaben bearbeiten" dialog: items stack, words instead of symbols */
+.dialog .kanban-board { gap: 12px; }
+.dialog .kanban-item { display: flex; flex-direction: column; align-items: stretch; gap: 6px; padding: 10px; cursor: default; }
+.dialog .kanban-item-header { cursor: grab; align-items: baseline; }
+.dialog .kanban-item-header .item-title { white-space: normal; font-weight: 600; }
+.dialog .kanban-item .card-row { gap: 0 10px; }
+.dialog .kanban-item .card-link { font-size: 12px; min-height: 26px; }
+.dialog .card-todo-add { flex-wrap: wrap; }
+.dialog .card-todos li { padding-left: 2px; }
+
+/* Dialog — the shared building block for editing */
+.dialog-overlay { position: fixed; inset: 0; z-index: 50; background: rgba(0, 0, 0, 0.62); display: flex; align-items: center; justify-content: center; padding: 24px; }
+.dialog {
+  max-width: 100%;
+  max-height: 100%;
+  overflow: auto;
+  box-sizing: border-box;
+  background: var(--bg-header);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
+  outline: none;
+}
+.dialog-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.dialog-head h2 { font-size: 19px; font-weight: 600; line-height: 1.3; }
+.dialog-head p { margin-top: 4px; color: var(--muted); font-size: 13px; }
+.dialog-body { display: flex; flex-direction: column; gap: 12px; }
+.dialog-foot { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; padding-top: 14px; border-top: 1px solid var(--border-subtle); }
+.dialog-field { display: flex; flex-direction: column; gap: 6px; }
+.dialog-field label { color: var(--text-secondary); font-size: 13px; }
+.dialog-hint { color: var(--muted); font-size: 12px; }
+.dialog-section { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; margin-top: 6px; }
+.dialog-empty { color: var(--muted); font-size: 14px; }
+.dialog-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.dialog-list li { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border: 1px solid var(--border-subtle); border-radius: 6px; }
+.dialog-list.muted li { color: var(--muted); text-decoration: line-through; }
+.dialog-list-text { flex: 1; min-width: 0; }
 
 /* Small in-panel toggles (RewardStatsPanel: Rangliste / Verlauf) */
 .tab-btn {

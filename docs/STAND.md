@@ -214,8 +214,11 @@ braucht den Bot.
   „Szene in OBS: …“, neue Karte „Moment merken“. Dahinter `GET /api/obs/visible-overlays`
   (`src/server/obs/visible-overlays.ts`, liest die eigenen Browserquellen der laufenden
   Szene, Gruppen und Unterszenen eingeschlossen) und zwei OBS-Events, die als
-  `obs-scene-changed` ankommen. Ohne OBS gibt es keinen Chip. Die Panels in den Karten sind
-  noch die alten Bausteine. Plan: `docs/superpowers/plans/2026-10-06-bedienung-stufe-4-im-stream.md`.
+  `obs-scene-changed` ankommen. Ohne OBS gibt es keinen Chip. **Danach die Karten innen
+  verschlankt** („Da wird Im Stream wieder überladen“): je Karte eine Eingabe, ein Knopf, eine
+  Zustandszeile; alles Verwaltende in Dialogen hinter Wortlinks (`components/ux/Dialog.tsx`,
+  der gemeinsame Baustein). Der Hinweisbalken ist eine Zeile mit „Anzeigen“. Plan mit
+  Nachtrag: `docs/superpowers/plans/2026-10-06-bedienung-stufe-4-im-stream.md`.
   **Nicht geprüft:** die Chips gegen ein echtes OBS (auf dem Mac keins mit Szenen).
 - **Nächster Schritt:** Stufe 3 (eine Befehlsliste mit Filtern und Bearbeiten-Dialog), dann
   5 (Overlay-Liste mit Vorschau) und 6 (Content-Brett #26, Einstellungen, Hilfe). Davor auf

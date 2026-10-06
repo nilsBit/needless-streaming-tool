@@ -3,7 +3,8 @@ import { useApi, apiPost, apiDelete } from '../hooks/useApi';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { useToast } from '../contexts/ToastContext';
 import { SongRequest, SongData } from '../../../shared/types';
-import ChatCommands from '../components/ChatCommands';
+import Dialog from '../components/ux/Dialog';
+
 interface SongResponse {
   song: SongData | null;
   auto_detect: boolean;
@@ -13,7 +14,7 @@ interface SongResponse {
 
 function prettySource(source: string): string {
   if (!source) return '';
-  if (source === 'manual') return 'Manual';
+  if (source === 'manual') return 'von Hand';
   if (source === 'test') return 'Test';
   const lower = source.toLowerCase();
   if (lower.includes('spotify')) return 'Spotify';
@@ -26,183 +27,159 @@ function prettySource(source: string): string {
   return source.split('.')[0].split('!')[0];
 }
 
+// "Musik" on "Im Stream": what plays right now and whether the tool listens
+// on its own. Setting a song by hand and the viewers' requests sit in dialogs.
 export default function SongPanel() {
   const { toast } = useToast();
   const { data, loading, refetch } = useApi<SongResponse>('/actions/song');
-  const [showManual, setShowManual] = useState(false);
+  const { data: queue, refetch: refetchQueue } = useApi<SongRequest[]>('/song-requests');
+  const [manual, setManual] = useState(false);
   const [manualTitle, setManualTitle] = useState('');
   const [manualArtist, setManualArtist] = useState('');
-
-  const { data: queue, refetch: refetchQueue } = useApi<SongRequest[]>('/song-requests');
+  const [showQueue, setShowQueue] = useState(false);
 
   useWebSocket((event) => {
     if (event === 'song-update' || event === 'song-clear') refetch();
     if (event === 'sr-update') refetchQueue();
   });
 
-  if (loading && !data) {
-    return <div className="panel"><p className="empty">Laden...</p></div>;
-  }
+  if (loading && !data) return <div className="panel"><p className="empty">Laden …</p></div>;
 
   const toggleAutoDetect = async () => {
-    const result = await apiPost<{ success: boolean; enabled: boolean }>('/actions/song/auto-detect', {
-      enabled: !data?.auto_detect,
-    });
+    const result = await apiPost<{ success: boolean; enabled: boolean }>('/actions/song/auto-detect', { enabled: !data?.auto_detect });
     if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
     refetch();
   };
-
   const setManualSong = async () => {
     if (!manualTitle.trim()) return;
-    const result = await apiPost('/actions/song', {
-      title: manualTitle.trim(),
-      artist: manualArtist.trim(),
-      source: 'manual',
-    });
-    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
-    setManualTitle('');
-    setManualArtist('');
-    setShowManual(false);
+    const result = await apiPost('/actions/song', { title: manualTitle.trim(), artist: manualArtist.trim(), source: 'manual' });
+    if (!result) { toast.error('Song nicht gesetzt'); return; }
+    setManualTitle(''); setManualArtist(''); setManual(false);
     refetch();
   };
-
   const clearSong = async () => {
     const result = await apiPost('/actions/song', { title: null });
     if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
     refetch();
   };
-
   const playSong = async (id: number) => {
     const result = await apiPost(`/song-requests/${id}/play`, {});
     if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
     refetchQueue();
   };
-
   const skipSong = async (id: number) => {
     const result = await apiPost(`/song-requests/${id}/skip`, {});
     if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
     refetchQueue();
   };
-
   const deleteSong = async (id: number) => {
     const ok = await apiDelete(`/song-requests/${id}`);
     if (!ok) { toast.error('Aktion fehlgeschlagen'); return; }
     refetchQueue();
   };
-
   const clearQueue = async () => {
     const result = await apiPost('/song-requests/clear', {});
     if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
-    toast.success('Queue geleert');
+    toast.success('Reihe geleert');
     refetchQueue();
   };
 
-  const pendingQueue = (queue || []).filter(s => s.status === 'pending');
-  const playingNow = (queue || []).find(s => s.status === 'playing');
-
+  const pending = (queue ?? []).filter((s) => s.status === 'pending');
+  const playingNow = (queue ?? []).find((s) => s.status === 'playing');
   const autoSupported = data?.auto_detect_supported ?? false;
   const autoOn = data?.auto_detect ?? false;
   const song = data?.song ?? null;
 
+  const next = pending.length === 0 ? 'Als Nächstes: noch keine Wünsche' : `Als Nächstes: ${pending.length} ${pending.length === 1 ? 'Wunsch' : 'Wünsche'}`;
+
   return (
-    <div className="panel song-panel">
-      <p className="panel-desc">Erkennt automatisch was du gerade hörst — Spotify, YouTube, Apple Music und mehr.</p>
-
-      {autoSupported && (
-        <div className="song-auto-toggle">
-          <label className="song-toggle-label">
-            <input type="checkbox" checked={autoOn} onChange={toggleAutoDetect} />
-            <span>Song automatisch erkennen</span>
-          </label>
-          {autoOn && data?.auto_detect_running && (
-            <span className="song-status-dot song-status-dot--live" title="Live" />
-          )}
-        </div>
-      )}
-
-      {!autoSupported && (
-        <p className="song-platform-note">Automatische Erkennung nur unter Windows verfügbar. Nutze das manuelle Feld unten.</p>
-      )}
-
-      {song ? (
-        <div className="song-current">
-          <div className="song-current-info">
-            <span className="song-title">{song.title}</span>
-            {song.artist && <span className="song-artist">{song.artist}</span>}
-            {song.source && <span className="song-source">{prettySource(song.source)}</span>}
-          </div>
-          <button className="btn-reset" onClick={clearSong}>Löschen</button>
-        </div>
-      ) : (
-        <p className="empty">{autoOn ? 'Warte auf Musik…' : 'Kein Song aktiv'}</p>
-      )}
-
-      <div className="song-manual">
-        <button className="song-manual-toggle" onClick={() => setShowManual(!showManual)}>
-          <span>{showManual ? '▼' : '▶'}</span>
-          <span>Manuell überschreiben</span>
-        </button>
-        {showManual && (
-          <div className="song-manual-form">
-            <input
-              type="text"
-              placeholder="Song-Titel"
-              value={manualTitle}
-              onChange={(e) => setManualTitle(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && setManualSong()}
-            />
-            <input
-              type="text"
-              placeholder="Artist (optional)"
-              value={manualArtist}
-              onChange={(e) => setManualArtist(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && setManualSong()}
-            />
-            <button onClick={setManualSong} disabled={!manualTitle.trim()}>Übernehmen</button>
-          </div>
-        )}
-      </div>
-      <div className="sr-section">
-        <div className="sr-header">
-          <h3>🎵 Song Queue <span className="sr-badge">{pendingQueue.length}</span></h3>
-          {pendingQueue.length > 0 && (
-            <button className="btn-export-small" onClick={clearQueue}>Queue leeren</button>
-          )}
-        </div>
-
-        {playingNow && (
-          <div className="sr-row sr-playing">
-            <span className="sr-row-pos">▶</span>
-            <span className="sr-row-title">{playingNow.title}{playingNow.artist ? ` — ${playingNow.artist}` : ''}</span>
-            <span className="sr-row-source">{playingNow.source === 'youtube' ? '🔴' : '🟢'}</span>
-            <span className="sr-row-user">@{playingNow.requested_by}</span>
-            <a className="sr-row-link" href={playingNow.url} target="_blank" rel="noopener noreferrer" title="Open">🔗</a>
-            <button className="btn-row-action" onClick={() => skipSong(playingNow.id)} title="Überspringen">⏭</button>
-          </div>
-        )}
-
-        {pendingQueue.length === 0 && !playingNow ? (
-          <p className="empty">Queue ist leer — Viewer können mit !sr einen Song requesten</p>
+    <div className="panel card-slim">
+      <div className="card-now">
+        {song ? (
+          <>
+            <span className="card-now-title">{song.title}</span>
+            <span className="card-now-sub">{[song.artist, song.source ? prettySource(song.source) : ''].filter(Boolean).join(' · ')}</span>
+          </>
         ) : (
-          pendingQueue.map((sr, i) => (
-            <div key={sr.id} className="sr-row">
-              <span className="sr-row-pos">{i + 1}</span>
-              <span className="sr-row-title">{sr.title}{sr.artist ? ` — ${sr.artist}` : ''}</span>
-              <span className="sr-row-source">{sr.source === 'youtube' ? '🔴' : '🟢'}</span>
-              <span className="sr-row-user">@{sr.requested_by}</span>
-              <a className="sr-row-link" href={sr.url} target="_blank" rel="noopener noreferrer" title="Open">🔗</a>
-              <button className="btn-row-action" onClick={() => playSong(sr.id)} title="Abspielen">▶</button>
-              <button className="btn-row-action" onClick={() => skipSong(sr.id)} title="Überspringen">⏭</button>
-              <button className="btn-row-action" onClick={() => deleteSong(sr.id)} title="Löschen">✕</button>
-            </div>
-          ))
+          <span className="card-now-empty">{autoOn ? 'Warte auf Musik …' : 'Gerade läuft nichts'}</span>
         )}
       </div>
+      {autoSupported ? (
+        <label className="card-check">
+          <input type="checkbox" checked={autoOn} onChange={toggleAutoDetect} />
+          <span>Automatisch erkennen, was läuft</span>
+          {autoOn && data?.auto_detect_running && <span className="card-live-dot" title="hört zu" />}
+        </label>
+      ) : (
+        <div className="card-status"><span>Automatisch erkennen geht nur unter Windows. Hier setzt du den Titel von Hand.</span></div>
+      )}
+      <div className="card-status"><span>{next}</span></div>
+      <div className="card-links">
+        <button type="button" className="card-link" onClick={() => setManual(true)}>Titel von Hand setzen</button>
+        <button type="button" className="card-link" onClick={() => setShowQueue(true)}>Wünsche verwalten</button>
+        {song && <button type="button" className="card-link" onClick={clearSong}>Anzeige leeren</button>}
+      </div>
 
-      <ChatCommands commands={[
-        { cmd: '!sr', desc: 'Song zur Queue hinzufügen (!sr <URL>)' },
-        { cmd: '!queue', desc: 'Nächste Songs anzeigen' },
-      ]} />
+      {manual && (
+        <Dialog
+          title="Titel von Hand setzen"
+          sentence="Überschreibt, was das Overlay zeigt, bis der nächste Song erkannt wird."
+          onClose={() => setManual(false)}
+          width={560}
+          footer={<>
+            <button type="button" className="card-secondary" onClick={() => setManual(false)}>Abbrechen</button>
+            <button type="button" className="card-primary" onClick={setManualSong} disabled={!manualTitle.trim()}>Übernehmen</button>
+          </>}
+        >
+          <div className="dialog-field">
+            <label htmlFor="song-title">Titel</label>
+            <input id="song-title" type="text" value={manualTitle} onChange={(e) => setManualTitle(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && setManualSong()} />
+          </div>
+          <div className="dialog-field">
+            <label htmlFor="song-artist">Interpret (optional)</label>
+            <input id="song-artist" type="text" value={manualArtist} onChange={(e) => setManualArtist(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && setManualSong()} />
+          </div>
+        </Dialog>
+      )}
+
+      {showQueue && (
+        <Dialog
+          title="Wünsche verwalten"
+          sentence="Was Zuschauer mit !sr gewünscht haben, in der Reihe, wie der Chat sie mit !queue sieht."
+          onClose={() => setShowQueue(false)}
+          footer={<>
+            {pending.length > 0 && <button type="button" className="card-secondary" onClick={clearQueue}>Reihe leeren</button>}
+            <button type="button" className="card-primary" onClick={() => setShowQueue(false)}>Fertig</button>
+          </>}
+        >
+          {playingNow && (
+            <>
+              <h3 className="dialog-section">Läuft gerade</h3>
+              <ul className="dialog-list">
+                <li>
+                  <span className="dialog-list-text">{playingNow.title}{playingNow.artist ? ` – ${playingNow.artist}` : ''} <span className="dialog-hint">von {playingNow.requested_by}</span></span>
+                  <a className="card-link" href={playingNow.url} target="_blank" rel="noopener noreferrer">Öffnen</a>
+                  <button type="button" className="card-secondary" onClick={() => skipSong(playingNow.id)}>Überspringen</button>
+                </li>
+              </ul>
+            </>
+          )}
+          <h3 className="dialog-section">Als Nächstes ({pending.length})</h3>
+          {pending.length === 0 && <p className="dialog-empty">Keine Wünsche. Zuschauer schreiben !sr und einen Link zu YouTube oder Spotify.</p>}
+          <ul className="dialog-list">
+            {pending.map((sr, i) => (
+              <li key={sr.id}>
+                <span className="dialog-list-pos">{i + 1}</span>
+                <span className="dialog-list-text">{sr.title}{sr.artist ? ` – ${sr.artist}` : ''} <span className="dialog-hint">von {sr.requested_by} · {sr.source === 'youtube' ? 'YouTube' : 'Spotify'}</span></span>
+                <a className="card-link" href={sr.url} target="_blank" rel="noopener noreferrer">Öffnen</a>
+                <button type="button" className="card-secondary" onClick={() => playSong(sr.id)}>Abspielen</button>
+                <button type="button" className="card-link" onClick={() => skipSong(sr.id)}>Überspringen</button>
+                <button type="button" className="card-link" onClick={() => deleteSong(sr.id)}>Löschen</button>
+              </li>
+            ))}
+          </ul>
+        </Dialog>
+      )}
     </div>
   );
 }

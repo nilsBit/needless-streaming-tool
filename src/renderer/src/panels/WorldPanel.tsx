@@ -3,7 +3,7 @@ import { apiDelete, apiFetch, apiGet, apiPost } from '../hooks/useApi';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { useToast } from '../contexts/ToastContext';
 import EmptyState from '../components/ux/EmptyState';
-import ChatCommands from '../components/ChatCommands';
+import Dialog from '../components/ux/Dialog';
 
 interface EntryField {
   name: string;
@@ -58,11 +58,11 @@ const SETTLE_CHOICES = [0, 1, 2, 3, 5, 8];
 
 function hint(failure: LoadError): string {
   switch (failure.error) {
-    case 'worldbuilder_not_running': return 'Worldbuilder läuft nicht — öffne ihn und schalte unter Verwalten das Schaufenster an.';
+    case 'worldbuilder_not_running': return 'Der Worldbuilder läuft nicht – öffne ihn und schalte unter Verwalten das Schaufenster an.';
     case 'worldbuilder_no_world': return 'Im Worldbuilder ist keine Welt offen.';
-    case 'worldbuilder_timeout': return 'Worldbuilder antwortet nicht.';
-    case 'no_database': return 'Keine Figuren-Datenbank in Notion konfiguriert.';
-    case 'no_token': return 'Kein Notion-Token hinterlegt — trag ihn in den Settings ein.';
+    case 'worldbuilder_timeout': return 'Der Worldbuilder antwortet nicht.';
+    case 'no_database': return 'Keine Figuren-Datenbank in Notion eingerichtet.';
+    case 'no_token': return 'Kein Notion-Token hinterlegt – unter Einstellungen → Verbindungen.';
     case 'notion_error': return 'Notion antwortet, kennt die Datenbank aber nicht. Teile die Seite mit deiner Integration.';
     default: return failure.message || 'Die Quelle ist gerade nicht erreichbar.';
   }
@@ -91,11 +91,14 @@ function switchableParts(entry: Entry): Array<{ key: string; label: string; valu
     ...entry.fields.filter((f) => f.value.trim()).map((f) => ({ key: f.name, label: f.name, value: f.value })),
     ...(entry.text ? [{ key: TEXT, label: 'Text', value: entry.text }] : []),
     // '@rel:' keeps a relationship label apart from a field of the same name.
-    ...(entry.relations ?? []).map((r) => ({ key: `@rel:${r.name}`, label: `↔ ${r.name}`, value: r.value })),
+    ...(entry.relations ?? []).map((r) => ({ key: `@rel:${r.name}`, label: `Beziehung: ${r.name}`, value: r.value })),
     ...(entry.image ? [{ key: IMAGE, label: 'Bild', value: 'Porträt' }] : []),
   ];
 }
 
+// "Eintrag aus der Welt" on "Im Stream": which entry the card in the overlay
+// shows, and whether it follows the Worldbuilder or is held. Picking an entry,
+// switching the source and the spoiler switches sit behind "Eintrag wählen".
 export default function WorldPanel() {
   const { toast } = useToast();
   const [source, setSource] = useState<SourceInfo | null>(null);
@@ -109,6 +112,7 @@ export default function WorldPanel() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [active, setActive] = useState<Entry | null>(null);
   const [follow, setFollow] = useState<FollowState | null>(null);
+  const [choosing, setChoosing] = useState(false);
 
   const loadActive = useCallback(async () => {
     const data = await apiGet<{ entry: Entry | null }>('/entries/active');
@@ -221,179 +225,156 @@ export default function WorldPanel() {
 
   const selected = entries.find((e) => e.id === selectedId) ?? (active?.id === selectedId ? active : null);
 
-  return (
-    <div className="panel world-panel">
-      <div className="clips-panel-header">
-        {active && (
-          <button className="btn-export-small" onClick={unpin} title="Aus dem Overlay nehmen">✕ Overlay leeren</button>
-        )}
-        <button className="btn-export-small" onClick={refresh} title="Neu laden">🔄</button>
-      </div>
+  const following = !!follow?.available && follow.enabled && !follow.held;
+  const followLine = !follow?.available
+    ? null
+    : !follow.enabled ? 'Folgt dem Worldbuilder nicht'
+    : follow.held ? 'Festgepinnt'
+    : `Folgt dem Worldbuilder nach ${follow.settleSeconds} s`;
 
-      <div className="world-source">
-        <span>Quelle</span>
-        {(['worldbuilder', 'notion'] as const).map((s) => (
-          <button
-            key={s}
-            className={`world-source-btn ${source?.source === s ? 'active' : ''}`}
-            onClick={() => switchSource(s)}
-          >
-            {s === 'worldbuilder' ? 'Worldbuilder' : 'Notion'}
-          </button>
-        ))}
-        {source?.source === 'worldbuilder' && source.world && (
-          <span className="world-source-name">„{source.world}“</span>
+  return (
+    <div className="panel card-slim">
+      <div className="card-now">
+        {active ? (
+          <>
+            <span className="card-now-kicker">Im Overlay</span>
+            <span className="card-now-title">{active.title}</span>
+            <span className="card-now-sub">{[active.art, active.hidden.length > 0 ? `${active.hidden.length} ${active.hidden.length === 1 ? 'Feld' : 'Felder'} ausgeblendet` : ''].filter(Boolean).join(' · ')}</span>
+          </>
+        ) : (
+          <span className="card-now-empty">{loadError ? hint(loadError) : following ? 'Wartet auf einen offenen Eintrag im Worldbuilder' : 'Kein Eintrag im Overlay'}</span>
         )}
       </div>
 
       {follow?.available && (
-        <div className={`world-follow ${follow.enabled && !follow.held ? 'following' : ''}`}>
-          <label className="s-checkbox" title="Die Karte wechselt zu dem Eintrag, der im Worldbuilder offen ist">
-            <input
-              type="checkbox"
-              checked={follow.enabled}
-              onChange={(e) => changeFollow({ enabled: e.target.checked })}
-            />{' '}
-            Worldbuilder folgen
+        <div className="card-line">
+          <label className="card-check">
+            <input type="checkbox" checked={follow.enabled} onChange={(e) => changeFollow({ enabled: e.target.checked })} />
+            <span>{followLine}</span>
           </label>
-          {follow.enabled && (follow.held ? (
-            <>
-              <span className="world-follow-state">📌 Festgepinnt</span>
-              <button className="btn-export-small" onClick={() => changeFollow({ held: false })}>Wieder folgen</button>
-            </>
-          ) : (
-            <>
-              <span className="world-follow-state">
-                🔗 Folgt nach
-                <select
-                  value={follow.settleSeconds}
-                  onChange={(e) => changeFollow({ settleSeconds: Number(e.target.value) })}
-                  title="So lange muss ein Eintrag offen sein, bevor die Karte wechselt"
-                >
-                  {Array.from(new Set([...SETTLE_CHOICES, follow.settleSeconds])).sort((a, b) => a - b).map((s) => (
-                    <option key={s} value={s}>{s} s</option>
-                  ))}
-                </select>
-              </span>
-              <button className="btn-export-small" onClick={() => changeFollow({ held: true })}>📌 Festpinnen</button>
-            </>
-          ))}
+          {follow.enabled && (follow.held
+            ? <button type="button" className="card-secondary" onClick={() => changeFollow({ held: false })}>Wieder folgen</button>
+            : <button type="button" className="card-secondary" onClick={() => changeFollow({ held: true })}>Festpinnen</button>)}
         </div>
       )}
 
-      {active && (
-        <button className="character-active" onClick={() => setSelectedId(active.id)} title="Schalter für diesen Eintrag zeigen">
-          <span className="character-active-label">Im Overlay</span>
-          <strong>{active.title}</strong>
-          <span className="character-active-role">{active.art}</span>
-          {active.hidden.length > 0 && <span title="Felder ausgeblendet">🙈 {active.hidden.length}</span>}
-        </button>
-      )}
+      <div className="card-links">
+        <button type="button" className="card-link" onClick={() => { setSelectedId(active?.id ?? null); setChoosing(true); }}>Eintrag wählen</button>
+        {active && <button type="button" className="card-link" onClick={unpin}>Overlay leeren</button>}
+      </div>
 
-      {loading ? (
-        <p className="empty">Lade…</p>
-      ) : loadError ? (
-        <EmptyState icon="🔌" title="Welt nicht abrufbar" description={hint(loadError)} />
-      ) : (
-        <>
-          <div className="world-arten">
-            {arten.map((a) => (
-              <button
-                key={a.name}
-                className={`world-art ${a.name === art ? 'active' : ''}`}
-                onClick={() => { setArt(a.name); setSelectedId(null); setQuery(''); }}
-              >
-                <i style={{ background: a.color ?? 'var(--muted)' }} />
-                {a.name}
-              </button>
-            ))}
-          </div>
-
-          <input
-            type="text"
-            className="world-search"
-            placeholder="Suchen…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-
-          {visible.length === 0 ? (
-            <EmptyState
-              size="compact"
-              icon="📖"
-              title={query ? 'Nichts gefunden' : `Noch nichts unter „${art ?? ''}“`}
-              description={query ? 'Anderer Name, oder ein anderer Reiter?' : 'Leg einen Eintrag dieser Art an, dann erscheint er hier.'}
-            />
-          ) : (
-            <div className="character-list">
-              {visible.map((e) => (
-                <div
-                  key={e.id}
-                  role="button"
-                  className={`character-row ${active?.id === e.id ? 'active' : ''} ${selectedId === e.id ? 'selected' : ''}`}
-                  onClick={() => setSelectedId(selectedId === e.id ? null : e.id)}
-                  title="Schalter für diesen Eintrag zeigen"
-                >
-                  {/* A Worldbuilder portrait sits behind a token the panel does not have. */}
-                  {e.image && e.source === 'notion'
-                    ? <img className="character-row-portrait" src={e.image} alt="" />
-                    : <span className="character-row-portrait placeholder" style={{ color: e.artColor ?? undefined }}>{initials(e.title)}</span>}
-                  <span className="character-row-body">
-                    <span className="character-row-name">{e.title}</span>
-                    {subline(e) && <span className="character-row-summary">{subline(e)}</span>}
-                  </span>
-                  {e.hidden.length > 0 && <span className="world-row-hidden" title="Felder ausgeblendet">🙈</span>}
-                  {e.maturity && <span className="character-row-role">{e.maturity}</span>}
-                  <button
-                    className="btn-export-small"
-                    title="Ins Overlay — und festpinnen"
-                    onClick={(ev) => { ev.stopPropagation(); pin(e); }}
-                  >
-                    ▶
-                  </button>
-                </div>
+      {choosing && (
+        <Dialog
+          title="Eintrag wählen"
+          sentence="Welche Welt die Quelle ist, welcher Eintrag ins Overlay kommt – und was davon im Stream zu sehen sein darf."
+          onClose={() => setChoosing(false)}
+          width={900}
+          footer={<>
+            <button type="button" className="card-link" onClick={refresh}>Neu laden</button>
+            <span style={{ flex: 1 }} />
+            <button type="button" className="card-primary" onClick={() => setChoosing(false)}>Fertig</button>
+          </>}
+        >
+          <div className="card-line card-wrap">
+            <span className="dialog-field-label">Quelle</span>
+            <div className="card-row">
+              {(['worldbuilder', 'notion'] as const).map((s) => (
+                <button key={s} type="button" className={`card-secondary ${source?.source === s ? 'active' : ''}`} onClick={() => switchSource(s)}>
+                  {s === 'worldbuilder' ? 'Worldbuilder' : 'Notion'}
+                </button>
               ))}
             </div>
-          )}
-        </>
-      )}
-
-      {selected && (
-        <div className="entry-detail">
-          <div className="entry-detail-head">
-            <strong>{selected.title}</strong>
-            <span className="character-row-role">{selected.art}</span>
-            {active?.id === selected.id
-              ? <span className="entry-detail-live">● Im Overlay</span>
-              : <button className="s-card-action primary" onClick={() => pin(selected)}>Ins Overlay</button>}
+            {source?.source === 'worldbuilder' && source.world && <span className="dialog-hint">Welt: „{source.world}“</span>}
+            {follow?.available && follow.enabled && !follow.held && (
+              <label className="dialog-hint">
+                Folgt nach{' '}
+                <select value={follow.settleSeconds} onChange={(e) => changeFollow({ settleSeconds: Number(e.target.value) })}>
+                  {Array.from(new Set([...SETTLE_CHOICES, follow.settleSeconds])).sort((a, b) => a - b).map((s) => <option key={s} value={s}>{s} s</option>)}
+                </select>
+              </label>
+            )}
           </div>
-          <p className="panel-desc">
-            👁 heißt: im Stream zu sehen. Was du ausblendest, erscheint weder auf der Karte noch in Chat-Antworten.
-          </p>
-          {switchableParts(selected).length === 0 && <p className="empty">Dieser Eintrag hat noch nichts, was sich zeigen ließe.</p>}
-          {switchableParts(selected).map((part) => {
-            const hidden = selected.hidden.includes(part.key);
-            return (
-              <div key={part.key} className={`entry-field ${hidden ? 'is-hidden' : ''}`}>
-                <button
-                  className="entry-field-eye"
-                  title={hidden ? 'Im Stream zeigen' : 'Im Stream ausblenden'}
-                  onClick={() => toggle(selected, part.key)}
-                >
-                  {hidden ? '🙈' : '👁'}
-                </button>
-                <span className="entry-field-label">{part.label}</span>
-                <span className="entry-field-value">{part.value}</span>
-              </div>
-            );
-          })}
-        </div>
-      )}
 
-      <ChatCommands commands={[
-        { cmd: '!figur', desc: 'Zeigt die Figur, an der gerade gearbeitet wird' },
-        { cmd: '!figur <Name>', desc: 'Schlägt eine Figur in der Welt nach' },
-      ]} />
+          {loading ? (
+            <p className="dialog-empty">Lade …</p>
+          ) : loadError ? (
+            <EmptyState icon="🔌" title="Welt nicht abrufbar" description={hint(loadError)} />
+          ) : (
+            <div className="world-pick">
+              <div className="world-pick-list">
+                <div className="world-arten">
+                  {arten.map((a) => (
+                    <button key={a.name} type="button" className={`world-art ${a.name === art ? 'active' : ''}`} onClick={() => { setArt(a.name); setSelectedId(null); setQuery(''); }}>
+                      <i style={{ background: a.color ?? 'var(--muted)' }} />
+                      {a.name}
+                    </button>
+                  ))}
+                </div>
+                <input type="text" className="world-search" placeholder="Suchen …" aria-label="Eintrag suchen" value={query} onChange={(e) => setQuery(e.target.value)} />
+                {visible.length === 0 ? (
+                  <EmptyState
+                    size="compact"
+                    icon="📖"
+                    title={query ? 'Nichts gefunden' : `Noch nichts unter „${art ?? ''}“`}
+                    description={query ? 'Anderer Name, oder eine andere Art?' : 'Leg einen Eintrag dieser Art an, dann erscheint er hier.'}
+                  />
+                ) : (
+                  <div className="character-list">
+                    {visible.map((e) => (
+                      <div
+                        key={e.id}
+                        role="button"
+                        tabIndex={0}
+                        className={`character-row ${active?.id === e.id ? 'active' : ''} ${selectedId === e.id ? 'selected' : ''}`}
+                        onClick={() => setSelectedId(selectedId === e.id ? null : e.id)}
+                        onKeyDown={(ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); setSelectedId(selectedId === e.id ? null : e.id); } }}
+                      >
+                        {e.image && e.source === 'notion'
+                          ? <img className="character-row-portrait" src={e.image} alt="" />
+                          : <span className="character-row-portrait placeholder" style={{ color: e.artColor ?? undefined }}>{initials(e.title)}</span>}
+                        <span className="character-row-body">
+                          <span className="character-row-name">{e.title}</span>
+                          {subline(e) && <span className="character-row-summary">{subline(e)}</span>}
+                        </span>
+                        {e.maturity && <span className="character-row-role">{e.maturity}</span>}
+                        <button type="button" className="card-secondary" onClick={(ev) => { ev.stopPropagation(); pin(e); }}>Ins Overlay</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="world-pick-detail">
+                {!selected ? (
+                  <p className="dialog-empty">Klick einen Eintrag an, um zu sehen, was davon im Stream erscheint.</p>
+                ) : (
+                  <>
+                    <div className="card-line">
+                      <span className="card-goal-title">{selected.title}</span>
+                      {active?.id === selected.id
+                        ? <span className="stream-chip on">im Overlay</span>
+                        : <button type="button" className="card-primary" onClick={() => pin(selected)}>Ins Overlay</button>}
+                    </div>
+                    <p className="dialog-hint">Was du ausblendest, erscheint weder auf der Karte noch in Chat-Antworten.</p>
+                    {switchableParts(selected).length === 0 && <p className="dialog-empty">Dieser Eintrag hat noch nichts, was sich zeigen ließe.</p>}
+                    <ul className="dialog-list">
+                      {switchableParts(selected).map((part) => {
+                        const hidden = selected.hidden.includes(part.key);
+                        return (
+                          <li key={part.key} className={hidden ? 'is-hidden' : ''}>
+                            <span className="dialog-list-text"><strong>{part.label}</strong> <span className="dialog-hint">{part.value}</span></span>
+                            <button type="button" className="card-link" onClick={() => toggle(selected, part.key)}>{hidden ? 'Zeigen' : 'Ausblenden'}</button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        </Dialog>
+      )}
     </div>
   );
 }

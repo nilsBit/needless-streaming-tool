@@ -34,6 +34,23 @@
 - [x] `npm run typecheck && npm test && npm run lint`; Durchlauf in Chrome: 21 Panels, kein Überlauf, keine unbehandelten Fehler.
 - [ ] Mit OBS am Windows-Rechner prüfen: Chips wechseln beim Szenenwechsel und beim Ein-/Ausschalten einer Quelle; die Zuordnung Panel → Overlay stimmt (`progress` deckt `progress` und `todos`).
 
+## Nachtrag am selben Tag: die Karten innen verschlankt
+
+Nils beim Blick auf die erste Fassung: „Da wird Im Stream wieder überladen.“ Also wurden die
+sechs Panels auf das Maß des Prototyps gebracht – je Karte eine Eingabe, ein Knopf, eine
+Zustandszeile, Wortlinks statt Symbolknöpfe; alles Verwaltende liegt hinter einem Wortlink in
+einem **Dialog** (`components/ux/Dialog.tsx`, in `<body>` gerendert, Escape und Klick daneben
+schließen). Keine Funktion fiel weg, keine API änderte sich.
+
+- [x] **Glücksrad:** Thema hinzufügen, „Rad drehen“, Zustand, „Dran: …“. Dialog „Themen verwalten“: Name des Rads, Offen (Erledigt/Löschen), Erledigt.
+- [x] **Ziel für heute:** Feld + „Los“; läuft eins: Satz, Uhr, „Pause/Weiter“, „Geschafft“, „Nicht geschafft“, „Abbrechen“.
+- [x] **Abstimmung:** Vorschlag hinzufügen, Dauer, „Abstimmung starten“; läuft eine: Balken, Countdown, „Beenden“, „Abbrechen“. Dialog „Vorschläge verwalten“.
+- [x] **Fortschritt:** Projekt, Balken, der aktive Punkt mit seinen Aufgaben zum Abhaken und einem Feld. Dialog „Aufgaben bearbeiten“: das ganze Brett (Vorrat · Aktiv · Erledigt), Ziehen oder Wortknöpfe, Meilensteine je Aufgabe, Umbenennen, CSV.
+- [x] **Musik:** was läuft, Schalter fürs Erkennen, „Als Nächstes: n Wünsche“. Dialoge „Titel von Hand setzen“ und „Wünsche verwalten“ (Abspielen/Überspringen/Löschen/Reihe leeren).
+- [x] **Eintrag aus der Welt:** der Eintrag im Overlay, „Folgt dem Worldbuilder nach n s“ mit „Festpinnen“/„Wieder folgen“. Dialog „Eintrag wählen“: Quelle, Arten, Suche, Liste mit „Ins Overlay“, rechts die Schalter „Zeigen/Ausblenden“ je Feld.
+- [x] **Hinweisbalken** ist eine Zeile („Noch nicht bereit: OBS ist nicht verbunden · … · 1 Hinweis“, „Anzeigen“ klappt die Einzelheiten auf).
+- [x] Typecheck, Tests, Lint grün; Durchlauf: 21 Panels, kein Überlauf; alle Dialoge in Chrome geöffnet und fotografiert.
+
 ## Bewusst nicht in dieser Stufe
 
-Die Panels innen (Felder, Knöpfe mit Symbolen, „Chat Commands ▸“) – sie sind die Bausteine und werden in einem eigenen Schritt verschlankt, sobald Nils sagt, was in jeder Karte wirklich gebraucht wird. „Overlays als Quellen in OBS gefunden“ als Prüfpunkt der Bereitschaft (nutzt dieselbe Abfrage; kommt mit Stufe 5).
+`ChatCommands` (der Klapptext „Chat Commands ▸“) wird nur noch vom Befehle-Panel benutzt und fällt mit Stufe 3. Karten abwählen (Einstellungen → Programm) kommt, wenn Nils es braucht. „Overlays als Quellen in OBS gefunden“ als Prüfpunkt der Bereitschaft (nutzt dieselbe Abfrage; kommt mit Stufe 5).

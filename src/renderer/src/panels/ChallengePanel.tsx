@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useApi, apiPatch } from '../hooks/useApi';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { StreamState, ProjectItem } from '../../../shared/types';
-import ChatCommands from '../components/ChatCommands';
 import { useToast } from '../contexts/ToastContext';
 
+// "Ziel für heute" on "Im Stream": a sentence and a running clock. Idle: one
+// field, one button. Running: the goal, the clock, and what to do with it.
 export default function ChallengePanel() {
   const { toast } = useToast();
   const { data: initialState, loading, refetch } = useApi<StreamState>('/stream-state');
@@ -36,7 +37,7 @@ export default function ChallengePanel() {
     if (!title.trim()) return;
     setIsEditing(false);
     const result = await apiPatch('/stream-state', { challenge_title: title.trim(), challenge_status: 'in_progress', timer_seconds: 0, timer_running: 1 });
-    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
+    if (!result) { toast.error('Ziel nicht gesetzt'); return; }
     refetch();
   };
 
@@ -67,64 +68,55 @@ export default function ChallengePanel() {
     refetch();
   };
 
-  if (loading && !state) {
-    return <div className="panel"><p className="empty">Laden...</p></div>;
-  }
+  if (loading && !state) return <div className="panel"><p className="empty">Laden …</p></div>;
 
-  const isActive = state?.challenge_title && state.challenge_status !== 'idle';
-  const statusColor = state?.challenge_status === 'in_progress' ? '#e74c3c' : state?.challenge_status === 'done' ? '#2ecc71' : state?.challenge_status === 'failed' ? '#e74c3c' : '#888';
-  const statusLabel = state?.challenge_status === 'in_progress' ? 'Läuft' : state?.challenge_status === 'done' ? 'Geschafft!' : state?.challenge_status === 'failed' ? 'Gescheitert' : '';
+  const isActive = !!state?.challenge_title && state.challenge_status !== 'idle';
+  const statusLabel = state?.challenge_status === 'in_progress' ? 'läuft' : state?.challenge_status === 'done' ? 'geschafft' : state?.challenge_status === 'failed' ? 'nicht geschafft' : '';
+  const statusTone = state?.challenge_status === 'done' ? 'ok' : state?.challenge_status === 'failed' ? 'bad' : 'live';
   const isLinkedToProgress = isActive && progressData?.items?.some(
-    item => item.status === 'in_progress' && item.title === state?.challenge_title
+    (item) => item.status === 'in_progress' && item.title === state?.challenge_title,
   );
 
-  return (
-    <div className="panel challenge-panel">
-      <p className="panel-desc">Setz dein Ziel für den Stream. Timer startet automatisch.</p>
-
-      {!isActive ? (
-        <div className="challenge-input">
+  if (!isActive) {
+    return (
+      <div className="panel card-slim">
+        <div className="card-row">
           <input
             type="text"
             placeholder="Was willst du heute schaffen?"
+            aria-label="Ziel für heute"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             onFocus={() => setIsEditing(true)}
             onBlur={() => setTimeout(() => setIsEditing(false), 200)}
             onKeyDown={(e) => e.key === 'Enter' && startChallenge()}
           />
-          <button onClick={startChallenge}>Los!</button>
+          <button type="button" className="card-primary" onClick={startChallenge} disabled={!title.trim()}>Los</button>
         </div>
-      ) : (
-        <>
-          <div className="challenge-status">
-            <span className="status-dot" style={{ background: statusColor }} />
-            <span className="challenge-title">{state?.challenge_title}</span>
-            <span className="challenge-state">{statusLabel}</span>
-          </div>
+        <div className="card-status"><span>Noch kein Ziel. Die Uhr startet mit „Los“.</span></div>
+      </div>
+    );
+  }
 
-          {isLinkedToProgress && (
-            <p className="linked-indicator">Verknüpft mit Progress Tracker</p>
-          )}
-
-          <div className="timer">
-            <span className="timer-display">{timerDisplay}</span>
-            <button onClick={toggleTimer} title={state?.timer_running ? 'Pausieren' : 'Weiter'}>
-              {state?.timer_running ? '⏸️' : '▶️'}
-            </button>
-          </div>
-
-          <div className="challenge-actions">
-            <button className="btn-done" onClick={() => finishChallenge('done')}>✅ Geschafft</button>
-            <button className="btn-failed" onClick={() => finishChallenge('failed')}>❌ Nicht geschafft</button>
-            <button className="btn-reset" onClick={cancelChallenge}>Abbrechen</button>
-          </div>
-        </>
-      )}
-      <ChatCommands commands={[
-        { cmd: '!challenge', desc: 'Zeigt aktuelle Challenge + Status' },
-        { cmd: '!uptime', desc: 'Wie lange läuft der Stream' },
-      ]} />
+  return (
+    <div className="panel card-slim">
+      <div className="card-goal">
+        <span className={`card-goal-dot ${statusTone}`} aria-hidden="true" />
+        <span className="card-goal-title">{state?.challenge_title}</span>
+        <span className="card-goal-state">{statusLabel}</span>
+      </div>
+      <div className="card-line">
+        <span className="card-timer">{timerDisplay}</span>
+        <button type="button" className="card-secondary" onClick={toggleTimer}>{state?.timer_running ? 'Pause' : 'Weiter'}</button>
+      </div>
+      <div className="card-row">
+        <button type="button" className="card-primary" onClick={() => finishChallenge('done')}>Geschafft</button>
+        <button type="button" className="card-secondary" onClick={() => finishChallenge('failed')}>Nicht geschafft</button>
+      </div>
+      <div className="card-status">
+        {isLinkedToProgress && <span>Hängt am aktiven Punkt unter „Fortschritt“.</span>}
+        <button type="button" className="card-link" onClick={cancelChallenge}>Abbrechen</button>
+      </div>
     </div>
   );
 }

@@ -2,135 +2,90 @@ import React, { useState, useEffect } from 'react';
 import { useApi, apiPost, apiPatch, apiDelete, getApiToken, getApiBase } from '../hooks/useApi';
 import { ProjectItem, StreamState, Milestone } from '../../../shared/types';
 import { useWebSocket } from '../hooks/useWebSocket';
-import ChatCommands from '../components/ChatCommands';
 import { useToast } from '../contexts/ToastContext';
-import EmptyState from '../components/ux/EmptyState';
 import { celebrate } from '../components/ux/celebrate';
+import Dialog from '../components/ux/Dialog';
 
-const LEVEL_CONFIG_PROGRESS = {
-  minor: { emoji: '✨' },
-  major: { emoji: '🎉' },
-  epic: { emoji: '🏆' },
-} as const;
+const LEVEL_WORD: Record<Milestone['level'], string> = { minor: 'klein', major: 'groß', epic: 'episch' };
 
 interface ProgressData {
   project_name: string | null;
   items: ProjectItem[];
 }
 
+// "Fortschritt" on "Im Stream": the project, its bar, and the tasks of what
+// is active right now — tick them off here. The whole board (backlog, active,
+// done, drag & drop, milestones, export) sits behind "Aufgaben bearbeiten".
 export default function ProgressPanel() {
   const { data, loading, refetch } = useApi<ProgressData>('/progress');
-  const [newItem, setNewItem] = useState('');
-  const [editingName, setEditingName] = useState(false);
-  const [projectName, setProjectName] = useState('');
   const { toast } = useToast();
   const { data: streamState } = useApi<StreamState>('/stream-state');
   const { data: milestones, refetch: refetchMilestones } = useApi<Milestone[]>('/milestones');
+  const [newItem, setNewItem] = useState('');
+  const [editingName, setEditingName] = useState(false);
+  const [projectName, setProjectName] = useState('');
   const [liveSeconds, setLiveSeconds] = useState(0);
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
-  const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
   const [newTodoText, setNewTodoText] = useState<Record<number, string>>({});
-  const [focusItemId, setFocusItemId] = useState<number | null>(null);
   const [milestonePickerTodo, setMilestonePickerTodo] = useState<number | null>(null);
+  const [board, setBoard] = useState(false);
 
   useWebSocket((event) => {
     if (event.startsWith('progress-')) refetch();
     if (event.startsWith('milestone-')) refetchMilestones();
   });
 
-  // Auto-expand active items that have no sub-todos — guides the user to add some
-  useEffect(() => {
-    const items = data?.items;
-    if (!items) return;
-    const emptyActive = items.filter(i => i.status === 'in_progress' && (i.todos || []).length === 0);
-    if (emptyActive.length === 0) return;
-    setExpandedItems(prev => {
-      const next = new Set(prev);
-      let changed = false;
-      for (const i of emptyActive) {
-        if (!next.has(i.id)) { next.add(i.id); changed = true; }
-      }
-      return changed ? next : prev;
-    });
-  }, [data?.items]);
-
-  useEffect(() => {
-    if (streamState) setLiveSeconds(streamState.timer_seconds);
-  }, [streamState]);
-
+  useEffect(() => { if (streamState) setLiveSeconds(streamState.timer_seconds); }, [streamState]);
   useEffect(() => {
     if (!streamState?.timer_running) return;
-    const interval = setInterval(() => {
-      setLiveSeconds(s => s + 1);
-    }, 1000);
+    const interval = setInterval(() => setLiveSeconds((s) => s + 1), 1000);
     return () => clearInterval(interval);
   }, [streamState?.timer_running]);
 
   const formatTime = (seconds: number): string => {
-    if (seconds < 60) return '< 1m';
+    if (seconds < 60) return '< 1 min';
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
-    return h > 0 ? `${h}h ${m}m` : `${m}m`;
+    return h > 0 ? `${h} h ${m} min` : `${m} min`;
   };
 
   const addItem = async () => {
     if (!newItem.trim()) return;
     const result = await apiPost('/progress/items', { title: newItem.trim() });
-    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
+    if (!result) { toast.error('Punkt nicht gespeichert'); return; }
     setNewItem('');
     refetch();
   };
-
-  const cycleStatus = async (item: ProjectItem) => {
-    const next = item.status === 'pending' ? 'in_progress' : item.status === 'in_progress' ? 'done' : 'pending';
-    const result = await apiPatch(`/progress/items/${item.id}`, {
-      status: next,
-      current_timer_seconds: liveSeconds,
-    });
+  const setStatus = async (item: ProjectItem, status: string) => {
+    if (item.status === status) return;
+    const result = await apiPatch(`/progress/items/${item.id}`, { status, current_timer_seconds: liveSeconds });
     if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
-    if (next === 'in_progress' && (item.todos || []).length === 0) {
-      setFocusItemId(item.id);
-    }
     refetch();
   };
-
   const deleteItem = async (id: number) => {
     const ok = await apiDelete(`/progress/items/${id}`);
     if (!ok) { toast.error('Aktion fehlgeschlagen'); return; }
     refetch();
   };
-
-  const toggleExpand = (id: number) => {
-    setExpandedItems(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
   const addTodo = async (itemId: number) => {
     const text = newTodoText[itemId]?.trim();
     if (!text) return;
     const result = await apiPost(`/progress/items/${itemId}/todos`, { title: text });
-    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
-    setNewTodoText(prev => ({ ...prev, [itemId]: '' }));
+    if (!result) { toast.error('Aufgabe nicht gespeichert'); return; }
+    setNewTodoText((prev) => ({ ...prev, [itemId]: '' }));
     refetch();
   };
-
   const toggleTodo = async (todoId: number, currentDone: number, el?: HTMLElement | null) => {
     const result = await apiPatch(`/progress/todos/${todoId}`, { done: currentDone ? 0 : 1 });
     if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
     if (currentDone === 0 && el) celebrate('check', el);
     refetch();
   };
-
   const deleteTodo = async (todoId: number) => {
     const ok = await apiDelete(`/progress/todos/${todoId}`);
     if (!ok) { toast.error('Aktion fehlgeschlagen'); return; }
     refetch();
   };
-
   const linkTodoToMilestone = async (todoId: number, milestoneId: number | null) => {
     const result = await apiPatch(`/progress/todos/${todoId}`, { milestone_id: milestoneId });
     if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
@@ -138,282 +93,199 @@ export default function ProgressPanel() {
     refetch();
     refetchMilestones();
   };
-
   const saveProjectName = async () => {
     const result = await apiPatch('/progress/project', { project_name: projectName });
-    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
+    if (!result) { toast.error('Name nicht gespeichert'); return; }
     setEditingName(false);
     refetch();
   };
-
   const exportCsv = () => {
-    const token = getApiToken();
-    window.open(`${getApiBase()}/progress/export?token=${token}`, '_blank');
+    window.open(`${getApiBase()}/progress/export?token=${getApiToken()}`, '_blank');
   };
 
-  // Drag-and-drop handlers
+  // Drag & drop between the three columns of the board.
   const handleDragStart = (e: React.DragEvent, itemId: number) => {
     e.dataTransfer.setData('text/plain', String(itemId));
     e.dataTransfer.effectAllowed = 'move';
     (e.target as HTMLElement).classList.add('dragging');
   };
-
   const handleDragEnd = (e: React.DragEvent) => {
     (e.target as HTMLElement).classList.remove('dragging');
     setDragOverColumn(null);
   };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-  };
-
-  const handleDragEnter = (status: string) => {
-    setDragOverColumn(status);
-  };
-
+  const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; };
   const handleDragLeave = (e: React.DragEvent, status: string) => {
-    // Only clear if leaving the column entirely (not entering a child)
     const related = e.relatedTarget as HTMLElement;
     if (!related || !(e.currentTarget as HTMLElement).contains(related)) {
       if (dragOverColumn === status) setDragOverColumn(null);
     }
   };
-
   const handleDrop = async (targetStatus: string, e: React.DragEvent) => {
     e.preventDefault();
     setDragOverColumn(null);
     const itemId = Number(e.dataTransfer.getData('text/plain'));
-    if (!itemId) return;
-
-    const item = items.find(i => i.id === itemId);
-    if (!item || item.status === targetStatus) return;
-
-    const result = await apiPatch(`/progress/items/${itemId}`, {
-      status: targetStatus,
-      current_timer_seconds: liveSeconds,
-    });
-    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
-    if (targetStatus === 'in_progress' && (item.todos || []).length === 0) {
-      setFocusItemId(itemId);
-    }
-    refetch();
+    const item = items.find((i) => i.id === itemId);
+    if (!item) return;
+    await setStatus(item, targetStatus);
   };
 
-  if (loading && !data) {
-    return <div className="panel"><p className="empty">Laden...</p></div>;
-  }
+  if (loading && !data) return <div className="panel"><p className="empty">Laden …</p></div>;
 
-  const items = data?.items || [];
-  const backlog = items.filter(i => i.status === 'pending').sort((a, b) => a.sort_order - b.sort_order);
-  const inProgress = items.filter(i => i.status === 'in_progress').sort((a, b) => a.sort_order - b.sort_order);
-  const done = items.filter(i => i.status === 'done').sort((a, b) => a.sort_order - b.sort_order);
-  const doneCount = done.length;
+  const items = data?.items ?? [];
+  const bySort = (a: ProjectItem, b: ProjectItem) => a.sort_order - b.sort_order;
+  const backlog = items.filter((i) => i.status === 'pending').sort(bySort);
+  const inProgress = items.filter((i) => i.status === 'in_progress').sort(bySort);
+  const done = items.filter((i) => i.status === 'done').sort(bySort);
+  const pct = items.length > 0 ? (done.length / items.length) * 100 : 0;
 
-  const statusEmoji = (s: string) => s === 'done' ? '✅' : s === 'in_progress' ? '🔨' : '⬜';
-
-  const renderItem = (item: ProjectItem) => {
-    const isActive = item.status === 'in_progress';
-    const displayTime = isActive ? item.time_spent + liveSeconds : item.time_spent;
-    const isExpanded = expandedItems.has(item.id);
-    const todos = item.todos || [];
-    const doneTodos = todos.filter(td => td.done);
-    const hasTodos = todos.length > 0;
-
+  const renderTodos = (item: ProjectItem, withMilestones: boolean) => {
+    const todos = item.todos ?? [];
     return (
-      <div
-        key={item.id}
-        className={`kanban-item status-${item.status} ${isExpanded ? 'expanded' : ''}`}
-      >
-        <div
-          className="kanban-item-header"
-          draggable
-          onDragStart={e => handleDragStart(e, item.id)}
-          onDragEnd={handleDragEnd}
-        >
-          <button className="status-toggle" onClick={e => { e.stopPropagation(); cycleStatus(item); }}>{statusEmoji(item.status)}</button>
-          <span className={`item-title ${hasTodos && doneTodos.length === todos.length ? 'all-done' : ''}`} onClick={() => toggleExpand(item.id)}>{item.title}</span>
-          {hasTodos && <span className="todo-count">☑ {doneTodos.length}/{todos.length}</span>}
-          {displayTime > 0 && <span className="item-time">{formatTime(displayTime)}</span>}
-          <button className="btn-delete-small" onClick={e => { e.stopPropagation(); deleteItem(item.id); }} title="Löschen">✕</button>
-        </div>
-        {hasTodos && (
-          <div className="kanban-item-progress">
-            <div
-              className={`kanban-item-progress-fill ${doneTodos.length === todos.length ? 'full' : ''}`}
-              style={{ width: `${(doneTodos.length / todos.length) * 100}%` }}
-            />
-          </div>
-        )}
-        {isExpanded && (
-          <div className="kanban-item-todos">
-            {isActive && todos.length === 0 && (
-              <div className="sub-todos-hint">📺 Sub-Tasks erscheinen live im Overlay — füge hier welche hinzu 👇</div>
-            )}
-            {todos.map(td => {
-              const projectMilestones = (milestones || []).filter(
-                ms => ms.project_id === item.id && ms.status === 'pending'
-              );
-              const linkedMs = td.milestone_id
-                ? (milestones || []).find(ms => ms.id === td.milestone_id)
-                : null;
-              const showIcon = linkedMs || projectMilestones.length > 0;
-
-              return (
-                <div key={td.id} className={`sub-todo ${td.done ? 'done' : ''}`}>
-                  <button
-                    className="sub-todo-check"
-                    onClick={e => toggleTodo(td.id, td.done, e.currentTarget)}
-                  >
-                    {td.done ? '☑' : '☐'}
-                  </button>
-                  <span className="sub-todo-title">{td.title}</span>
-                  {showIcon && (
-                    <span className="sub-todo-milestone-wrapper">
-                      <button
-                        className={`sub-todo-milestone ${linkedMs ? 'linked' : 'unlinked'}`}
-                        onClick={() => setMilestonePickerTodo(milestonePickerTodo === td.id ? null : td.id)}
-                        title={linkedMs ? linkedMs.title : 'Mit Milestone verknüpfen'}
-                      >
-                        🏆
-                      </button>
-                      {milestonePickerTodo === td.id && (
-                        <div className="milestone-picker">
-                          {linkedMs && (
-                            <button
-                              className="milestone-picker-item unlink"
-                              onClick={() => linkTodoToMilestone(td.id, null)}
-                            >
-                              ✕ Trennen
-                            </button>
-                          )}
-                          {projectMilestones.map(ms => (
-                            <button
-                              key={ms.id}
-                              className={`milestone-picker-item ${td.milestone_id === ms.id ? 'active' : ''}`}
-                              onClick={() => linkTodoToMilestone(td.id, ms.id)}
-                            >
-                              {LEVEL_CONFIG_PROGRESS[ms.level]?.emoji} {ms.title}
-                            </button>
-                          ))}
-                          {projectMilestones.length === 0 && !linkedMs && (
-                            <span className="milestone-picker-empty">Keine Milestones für dieses Projekt</span>
-                          )}
-                        </div>
-                      )}
-                    </span>
+      <ul className="card-todos">
+        {todos.map((td) => {
+          const projectMilestones = (milestones ?? []).filter((ms) => ms.project_id === item.id && ms.status === 'pending');
+          const linked = td.milestone_id ? (milestones ?? []).find((ms) => ms.id === td.milestone_id) : null;
+          return (
+            <li key={td.id} className={td.done ? 'done' : ''}>
+              <label className="card-todo">
+                <input type="checkbox" checked={!!td.done} onChange={(e) => toggleTodo(td.id, td.done, e.currentTarget)} />
+                <span>{td.title}</span>
+              </label>
+              {withMilestones && (
+                <span className="card-todo-tools">
+                  {linked && <span className="dialog-hint">Meilenstein: {linked.title}</span>}
+                  {(linked || projectMilestones.length > 0) && (
+                    <button type="button" className="card-link" onClick={() => setMilestonePickerTodo(milestonePickerTodo === td.id ? null : td.id)}>
+                      {linked ? 'Meilenstein ändern' : 'Meilenstein'}
+                    </button>
                   )}
-                  <button className="btn-delete-small" onClick={() => deleteTodo(td.id)} title="Löschen">✕</button>
+                  <button type="button" className="card-link" onClick={() => deleteTodo(td.id)}>Löschen</button>
+                </span>
+              )}
+              {withMilestones && milestonePickerTodo === td.id && (
+                <div className="card-picker">
+                  {linked && <button type="button" className="card-link" onClick={() => linkTodoToMilestone(td.id, null)}>Vom Meilenstein lösen</button>}
+                  {projectMilestones.map((ms) => (
+                    <button key={ms.id} type="button" className={`card-secondary ${td.milestone_id === ms.id ? 'active' : ''}`} onClick={() => linkTodoToMilestone(td.id, ms.id)}>
+                      {ms.title} ({LEVEL_WORD[ms.level]})
+                    </button>
+                  ))}
+                  {projectMilestones.length === 0 && !linked && <span className="dialog-hint">Kein offener Meilenstein für diesen Punkt.</span>}
                 </div>
-              );
-            })}
-              <div className="sub-todo-add">
-                <input
-                  ref={el => {
-                    if (el && focusItemId === item.id) {
-                      el.focus();
-                      setFocusItemId(null);
-                    }
-                  }}
-                  type="text"
-                  placeholder="Neues Todo..."
-                  value={newTodoText[item.id] || ''}
-                  onChange={e => setNewTodoText(prev => ({ ...prev, [item.id]: e.target.value }))}
-                  onKeyDown={e => e.key === 'Enter' && addTodo(item.id)}
-                  onClick={e => e.stopPropagation()}
-                />
-                <button onClick={() => addTodo(item.id)}>+</button>
-              </div>
-          </div>
-        )}
-      </div>
+              )}
+            </li>
+          );
+        })}
+        <li className="card-todo-add">
+          <input
+            type="text"
+            placeholder="Aufgabe hinzufügen"
+            aria-label={`Aufgabe für ${item.title}`}
+            value={newTodoText[item.id] ?? ''}
+            onChange={(e) => setNewTodoText((prev) => ({ ...prev, [item.id]: e.target.value }))}
+            onKeyDown={(e) => e.key === 'Enter' && addTodo(item.id)}
+          />
+          <button type="button" className="card-secondary" onClick={() => addTodo(item.id)} disabled={!(newTodoText[item.id] ?? '').trim()}>Hinzufügen</button>
+        </li>
+      </ul>
     );
   };
 
-  const renderColumn = (status: string, label: string, emoji: string, columnItems: ProjectItem[]) => (
+  const renderColumn = (status: string, label: string, columnItems: ProjectItem[]) => (
     <div
       className={`kanban-column ${dragOverColumn === status ? 'drag-over' : ''}`}
       onDragOver={handleDragOver}
-      onDragEnter={() => handleDragEnter(status)}
-      onDragLeave={e => handleDragLeave(e, status)}
-      onDrop={e => handleDrop(status, e)}
+      onDragEnter={() => setDragOverColumn(status)}
+      onDragLeave={(e) => handleDragLeave(e, status)}
+      onDrop={(e) => handleDrop(status, e)}
     >
-      <div className="kanban-column-header">
-        <span>{emoji} {label}</span>
-        <span className="kanban-count">{columnItems.length}</span>
-      </div>
+      <div className="kanban-column-header"><span>{label}</span><span className="kanban-count">{columnItems.length}</span></div>
       <div className="kanban-items">
-        {columnItems.map(renderItem)}
-        {columnItems.length === 0 && (
-          <p className="kanban-empty">Hierher ziehen</p>
-        )}
+        {columnItems.map((item) => {
+          const todos = item.todos ?? [];
+          const doneTodos = todos.filter((t) => t.done).length;
+          const time = item.status === 'in_progress' ? item.time_spent + liveSeconds : item.time_spent;
+          return (
+            <div key={item.id} className={`kanban-item status-${item.status} expanded`}>
+              <div className="kanban-item-header" draggable onDragStart={(e) => handleDragStart(e, item.id)} onDragEnd={handleDragEnd}>
+                <span className="item-title">{item.title}</span>
+                {todos.length > 0 && <span className="todo-count">{doneTodos}/{todos.length}</span>}
+                {time > 0 && <span className="item-time">{formatTime(time)}</span>}
+              </div>
+              <div className="card-row card-wrap">
+                {status !== 'pending' && <button type="button" className="card-link" onClick={() => setStatus(item, 'pending')}>Zurück in den Vorrat</button>}
+                {status !== 'in_progress' && <button type="button" className="card-link" onClick={() => setStatus(item, 'in_progress')}>Aktiv setzen</button>}
+                {status !== 'done' && <button type="button" className="card-link" onClick={() => setStatus(item, 'done')}>Erledigt</button>}
+                <button type="button" className="card-link" onClick={() => deleteItem(item.id)}>Löschen</button>
+              </div>
+              {renderTodos(item, true)}
+            </div>
+          );
+        })}
+        {columnItems.length === 0 && <p className="kanban-empty">Hierher ziehen</p>}
       </div>
-      {status === 'pending' && (
-        <div className="kanban-add">
-          <input
-            type="text"
-            placeholder="Neues Item..."
-            value={newItem}
-            onChange={e => setNewItem(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && addItem()}
-          />
-          <button onClick={addItem}>+</button>
-        </div>
-      )}
     </div>
   );
 
   return (
-    <div className="panel progress-panel">
-
-      <div className="progress-header">
-        {editingName ? (
-          <div className="project-name-edit">
-            <input
-              type="text"
-              value={projectName}
-              onChange={e => setProjectName(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && saveProjectName()}
-              placeholder="Projektname..."
-            />
-            <button onClick={saveProjectName}>💾</button>
-          </div>
-        ) : (
-          <div className="project-name" onClick={() => { setEditingName(true); setProjectName(data?.project_name || ''); }}>
-            <strong>{data?.project_name || 'Kein Projekt'}</strong> ✏️
-          </div>
-        )}
-        <span className="progress-count">{doneCount}/{items.length} done</span>
-        <button className="btn-export-small" onClick={exportCsv} title="CSV Export">📥</button>
+    <div className="panel card-slim">
+      <div className="card-line">
+        <span className="card-goal-title">{data?.project_name || 'Kein Projekt benannt'}</span>
+        <span className="card-status">{done.length} von {items.length} erledigt</span>
       </div>
+      <div className="progress-bar-container"><div className="progress-bar" style={{ width: `${pct}%` }} /></div>
 
-      <div className="progress-bar-container">
-        <div className="progress-bar" style={{ width: items.length > 0 ? `${(doneCount / items.length) * 100}%` : '0%' }} />
-      </div>
-
-      {items.length === 0 ? (
-        <EmptyState
-          icon="📋"
-          title="Dein Kanban ist leer"
-          description="Features und Tasks, die du streamst, verwaltest du hier. Fang klein an."
-          inlineInput={{
-            value: newItem,
-            onChange: setNewItem,
-            onSubmit: addItem,
-            placeholder: 'Neues Item...',
-          }}
-        />
+      {inProgress.length === 0 ? (
+        <div className="card-status"><span>{items.length === 0 ? 'Noch keine Punkte. Unter „Aufgaben bearbeiten“ legst du den ersten an.' : 'Nichts aktiv. Unter „Aufgaben bearbeiten“ setzt du einen Punkt aktiv.'}</span></div>
       ) : (
-        <div className="kanban-board">
-          {renderColumn('pending', 'Backlog', '⬜', backlog)}
-          {renderColumn('in_progress', 'Aktiv', '🔨', inProgress)}
-          {renderColumn('done', 'Erledigt', '✅', done)}
-        </div>
+        inProgress.map((item) => (
+          <div key={item.id} className="card-active-item">
+            <div className="card-active-title">Aktiv: {item.title}</div>
+            {renderTodos(item, false)}
+          </div>
+        ))
       )}
 
-      <ChatCommands commands={[
-        { cmd: '!progress', desc: 'Zeigt Projektfortschritt' },
-      ]} />
+      <div className="card-links">
+        <button type="button" className="card-link" onClick={() => setBoard(true)}>Aufgaben bearbeiten</button>
+      </div>
+
+      {board && (
+        <Dialog
+          title="Aufgaben bearbeiten"
+          sentence="Alle Punkte des Projekts in drei Spalten. Ziehen oder per Knopf verschieben; Aufgaben hängen am Punkt, Meilensteine an Aufgaben."
+          onClose={() => setBoard(false)}
+          width={1040}
+          footer={<>
+            <button type="button" className="card-link" onClick={exportCsv}>Als CSV exportieren</button>
+            <span style={{ flex: 1 }} />
+            <button type="button" className="card-primary" onClick={() => setBoard(false)}>Fertig</button>
+          </>}
+        >
+          <div className="card-row">
+            {editingName ? (
+              <>
+                <input type="text" value={projectName} placeholder="Projektname" aria-label="Projektname" onChange={(e) => setProjectName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && saveProjectName()} />
+                <button type="button" className="card-primary" onClick={saveProjectName}>Speichern</button>
+              </>
+            ) : (
+              <>
+                <span className="card-goal-title card-grow">{data?.project_name || 'Kein Projekt benannt'}</span>
+                <button type="button" className="card-secondary" onClick={() => { setEditingName(true); setProjectName(data?.project_name ?? ''); }}>Umbenennen</button>
+              </>
+            )}
+          </div>
+          <div className="card-row">
+            <input type="text" placeholder="Neuer Punkt für den Vorrat" aria-label="Neuer Punkt" value={newItem} onChange={(e) => setNewItem(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addItem()} />
+            <button type="button" className="card-secondary" onClick={addItem} disabled={!newItem.trim()}>Hinzufügen</button>
+          </div>
+          <div className="kanban-board">
+            {renderColumn('pending', 'Vorrat', backlog)}
+            {renderColumn('in_progress', 'Aktiv', inProgress)}
+            {renderColumn('done', 'Erledigt', done)}
+          </div>
+        </Dialog>
+      )}
     </div>
   );
 }
