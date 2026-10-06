@@ -161,7 +161,7 @@
 
       switch (event) {
         case 'reward-redeemed': {
-          // A redemption that counts in a Bestenliste gets its own alert below.
+          // A redemption that counts in a Bestenliste shows no alert: the list overlay counts up instead (Nils, 06.10.).
           let extra = {};
           try { extra = JSON.parse(data.data || '{}'); } catch {}
           if (data.reward_type === 'roulette' || extra.leaderboard) break;
@@ -174,14 +174,6 @@
           break;
         }
 
-        case 'leaderboard-point':
-          showAlert({
-            label: data.title,
-            who: data.user,
-            text: `löst ${data.title} ein – Nr. ${data.count}${data.rank ? `, Platz ${data.rank}` : ''}`,
-            kind: 'reward',
-          });
-          break;
 
         case 'compile-pray':
           showAlert({ label: 'Moment', text: 'Läuft es? Oder stürzt es ab?', kind: 'compile' });
