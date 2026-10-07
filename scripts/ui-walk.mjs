@@ -12,7 +12,9 @@ import { launch } from './showcase-browser.mjs';
 // ~/.nst/connection.json, which the server writes on start.
 // Usage: npm run ui:walk            → design/ui-walk/<size>-<area>[-<tab>].png
 
-const connectionFile = path.join(os.homedir(), '.nst', 'connection.json');
+// Same place the server writes it (src/server/connection-file.ts): %APPDATA%\.nst on Windows, ~/.nst elsewhere.
+const nstDir = process.platform === 'win32' ? (process.env.APPDATA || os.homedir()) : os.homedir();
+const connectionFile = path.join(nstDir, '.nst', 'connection.json');
 if (!fs.existsSync(connectionFile)) {
   console.error('Keine Verbindung gefunden (~/.nst/connection.json). Läuft der Server?');
   process.exit(1);
