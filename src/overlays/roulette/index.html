@@ -2,243 +2,175 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<title>Lucky Spin - OBS Overlay</title>
+<title>Glücksrad - OBS Overlay</title>
 <link rel="stylesheet" href="/overlay/lexikon.css">
 <style>
-  /* Sizes are in vmin so everything grows with the browser source; they match
-     the old pixel sizes at a 600 px high source. */
+  /* The wheel is a reel: the list rolls through a window and stops on the
+     draw. Drawn for the 704 px square it has in the scene "main" — one --u is
+     one of those pixels, so everything grows with the browser source. */
+  :root { --u: calc(100vmin / 704); }
+
   body {
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
   }
 
-  .container {
+  .panel {
+    width: calc(620 * var(--u));
+    padding: calc(26 * var(--u)) calc(30 * var(--u)) calc(24 * var(--u));
+    background: color-mix(in srgb, var(--color-bg) calc(var(--color-bg-opacity) * 100%), transparent);
+    color: var(--color-text);
+    font-family: var(--font-body);
+    opacity: 0;
+    transform: translateY(calc(12 * var(--u)));
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+  .panel.visible { opacity: 1; transform: none; }
+  .panel.hiding { opacity: 0; transition: opacity 0.8s ease; }
+
+  /* Kicker: the wheel's name in the accent, a line, how many are on it. */
+  .kicker {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 1.33vmin;
-    width: 100%;
-    height: 100vh;
-    padding: 1.33vmin;
-    justify-content: center;
-    opacity: 0;
-    transform: scale(0.5);
-    transition: opacity 0.5s ease, transform 0.5s ease;
-    pointer-events: none;
+    gap: calc(14 * var(--u));
+    font: italic 400 calc(15 * var(--u)) var(--font-display);
   }
+  .kicker .what { color: var(--color-accent); }
+  .kicker .line { flex: 1; height: 1px; background: var(--lex-kicker-line); }
+  .kicker .count { color: var(--lex-faint); }
 
-  .container.visible {
-    opacity: 1;
-    transform: scale(1);
-    pointer-events: auto;
-  }
-
-  .container.hiding {
-    opacity: 0;
-    transform: scale(0.8) translateY(-20px);
-    transition: opacity 0.8s ease, transform 0.8s ease;
-  }
-
-  .counter {
-    display: flex;
-    align-items: baseline;
-    gap: 1.33vmin;
-    padding: 1vmin 2.33vmin;
-    flex-shrink: 0;
-  }
-
-  .counter .diamond {
-    color: var(--art);
-    font-size: 2.33vmin;
-    animation: orbFloat 2s ease-in-out infinite;
-  }
-
-  /* The line above the wheel: what it is, in the accent — then how many are on it. */
-  .counter .what {
-    color: var(--color-accent);
-    font-family: var(--font-display);
-    font-style: italic;
-    font-size: 3vmin;
-  }
-
-  .counter .pts {
-    color: var(--lex-faint);
-    font-family: var(--font-display);
-    font-style: italic;
-    font-size: 1.83vmin;
-  }
-
-  .wheel-wrapper {
+  /* Five rows show; the middle one is where the reel stops. */
+  .window {
+    --row: calc(64 * var(--u));
     position: relative;
-    flex: 1;
-    min-height: 0;
-    aspect-ratio: 1;
-    max-width: 90vw;
-  }
-
-  .wheel-rotate {
-    width: 100%;
-    height: 100%;
-  }
-  .wheel-rotate svg {
-    width: 100%;
-    height: 100%;
-  }
-
-  .orb { display: none; }
-
-  .pointer-wrap {
-    position: absolute;
-    top: -3vmin;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 20;
-  }
-
-  .pointer-wrap svg {
-    width: 4.67vmin;
-    height: 6.67vmin;
-  }
-
-  /* The result keeps its room below the wheel at all times — shown or not —
-     so the wheel never shrinks to make space for it when it comes. */
-  .result {
-    padding: 1.33vmin 2.67vmin;
-    text-align: center;
-    flex-shrink: 0;
-    width: 100%;
-    box-sizing: border-box;
-    height: 16vmin;
+    height: calc(5 * var(--row));
+    margin-top: calc(18 * var(--u));
     overflow: hidden;
-    animation: fadeIn 0.4s ease-out forwards;
+    -webkit-mask-image: linear-gradient(transparent, #000 22%, #000 78%, transparent);
+    mask-image: linear-gradient(transparent, #000 22%, #000 78%, transparent);
   }
-  .result.hidden { display: block; visibility: hidden; animation: none; }
-
-  .result-label {
-    color: var(--color-secondary);
-    font-family: var(--font-display);
-    font-size: 2vmin;
-    letter-spacing: 0;
-    margin-bottom: 1vmin;
-    font-style: italic;
+  .band {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    will-change: transform;
   }
-
-  .result-value {
-    font-family: var(--font-display);
-    font-size: 4.27vmin;
-    color: var(--color-primary);
-    /* One line, however long the title — a second one would push the wheel. */
+  .row {
+    height: var(--row);
+    display: flex;
+    align-items: center;
+    padding: 0 calc(22 * var(--u)) 0 calc(46 * var(--u));
+    border-bottom: 1px solid var(--lex-rule);
+    font-size: calc(22 * var(--u));
+    color: var(--lex-soft);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
-
-  .result-sub {
-    font-family: var(--font-body);
-    font-style: italic;
-    font-size: 2vmin;
-    color: var(--color-secondary);
-    margin-top: 0.67vmin;
+  .row.won {
+    background: var(--color-accent);
+    color: var(--color-primary);
+    font-weight: 700;
+  }
+  .mark {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(2 * var(--row));
+    height: var(--row);
+    border-top: 1px solid var(--color-accent);
+    border-bottom: 1px solid var(--color-accent);
+    pointer-events: none;
+  }
+  .mark::before {
+    content: '';
+    position: absolute;
+    left: calc(14 * var(--u));
+    top: 50%;
+    transform: translateY(-50%);
+    border-top: calc(11 * var(--u)) solid transparent;
+    border-bottom: calc(11 * var(--u)) solid transparent;
+    border-left: calc(18 * var(--u)) solid var(--color-accent);
   }
 
-  .hidden { display: none; }
-
-  @keyframes fadeIn {
-    0% { opacity: 0; transform: translateY(8px); }
-    100% { opacity: 1; transform: translateY(0); }
-  }
-
-  @keyframes orbFloat {
-    0% { transform: translateY(0); opacity: .4; }
-    50% { transform: translateY(-4px); opacity: .8; }
-    100% { transform: translateY(0); opacity: .4; }
+  .foot {
+    margin-top: calc(16 * var(--u));
+    min-height: calc(22 * var(--u));
+    font: italic 400 calc(15 * var(--u)) var(--font-body);
+    color: var(--lex-faint);
   }
 </style>
 </head>
 <body>
 
-<div class="container lex lex-fluechtig">
-  <div class="counter">
-    <span class="diamond">&#9670;</span>
+<div class="panel" id="panel">
+  <div class="kicker">
     <span class="what" id="rouletteTitle">Glücksrad</span>
-    <span class="pts" id="totalPts"></span>
+    <span class="line"></span>
+    <span class="count" id="count"></span>
   </div>
-
-  <div class="wheel-wrapper">
-    <div id="orbs"></div>
-
-    <div class="pointer-wrap" id="pointer">
-      <svg width="28" height="40" viewBox="0 0 14 20">
-        <polygon points="7,0 14,18 0,18" style="fill:var(--color-primary);stroke:var(--color-bg)" stroke-width="1"/>
-        <polygon points="7,3 11,16 3,16" style="fill:var(--art)"/>
-      </svg>
-    </div>
-
-    <div class="wheel-rotate" id="wheel"></div>
+  <div class="window">
+    <div class="band" id="band"></div>
+    <div class="mark"></div>
   </div>
-
-  <div class="result hidden" id="resultBox">
-    <div class="result-label">Ergebnis</div>
-    <div class="result-value" id="resultValue"></div>
-    <div class="result-sub" id="resultSub"></div>
-  </div>
+  <div class="foot" id="foot"></div>
 </div>
 
 <script src="/overlay/boot.js" data-overlay="roulette"></script>
 <script>
-// Two alternating grounds from the palette, so the wheel follows the settings
-// panel like everything else. SVG presentation attributes do not take var(),
-// hence the style attributes further down.
-const PALETTE = [
-  { bg: 'var(--color-bg)', txt: 'var(--lex-faint)' },
-  { bg: 'var(--color-bg-secondary)', txt: 'var(--lex-soft)' },
-];
+// How often the list repeats on the band. The reel runs over most of it, so
+// even two topics roll long enough to look like a draw.
+const LAPS = 14;
+// Matches WHEEL_SPIN_MS in src/server/api/actions.ts — the server holds
+// roulette-result back that long, so the alert does not give the winner away.
+const SPIN_MS = 5000;
+const RESULT_DISPLAY_MS = 6000;
+const HINT = 'Der Chat wirft Themen ein mit !themen';
 
-let SEGMENTS = [];
-let N, ANG;
-const R=140, CX=160, CY=160;
-let rotation=0, spinning=false, total=0;
-let pendingWinnerId = null;
+let topics = [];
+let position = 0;      // index on the band that sits in the middle row
+let spinning = false;
 let hideTimeout = null;
-const RESULT_DISPLAY_MS = 6000; // Show result for 6 seconds then hide
-const container = () => document.querySelector('.container');
+const panel = document.getElementById('panel');
+const band = document.getElementById('band');
 
 function showOverlay() {
   if (hideTimeout) { clearTimeout(hideTimeout); hideTimeout = null; }
-  const el = container();
-  el.classList.remove('hiding');
-  el.classList.add('visible');
+  panel.classList.remove('hiding');
+  panel.classList.add('visible');
 }
 
 function hideOverlay() {
-  const el = container();
-  el.classList.add('hiding');
-  el.classList.remove('visible');
-  setTimeout(() => {
-    el.classList.remove('hiding');
-    document.getElementById('resultBox').classList.add('hidden');
-  }, 800);
+  panel.classList.add('hiding');
+  panel.classList.remove('visible');
+  setTimeout(() => panel.classList.remove('hiding'), 800);
 }
 
-// Build the wheel from a list of issues
-function setSegments(openIssues) {
-  if (openIssues.length === 0) {
-    SEGMENTS = [{ id: 0, label: "Keine Themen", bg: 'var(--color-bg)', txt: 'var(--lex-faint)', title: "Keine offenen Themen" }];
-  } else {
-    SEGMENTS = openIssues.map((issue, i) => {
-      const style = PALETTE[i % PALETTE.length];
-      // Truncate long titles for the wheel
-      const label = issue.title.length > 12 ? issue.title.substring(0, 11) + '…' : issue.title;
-      return { id: issue.id, label, bg: style.bg, txt: style.txt, title: issue.title };
-    });
-  }
+function rowHeight() {
+  return band.firstElementChild ? band.firstElementChild.getBoundingClientRect().height : 0;
+}
 
-  N = SEGMENTS.length;
-  ANG = 360 / N;
-  buildWheel();
-  buildOrbs();
+// Row `index` of the band in the middle of the window (the third of five).
+function place(index) {
+  band.style.transform = `translateY(${(2 - index) * rowHeight()}px)`;
+}
+
+// Titles are issue titles — text, never markup.
+function setTopics(list) {
+  topics = list.length ? list : [{ id: 0, title: 'Keine offenen Themen' }];
+  band.textContent = '';
+  for (let k = 0; k < topics.length * LAPS; k++) {
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.textContent = topics[k % topics.length].title;
+    band.appendChild(row);
+  }
+  position = topics.length;
+  place(position);
+  document.getElementById('count').textContent =
+    list.length === 1 ? '1 Thema' : `${list.length} Themen`;
 }
 
 // The streamer's name for the wheel (Glücksrad panel in the app).
@@ -252,148 +184,78 @@ async function loadTitle() {
   } catch {}
 }
 
-// Fetch issues from API and build segments
 async function loadIssues() {
   try {
     const res = await fetch(`${window.__overlayOrigin}/public/issues`);
     const issues = await res.json();
-    setSegments(issues.filter(b => b.status === 'open'));
+    setTopics(issues.filter((i) => i.status === 'open'));
   } catch (err) {
     console.error('[Roulette] Failed to load issues:', err);
   }
 }
 
-// WebSocket for live updates
+function spin(winnerId) {
+  if (spinning || !topics.length) return;
+  spinning = true;
+  showOverlay();
+  band.querySelectorAll('.won').forEach((r) => r.classList.remove('won'));
+  document.getElementById('foot').textContent = HINT;
+
+  const n = topics.length;
+  let winner = topics.findIndex((t) => t.id === winnerId);
+  if (winner < 0) winner = Math.floor(Math.random() * n);
+
+  // Start one lap in, end three laps before the band runs out — on the winner.
+  const from = (position % n) + n;
+  const to = n * (LAPS - 3) + winner;
+  const t0 = performance.now();
+
+  function frame(now) {
+    const p = Math.min((now - t0) / SPIN_MS, 1);
+    const eased = 1 - Math.pow(1 - p, 4);
+    place(from + (to - from) * eased);
+    if (p < 1) { requestAnimationFrame(frame); return; }
+
+    position = to;
+    place(to);
+    band.children[to].classList.add('won');
+    document.getElementById('foot').textContent = 'Als Nächstes dran';
+    spinning = false;
+    hideTimeout = setTimeout(hideOverlay, RESULT_DISPLAY_MS);
+  }
+  requestAnimationFrame(frame);
+}
+
 const ws = new WebSocket(`${window.__overlayWs}?overlay=1`);
 
 ws.onmessage = (e) => {
   try {
     const msg = JSON.parse(e.data);
 
-    if (msg.event === 'overlay-config' && window.__applyOverlayConfig) window.__applyOverlayConfig(msg.data);
+    if (msg.event === 'overlay-config' && window.__applyOverlayConfig) {
+      window.__applyOverlayConfig(msg.data);
+      if (!spinning) place(position);
+    }
 
     if (msg.event === 'roulette-config') setTitle(msg.data.title);
 
-    // Issues changed — rebuild wheel
     if (msg.event === 'issue-created' || msg.event === 'issue-updated' || msg.event === 'issue-deleted') {
       if (!spinning) loadIssues();
     }
 
-    // Roulette triggered from dashboard/API — auto-spin to winner
+    // The draw carries the list it drew from. Ours may be older — or empty,
+    // which is what a preview without open issues used to spin over.
     if (msg.event === 'roulette-spin' && !spinning) {
-      // The draw carries the list it drew from. Ours may be older — or empty,
-      // which is what a preview without open issues used to spin over.
-      if (Array.isArray(msg.data.issues) && msg.data.issues.length) setSegments(msg.data.issues);
-      pendingWinnerId = msg.data.winner_id;
-      spin();
+      if (Array.isArray(msg.data.issues) && msg.data.issues.length) setTopics(msg.data.issues);
+      spin(msg.data.winner_id);
     }
   } catch {}
 };
 
 ws.onclose = () => setTimeout(() => location.reload(), 3000);
 
-function p2c(cx,cy,r,d){const a=(d-90)*Math.PI/180;return{x:cx+r*Math.cos(a),y:cy+r*Math.sin(a)};}
-function ap(cx,cy,r,s,e){const sp=p2c(cx,cy,r,s),ep=p2c(cx,cy,r,e);return`M${cx},${cy} L${sp.x},${sp.y} A${r},${r} 0 ${e-s>180?1:0} 1 ${ep.x},${ep.y} Z`;}
-
-// Labels are issue titles and colours come from settings — text, never markup.
-function escapeHtml(str){return String(str ?? '').replace(/[&<>"']/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-
-function buildWheel(){
-  if (!SEGMENTS.length) return;
-
-  const fontSize = N <= 6 ? 10 : N <= 10 ? 9 : 7;
-  const labelRadius = N <= 6 ? R*0.58 : R*0.62;
-
-  let segs='';
-  SEGMENTS.forEach((s,i)=>{
-    const sd=i*ANG,ed=(i+1)*ANG,md=sd+ANG/2,lp=p2c(CX,CY,labelRadius,md);
-    // Flat segment fill
-    segs+=`<path d="${ap(CX,CY,R,sd,ed)}" style="fill:${escapeHtml(s.bg)}"/>`;
-    // Segment divider
-    segs+=`<path d="${ap(CX,CY,R,sd,ed)}" style="fill:none;stroke:var(--lex-rule)" stroke-width="1"/>`;
-    // Label
-    segs+=`<g transform="translate(${lp.x},${lp.y}) rotate(${md})"><text text-anchor="middle" dominant-baseline="central" style="fill:${escapeHtml(s.txt)};font-family:var(--font-body)" font-size="${fontSize}">${escapeHtml(s.label)}</text></g>`;
-  });
-
-  document.getElementById('wheel').innerHTML=`<svg width="320" height="320" viewBox="0 0 320 320">${segs}<circle cx="${CX}" cy="${CY}" r="${R}" style="fill:none;stroke:var(--lex-frame)" stroke-width="1"/><circle cx="${CX}" cy="${CY}" r="18" style="fill:var(--color-bg);stroke:var(--lex-frame)" stroke-width="1"/><circle cx="${CX}" cy="${CY}" r="4" style="fill:var(--art)"/></svg>`;
-
-  document.getElementById('totalPts').textContent = N === 1 ? '1 Thema' : N + ' Themen';
-}
-
-function buildOrbs(){
-  document.getElementById('orbs').innerHTML='';
-}
-
-function spin(){
-  if(spinning || !SEGMENTS.length) return;
-  spinning=true;
-  showOverlay();
-  document.getElementById('resultBox').classList.add('hidden');
-  document.getElementById('pointer').classList.add('active');
-
-  // If we have a predetermined winner from the API, calculate target angle
-  let targetAngle;
-  if (pendingWinnerId !== null) {
-    const winnerIdx = SEGMENTS.findIndex(s => s.id === pendingWinnerId);
-    if (winnerIdx >= 0) {
-      // Land in the middle of the winner segment
-      targetAngle = 360 - (winnerIdx * ANG + ANG / 2);
-    } else {
-      targetAngle = Math.random() * 360;
-    }
-    pendingWinnerId = null;
-  } else {
-    targetAngle = Math.random() * 360;
-  }
-
-  // Whole turns only. A fractional count multiplied by 360 is not a multiple
-  // of 360, so it added a random angle on top of the target and the wheel came
-  // to rest wherever that happened to be — never on the winner the server had
-  // already picked.
-  const spins = Math.floor(5 + Math.random() * 3);
-  // targetAngle is where the wheel has to END UP, so what gets added is the way
-  // there from where it stands now. After the first spin that is no longer a
-  // multiple of 360, and adding the target outright would miss by the leftover.
-  const current = ((rotation % 360) + 360) % 360;
-  const delta = (((targetAngle - current) % 360) + 360) % 360;
-  const totalDeg = spins * 360 + delta;
-  // dur matches WHEEL_SPIN_MS in src/server/api/actions.ts — the server holds
-  // roulette-result back that long, so the alert does not give the winner away.
-  const startRot=rotation,endRot=startRot+totalDeg,dur=5000,t0=performance.now();
-
-  function anim(now){
-    const p=Math.min((now-t0)/dur,1),eased=1-Math.pow(1-p,4);
-    document.getElementById('wheel').style.transform=`rotate(${startRot+totalDeg*eased}deg)`;
-    if(p<1){requestAnimationFrame(anim);}
-    else{
-      rotation=endRot;
-      document.getElementById('wheel').style.transform=`rotate(${endRot}deg)`;
-      const norm=((360-(endRot%360))+360)%360,idx=Math.floor(norm/ANG)%N,won=SEGMENTS[idx];
-
-      const box=document.getElementById('resultBox'),val=document.getElementById('resultValue'),sub=document.getElementById('resultSub');
-      box.classList.remove('hidden');box.className='result';
-
-      // The mark carries the accent, the title stays type.
-      val.textContent = '';
-      const mark = document.createElement('span');
-      mark.className = 'accent';
-      mark.textContent = '►';
-      const text = document.createElement('span');
-      text.textContent = ' ' + (won.title || won.label);
-      val.appendChild(mark);
-      val.appendChild(text);
-
-      sub.textContent = 'Als Nächstes dran';
-
-      spinning=false;
-      document.getElementById('pointer').classList.remove('active');
-
-      // Hide overlay after showing result
-      hideTimeout = setTimeout(() => { hideOverlay(); }, RESULT_DISPLAY_MS);
-    }
-  }
-  requestAnimationFrame(anim);
-}
+// A source resized in OBS changes the row height; keep the middle row in place.
+window.addEventListener('resize', () => { if (!spinning) place(position); });
 
 loadIssues();
 loadTitle();

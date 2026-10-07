@@ -131,7 +131,7 @@
       }
     },
     "roulette": {
-      "size": { "width": 400, "height": 500 },
+      "size": { "width": 704, "height": 704 },
       "actions": [
         { "label": "Drehen", "events": [{ "event": "roulette-spin", "data": { "issues": [{ "id": 1, "title": "Karte der Unterstadt" }, { "id": 2, "title": "Wappen der Goldenen Hand" }, { "id": 3, "title": "Aldrics Klinge" }, { "id": 4, "title": "Die Arche von innen" }], "winner_id": 2}}]},
         { "label": "Drehen, anderer Gewinner", "events": [{ "event": "roulette-spin", "data": { "issues": [{ "id": 1, "title": "Karte der Unterstadt" }, { "id": 2, "title": "Wappen der Goldenen Hand" }, { "id": 3, "title": "Aldrics Klinge" }, { "id": 4, "title": "Die Arche von innen" }], "winner_id": 3}}]}
