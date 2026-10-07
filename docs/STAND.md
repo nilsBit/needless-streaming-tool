@@ -156,6 +156,22 @@ braucht den Bot.
 
 ## Wo wir stehen geblieben sind
 
+**Hier aufgehört (07.10., unter Windows)**
+
+- Die Arbeit vom 06.10. läuft unter Windows: `npm ci` war schon gelaufen (Electron 44.5.1,
+  better-sqlite3 13), Typecheck, 403 Tests und Lint grün. Die Datenbank kam ohne Zutun auf den
+  neuen Stand; Sicherung davor `data/stream-vor-2026-10-07.db`.
+- `npm run ui:walk` fand unter Windows die `connection.json` nicht – der Server legt `.nst`
+  dort unter `%APPDATA%` ab. Behoben; danach 23 von 23 Panels, kein Überlauf, keine Fehler.
+- Gegen das echte OBS gesehen: Twitch, OBS und Worldbuilder grün in der Leiste, die Chips auf
+  „Im Stream“ stimmen mit Szene *main* überein, die Overlay-Liste zeigt die Szenen je Overlay.
+  Bereitschaft: ein Hinweis, die Alerts ohne Ton.
+- In OBS zeigten `songBreit` (*main*) und `songQueue` (*tft*) noch auf das gelöschte
+  Song-Queue-Overlay (404). Beide zeigen jetzt auf `/overlay/song/`.
+- **Noch für Nils:** im Content-Brett die acht Test-Momente „Reward: h“ verwerfen, die
+  Bestenliste „h“ (an „Spawn 50 Enemys“) umbenennen oder löschen, Alert-Töne hinterlegen,
+  „In OBS einrichten“ gegen eine Testszene laufen lassen.
+
 **Hier aufgehört (06.10., auf dem Mac)**
 
 - `main` gepullt, Typecheck, Tests und Lint grün. Der Branch `overlay-design-workflow`
