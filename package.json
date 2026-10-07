@@ -44,7 +44,15 @@
       "node_modules/**/*",
       "!node_modules/**/*.md",
       "!node_modules/**/*.ts",
-      "!node_modules/**/test/**"
+      "!node_modules/**/test/**",
+      "!node_modules/better-sqlite3/deps/**",
+      "!node_modules/better-sqlite3/src/**",
+      "!node_modules/better-sqlite3/build/**",
+      "!node_modules/better-sqlite3/prebuilds/linux*"
+    ],
+    "electronLanguages": [
+      "de",
+      "en-US"
     ],
     "extraResources": [
       {
@@ -63,13 +71,19 @@
         "zip"
       ],
       "category": "public.app-category.utilities",
+      "files": [
+        "!node_modules/better-sqlite3/prebuilds/win32-*"
+      ],
       "icon": "assets/icon.icns"
     },
     "win": {
       "target": [
         "nsis"
       ],
-      "icon": "assets/icon.ico"
+      "icon": "assets/icon.ico",
+      "files": [
+        "!node_modules/better-sqlite3/prebuilds/darwin-*"
+      ]
     },
     "nsis": {
       "oneClick": true,
