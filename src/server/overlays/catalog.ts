@@ -3,7 +3,7 @@ import path from 'path';
 import { readStates } from '../showcase';
 import { getOverlayConfig } from '../api/overlay-config';
 import { appliedChanges } from '../design-apply';
-import { getUserDataPath } from '../paths';
+import { getBuiltinOverlaysDir, getUserDataPath } from '../paths';
 import { featureOfOverlay, type FeatureKey } from '../../shared/features';
 
 /**
@@ -70,7 +70,7 @@ const META: Record<string, { label: string; sentence: string; group: CatalogGrou
 const GROUP_ORDER: CatalogGroup[] = ['always', 'join', 'today', 'rewards', 'screens', 'alerts', 'custom'];
 
 function builtinDir(): string {
-  return process.env.NST_OVERLAYS_DIR ?? path.join(process.cwd(), 'src', 'overlays');
+  return getBuiltinOverlaysDir();
 }
 
 function builtinNames(): string[] {

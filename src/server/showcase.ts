@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { getBuiltinOverlaysDir } from './paths';
 
 export interface ShowcaseState {
   events?: { afterMs: number; event: string; data: unknown }[];
@@ -24,7 +25,7 @@ export interface ShowcaseStates {
 
 /** Tests point it at a copy. */
 export function overlaysDir(): string {
-  return process.env.NST_OVERLAYS_DIR ?? path.join(process.cwd(), 'src', 'overlays');
+  return getBuiltinOverlaysDir();
 }
 
 /** Read fresh each time — the file is edited while the tool runs. */

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import fs from 'fs';
 import path from 'path';
-import { getUserDataPath } from '../paths';
+import { getBuiltinOverlaysDir, getUserDataPath } from '../paths';
 import { PORT } from '../index';
 import { overlayCatalog } from '../overlays/catalog';
 
@@ -12,7 +12,7 @@ function getOverrideDir(): string {
 }
 
 function getBuiltinDir(): string {
-  return path.join(process.cwd(), 'src', 'overlays');
+  return getBuiltinOverlaysDir();
 }
 
 /**
@@ -250,7 +250,7 @@ router.delete('/:name', (req, res) => {
 
 // Get the template HTML
 router.get('/template', (_req, res) => {
-  const templatePath = path.join(process.cwd(), 'src', 'overlays', '_template', 'index.html');
+  const templatePath = path.join(getBuiltinOverlaysDir(), '_template', 'index.html');
   try {
     const html = fs.readFileSync(templatePath, 'utf-8');
     res.json({ html });

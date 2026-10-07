@@ -1,6 +1,5 @@
 import express from 'express';
 import http from 'http';
-import path from 'path';
 import { initWebSocket } from './websocket/index';
 import { initDatabase } from './db/index';
 import { generateApiToken, validateApiToken, validateDesignToken, getApiToken } from './auth-token';
@@ -52,7 +51,7 @@ import { checkDatabase, healDatabase } from './api/notion-sync';
 import { startSMTC, getAutoDetectSetting } from './integrations/smtc';
 import { getDb } from './db/index';
 import { rateLimit, publicRateLimit } from './middleware/rate-limit';
-import { getUserDataPath } from './paths';
+import { getBuiltinOverlaysDir, getUserDataPath } from './paths';
 import { recentChat } from './bot/chat-feed';
 
 const parsedPort = parseInt(process.env.NST_PORT || '4000', 10);
@@ -247,7 +246,7 @@ export function createApp(): express.Express {
   });
 
   // Overlay paths
-  const builtinOverlayPath = path.join(process.cwd(), 'src', 'overlays');
+  const builtinOverlayPath = getBuiltinOverlaysDir();
   const overlayOverridePath = getUserDataPath('overlay-overrides');
   const customOverlayPath = getUserDataPath('custom-overlays');
   const fs = require('fs');

@@ -50,6 +50,11 @@
       {
         "from": "src/overlays",
         "to": "overlays"
+      },
+      {
+        "from": "assets",
+        "to": "assets",
+        "filter": ["*.png"]
       }
     ],
     "mac": {
