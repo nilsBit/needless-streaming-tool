@@ -132,6 +132,16 @@ _Avoid_: balance in German UI text, Kontostand.
 What viewers buy with Punkte via `!einlösen <Name>` — made in the app, not in Twitch (`point_rewards`). Carries a cost and an action from `reward-actions.ts` (wheel, suggestion, music, a mapped scene, alert only); a failed action refunds. A redemption leaves a Reward row and a `reward-redeemed` event with `source: 'points'`.
 _Avoid_: shop item, Twitch reward.
 
+**Quest** (UI: „Quest“, the area „Quests“):
+A step the streamer takes through the tool — „Erste Belohnung anlegen“, „OBS verbinden“ (spec 2026-10-08-quests-design). Done when the state shows it, or by a flag for what happens once (`quest_flag_*` in `settings`); done stays done (`quest_progress`). Only quests of features that are on show and count; the first is always choosing what the stream can do. Streamer-only.
+_Avoid_: task, achievement (an Abzeichen is the reward of a group of quests), mission.
+
+**EP / Stufe**:
+Erfahrungspunkte from done quests, and the stage they reach: Funke · Lagerfeuer · Leuchtfeuer · Leuchtturm · Sternbild. Stage names are things, never people.
+
+**Quest-Pfad**:
+A guided flow that creates something, step by step with stages on a path, a preview and a celebrated end (`QuestPath`). Replaces creating through a form; the forms stay for editing.
+
 **Song Request**:
 A track a viewer asked for by URL, moving through `pending` → `playing` → `done` (or `skipped`). Separate from the Now Playing panel, which reads what the machine is actually playing via SMTC.
 

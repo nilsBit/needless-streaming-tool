@@ -15,6 +15,7 @@ export const PANEL_KEYS = [
   'trycommands',
   'points',
   'channelrewards',
+  'quests',
   // Overlays & Alerts
   'overlays',
   'appearance',

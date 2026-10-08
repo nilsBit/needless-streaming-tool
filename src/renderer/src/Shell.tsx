@@ -10,6 +10,7 @@ import AreaPage from './pages/AreaPage';
 import StreamPage from './pages/StreamPage';
 import SetupPage from './pages/SetupPage';
 import SceneHint from './components/ux/SceneHint';
+import StageBadge from './components/quests/StageBadge';
 import logoSvg from './assets/logo.svg';
 
 // Sidebar with the areas and the connection marks, then the page: header,
@@ -86,6 +87,7 @@ export default function Shell() {
       <div className="shell">
         <nav className="shell-nav" aria-label="Bereiche">
           <img src={logoSvg} alt="NST" className="shell-logo" />
+          <StageBadge />
           {areas.filter((a) => a.group === 'main').map((a) => renderNavButton(a.key, a.label, false))}
           <div className="shell-nav-divider" role="separator" />
           {areas.filter((a) => a.group === 'secondary').map((a) => renderNavButton(a.key, a.label, true))}

@@ -8,7 +8,7 @@
 import type { PanelKey } from './panelKeys';
 import { panelVisible } from '../../shared/features';
 
-export type AreaKey = 'stream' | 'chat' | 'overlays' | 'after' | 'settings' | 'help';
+export type AreaKey = 'stream' | 'chat' | 'overlays' | 'after' | 'quests' | 'settings' | 'help';
 
 export interface SubTab {
   key: string;
@@ -44,6 +44,7 @@ export const PANEL_LABELS: Record<PanelKey, string> = {
   trycommands: 'Ausprobieren',
   points: 'Punkte',
   channelrewards: 'Kanalpunkte',
+  quests: 'Quests',
   overlays: 'Overlays',
   appearance: 'Aussehen',
   alerts: 'Alerts',
@@ -178,6 +179,21 @@ export const AREAS: readonly Area[] = [
         label: 'Statistik',
         sentence: 'Zahlen zu deinen Streams – heute, der Stand deiner Listen und der Verlauf.',
         panels: ['stats'],
+      },
+    ],
+  },
+  {
+    key: 'quests',
+    label: 'Quests',
+    sentence: 'Dein Weg durchs Tool: was als Nächstes kommt, was du geschafft hast, und deine Stufe.',
+    keywords: ['Stufe', 'Erfahrung', 'Abzeichen'],
+    group: 'main',
+    subTabs: [
+      {
+        key: 'quests',
+        label: 'Quests',
+        sentence: '',
+        panels: ['quests'],
       },
     ],
   },

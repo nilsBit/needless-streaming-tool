@@ -22,6 +22,16 @@ Links stehen die Bereiche nach Situation: **Im Stream** (alles, was du live ausl
 - Die Gruppe **Welt** (Eintragskarte, Start-, Pausen- und Endbild) erscheint nur auf einem Rechner, auf dem der Worldbuilder eingerichtet ist.`,
   },
   {
+    title: 'Quests, EP und deine Stufe',
+    content: `Das Tool führt dich mit **Quests** durch die Einrichtung und deine ersten Streams. Die erste Quest ist immer **„Wähle, was dein Stream können soll“** – danach zeigt der Bereich **Quests** genau die Quests zu dem, was du gewählt hast.
+
+- Jede geschaffte Quest bringt **EP** (Erfahrungspunkte). Mit genug EP steigst du eine **Stufe** auf: Funke · Lagerfeuer · Leuchtfeuer · Leuchtturm · Sternbild. Deine Stufe steht links oben in der Leiste.
+- **Als Nächstes** schlägt die eine Quest vor, die gerade am meisten bringt. **Los geht's** bringt dich an die Stelle, wo du sie erledigst.
+- Eine Quest gilt als geschafft, wenn das Tool es am Zustand sieht – auch was du vorher oder auf anderem Weg eingerichtet hast, zählt. Einmal geschafft, bleibt geschafft, auch wenn du es später löschst.
+- Schaltest du unter „Was dein Stream kann“ eine Funktion aus, verschwinden ihre Quests und zählen nicht mehr zur Stufe.
+- Stufe, EP und Quests siehst nur du. Das Tool prüft sie nur, wenn sich etwas ändert – nie im Dauerlauf.`,
+  },
+  {
     title: 'Wo finde ich was',
     content: `Die Oberfläche ist nach Situation sortiert, nicht nach Technik. Links die Bereiche, oben auf einer Seite die Themen.
 

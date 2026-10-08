@@ -20,6 +20,7 @@ import StatsPanel from './panels/StatsPanel';
 import LeaderboardsPanel from './panels/LeaderboardsPanel';
 import PointsPanel from './panels/PointsPanel';
 import ChannelRewardsPanel from './panels/ChannelRewardsPanel';
+import QuestsPanel from './panels/QuestsPanel';
 import SettingsPanel from './panels/SettingsPanel';
 import HotkeysPanel from './panels/HotkeysPanel';
 import HelpPanel from './panels/HelpPanel';
@@ -51,6 +52,7 @@ export const PANEL_REGISTRY: Record<PanelKey, React.ComponentType> = {
   leaderboards: LeaderboardsPanel,
   points: PointsPanel,
   channelrewards: ChannelRewardsPanel,
+  quests: QuestsPanel,
   'settings-connections': SettingsConnections,
   'settings-app': SettingsApp,
   hotkeys: HotkeysPanel,
