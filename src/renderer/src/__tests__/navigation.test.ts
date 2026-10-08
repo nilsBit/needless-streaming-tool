@@ -79,19 +79,19 @@ describe('navigation', () => {
     }
   });
 
-  it('hides what the chosen features do not need, and never Einstellungen or Hilfe', () => {
+  it('hides what the chosen features do not need, and never Quests, Einstellungen or Hilfe', () => {
     // The setup's defaults: Chat im Stream, Alerts, Momente merken.
     const few = visibleNavigation(new Set(['chat', 'alerts', 'momente']));
-    expect(few.map((a) => a.key)).toEqual(['stream', 'chat', 'overlays', 'after', 'settings', 'help']);
+    expect(few.map((a) => a.key)).toEqual(['stream', 'chat', 'overlays', 'after', 'quests', 'settings', 'help']);
     // Im Stream keeps its place for the moment card, with no card panel left.
     expect(few.find((a) => a.key === 'stream')!.subTabs[0].panels).toEqual([]);
     expect(few.find((a) => a.key === 'overlays')!.subTabs.map((t) => t.key)).toEqual(['overlays', 'alerts', 'aussehen']);
     expect(few.find((a) => a.key === 'after')!.subTabs.map((t) => t.key)).toEqual(['content', 'statistik']);
     expect(few.find((a) => a.key === 'after')!.subTabs[0].panels).toEqual(['clips']);
 
-    // Nothing chosen: only what belongs to no feature.
+    // Nothing chosen: only what belongs to no feature — the quests too, whose first is choosing.
     const none = visibleNavigation(new Set());
-    expect(none.map((a) => a.key)).toEqual(['chat', 'overlays', 'after', 'settings', 'help']);
+    expect(none.map((a) => a.key)).toEqual(['chat', 'overlays', 'after', 'quests', 'settings', 'help']);
 
     // Everything chosen: the navigation as written.
     expect(visibleNavigation(new Set(FEATURE_KEYS))).toEqual(AREAS);
