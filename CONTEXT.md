@@ -114,7 +114,8 @@ A chat command that finds an entry of one Worldbuilder Art by name — `!figur M
 _Avoid_: Search, query command.
 
 **Reward**:
-A Twitch channel-point redemption a viewer has spent points on. `rewards` holds the pending queue, `reward_log` the full history, and `reward_stats` the per-viewer running totals that feed the leaderboard.
+A Twitch channel-point redemption a viewer has spent points on. `rewards` holds the pending queue and `reward_stats` the per-viewer running totals that feed the Bestenlisten. A reward made in the app (Chat & Bot → Kanalpunkte, #24) carries an action by its Twitch id in `twitch_reward_actions`; one made in the Creator Dashboard is read-only in the app and is told apart by its title (`actionFromTitle` in `reward-actions.ts`). A failed action of an app-made reward cancels the redemption, which gives the points back.
+_Avoid_: confusing it with a Punkte-Belohnung, which is bought with the tool's own points.
 
 **Punkte** (UI: der Name der Währung, Standard „Punkte“):
 The tool's own currency (2026-10-08), next to Twitch channel points and unrelated to them — no exchange. Earned only while the stream is live: per watch tick for everyone in chat, per chat message (once a minute), for follow, sub, gifted subs, raid and bits; given and taken by mods. One row per viewer in `viewer_points`, totals only, no log.

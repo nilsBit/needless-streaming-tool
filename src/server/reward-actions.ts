@@ -16,6 +16,20 @@ export type ActionKey = (typeof ACTION_KEYS)[number];
 export const isActionKey = (value: unknown): value is ActionKey =>
   typeof value === 'string' && (ACTION_KEYS as readonly string[]).includes(value);
 
+/**
+ * What a reward made in the Twitch dashboard does, told apart by its title —
+ * the convention from before rewards carried an action. eventsub.ts acts on
+ * it; the app shows it next to the reward.
+ */
+export function actionFromTitle(title: string): ActionKey | null {
+  const t = title.toLowerCase();
+  if (t.includes('roulette')) return 'roulette';
+  if (t.includes('feature')) return 'feature_request';
+  if (t.includes('musik') || t.includes('song')) return 'change_music';
+  if (t.includes('scene') || t.includes('szene')) return 'scene';
+  return null;
+}
+
 /** The type a queue row and the alert carry, as the Twitch path writes it. */
 export function rewardTypeOf(action: ActionKey): string {
   return action === 'scene' ? 'scene_change' : action;

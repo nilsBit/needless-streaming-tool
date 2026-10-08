@@ -14,6 +14,7 @@ export const PANEL_KEYS = [
   'chatbot',
   'trycommands',
   'points',
+  'channelrewards',
   // Overlays & Alerts
   'overlays',
   'appearance',

@@ -43,6 +43,7 @@ export const PANEL_LABELS: Record<PanelKey, string> = {
   chatbot: 'Von selbst',
   trycommands: 'Ausprobieren',
   points: 'Punkte',
+  channelrewards: 'Kanalpunkte',
   overlays: 'Overlays',
   appearance: 'Aussehen',
   alerts: 'Alerts',
@@ -79,7 +80,7 @@ export const AREAS: readonly Area[] = [
     key: 'chat',
     label: 'Chat & Bot',
     sentence: 'Was der Bot antwortet und was er von selbst sagt.',
-    keywords: ['Befehle', 'Nachschlagen in der Welt', 'Erinnerung', 'Shoutout', 'Punkte', 'Ausprobieren'],
+    keywords: ['Befehle', 'Nachschlagen in der Welt', 'Erinnerung', 'Shoutout', 'Punkte', 'Kanalpunkte', 'Ausprobieren'],
     group: 'main',
     subTabs: [
       {
@@ -99,6 +100,12 @@ export const AREAS: readonly Area[] = [
         label: 'Punkte',
         sentence: 'Eigene Punkte neben den Kanalpunkten von Twitch: wofür es welche gibt, was man dafür einlöst und wer am meisten beigetragen hat.',
         panels: ['points'],
+      },
+      {
+        key: 'kanalpunkte',
+        label: 'Kanalpunkte',
+        sentence: 'Belohnungen für Twitch-Kanalpunkte: hier anlegen, mit einer Aktion verbinden, ändern und löschen. Was im Creator-Dashboard angelegt ist, steht zum Ansehen dabei.',
+        panels: ['channelrewards'],
       },
       {
         key: 'ausprobieren',

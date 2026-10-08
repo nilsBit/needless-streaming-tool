@@ -19,6 +19,7 @@ import AutoClipsSettings from './components/settings/AutoClipsSettings';
 import StatsPanel from './panels/StatsPanel';
 import LeaderboardsPanel from './panels/LeaderboardsPanel';
 import PointsPanel from './panels/PointsPanel';
+import ChannelRewardsPanel from './panels/ChannelRewardsPanel';
 import SettingsPanel from './panels/SettingsPanel';
 import HotkeysPanel from './panels/HotkeysPanel';
 import HelpPanel from './panels/HelpPanel';
@@ -49,6 +50,7 @@ export const PANEL_REGISTRY: Record<PanelKey, React.ComponentType> = {
   stats: StatsPanel,
   leaderboards: LeaderboardsPanel,
   points: PointsPanel,
+  channelrewards: ChannelRewardsPanel,
   'settings-connections': SettingsConnections,
   'settings-app': SettingsApp,
   hotkeys: HotkeysPanel,

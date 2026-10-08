@@ -4,7 +4,8 @@ import { broadcast } from '../websocket/index';
 import { getBotConfig } from './config';
 import { triggerRoulette } from '../api/actions';
 import { sceneMappingForRedemption } from '../obs/index';
-import { switchMappedScene } from '../reward-actions';
+import { actionFromTitle, rewardTypeOf, runAction, switchMappedScene } from '../reward-actions';
+import { actionForReward, cancelRedemption } from '../channel-rewards';
 import { countRedemption } from '../leaderboards';
 import { getClientId } from '../twitch-config';
 import { sendAlert } from './alerts';
@@ -73,7 +74,7 @@ async function subscribeToEvents(token: string, clientId: string, userId: string
   await subscribe(token, clientId, 'stream.offline', '1', { broadcaster_user_id: userId }, 'stream offline');
 }
 
-async function handleRedemption(event: Record<string, unknown>) {
+export async function handleRedemption(event: Record<string, unknown>) {
   const userName = (event.user_name as string) || 'Unknown';
   // Twitch sends the login in lower case and the name as typed; counts go by login.
   const login = (event.user_login as string) || userName;
@@ -86,13 +87,12 @@ async function handleRedemption(event: Record<string, unknown>) {
   // A reward with a Bestenliste counts there, by its id; the rest is told
   // apart by title and does what it does (wheel, music, scene, suggestion).
   const point = countRedemption(rewardId, login, userName);
-  let rewardType = point ? point.leaderboard.key : rewardTitle;
-  const titleLower = rewardTitle.toLowerCase();
-  if (!point) {
-    if (titleLower.includes('roulette')) rewardType = 'roulette';
-    else if (titleLower.includes('feature')) rewardType = 'feature_request';
-    else if (titleLower.includes('musik') || titleLower.includes('song')) rewardType = 'change_music';
-    else if (titleLower.includes('scene') || titleLower.includes('szene')) rewardType = 'scene_change';
+  // A reward made in the app carries its action by id (#24); no name convention.
+  const bound = actionForReward(rewardId);
+  let rewardType = point ? point.leaderboard.key : bound ? rewardTypeOf(bound.action) : rewardTitle;
+  if (!point && !bound) {
+    const byName = actionFromTitle(rewardTitle);
+    if (byName) rewardType = rewardTypeOf(byName);
   }
 
   const result = getDb().prepare(
@@ -106,6 +106,16 @@ async function handleRedemption(event: Record<string, unknown>) {
   // No chat line for a point: the overlays and the alert board show it, !stats
   // tells the standing on request (Nils, 06.10.: "jedesmal diese Notiz macht keinen Sinn").
   if (point) console.log(`[EventSub] ${userName}: ${point.leaderboard.title} Nr. ${point.count}, Platz ${point.rank}`);
+
+  if (bound) {
+    const done = await runAction(bound.action, { sceneName: bound.scene_name });
+    if (!done.ok) {
+      // Like own points: an action that did not happen gives the points back.
+      const refunded = await cancelRedemption(rewardId, String(event.id ?? ''));
+      console.log(`[EventSub] "${rewardTitle}" did not run (${done.reason})${refunded ? ' — points given back' : ''}`);
+    }
+    return;
+  }
 
   // Auto-trigger roulette when someone redeems roulette
   if (rewardType === 'roulette') {

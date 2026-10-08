@@ -21,6 +21,8 @@ const TWITCH_SCOPES = [
   'moderator:read:followers',
   // Own points for watching: who is in chat (2026-10-08). Same story, one reconnect.
   'moderator:read:chatters',
+  // Rewards made and edited from the app (#24, 2026-10-08). One reconnect, like above.
+  'channel:manage:redemptions',
 ].join('+');
 
 // A login the tool itself started carries a one-time `state`. Twitch hands it

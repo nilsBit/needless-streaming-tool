@@ -229,7 +229,9 @@ Alle Befehle lassen sich unter Chat & Bot → Von selbst umbenennen. Antworten, 
   },
   {
     title: 'Kanalpunkte & Bestenliste',
-    content: `Belohnungen legst du in Twitch an (Creator-Dashboard → Zuschauer belohnen → Kanalpunkte). Löst jemand eine ein, meldet Twitch das dem Tool, und das Tool erkennt am Namen, was zu tun ist.
+    content: `Kanalpunkte gibt es auf Twitch erst mit **Affiliate oder Partner**. Belohnungen legst du am einfachsten unter **Chat & Bot → Kanalpunkte → + Belohnung** an: Name, Preis, ein Text für Zuschauer und **was passiert** – nur ein Alert, Glücksrad, Vorschlag, Musik oder eine freigegebene Szene. Die Belohnung erscheint sofort bei deinen Zuschauern; ändern und löschen geht an derselben Stelle. Klappt die Aktion nicht (OBS nicht verbunden, kein Thema fürs Rad), gibt das Tool die Kanalpunkte zurück. Dafür braucht das Tool das Recht channel:manage:redemptions – einmal neu mit Twitch verbinden.
+
+Twitch lässt das Tool nur Belohnungen ändern, die es selbst angelegt hat. Was im **Creator-Dashboard** (Zuschauer belohnen → Kanalpunkte) angelegt ist, steht auf derselben Seite unter „In Twitch angelegt“ zum Ansehen, mit dem, was das Tool an ihrem Namen erkennt:
 
 | Name enthält | Aktion |
 |---|---|

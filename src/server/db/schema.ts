@@ -1,4 +1,4 @@
-export const SCHEMA_VERSION = 29;
+export const SCHEMA_VERSION = 30;
 
 export const SCHEMA = `
 CREATE TABLE IF NOT EXISTS schema_version (
@@ -166,6 +166,15 @@ CREATE TABLE IF NOT EXISTS viewer_points (
   total          INTEGER NOT NULL DEFAULT 0,
   stream_total   INTEGER NOT NULL DEFAULT 0,
   last_earned_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- A Twitch reward made in the app (#24, 2026-10-08) and the action its
+-- redemption runs, by the reward's id. Dashboard rewards have no row and
+-- keep working by name.
+CREATE TABLE IF NOT EXISTS twitch_reward_actions (
+  reward_id  TEXT PRIMARY KEY,
+  action     TEXT NOT NULL,
+  scene_name TEXT
 );
 
 -- A Punkte-Belohnung: bought with own points in chat, runs one action.

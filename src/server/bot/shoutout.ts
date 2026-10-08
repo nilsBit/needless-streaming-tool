@@ -1,6 +1,7 @@
 import { getDb } from '../db/index';
 import { getBotConfig } from './config';
 import { getClientId } from '../twitch-config';
+import { helixBase } from '../twitch-helix';
 
 /**
  * `!so <Name>`: points chat at another channel — who, what they streamed last,
@@ -44,7 +45,7 @@ export function botHelix(): Helix | null {
   const token = config.oauth_token.replace('oauth:', '');
   return async (path) => {
     try {
-      const res = await fetch(`https://api.twitch.tv/helix/${path}`, {
+      const res = await fetch(`${helixBase()}/${path}`, {
         headers: { Authorization: `Bearer ${token}`, 'Client-Id': getClientId() },
       });
       return res.ok ? await res.json() : null;

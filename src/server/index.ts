@@ -28,6 +28,7 @@ import statsRouter from './api/stats';
 import rewardStatsRouter from './api/reward-stats';
 import leaderboardsRouter from './api/leaderboards';
 import pointsRouter from './api/points';
+import channelRewardsRouter from './api/channel-rewards';
 import { watchTick } from './points/earn';
 import { getPointsConfig } from './points/config';
 import { botHelix } from './bot/shoutout';
@@ -161,6 +162,7 @@ export function createApp(): express.Express {
   app.use('/api/reward-stats', rewardStatsRouter);
   app.use('/api/leaderboards', leaderboardsRouter);
   app.use('/api/points', pointsRouter);
+  app.use('/api/channel-rewards', channelRewardsRouter);
   app.use('/api/obs', obsRouter);
   app.use('/api/overlays', customOverlaysRouter);
   app.use('/api/stats', statsRouter);

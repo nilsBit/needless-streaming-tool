@@ -168,8 +168,16 @@ braucht den Bot.
   liegen in `src/server/reward-actions.ts`; #24 soll sie mitbenutzen.
 - Nebenbei behoben: `!datenschutz` hat Zuschauern im echten Chat nie geantwortet (Info-Pause
   doppelt geprüft).
-- **Noch für Nils:** Feature „Eigene Punkte“ einschalten, einmal neu mit Twitch verbinden
-  (neues Recht `moderator:read:chatters`), im nächsten Stream prüfen, ob Zuschauen, Chat und
+- „Was dein Stream kann“ direkt in den Einstellungen schaltbar, Suchfeld auf langen Listen
+  (`components/ux/SearchField.tsx`), Namen der eingebauten Befehle mit Satz.
+- **#24 Twitch-Belohnungen aus dem Tool:** Chat & Bot → Kanalpunkte. Anlegen, ändern, löschen
+  über Helix (`src/server/channel-rewards.ts`, `src/server/twitch-helix.ts`), Aktion je Belohnung
+  über die ID (`twitch_reward_actions`, Schema v30), Dashboard-Belohnungen nur zum Ansehen und
+  weiter über den Namen. Schlägt die Aktion fehl, wird die Einlösung storniert (Punkte zurück).
+  Tests gegen einen Helix-Stub (`NST_HELIX_URL`, nur `127.0.0.1`).
+- **Noch für Nils:** einmal neu mit Twitch verbinden (neue Rechte `moderator:read:chatters`
+  und `channel:manage:redemptions`), eine Belohnung unter Chat & Bot → Kanalpunkte anlegen und
+  einlösen, im nächsten Stream prüfen, ob Zuschauen, Chat und
   Follow ankommen (Log `[EventSub] Subscribed to stream online`), die Bestenliste mit
   `?type=beitrag` in OBS anlegen.
 
