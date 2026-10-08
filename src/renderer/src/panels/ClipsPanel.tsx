@@ -4,6 +4,7 @@ import { useToast } from '../contexts/ToastContext';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { Clip, ClipStatus } from '../../../shared/types';
 import Dialog from '../components/ux/Dialog';
+import SearchField, { matchesSearch } from '../components/ux/SearchField';
 import NotionSetupModal from '../components/NotionSetupModal';
 
 // "Content planen" under Nach dem Stream: the moments marked during the
@@ -45,6 +46,7 @@ export default function ClipsPanel() {
   const [openId, setOpenId] = useState<number | null>(null);
   const [idea, setIdea] = useState<{ hook: string; note: string } | null>(null);
   const [showArchive, setShowArchive] = useState(false);
+  const [search, setSearch] = useState('');
   const [dragId, setDragId] = useState<number | null>(null);
   const [dragOver, setDragOver] = useState<ClipStatus | null>(null);
   const [exportDay, setExportDay] = useState('');
@@ -56,8 +58,10 @@ export default function ClipsPanel() {
   });
 
   const clips = all ?? [];
-  const board = clips.filter((c) => !c.archived_at);
-  const archived = clips.filter((c) => !!c.archived_at);
+  // The search looks at what a card says: hook, note and tag.
+  const found = (c: Clip) => matchesSearch(search, c.hook, c.note, c.tag, tagLabel(c.tag));
+  const board = clips.filter((c) => !c.archived_at && found(c));
+  const archived = clips.filter((c) => !!c.archived_at && found(c));
   const open = clips.find((c) => c.id === openId) ?? null;
   const isAuto = (c: Clip) => c.tag.startsWith('auto-');
 
@@ -134,7 +138,10 @@ export default function ClipsPanel() {
     <div className="panel card-slim board-panel">
       <div className="card-line card-wrap">
         <span className="card-status"><span>Aus Momenten wird Content. Karte anklicken, um sie weiterzuschieben und Plattform, Termin und Hook festzulegen. Ziehen in eine andere Spalte geht auch.</span></span>
-        <button type="button" className="card-primary" onClick={() => setIdea({ hook: '', note: '' })}>+ Idee</button>
+        <div className="card-row card-wrap">
+          <SearchField value={search} onChange={setSearch} label="Momente suchen" />
+          <button type="button" className="card-primary" onClick={() => setIdea({ hook: '', note: '' })}>+ Idee</button>
+        </div>
       </div>
 
       {!showArchive ? (

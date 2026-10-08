@@ -25,6 +25,8 @@ Links stehen die Bereiche nach Situation: **Im Stream** (alles, was du live ausl
     title: 'Wo finde ich was',
     content: `Die Oberfläche ist nach Situation sortiert, nicht nach Technik. Links die Bereiche, oben auf einer Seite die Themen.
 
+**Suchen:** Lange Listen haben oben ein Suchfeld – Was dein Stream kann, Befehle, die Namen der eingebauten Befehle, Overlays, Content planen, Punkte und diese Hilfe. Groß- und Kleinschreibung ist egal, „ae“ findet auch „ä“, Escape leert das Feld.
+
 | Früher | Jetzt |
 |--------|-------|
 | Live → Challenge | Im Stream → Ziel für heute |

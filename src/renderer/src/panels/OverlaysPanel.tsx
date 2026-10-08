@@ -3,6 +3,7 @@ import { useApi, apiPost, apiFetch, getServerPort } from '../hooks/useApi';
 import { useToast } from '../contexts/ToastContext';
 import { useWebSocket } from '../hooks/useWebSocket';
 import Dialog from '../components/ux/Dialog';
+import SearchField, { matchesSearch } from '../components/ux/SearchField';
 import { useFeatures } from '../contexts/FeaturesContext';
 import type { FeatureKey } from '../../../shared/features';
 
@@ -67,6 +68,7 @@ export default function OverlaysPanel() {
   const { data: catalog, loading, refetch: refetchCatalog } = useApi<CatalogEntry[]>('/overlays/catalog');
   const { data: placement, refetch: refetchPlacement } = useApi<OverlayScenes>('/obs/overlay-scenes');
   const [selectedName, setSelectedName] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState('');
   const [uploadMode, setUploadMode] = useState<'template' | 'file'>('template');
@@ -181,7 +183,8 @@ export default function OverlaysPanel() {
 
   if (loading && !catalog) return <div className="panel"><p className="empty">Laden …</p></div>;
 
-  const groups = GROUP_ORDER.map((g) => ({ group: g, label: GROUP_LABELS[g], items: entries.filter((e) => e.group === g) })).filter((g) => g.items.length > 0);
+  const found = entries.filter((e) => matchesSearch(search, e.label, e.name, GROUP_LABELS[e.group], ...(scenesOf(e) ?? [])));
+  const groups = GROUP_ORDER.map((g) => ({ group: g, label: GROUP_LABELS[g], items: found.filter((e) => e.group === g) })).filter((g) => g.items.length > 0);
 
   // Preview: the overlay at its real size, scaled to fit the box.
   const previewSize = selected?.size ?? { width: 1280, height: 720 };
@@ -196,6 +199,8 @@ export default function OverlaysPanel() {
     <div className="panel ovl">
       <div className="ovl-layout">
         <div className="ovl-list" aria-label="Alle Overlays">
+          <SearchField value={search} onChange={setSearch} label="Overlays suchen" width={260} />
+          {groups.length === 0 && <p className="dialog-empty">Kein Overlay passt zu „{search.trim()}“.</p>}
           {groups.map((g) => (
             <div key={g.group} className="ovl-group">
               <h3 className="dialog-section">{g.label}</h3>

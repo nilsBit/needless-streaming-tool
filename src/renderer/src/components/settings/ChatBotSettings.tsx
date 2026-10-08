@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import SearchField, { matchesSearch } from '../ux/SearchField';
 import { useApi, apiPost, apiFetch } from '../../hooks/useApi';
 import { useToast } from '../../contexts/ToastContext';
 
@@ -38,6 +39,7 @@ export default function ChatBotSettings() {
   // Names of the built-in commands.
   const { data: commandsData, refetch: refetchCommands } = useApi<Record<string, string>>('/settings/commands');
   const [editCommands, setEditCommands] = useState<Record<string, string>>({});
+  const [commandSearch, setCommandSearch] = useState('');
   const [commandsLoaded, setCommandsLoaded] = useState(false);
   useEffect(() => {
     if (commandsData && !commandsLoaded) {
@@ -140,9 +142,10 @@ export default function ChatBotSettings() {
               </div>
             </div>
           </div>
+          <SearchField value={commandSearch} onChange={setCommandSearch} label="Befehle suchen" />
         </div>
         <div className="s-card-body">
-          {Object.entries(editCommands).map(([key, value]) => (
+          {Object.entries(editCommands).filter(([key, value]) => matchesSearch(commandSearch, key, value)).map(([key, value]) => (
             <div key={key} className="s-command-row">
               <span className="s-command-label">{key}</span>
               <input type="text" value={value} onChange={e => setEditCommands(prev => ({ ...prev, [key]: e.target.value }))} />

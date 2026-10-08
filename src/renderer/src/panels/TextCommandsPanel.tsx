@@ -3,6 +3,7 @@ import { apiDelete, apiFetch, apiGet, apiPost, useApi } from '../hooks/useApi';
 import { useToast } from '../contexts/ToastContext';
 import EmptyState from '../components/ux/EmptyState';
 import Dialog from '../components/ux/Dialog';
+import SearchField, { matchesSearch } from '../components/ux/SearchField';
 
 // "Befehle" under Chat & Bot: one list for everything the streamer maintains —
 // own texts (!story) and lookups into the world (!figur) — grouped, with a
@@ -90,6 +91,7 @@ export default function TextCommandsPanel() {
   const { data: list, refetch: refetchList } = useApi<CommandList>('/commands');
   const [arten, setArten] = useState<string[] | null>(null);
   const [filter, setFilter] = useState<'on' | 'off'>('on');
+  const [search, setSearch] = useState('');
   const [draft, setDraft] = useState<Draft | null>(null);
   const [preview, setPreview] = useState<Preview | null>(null);
   const [newAlias, setNewAlias] = useState('');
@@ -124,7 +126,11 @@ export default function TextCommandsPanel() {
 
   const onCount = rows.filter((r) => r.enabled).length;
   const offCount = rows.length - onCount;
-  const shown = rows.filter((r) => (filter === 'on' ? r.enabled : !r.enabled));
+  // A search looks through everything, on and off; the filter applies without one.
+  const searching = search.trim() !== '';
+  const shown = rows.filter((r) => (searching
+    ? matchesSearch(search, r.trigger, r.sentence, r.response, r.art, ...r.aliases)
+    : (filter === 'on' ? r.enabled : !r.enabled)));
   const groups: Array<{ kind: Kind; title: string; rows: Row[] }> = [
     { kind: 'text', title: 'Eigene Texte', rows: shown.filter((r) => r.kind === 'text') },
     { kind: 'lookup', title: 'Aus der Welt nachschlagen', rows: shown.filter((r) => r.kind === 'lookup') },
@@ -233,7 +239,10 @@ export default function TextCommandsPanel() {
           <button type="button" className={`pill ${filter === 'on' ? 'active' : ''}`} aria-pressed={filter === 'on'} onClick={() => setFilter('on')}>Aktiv · {onCount}</button>
           <button type="button" className={`pill ${filter === 'off' ? 'active' : ''}`} aria-pressed={filter === 'off'} onClick={() => setFilter('off')}>Ausgeschaltet · {offCount}</button>
         </div>
-        <button type="button" className="card-primary" onClick={() => openNew('text')}>+ Neuer Befehl</button>
+        <div className="card-row card-wrap">
+          {rows.length > 0 && <SearchField value={search} onChange={setSearch} label="Befehle suchen" />}
+          <button type="button" className="card-primary" onClick={() => openNew('text')}>+ Neuer Befehl</button>
+        </div>
       </div>
 
       {rows.length === 0 ? (
@@ -246,7 +255,7 @@ export default function TextCommandsPanel() {
           </div>
         </>
       ) : shown.length === 0 ? (
-        <p className="dialog-empty">{filter === 'off' ? 'Hier ist nichts ausgeschaltet.' : 'Alles ist ausgeschaltet.'}</p>
+        <p className="dialog-empty">{searching ? `Kein Befehl passt zu „${search.trim()}“.` : filter === 'off' ? 'Hier ist nichts ausgeschaltet.' : 'Alles ist ausgeschaltet.'}</p>
       ) : (
         groups.filter((g) => g.rows.length > 0).map((g) => (
           <section key={g.kind} className="cmd-group" aria-label={g.title}>

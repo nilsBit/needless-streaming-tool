@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useFeatures } from '../../contexts/FeaturesContext';
 import { useToast } from '../../contexts/ToastContext';
 import { CONNECTION_LABELS, FEATURE_GROUPS, FEATURES, PERSONAL_FEATURES, type FeatureKey } from '../../../../shared/features';
+import SearchField, { matchesSearch } from '../ux/SearchField';
 
 // Einstellungen → Programm: what the stream can do, switched on and off right
 // here (Nils, 08.10.: no detour through the setup, no dialog). The groups and
@@ -11,9 +12,12 @@ export default function FeaturesCard() {
   const { toast } = useToast();
   const { features, worldbuilder, save, openSetup } = useFeatures();
   const [saving, setSaving] = useState<FeatureKey | null>(null);
+  const [search, setSearch] = useState('');
   const groups = FEATURE_GROUPS.filter((g) => worldbuilder || !g.personal);
   const available = FEATURES.filter((f) => worldbuilder || !PERSONAL_FEATURES.includes(f.key));
   const onCount = available.filter((f) => features.has(f.key)).length;
+  const found = (f: (typeof FEATURES)[number]) => matchesSearch(search, f.label, f.sentence, FEATURE_GROUPS.find((g) => g.key === f.group)?.label, ...f.needs.map((n) => CONNECTION_LABELS[n]));
+  const shownGroups = groups.map((g) => ({ group: g, items: FEATURES.filter((f) => f.group === g.key && found(f)) })).filter((g) => g.items.length > 0);
 
   const set = async (key: FeatureKey, on: boolean) => {
     if (features.has(key) === on) return;
@@ -35,15 +39,17 @@ export default function FeaturesCard() {
             </div>
           </div>
         </div>
+        <SearchField value={search} onChange={setSearch} label="Funktionen suchen" />
       </div>
       <div className="s-card-body feat-groups">
-        {groups.map((g) => (
+        {shownGroups.length === 0 && <p className="dialog-empty feat-setup">Keine Funktion passt zu „{search.trim()}“.</p>}
+        {shownGroups.map(({ group: g, items }) => (
           <section key={g.key} className="feat-group" aria-label={g.label}>
             <div className="feat-group-head">
               <h3>{g.label}</h3>
               <p>{g.sentence}</p>
             </div>
-            {FEATURES.filter((f) => f.group === g.key).map((f) => {
+            {items.map((f) => {
               const on = features.has(f.key);
               return (
                 <div key={f.key} className={`feat-row ${on ? 'on' : ''}`} data-feature={f.key}>
