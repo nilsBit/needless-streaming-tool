@@ -4,6 +4,7 @@ import { useToast } from '../contexts/ToastContext';
 import { useWebSocket } from '../hooks/useWebSocket';
 import Dialog from '../components/ux/Dialog';
 import OverlayQuestPath from '../components/quests/paths/OverlayQuestPath';
+import { useNavigate } from '../NavigationContext';
 import { useVisibleInterval } from '../hooks/useVisibleInterval';
 import SearchField, { matchesSearch } from '../components/ux/SearchField';
 import { useFeatures } from '../contexts/FeaturesContext';
@@ -74,6 +75,7 @@ export default function OverlaysPanel() {
   const [creating, setCreating] = useState(false);
   // Into OBS on a Quest-Pfad: from the list, or with the overlay that is open.
   const [placing, setPlacing] = useState<{ initial?: string } | null>(null);
+  const go = useNavigate();
   const [newName, setNewName] = useState('');
   const [uploadMode, setUploadMode] = useState<'template' | 'file'>('template');
   const [busy, setBusy] = useState(false);
@@ -201,7 +203,6 @@ export default function OverlaysPanel() {
     <div className="panel ovl">
       <div className="ovl-layout">
         <div className="ovl-list" aria-label="Alle Overlays">
-          <button type="button" className="card-primary" onClick={() => setPlacing({})}>Overlay ins Bild bringen</button>
           <SearchField value={search} onChange={setSearch} label="Overlays suchen" width={260} />
           {groups.length === 0 && <p className="dialog-empty">Kein Overlay passt zu „{search.trim()}“.</p>}
           {groups.map((g) => (
@@ -251,17 +252,30 @@ export default function OverlaysPanel() {
                 : <><span className="ovl-chip warm">Live, ohne Beispieldaten</span><span>{selected.builtin ? `Du hast dieses Overlay angepasst (${selected.customizedBy.map((w) => WHY[w]).join(', ')}), darum zeigt die Vorschau es so, wie es gerade in OBS steht.` : 'Ein eigenes Overlay zeigt sich so, wie es gerade in OBS steht.'}</span></>}
             </div>
 
-            <div className="card-status">
-              {(() => {
-                const scenes = scenesOf(selected);
-                if (scenes === null) return <span>OBS ist nicht verbunden – wo das Overlay liegt, ist deshalb unbekannt.</span>;
-                if (scenes.length === 0) return <><span className="ovl-chip">Noch nicht in OBS</span><span>Leg in OBS eine Browserquelle mit der Adresse unten an.</span></>;
-                return <><span className="ovl-chip on">In OBS</span><span>in den Szenen</span>{scenes.map((s) => <span key={s} className="ovl-scene">{s}</span>)}</>;
-              })()}
-            </div>
+            {/* Whether it is in the stream picture, and the one thing to do about it (08.10.). */}
+            {(() => {
+              const scenes = scenesOf(selected);
+              if (scenes === null) return (
+                <div className="ovl-obs-card">
+                  <div className="ovl-obs-text"><strong>In OBS: noch unbekannt</strong><span>Wo das Overlay liegt, sieht das Tool erst, wenn OBS verbunden ist.</span></div>
+                  <button type="button" className="card-secondary" onClick={() => go({ area: 'settings', subTab: 'verbindungen' })}>OBS verbinden</button>
+                </div>
+              );
+              if (scenes.length === 0) return (
+                <div className="ovl-obs-card todo">
+                  <div className="ovl-obs-text"><strong>Noch nicht in deinem Stream-Bild</strong><span>{selected.builtin ? 'Das Tool legt die Browserquelle für dich in einer Szene an – du musst nichts kopieren.' : 'Leg in OBS eine Browserquelle mit der Adresse unten an.'}</span></div>
+                  {selected.builtin && <button type="button" className="card-primary" onClick={() => setPlacing({ initial: selected.name })}>In OBS anlegen</button>}
+                </div>
+              );
+              return (
+                <div className="ovl-obs-card done">
+                  <div className="ovl-obs-text"><strong>Im Bild</strong><span>in den Szenen {scenes.map((s) => <span key={s} className="ovl-scene">{s}</span>)}</span></div>
+                </div>
+              );
+            })()}
 
             <div className="dialog-field">
-              <span className="dialog-field-label">Adresse für die Browserquelle in OBS{selected.size ? ` · Größe ${selected.size.width} × ${selected.size.height}` : ''}</span>
+              <span className="dialog-field-label">{scenesOf(selected)?.length === 0 && selected.builtin ? 'Oder selbst anlegen – ' : ''}Adresse für die Browserquelle in OBS{selected.size ? ` · Größe ${selected.size.width} × ${selected.size.height}` : ''}</span>
               <div className="card-row card-wrap">
                 <code className="ovl-url">{selected.url}</code>
                 <button type="button" className="card-secondary" onClick={() => copy(selected.url, 'Adresse kopiert')}>Adresse kopieren</button>
@@ -269,8 +283,7 @@ export default function OverlaysPanel() {
             </div>
 
             <div className="card-row card-wrap ovl-actions">
-              {selected.builtin && <button type="button" className="card-primary" onClick={() => setPlacing({ initial: selected.name })}>Ins Bild bringen</button>}
-              <button type="button" className={selected.builtin ? 'card-secondary' : 'card-primary'} onClick={() => openLarge(selected)}>Groß im Browser ansehen</button>
+              <button type="button" className="card-secondary" onClick={() => openLarge(selected)}>Groß im Browser ansehen</button>
               {TESTABLE.has(selected.name) && <button type="button" className="card-secondary" onClick={() => testOnStream(selected)}>Im Stream testen</button>}
               <button type="button" className="card-link" onClick={() => openEditor(selected)}>HTML bearbeiten</button>
               {selected.builtin && selected.customizedBy.includes('html') && <button type="button" className="card-link" onClick={() => resetBuiltin(selected)}>HTML zurücksetzen</button>}
