@@ -6,6 +6,7 @@ import Dialog from '../components/ux/Dialog';
 import SearchField from '../components/ux/SearchField';
 import RewardSteps, { type Step } from '../components/rewards/RewardSteps';
 import RewardTemplates, { type RewardTemplate } from '../components/rewards/RewardTemplates';
+import RewardQuestPath, { type RewardDraft } from '../components/rewards/RewardQuestPath';
 import { useFeatures } from '../contexts/FeaturesContext';
 import type { FeatureKey } from '../../../shared/features';
 
@@ -37,7 +38,6 @@ const RATES: Array<[keyof Config, string, string]> = [
   ['bits_per_point', 'Bits', 'Bits für einen Punkt'],
 ];
 
-const emptyReward = (): Omit<Reward, 'id'> => ({ name: '', cost: 100, action: 'alert', scene_name: null, needs_input: false, cooldown_seconds: 0, enabled: true });
 
 // "Punkte" under Chat & Bot: the tool's own points next to Twitch channel
 // points (spec 2026-10-08-eigene-punkte), laid out as design B (08.10.):
@@ -59,14 +59,13 @@ export default function PointsPanel() {
   const count = rewards?.filter((r) => r.enabled).length ?? 0;
   const firstReward = rewards?.find((r) => r.enabled);
 
-  const applyTemplate = async (t: RewardTemplate) => {
-    const draft = { name: t.name, cost: t.cost, action: t.action, scene_name: null, needs_input: !!t.needsInput, cooldown_seconds: 0, enabled: true };
-    // A scene has to be chosen: the dialog opens filled in.
-    if (t.action === 'scene') { setEditingReward(draft); return; }
-    const res = await apiFetch('/points/rewards', { method: 'POST', body: JSON.stringify(draft) });
-    if (!res.ok) { toast.error(`Nicht angelegt – ${(await res.json().catch(() => ({}))).error ?? 'Fehler'}`); return; }
-    toast.success(`„${t.name}“ angelegt`);
-    refetchRewards();
+  // New rewards are made on a Quest-Pfad; a template opens it filled in.
+  const [path, setPath] = useState<{ initial?: Partial<RewardDraft> } | null>(null);
+  const applyTemplate = (t: RewardTemplate) => setPath({ initial: { action: t.action, name: t.name, cost: t.cost } });
+  const tryReward = async (name: string) => {
+    await giveMyself();
+    toast.success(`Du hast jetzt Punkte. Schreib im Chat: !einlösen ${name}`);
+    setPath(null);
   };
 
   const giveMyself = async () => {
@@ -108,7 +107,7 @@ export default function PointsPanel() {
       <section aria-label="Deine Belohnungen">
         <div className="card-line card-wrap">
           <div className="rewards-name">Deine Belohnungen</div>
-          <button type="button" className="card-primary" onClick={() => setEditingReward(emptyReward())}>+ Eigene Belohnung</button>
+          <button type="button" className="card-primary" onClick={() => setPath({})}>+ Eigene Belohnung</button>
         </div>
         {rewards && rewards.length === 0 && <p className="dialog-empty">Noch keine. Eine Vorlage oben ist der schnellste Anfang.</p>}
         <div className="rewards-ranking">
@@ -140,6 +139,7 @@ export default function PointsPanel() {
       </div>
 
       {editingConfig && config && <ConfigDialog config={config} onClose={() => setEditingConfig(false)} onSaved={refetchConfig} />}
+      {path && <RewardQuestPath mode="points" currency={currency} initial={path.initial} onClose={() => setPath(null)} onCreated={refetchRewards} onTry={tryReward} />}
       {editingReward && <RewardDialog reward={editingReward} currency={currency} onClose={() => setEditingReward(null)} onSaved={refetchRewards} />}
       {openViewer && <ViewerDialog viewer={openViewer} currency={currency} rewards={rewards ?? []} onClose={() => setOpenViewer(null)} />}
     </div>

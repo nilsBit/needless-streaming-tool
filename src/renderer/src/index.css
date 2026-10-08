@@ -386,6 +386,40 @@ body {
 .setup-cards .s-card { margin: 0; }
 .s-card-note { color: var(--muted); font-weight: 400; font-size: 13px; }
 
+/* Quest-Pfad (08.10.): stages on a path, big choice cards, a celebrated end */
+.quest-path { list-style: none; margin: 0 0 18px; padding: 0; display: flex; align-items: flex-start; }
+.quest-path-node { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; position: relative; }
+.quest-path-node:not(:last-child)::after { content: ''; position: absolute; top: 17px; left: calc(50% + 22px); right: calc(-50% + 22px); height: 3px; border-radius: 2px; background: var(--border); }
+.quest-path-node.past:not(:last-child)::after { background: var(--accent); }
+.quest-path-dot { width: 36px; height: 36px; border-radius: 50%; border: 3px solid var(--border); display: inline-flex; align-items: center; justify-content: center; font-weight: 800; color: var(--muted); background: var(--bg-panel); position: relative; z-index: 1; }
+.quest-path-node.current .quest-path-dot { border-color: var(--accent); color: var(--accent); }
+.quest-path-node.past .quest-path-dot { border-color: var(--accent); background: var(--accent); color: #161616; }
+.quest-path-label { font-size: 12px; font-weight: 600; color: var(--muted); text-align: center; }
+.quest-path-node.current .quest-path-label { color: var(--accent); }
+.quest-path-node.past .quest-path-label { color: var(--text-secondary); }
+.quest-path-body { display: flex; flex-direction: column; gap: 14px; min-height: 300px; }
+.quest-step-title { margin: 0; font-size: 18px; font-weight: 600; color: var(--text); }
+.quest-input { min-height: 48px; font-size: 16px; }
+.choice-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr)); gap: 10px; }
+.choice-card { min-height: 96px; padding: 14px; border: 2px solid var(--border); border-radius: 12px; background: var(--bg-panel); color: var(--text); font: inherit; text-align: left; display: flex; flex-direction: column; gap: 6px; cursor: pointer; }
+.choice-card svg { color: var(--accent); }
+.choice-card:hover { border-color: var(--border-strong); }
+.choice-card.on { border-color: var(--accent); background: rgba(230,126,34,0.08); }
+.choice-card-title { font-weight: 700; }
+.choice-card-text { font-size: 13px; color: var(--muted); }
+.quest-preview-chat { padding: 12px 14px; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 8px; line-height: 1.7; color: var(--text); }
+.preview-who { font-weight: 600; }
+.preview-who.viewer { color: #7fb3ff; }
+.preview-who.bot { color: #9b8cff; }
+.quest-preview-alert { align-self: flex-start; min-width: 280px; padding: 12px 16px; border: 1px solid #5a4a36; border-radius: 8px; background: #241d16; color: #f3ead9; display: flex; flex-direction: column; gap: 2px; }
+.quest-preview-label { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: #c9a97a; }
+.quest-done { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; padding: 24px 0; }
+.quest-done-mark { width: 84px; height: 84px; border-radius: 50%; border: 3px solid var(--accent); color: var(--accent); background: rgba(230,126,34,0.1); display: inline-flex; align-items: center; justify-content: center; font-size: 40px; font-weight: 800; animation: quest-pop 0.6s ease-out; }
+.quest-done-title { margin: 0; font-size: 22px; font-weight: 700; color: var(--text); }
+.quest-done-xp { font-weight: 800; color: var(--accent); }
+.quest-done-text { margin: 0; color: var(--text-secondary); max-width: 460px; }
+@keyframes quest-pop { 0% { transform: scale(.6); opacity: 0; } 60% { transform: scale(1.08); opacity: 1; } 100% { transform: scale(1); } }
+
 /* Quests (08.10.): the stage in the sidebar and the quests page */
 .stage-badge { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; padding: 8px 10px; border: 1px solid var(--border-subtle); border-radius: 10px; background: none; color: var(--text); font: inherit; text-align: left; cursor: pointer; }
 .stage-badge:hover { border-color: var(--border-strong); background: var(--bg-hover); }

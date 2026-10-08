@@ -17,6 +17,7 @@ design/compare/
 figma-plugin/node_modules/
 figma-plugin/dist/
 design/ui-walk/
+design/ui-flow/
 
 # dev-server logs written when the tool is started detached
 /dev-*.log

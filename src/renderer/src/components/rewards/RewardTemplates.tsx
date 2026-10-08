@@ -43,7 +43,7 @@ export default function RewardTemplates({ unit, existing, isOn, disabled, madeLa
     <section className="reward-templates" aria-labelledby="reward-templates-title">
       <div className="reward-templates-head">
         <h3 id="reward-templates-title">Mit einer Vorlage anfangen</h3>
-        <span className="dialog-hint">Ein Klick legt sie an – Name und Preis änderst du danach.</span>
+        <span className="dialog-hint">Ein Klick füllt den Weg vor – du schaust drüber und legst an.</span>
       </div>
       <div className="reward-template-grid">
         {shown.map((t) => {
@@ -56,7 +56,7 @@ export default function RewardTemplates({ unit, existing, isOn, disabled, madeLa
                 <span className="reward-template-cost">{t.cost} <span>{unit}</span></span>
                 {made
                   ? <span className="reward-template-made">{madeLabel}</span>
-                  : <button type="button" className="card-secondary reward-template-use" onClick={() => onUse(t)} disabled={disabled}>{t.action === 'scene' ? 'Szene wählen' : 'Übernehmen'}</button>}
+                  : <button type="button" className="card-secondary reward-template-use" onClick={() => onUse(t)} disabled={disabled}>Übernehmen</button>}
               </div>
             </div>
           );

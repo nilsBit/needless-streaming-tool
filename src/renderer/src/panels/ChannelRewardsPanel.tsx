@@ -5,6 +5,7 @@ import Dialog from '../components/ux/Dialog';
 import SearchField, { matchesSearch } from '../components/ux/SearchField';
 import RewardSteps, { type Step } from '../components/rewards/RewardSteps';
 import RewardTemplates, { type RewardTemplate } from '../components/rewards/RewardTemplates';
+import RewardQuestPath, { type RewardDraft } from '../components/rewards/RewardQuestPath';
 import { useFeatures } from '../contexts/FeaturesContext';
 import type { FeatureKey } from '../../../shared/features';
 
@@ -24,7 +25,6 @@ const ACTIONS: Record<Action, string> = {
   scene: 'Szene wechseln',
 };
 
-const emptyDraft = (): Draft => ({ title: '', cost: 500, prompt: '', input_required: false, enabled: true, action: 'alert', scene_name: null });
 
 // "Kanalpunkte" under Chat & Bot (#24): the channel's Twitch rewards. Those
 // made here can be edited and carry an action; those from the Creator
@@ -52,15 +52,9 @@ export default function ChannelRewardsPanel() {
     catch { toast.error('Twitch ließ sich nicht öffnen'); }
   };
 
-  const applyTemplate = async (t: RewardTemplate) => {
-    const draft: Draft = { title: t.name, cost: t.cost, prompt: t.needsInput ? 'Schreib deine Idee dazu.' : '', input_required: !!t.needsInput, enabled: true, action: t.action, scene_name: null };
-    if (t.action === 'scene') { setDraft(draft); return; }
-    const res = await apiFetch('/channel-rewards', { method: 'POST', body: JSON.stringify(draft) });
-    if (res.status === 401) { setNeedsReconnect(true); toast.error('Dem Twitch-Login fehlt das Recht, Belohnungen anzulegen.'); return; }
-    if (!res.ok) { toast.error((await res.json().catch(() => ({}))).error ?? 'Nicht angelegt'); return; }
-    toast.success(`„${t.name}“ in Twitch angelegt`);
-    void load();
-  };
+  // New rewards are made on a Quest-Pfad; a template opens it filled in.
+  const [path, setPath] = useState<{ initial?: Partial<RewardDraft> } | null>(null);
+  const applyTemplate = (t: RewardTemplate) => setPath({ initial: { action: t.action, name: t.name, cost: t.cost } });
 
   const ownCount = (rewards ?? []).filter((r) => r.manageable && r.enabled).length;
   const steps: Step[] = [
@@ -123,7 +117,7 @@ export default function ChannelRewardsPanel() {
         <div className="rewards-name">Deine Belohnungen in Twitch</div>
         <div className="card-row card-wrap">
           {(rewards?.length ?? 0) > 0 && <SearchField value={search} onChange={setSearch} label="Belohnungen suchen" />}
-          <button type="button" className="card-primary" onClick={() => setDraft(emptyDraft())} disabled={!!error && !needsReconnect}>+ Eigene Belohnung</button>
+          <button type="button" className="card-primary" onClick={() => setPath({})} disabled={!!error && !needsReconnect}>+ Eigene Belohnung</button>
         </div>
       </div>
       {error && !needsReconnect && <p className="dialog-hint" role="alert">{error}</p>}
@@ -139,6 +133,7 @@ export default function ChannelRewardsPanel() {
         </section>
       )}
 
+      {path && <RewardQuestPath mode="twitch" currency="Kanalpunkte" initial={path.initial} onClose={() => setPath(null)} onCreated={() => void load()} onNeedsReconnect={() => setNeedsReconnect(true)} />}
       {draft && <RewardDialog draft={draft} onClose={() => setDraft(null)} onSaved={() => { setDraft(null); void load(); toast.success('Gespeichert'); }} />}
     </div>
   );

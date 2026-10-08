@@ -21,6 +21,7 @@
     "showcase:compare": "node scripts/showcase-compare.mjs",
     "server:headless": "tsc -p tsconfig.node.json && electron scripts/server-headless.cjs",
     "ui:walk": "node scripts/ui-walk.mjs",
+    "ui:flow": "node scripts/ui-flow.mjs",
     "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
