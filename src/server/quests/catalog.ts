@@ -158,6 +158,43 @@ export const QUESTS: readonly Quest[] = [
   },
 ];
 
+/**
+ * How each quest is explained and where it stands (08.10.: the first quests
+ * felt "unerklärt und stuck"). `why` is one sentence of what it is good for,
+ * `how` two or three short steps, `needs` a quest that has to be done first —
+ * until then this one is shown as blocked and never proposed next.
+ */
+export interface QuestGuide { chapter: number; why: string; how: string[]; needs?: string; blockedBy?: string }
+
+export const GUIDE: Record<string, QuestGuide> = {
+  choose: { chapter: 1, why: 'Damit dir das Tool nur zeigt, was du wirklich brauchst.', how: ['Einstellungen → Programm', 'Funktionen an- und ausschalten'] },
+  twitch: { chapter: 1, why: 'Ohne Twitch antwortet kein Bot, und es kommen keine Alerts.', how: ['Einstellungen → Verbindungen', '„Mit Twitch verbinden“', 'Im Browser bestätigen'] },
+  obs: { chapter: 1, why: 'Damit das Tool Overlays ins Bild bringt und weiß, was gerade zu sehen ist.', how: ['In OBS: Werkzeuge → WebSocket-Servereinstellungen, Server an', 'Passwort hier eintragen', '„Verbinden“'] },
+  overlay: { chapter: 1, why: 'Deine Zuschauer sehen, was im Stream passiert.', how: ['Overlays & Alerts → ein Overlay wählen', '„In OBS anlegen“', 'In OBS an die richtige Stelle schieben'], needs: 'obs', blockedBy: 'Braucht OBS' },
+  command: { chapter: 1, why: 'Du musst deine Welt nicht jeden Stream neu erklären – der Chat fragt einfach.', how: ['Chat & Bot → Befehle', '„+ Neuer Befehl“ – der Weg führt dich', 'Im Chat ausprobieren'] },
+  stream: { chapter: 1, why: 'Alles zusammen im echten Einsatz.', how: ['Tool offen lassen', 'In OBS „Stream starten“'], needs: 'obs', blockedBy: 'Braucht OBS' },
+  commands5: { chapter: 2, why: 'Je mehr der Chat selbst nachlesen kann, desto weniger musst du erklären.', how: ['Chat & Bot → Befehle', 'Weitere Befehle über „+ Neuer Befehl“'], needs: 'command', blockedBy: 'Erst einen Befehl' },
+  pointReward: { chapter: 2, why: 'Zuschauen und Mitmachen lohnt sich – Punkte haben einen Wert.', how: ['Chat & Bot → Punkte', 'Eine Vorlage übernehmen'] },
+  pointTry: { chapter: 2, why: 'Du siehst selbst, was deine Zuschauer erleben.', how: ['Chat & Bot → Punkte', '„500 Punkte an dich“', 'Im Chat !einlösen Name'], needs: 'pointReward', blockedBy: 'Erst eine Belohnung' },
+  points10: { chapter: 2, why: 'Dein Chat nimmt die Punkte an.', how: ['Im Stream auf deine Belohnungen hinweisen', '!belohnungen zeigt sie'], needs: 'pointReward', blockedBy: 'Erst eine Belohnung' },
+  channelReward: { chapter: 2, why: 'Kanalpunkte tun etwas im Stream, statt nur gezählt zu werden.', how: ['Chat & Bot → Kanalpunkte', 'Eine Vorlage übernehmen'], needs: 'twitch', blockedBy: 'Braucht Twitch' },
+  leaderboard: { chapter: 2, why: 'Wer am meisten mitmacht, steht im Bild.', how: ['Overlays & Alerts → Bestenlisten', '„+ Bestenliste“'], needs: 'twitch', blockedBy: 'Braucht Twitch' },
+  topics3: { chapter: 2, why: 'Das Glücksrad braucht etwas, woraus es wählt.', how: ['Im Stream → Glücksrad', 'Drei Themen eintragen'] },
+  spin: { chapter: 2, why: 'Der Chat sieht, wie der Zufall entscheidet.', how: ['Im Stream → Glücksrad', '„Rad drehen“'], needs: 'topics3', blockedBy: 'Erst drei Themen' },
+  alertSound: { chapter: 2, why: 'Ein Follow oder Raid fällt auf, auch wenn du gerade nicht hinschaust.', how: ['Overlays & Alerts → Alerts', 'Bei einem Anlass eine Tondatei wählen'] },
+  discord: { chapter: 2, why: 'Dein Discord erfährt von selbst, wenn du live gehst.', how: ['Einstellungen → Verbindungen → Discord', 'Webhook-Adresse eintragen'] },
+  moment: { chapter: 3, why: 'Aus guten Stellen wird später Content.', how: ['Im Stream → „Moment merken“, wenn etwas passiert'] },
+  published: { chapter: 3, why: 'Dein Stream wächst über TikTok, Shorts und Reels.', how: ['Nach dem Stream → Content planen', 'Eine Karte bis „Veröffentlicht“ schieben'], needs: 'moment', blockedBy: 'Erst ein Moment' },
+  entryCard: { chapter: 3, why: 'Die Zuschauer sehen, woran du in der Welt gerade schreibst.', how: ['Overlays & Alerts → Eintragskarte', '„In OBS anlegen“'], needs: 'obs', blockedBy: 'Braucht OBS' },
+};
+
+/** Chapters: a story through the tool, each with a badge. One may wait for another. */
+export const CHAPTERS: ReadonlyArray<{ n: number; title: string; badge: string; after?: number }> = [
+  { n: 1, title: 'Bereit für den ersten Stream', badge: 'Startklar' },
+  { n: 2, title: 'Der Chat spielt mit', badge: 'Gastgeber' },
+  { n: 3, title: 'Aus dem Stream wird Content', badge: 'Chronist', after: 1 },
+];
+
 /** The stages, by the EP they start at. Things, not people. */
 export const STAGES: ReadonlyArray<{ name: string; from: number }> = [
   { name: 'Funke', from: 0 },

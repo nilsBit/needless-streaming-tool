@@ -16,9 +16,10 @@ describe('quests', () => {
   let token: string;
   const auth = () => ({ Authorization: `Bearer ${token}` });
   type View = { key: string; xp: number; completedAt: string | null };
+  type Chapter = { n: number; title: string; badge: string; locked: boolean; done: number; total: number; complete: boolean; quests: Array<View & { why: string; how: string[]; blockedBy: string | null }> };
   const overview = async () => (await request(app).get('/api/quests').set(auth()).expect(200)).body as {
     stage: { level: number; name: string; xp: number; next: { name: string; from: number } | null };
-    choosing: boolean; next: View | null; open: View[]; done: View[];
+    choosing: boolean; introSeen: boolean; next: View | null; open: View[]; done: View[]; chapters: Chapter[];
   };
   const keys = (list: View[]) => list.map((q) => q.key);
   const choose = (features: string[]) => request(app).post('/api/setup/features').set(auth()).send({ features }).expect(200);
@@ -83,5 +84,41 @@ describe('quests', () => {
     for (const flag of ['twitch', 'obs', 'stream']) markQuestFlag(flag);
     const o = await overview();
     expect(o.stage).toMatchObject({ level: 2, name: 'Lagerfeuer', xp: 20 + 40 + 40 + 60 });
+  });
+
+  describe('chapters and guidance', () => {
+    it('groups the quests in chapters, each explained with why and how', async () => {
+      await choose(['befehle', 'punkte']);
+      const o = await overview();
+      expect(o.chapters.map((c) => [c.n, c.title, c.badge])).toEqual([[1, 'Bereit für den ersten Stream', 'Startklar'], [2, 'Der Chat spielt mit', 'Gastgeber']]);
+      const command = o.chapters[0].quests.find((q) => q.key === 'command')!;
+      expect(command.why).toMatch(/erklären/);
+      expect(command.how.length).toBeGreaterThan(1);
+    });
+
+    it('marks a quest that waits for another, and never proposes it next', async () => {
+      await choose(['befehle', 'punkte']);
+      markQuestFlag('twitch');
+      const o = await overview();
+      const overlay = o.chapters[0].quests.find((q) => q.key === 'overlay')!;
+      expect(overlay.blockedBy).toBe('Braucht OBS');
+      expect(o.next?.key).toBe('obs');
+      markQuestFlag('obs');
+      expect((await overview()).chapters[0].quests.find((q) => q.key === 'overlay')!.blockedBy).toBeNull();
+    });
+
+    it('keeps a chapter locked until the one before is done', async () => {
+      await choose(['momente']);
+      const o = await overview();
+      expect(o.chapters.find((c) => c.n === 3)).toMatchObject({ locked: true });
+      // the next quest never comes from a locked chapter
+      expect(o.chapters.find((c) => c.n === 3)!.quests.some((q) => q.key === o.next?.key)).toBe(false);
+    });
+
+    it('shows the intro once', async () => {
+      expect((await overview()).introSeen).toBe(false);
+      await request(app).post('/api/quests/intro-seen').set(auth()).expect(200);
+      expect((await overview()).introSeen).toBe(true);
+    });
   });
 });
