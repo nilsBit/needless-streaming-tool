@@ -6,6 +6,7 @@ import { broadcast } from '../websocket/index';
 import {
   ALERT_SLOTS,
   ALERT_SOUND_DIR,
+  alertOn,
   MAX_LABEL,
   MAX_TEXT,
   deleteSound,
@@ -88,6 +89,11 @@ router.post('/test/:slot', (req, res) => {
   const slot = req.params.slot;
   if (!isAlertSlot(slot)) {
     res.status(404).json({ error: 'Not found' });
+    return;
+  }
+  // A switched-off alert stays off in the test too — the overlay would not show it.
+  if (!alertOn(slot)) {
+    res.status(409).json({ error: 'Dieser Alert ist aus.' });
     return;
   }
   const alert = sampleAlert(slot);

@@ -13,6 +13,7 @@ interface AlertRow {
   text: string;
   sound: string | null;
   volume: number;
+  enabled: boolean;
 }
 
 interface Overview {
@@ -70,7 +71,7 @@ export default function AlertSettings() {
 
   /** Saves every row as it stands (the route takes them all); an emptied field comes back as the built-in wording. */
   const saveRows = async (next: Record<string, AlertRow>): Promise<boolean> => {
-    const body = Object.fromEntries(Object.values(next).map((r) => [r.slot, { label: r.label, text: r.text, sound: r.sound, volume: r.volume }]));
+    const body = Object.fromEntries(Object.values(next).map((r) => [r.slot, { label: r.label, text: r.text, sound: r.sound, volume: r.volume, enabled: r.enabled }]));
     const res = await apiFetch('/alerts', { method: 'POST', body: JSON.stringify(body) });
     if (!res.ok) {
       const err = await res.json().catch(() => null);
@@ -123,38 +124,49 @@ export default function AlertSettings() {
   if (!data) return <div className="panel"><p className="empty">Laden …</p></div>;
 
   const list = data.alerts.map(({ slot }) => rows[slot]).filter(Boolean);
-  const silent = list.filter((r) => !r.sound).length;
+  const silent = list.filter((r) => r.enabled && !r.sound).length;
+  const off = list.filter((r) => !r.enabled).length;
+  // A switch saves at once: off means no Tafel in the stream, not a draft.
+  const toggle = async (row: AlertRow) => {
+    if (await saveRows({ ...rows, [row.slot]: { ...row, enabled: !row.enabled } })) toast.success(row.enabled ? `${row.name}: aus – keine Tafel mehr` : `${row.name}: wieder an`);
+  };
 
   return (
     <div className="panel card-slim alerts">
       <div className="card-line card-wrap">
         <div className="card-status">
           {silent === 0
-            ? <span className="ovl-chip on">Alle Alerts haben einen Ton</span>
+            ? <span className="ovl-chip on">Alle Alerts, die an sind, haben einen Ton</span>
             : <><span className="ovl-chip warm">{silent} {silent === 1 ? 'Alert' : 'Alerts'} ohne Ton</span><span>Ohne Ton erscheint die Tafel stumm. Den Ton wählst du je Karte unter „Bearbeiten“.</span></>}
+          {off > 0 && <span className="ovl-chip">{off} aus</span>}
         </div>
         <button type="button" className="card-secondary" onClick={() => setSounds(true)}>Töne verwalten{data.sounds.length ? ` · ${data.sounds.length}` : ''}</button>
       </div>
 
       <div className="alert-cards">
         {list.map((row) => (
-          <section key={row.slot} className="alert-card" aria-label={row.name}>
-            <div className="card-line"><h3 className="alert-card-name">{row.name}</h3><span className="dialog-hint">{WHEN[row.slot] ?? ''}</span></div>
+          <section key={row.slot} className={`alert-card ${row.enabled ? '' : 'off'}`} aria-label={row.name}>
+            <div className="card-line">
+              <h3 className="alert-card-name">{row.name}</h3><span className="dialog-hint">{WHEN[row.slot] ?? ''}</span>
+              <span style={{ flex: 1 }} />
+              <label className="card-check"><input type="checkbox" checked={row.enabled} onChange={() => void toggle(row)} /><span>{row.enabled ? 'An' : 'Aus'}</span></label>
+            </div>
             <div className="alert-tafel" aria-label="So sieht die Tafel aus">
               <div className="alert-tafel-kicker">{row.label || row.defaults.label}</div>
               <div className="alert-tafel-text"><strong>Kartograph</strong> {sample(row.text || row.defaults.text)}</div>
             </div>
             <div className="card-status">
-              {row.sound ? <span className="ovl-chip">Ton: {row.sound}</span> : <span className="ovl-chip warm">Kein Ton</span>}
+              {!row.enabled ? <span className="ovl-chip">Aus – im Stream erscheint keine Tafel</span>
+                : row.sound ? <span className="ovl-chip">Ton: {row.sound}</span> : <span className="ovl-chip warm">Kein Ton</span>}
             </div>
             <div className="card-row card-wrap">
               <button type="button" className="card-secondary" onClick={() => openEdit(row.slot)}>Bearbeiten</button>
-              <button type="button" className="card-link" onClick={() => test(row.slot)}>Im Stream testen</button>
+              {row.enabled && <button type="button" className="card-link" onClick={() => test(row.slot)}>Im Stream testen</button>}
             </div>
           </section>
         ))}
       </div>
-      <span className="dialog-hint">„Im Stream testen“ sehen und hören auch die Zuschauer. Damit der Ton im Stream ankommt, muss in OBS an der Browserquelle der Alerts „Audio über OBS steuern“ an sein.</span>
+      <span className="dialog-hint">Gar keine Alerts? Unter Einstellungen → Programm → „Was dein Stream kann“ die Funktion Alerts abwählen – dann kommt keine Tafel mehr, auch wenn die Quelle noch in OBS steckt. „Im Stream testen“ sehen und hören auch die Zuschauer. Damit der Ton im Stream ankommt, muss in OBS an der Browserquelle der Alerts „Audio über OBS steuern“ an sein.</span>
 
       {editing && draft && (
         <Dialog

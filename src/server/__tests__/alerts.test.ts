@@ -163,6 +163,25 @@ describe('alerts for followers, subs, raids and bits', () => {
       await request(app).delete(`/api/alerts/sounds/${SOUND}`).set(auth()).expect(404);
     });
 
+    it('switches a single occasion off and on again — off, it sends nothing', async () => {
+      await save({ follow: { enabled: false } }).expect(200);
+      const rows = (await request(app).get('/api/alerts').set(auth()).expect(200)).body.alerts as Array<{ slot: string; enabled: boolean }>;
+      expect(rows.find((r) => r.slot === 'follow')?.enabled).toBe(false);
+      expect(rows.find((r) => r.slot === 'raid')?.enabled).toBe(true);
+      await request(app).post('/api/alerts/test/follow').set(auth()).expect(409);
+      expect(await test('raid')).toMatchObject({ kind: 'raid' });
+      await save({ follow: { enabled: true } }).expect(200);
+      expect(await test('follow')).toMatchObject({ kind: 'follow' });
+      await save({ follow: { enabled: 'nein' } }).expect(400);
+    });
+
+    it('sends no alert at all once the feature is off', async () => {
+      await request(app).post('/api/setup/features').set(auth()).send({ features: ['chat'] }).expect(200);
+      await request(app).post('/api/alerts/test/raid').set(auth()).expect(409);
+      await request(app).post('/api/setup/features').set(auth()).send({ features: ['chat', 'alerts'] }).expect(200);
+      expect(await test('raid')).toMatchObject({ kind: 'raid' });
+    });
+
     it('is closed without a token', async () => {
       await request(app).get('/api/alerts').expect(401);
       await request(app).post('/api/alerts/sounds').query({ name: SOUND }).set('Content-Type', 'audio/mpeg').send(Buffer.from('x')).expect(401);

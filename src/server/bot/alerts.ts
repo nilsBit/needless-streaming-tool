@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { broadcast } from '../websocket/index';
 import { getDb } from '../db/index';
+import { featureOn } from '../features';
 import { getUserDataPath } from '../paths';
 
 /**
@@ -46,6 +47,8 @@ export interface AlertSetting {
   sound: string | null;
   /** 0 to 1. */
   volume: number;
+  /** Off: this occasion shows no Tafel at all (08.10.: "einzelne Anlässe aus"). */
+  enabled: boolean;
 }
 
 interface SlotInfo {
@@ -130,6 +133,7 @@ export function getAlertSettings(): Record<AlertSlot, AlertSetting> {
       // A file deleted by hand leaves a silent alert, not a broken one.
       sound: set.sound && sounds.includes(set.sound) ? set.sound : null,
       volume: typeof set.volume === 'number' ? set.volume : DEFAULT_VOLUME,
+      enabled: set.enabled !== false,
     };
   }
   return settings;
@@ -147,7 +151,7 @@ export function saveAlertSettings(input: unknown): void {
   for (const [slot, value] of Object.entries(input as Record<string, unknown>)) {
     if (!isSlot(slot)) throw new Error(`unknown alert: ${slot}`);
     if (!value || typeof value !== 'object') throw new Error(`settings for ${slot} must be an object`);
-    const { label, text, sound, volume } = value as Record<string, unknown>;
+    const { label, text, sound, volume, enabled } = value as Record<string, unknown>;
     const next: Partial<AlertSetting> = { ...own[slot] };
     if (label !== undefined) {
       const clean = String(label).trim();
@@ -168,6 +172,10 @@ export function saveAlertSettings(input: unknown): void {
       const n = Number(volume);
       if (!Number.isFinite(n) || n < 0 || n > 1) throw new Error('volume must be between 0 and 1');
       next.volume = n;
+    }
+    if (enabled !== undefined) {
+      if (typeof enabled !== 'boolean') throw new Error('enabled must be true or false');
+      if (enabled) delete next.enabled; else next.enabled = false;
     }
     own[slot] = next;
   }
@@ -293,7 +301,22 @@ export function createGiftCounter(now: () => number = Date.now) {
   };
 }
 
-export function sendAlert(kind: AlertKind, data: Record<string, unknown>): Alert {
+/** The slot an alert is set under: a gift to several has its own. */
+export const slotOf = (kind: AlertKind, data: Record<string, unknown>): AlertSlot =>
+  (kind === 'subgift' && !data.recipient ? 'subgift_many' : kind);
+
+/**
+ * Whether an occasion shows a Tafel: the feature "Alerts" is chosen and the
+ * occasion is not switched off. Off means nothing reaches the overlay — a
+ * source left in OBS stays empty.
+ */
+export function alertOn(slot: AlertSlot): boolean {
+  return featureOn('alerts') && getAlertSettings()[slot].enabled;
+}
+
+/** Sends an alert to the overlay, unless it is switched off; then null. */
+export function sendAlert(kind: AlertKind, data: Record<string, unknown>): Alert | null {
+  if (!alertOn(slotOf(kind, data))) return null;
   const alert = buildAlert(kind, data);
   broadcast('alert', alert);
   return alert;

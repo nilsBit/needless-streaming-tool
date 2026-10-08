@@ -316,6 +316,7 @@ body {
 .alerts { gap: 14px; }
 .alert-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
 .alert-card { border: 1px solid var(--border); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.alert-card.off .alert-tafel, .alert-card.off .alert-card-name { opacity: 0.45; }
 .alert-card-name { font-size: 16px; font-weight: 600; }
 .alert-tafel { padding: 12px 14px; background: #0b0b0b; border: 1px solid var(--border-subtle); border-radius: 6px; font-family: 'JetBrains Mono', ui-monospace, monospace; }
 .alert-tafel-kicker { font-size: 11px; font-style: italic; color: #c0392b; }
