@@ -101,6 +101,12 @@ describe('follow mode', () => {
     expect(await shownTitle()).toBe('Saldor');
   });
 
+  it('follows nothing while the Entry Card is switched off in "Was dein Stream kann"', async () => {
+    focus = openFor('e-mila', 10);
+    await request(app).post('/api/setup/features').set(auth()).send({ features: ['chat'] }).expect(200);
+    expect((await check()).outcome).toBe('off');
+  });
+
   it('waits while an entry has only just been opened — clicking through a list does not flicker', async () => {
     focus = openFor('e-saldor', 0.5);
 

@@ -1,6 +1,7 @@
 import { getActiveEntry, pinEntry } from './active-entry';
 import { followState } from './follow-state';
 import { isDiscarded, loadFocusFromWorld, loadWorldEntry } from './worldbuilder';
+import { featureOn } from '../features';
 
 /**
  * Follow Mode: the Entry Card follows the entry open in Worldbuilder.
@@ -31,7 +32,8 @@ export interface FollowStep {
 /** One look at Worldbuilder, and the card switched if it should be. */
 export async function followStep(now = Date.now()): Promise<FollowStep> {
   const state = followState();
-  if (!state.enabled || !state.available) return { outcome: 'off' };
+  // The Entry Card switched off ("Was dein Stream kann") follows nothing either.
+  if (!state.enabled || !state.available || !featureOn('welt')) return { outcome: 'off' };
   if (state.held) return { outcome: 'held' };
 
   const focus = await loadFocusFromWorld();
@@ -60,22 +62,36 @@ export async function followStep(now = Date.now()): Promise<FollowStep> {
   return { outcome: 'switched', focus: open };
 }
 
-const LOOK_EVERY_MS = 1000;
-let timer: ReturnType<typeof setInterval> | null = null;
+/**
+ * How long until the next look, by what the last one found (08.10.: it looked
+ * every second, also with following off and Worldbuilder closed). While an
+ * entry is open the card still follows within a second; switched off or with
+ * Worldbuilder closed, a change is noticed within five.
+ */
+const NEXT_LOOK_MS: Record<FollowOutcome, number> = {
+  off: 5000,
+  held: 5000,
+  unreachable: 5000,
+  'nothing-open': 2000,
+  discarded: 1000,
+  showing: 1000,
+  settling: 1000,
+  switched: 1000,
+};
 
-/** Starts looking once a second. Belongs in startServer(), never in createApp(). */
+let timer: ReturnType<typeof setTimeout> | null = null;
+
+/** Starts looking. Belongs in startServer(), never in createApp(). */
 export function startFollowing(): void {
   if (timer) return;
-  let busy = false;
-  timer = setInterval(async () => {
-    if (busy) return;
-    busy = true;
+  const look = async () => {
+    let next = NEXT_LOOK_MS.unreachable;
     try {
-      await followStep();
+      next = NEXT_LOOK_MS[(await followStep()).outcome];
     } catch (err) {
       console.warn('[Follow]', err instanceof Error ? err.message : err);
-    } finally {
-      busy = false;
     }
-  }, LOOK_EVERY_MS);
+    timer = setTimeout(look, next);
+  };
+  timer = setTimeout(look, 1000);
 }
