@@ -1,11 +1,13 @@
-import React, { useMemo, useState } from 'react';
-import { apiFetch, useApi } from '../../hooks/useApi';
+import React, { useState } from 'react';
+import { apiFetch } from '../../hooks/useApi';
+import ScenePicker, { SCENE_DURATIONS } from './ScenePicker';
 import { useToast } from '../../contexts/ToastContext';
 import QuestPath, { ChoiceCards, PathDone } from '../quests/QuestPath';
 import { useQuests } from '../quests/useQuests';
 
 // Creating a reward as a Quest-Pfad (spec 2026-10-08-quests-design, design B
-// on the canvas): Wirkung · Name & Preis · Vorschau · Geschafft. One path for
+// on the canvas): Wirkung · Name & Preis · Vorschau · Geschafft. A scene
+// change has a step of its own after Wirkung: the scene and how long (08.10.). One path for
 // both kinds — the tool's own points (`points`) and Twitch channel points
 // (`twitch`); they differ in where it is saved and how it is redeemed.
 
@@ -24,7 +26,7 @@ const TIERS = {
   twitch: [{ value: 'klein', cost: 500, title: 'Klein', text: 'Öfter einlösbar' }, { value: 'mittel', cost: 2000, title: 'Mittel', text: 'Etwas Besonderes' }, { value: 'gross', cost: 10000, title: 'Groß', text: 'Selten, für Treue' }],
 } as const;
 
-export interface RewardDraft { action: RewardAction; name: string; cost: number; scene: string | null }
+export interface RewardDraft { action: RewardAction; name: string; cost: number; scene: string | null; sceneSeconds?: number }
 
 interface Props {
   mode: 'points' | 'twitch';
@@ -43,8 +45,6 @@ interface Props {
 export default function RewardQuestPath({ mode, currency, initial, onClose, onCreated, onTry, onNeedsReconnect }: Props) {
   const { toast } = useToast();
   const { quests } = useQuests();
-  const { data: mappings } = useApi<Array<{ scene_name: string }>>('/obs/mappings');
-  const scenes = useMemo(() => [...new Set((mappings ?? []).map((m) => m.scene_name))], [mappings]);
   const tiers = TIERS[mode];
   const unit = mode === 'points' ? currency : 'Kanalpunkte';
 
@@ -52,6 +52,7 @@ export default function RewardQuestPath({ mode, currency, initial, onClose, onCr
   const [name, setName] = useState(initial?.name ?? ACTIONS.find((a) => a.value === (initial?.action ?? 'alert'))!.names[0]);
   const [cost, setCost] = useState<number>(initial?.cost ?? tiers[1].cost);
   const [scene, setScene] = useState<string | null>(initial?.scene ?? null);
+  const [sceneSeconds, setSceneSeconds] = useState(initial?.sceneSeconds ?? 30);
   const [touchedName, setTouchedName] = useState(!!initial?.name);
 
   const act = ACTIONS.find((a) => a.value === action)!;
@@ -65,8 +66,8 @@ export default function RewardQuestPath({ mode, currency, initial, onClose, onCr
 
   const create = async (): Promise<boolean> => {
     const res = mode === 'points'
-      ? await apiFetch('/points/rewards', { method: 'POST', body: JSON.stringify({ name: name.trim(), cost, action, scene_name: scene, needs_input: action === 'feature_request', cooldown_seconds: 0, enabled: true }) })
-      : await apiFetch('/channel-rewards', { method: 'POST', body: JSON.stringify({ title: name.trim(), cost, action, scene_name: scene, prompt: action === 'feature_request' ? 'Schreib deine Idee dazu.' : '', input_required: action === 'feature_request', enabled: true }) });
+      ? await apiFetch('/points/rewards', { method: 'POST', body: JSON.stringify({ name: name.trim(), cost, action, scene_name: scene, scene_seconds: sceneSeconds, needs_input: action === 'feature_request', cooldown_seconds: 0, enabled: true }) })
+      : await apiFetch('/channel-rewards', { method: 'POST', body: JSON.stringify({ title: name.trim(), cost, action, scene_name: scene, scene_seconds: sceneSeconds, prompt: action === 'feature_request' ? 'Schreib deine Idee dazu.' : '', input_required: action === 'feature_request', enabled: true }) });
     if (res.status === 401 && mode === 'twitch') { onNeedsReconnect?.(); toast.error('Dem Twitch-Login fehlt das Recht, Belohnungen anzulegen.'); return false; }
     if (!res.ok) { toast.error((await res.json().catch(() => ({}))).error ?? 'Nicht angelegt'); return false; }
     onCreated();
@@ -95,6 +96,16 @@ export default function RewardQuestPath({ mode, currency, initial, onClose, onCr
             </>
           ),
         },
+        ...(action === 'scene' ? [{
+          label: 'Szene',
+          ready: !!scene,
+          content: (
+            <>
+              <h3 className="quest-step-title">Welche Szene zeigt sie, und wie lange?</h3>
+              <ScenePicker scene={scene} seconds={sceneSeconds} onChange={(s, sec) => { setScene(s); setSceneSeconds(sec); }} onLeave={onClose} />
+            </>
+          ),
+        }] : []),
         {
           label: 'Name & Preis',
           ready: !!name.trim() && cost > 0 && (action !== 'scene' || !!scene),
@@ -120,16 +131,6 @@ export default function RewardQuestPath({ mode, currency, initial, onClose, onCr
                 onChange={(v) => setCost(Number(v))}
               />
               {mode === 'points' && <p className="dialog-hint" style={{ margin: 0 }}>Zum Vergleich: Wer zwei Stunden zuschaut und mitchattet, sammelt etwa 90 {unit}.</p>}
-              {action === 'scene' && (
-                <div className="dialog-field">
-                  <label htmlFor="rq-scene">Welche Szene?</label>
-                  <select id="rq-scene" value={scene ?? ''} onChange={(e) => setScene(e.target.value || null)}>
-                    <option value="">{scenes.length ? 'Szene wählen …' : 'Noch keine Szene freigegeben'}</option>
-                    {scenes.map((s) => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                  <span className="dialog-hint">Nur Szenen, die unter Overlays &amp; Alerts → Szenen in OBS freigegeben sind.</span>
-                </div>
-              )}
             </>
           ),
         },
@@ -142,7 +143,7 @@ export default function RewardQuestPath({ mode, currency, initial, onClose, onCr
               <div className="quest-preview-chat">{redeemLine}</div>
               <span className="quest-kicker">Im Stream</span>
               <div className="quest-preview-alert"><span className="quest-preview-label">{unit}</span><span><strong>kartograph</strong> löst „{name.trim()}“ ein.</span></div>
-              <p className="dialog-hint" style={{ margin: 0 }}>{act.title}{action === 'scene' && scene ? ` „${scene}“` : ''}. Klappt die Aktion nicht, gibt es die Punkte zurück.</p>
+              <p className="dialog-hint" style={{ margin: 0 }}>{act.title}{action === 'scene' && scene ? ` „${scene}“ für ${SCENE_DURATIONS.find((d) => d.seconds === sceneSeconds)?.label ?? `${sceneSeconds} Sekunden`}` : ''}. Klappt die Aktion nicht, gibt es die Punkte zurück.</p>
             </>
           ),
         },

@@ -387,6 +387,16 @@ function runMigrations(from: number, to: number) {
     console.log('[DB] Migrated: overlay config set to the Kompendium palette');
   }
 
+  if (from < 33) {
+    // "Szene wechseln" picks its scene and how long it stays right on the
+    // reward (08.10.) — no more releasing scenes under "Szenen in OBS".
+    for (const table of ['twitch_reward_actions', 'point_rewards']) {
+      const columns = db.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>;
+      if (!columns.some((c) => c.name === 'scene_seconds')) db.exec(`ALTER TABLE ${table} ADD COLUMN scene_seconds INTEGER`);
+    }
+    console.log('[DB] Migrated: scene_seconds on rewards');
+  }
+
   // Safety check: ensure experiment_* columns were renamed to challenge_*
   // (can be missed if DB was copied from an older version after migration ran)
   try {

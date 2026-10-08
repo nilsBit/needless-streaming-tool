@@ -117,7 +117,9 @@ describe('Twitch rewards from the app', () => {
     await request(app).post('/api/channel-rewards').set(auth()).send({ title: '', cost: 10, action: 'alert' }).expect(400);
     await request(app).post('/api/channel-rewards').set(auth()).send({ title: 'X', cost: 0, action: 'alert' }).expect(400);
     await request(app).post('/api/channel-rewards').set(auth()).send({ title: 'X', cost: 10, action: 'format_disk' }).expect(400);
-    await request(app).post('/api/channel-rewards').set(auth()).send({ title: 'X', cost: 10, action: 'scene', scene_name: 'Desktop' }).expect(400);
+    // A scene change names its scene; how long it stays is 0 to 600 s.
+    await request(app).post('/api/channel-rewards').set(auth()).send({ title: 'X', cost: 10, action: 'scene' }).expect(400);
+    await request(app).post('/api/channel-rewards').set(auth()).send({ title: 'X', cost: 10, action: 'scene', scene_name: 'Wald', scene_seconds: 9999 }).expect(400);
     expect(calls.some((c) => c.method === 'POST' && (c.body as { title: string }).title === 'X')).toBe(false);
   });
 

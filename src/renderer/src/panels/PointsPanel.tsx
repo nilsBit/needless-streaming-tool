@@ -7,6 +7,7 @@ import SearchField from '../components/ux/SearchField';
 import RewardSteps, { type Step } from '../components/rewards/RewardSteps';
 import RewardTemplates, { type RewardTemplate } from '../components/rewards/RewardTemplates';
 import RewardQuestPath, { type RewardDraft } from '../components/rewards/RewardQuestPath';
+import ScenePicker from '../components/rewards/ScenePicker';
 import { useQuestPath } from '../components/quests/questStart';
 import { useFeatures } from '../contexts/FeaturesContext';
 import type { FeatureKey } from '../../../shared/features';
@@ -16,9 +17,8 @@ interface Config {
   follow_points: number; sub_points: number; raid_points: number; bits_per_point: number; bots: string[];
 }
 type Action = 'roulette' | 'feature_request' | 'change_music' | 'scene' | 'alert';
-interface Reward { id: number; name: string; cost: number; action: Action; scene_name: string | null; needs_input: boolean; cooldown_seconds: number; enabled: boolean }
+interface Reward { id: number; name: string; cost: number; action: Action; scene_name: string | null; scene_seconds: number | null; needs_input: boolean; cooldown_seconds: number; enabled: boolean }
 interface Viewer { user_name: string; display_name: string; balance: number; total: number; stream_total: number; rank: number }
-interface SceneMapping { reward_title: string; scene_name: string }
 
 const ACTIONS: Record<Action, string> = {
   alert: 'Nur ein Alert',
@@ -117,7 +117,7 @@ export default function PointsPanel() {
             <div key={r.id} className="rewards-row">
               <div className="rewards-who">
                 <div className="rewards-name">{r.name}{r.enabled ? '' : ' (aus)'}</div>
-                <div className="dialog-hint">{ACTIONS[r.action]}{r.action === 'scene' && r.scene_name ? ` „${r.scene_name}“` : ''}{r.needs_input ? ' · mit Text' : ''}{r.cooldown_seconds ? ` · Sperre ${r.cooldown_seconds} s` : ''}</div>
+                <div className="dialog-hint">{ACTIONS[r.action]}{r.action === 'scene' && r.scene_name ? ` „${r.scene_name}“${r.scene_seconds ? `, ${r.scene_seconds} s` : ''}` : ''}{r.needs_input ? ' · mit Text' : ''}{r.cooldown_seconds ? ` · Sperre ${r.cooldown_seconds} s` : ''}</div>
               </div>
               <div className="rewards-total"><div className="rewards-total-n">{r.cost}</div><div className="dialog-hint">{currency}</div></div>
               <button type="button" className="card-secondary" onClick={() => setEditingReward(r)}>Bearbeiten</button>
@@ -224,13 +224,11 @@ function RewardDialog({ reward, currency, onClose, onSaved }: {
   reward: Omit<Reward, 'id'> & { id?: number }; currency: string; onClose: () => void; onSaved: () => void;
 }) {
   const { toast } = useToast();
-  const { data: mappings } = useApi<SceneMapping[]>('/obs/mappings');
   const [draft, setDraft] = useState(reward);
-  const scenes = [...new Set((mappings ?? []).map((m) => m.scene_name))];
   const isNew = draft.id === undefined;
 
   const save = async () => {
-    const body = { name: draft.name, cost: Number(draft.cost), action: draft.action, scene_name: draft.scene_name, needs_input: draft.needs_input, cooldown_seconds: Number(draft.cooldown_seconds), enabled: draft.enabled };
+    const body = { name: draft.name, cost: Number(draft.cost), action: draft.action, scene_name: draft.scene_name, scene_seconds: draft.scene_seconds, needs_input: draft.needs_input, cooldown_seconds: Number(draft.cooldown_seconds), enabled: draft.enabled };
     const res = await apiFetch(isNew ? '/points/rewards' : `/points/rewards/${draft.id}`, { method: isNew ? 'POST' : 'PATCH', body: JSON.stringify(body) });
     if (!res.ok) { toast.error(`Nicht gespeichert – ${(await res.json().catch(() => ({}))).error ?? 'Fehler'}`); return; }
     toast.success(isNew ? `„${draft.name.trim()}“ angelegt` : 'Gespeichert'); onSaved(); onClose();
@@ -264,14 +262,7 @@ function RewardDialog({ reward, currency, onClose, onSaved }: {
           </select>
         </div>
         {draft.action === 'scene' && (
-          <div className="dialog-field">
-            <label htmlFor="pr-scene">Szene</label>
-            <select id="pr-scene" value={draft.scene_name ?? ''} onChange={(e) => setDraft({ ...draft, scene_name: e.target.value || null })}>
-              <option value="">{scenes.length ? 'Szene wählen …' : 'Keine Szene freigegeben'}</option>
-              {scenes.map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
-            <span className="dialog-hint">Nur Szenen, die unter Overlays &amp; Alerts → Szenen in OBS für Belohnungen freigegeben sind.</span>
-          </div>
+          <ScenePicker scene={draft.scene_name} seconds={draft.scene_seconds} onChange={(scene, seconds) => setDraft({ ...draft, scene_name: scene, scene_seconds: seconds })} onLeave={onClose} />
         )}
         <div className="dialog-field"><label htmlFor="pr-cooldown">Sperre je Zuschauer (Sekunden)</label><input id="pr-cooldown" type="number" min={0} value={String(draft.cooldown_seconds)} onChange={(e) => setDraft({ ...draft, cooldown_seconds: Number(e.target.value) })} style={{ width: 120 }} /></div>
         <label className="card-check"><input type="checkbox" checked={draft.needs_input} onChange={(e) => setDraft({ ...draft, needs_input: e.target.checked })} /><span>Zuschauer schreibt einen Text dazu (erscheint im Alert)</span></label>

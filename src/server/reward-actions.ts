@@ -65,17 +65,48 @@ export function mappedScene(sceneName: string | null | undefined): SceneMapping 
   return getSceneMappings().find((m) => m.scene_name === sceneName) ?? null;
 }
 
+/** How long a reward's scene change may last: up to ten minutes. */
+export const SCENE_SECONDS_MAX = 600;
+
+/**
+ * The scene a reward switches to is the one the streamer chose for it when
+ * creating it (08.10.) — the viewer only redeems and never names a scene.
+ * A scene released the old way under "Szenen in OBS" still brings its way
+ * back when the reward itself does not say how long.
+ */
+function rewardScene(sceneName: string, seconds: number | null | undefined): SceneMapping {
+  const mapped = mappedScene(sceneName);
+  return {
+    reward_title: '',
+    scene_name: sceneName,
+    duration_seconds: seconds ?? mapped?.duration_seconds,
+    revert_scene: mapped?.revert_scene,
+  };
+}
+
+/**
+ * The scene fields of a reward as the app sends them: a scene name and how
+ * long it stays (default 30 s) for a scene change, nothing for any other action.
+ */
+export function sceneOfReward(action: ActionKey | undefined, sceneName: unknown, seconds: unknown): { scene_name: string | null; scene_seconds: number | null } | { error: string } {
+  if (action !== 'scene') return { scene_name: null, scene_seconds: null };
+  const name = typeof sceneName === 'string' ? sceneName.trim() : '';
+  if (!name || name.length > 100) return { error: 'scene_name is required for a scene change' };
+  if (seconds === undefined || seconds === null) return { scene_name: name, scene_seconds: 30 };
+  if (!Number.isInteger(seconds) || (seconds as number) < 0 || (seconds as number) > SCENE_SECONDS_MAX) return { error: `scene_seconds must be from 0 to ${SCENE_SECONDS_MAX}` };
+  return { scene_name: name, scene_seconds: seconds as number };
+}
+
 /** Runs one action. A reason comes back when it did not happen, so the caller can refund. */
-export async function runAction(action: ActionKey, opts: { sceneName?: string | null } = {}): Promise<{ ok: true } | { ok: false; reason: string }> {
+export async function runAction(action: ActionKey, opts: { sceneName?: string | null; sceneSeconds?: number | null } = {}): Promise<{ ok: true } | { ok: false; reason: string }> {
   switch (action) {
     case 'roulette': {
       const result = triggerRoulette();
       return 'error' in result ? { ok: false, reason: result.error } : { ok: true };
     }
     case 'scene': {
-      const mapping = mappedScene(opts.sceneName);
-      if (!mapping) return { ok: false, reason: 'die Szene ist nicht mehr freigegeben' };
-      return switchMappedScene(mapping);
+      if (!opts.sceneName) return { ok: false, reason: 'die Belohnung nennt keine Szene' };
+      return switchMappedScene(rewardScene(opts.sceneName, opts.sceneSeconds));
     }
     default:
       return { ok: true };

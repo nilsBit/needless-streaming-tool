@@ -350,6 +350,8 @@ body {
 .ovl-scene-picks { display: flex; flex-wrap: wrap; gap: 8px; }
 .ovl-scene-pick { min-height: 44px; padding: 0 16px; border-radius: 10px; border: 1.5px solid var(--border-subtle); background: var(--bg-panel); color: var(--text); font: inherit; cursor: pointer; }
 .ovl-scene-pick.on { border-color: var(--accent); background: #231a12; }
+.scene-picker { display: flex; flex-direction: column; gap: 8px; }
+.scene-picker .dialog-field-label { margin-top: 6px; }
 .ovl-address { padding-top: 12px; border-top: 1px solid var(--border-subtle); }
 .ovl-obs-card { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 10px; }
 .ovl-obs-card.done { border-color: #1f4d2e; background: #122018; }

@@ -1,5 +1,5 @@
 import { getDb } from '../db/index';
-import { isActionKey, mappedScene, type ActionKey } from '../reward-actions';
+import { isActionKey, sceneOfReward, type ActionKey } from '../reward-actions';
 
 /**
  * Punkte-Belohnungen: what viewers buy with the tool's own points, made in
@@ -12,6 +12,7 @@ export interface PointReward {
   cost: number;
   action: ActionKey;
   scene_name: string | null;
+  scene_seconds: number | null;
   needs_input: boolean;
   cooldown_seconds: number;
   enabled: boolean;
@@ -26,16 +27,16 @@ const COOLDOWN_MAX = 24 * 60 * 60;
 const fromRow = (row: Row): PointReward => ({ ...row, needs_input: !!row.needs_input, enabled: !!row.enabled });
 
 export function listPointRewards(): PointReward[] {
-  return (getDb().prepare('SELECT id, name, cost, action, scene_name, needs_input, cooldown_seconds, enabled FROM point_rewards ORDER BY cost ASC, name ASC').all() as Row[]).map(fromRow);
+  return (getDb().prepare('SELECT id, name, cost, action, scene_name, scene_seconds, needs_input, cooldown_seconds, enabled FROM point_rewards ORDER BY cost ASC, name ASC').all() as Row[]).map(fromRow);
 }
 
 export function getPointReward(id: number): PointReward | null {
-  const row = getDb().prepare('SELECT id, name, cost, action, scene_name, needs_input, cooldown_seconds, enabled FROM point_rewards WHERE id = ?').get(id) as Row | undefined;
+  const row = getDb().prepare('SELECT id, name, cost, action, scene_name, scene_seconds, needs_input, cooldown_seconds, enabled FROM point_rewards WHERE id = ?').get(id) as Row | undefined;
   return row ? fromRow(row) : null;
 }
 
 export function findPointReward(name: string): PointReward | null {
-  const row = getDb().prepare('SELECT id, name, cost, action, scene_name, needs_input, cooldown_seconds, enabled FROM point_rewards WHERE name = ? COLLATE NOCASE').get(name.trim()) as Row | undefined;
+  const row = getDb().prepare('SELECT id, name, cost, action, scene_name, scene_seconds, needs_input, cooldown_seconds, enabled FROM point_rewards WHERE name = ? COLLATE NOCASE').get(name.trim()) as Row | undefined;
   return row ? fromRow(row) : null;
 }
 
@@ -44,8 +45,8 @@ function validate(input: unknown, base: PointReward | null): Omit<PointReward, '
   if (!input || typeof input !== 'object' || Array.isArray(input)) return { error: 'reward must be an object' };
   const body = input as Record<string, unknown>;
   const next: Omit<PointReward, 'id'> = base
-    ? { name: base.name, cost: base.cost, action: base.action, scene_name: base.scene_name, needs_input: base.needs_input, cooldown_seconds: base.cooldown_seconds, enabled: base.enabled }
-    : { name: '', cost: 0, action: 'alert', scene_name: null, needs_input: false, cooldown_seconds: 0, enabled: true };
+    ? { name: base.name, cost: base.cost, action: base.action, scene_name: base.scene_name, scene_seconds: base.scene_seconds, needs_input: base.needs_input, cooldown_seconds: base.cooldown_seconds, enabled: base.enabled }
+    : { name: '', cost: 0, action: 'alert', scene_name: null, scene_seconds: null, needs_input: false, cooldown_seconds: 0, enabled: true };
 
   if ('name' in body || !base) {
     if (typeof body.name !== 'string') return { error: 'name is required' };
@@ -62,9 +63,10 @@ function validate(input: unknown, base: PointReward | null): Omit<PointReward, '
     if (!isActionKey(body.action)) return { error: 'unknown action' };
     next.action = body.action;
   }
-  if ('scene_name' in body) next.scene_name = typeof body.scene_name === 'string' && body.scene_name ? body.scene_name : null;
-  if (next.action !== 'scene') next.scene_name = null;
-  else if (!mappedScene(next.scene_name)) return { error: 'scene_name must be one of the mapped scenes' };
+  const scene = sceneOfReward(next.action, 'scene_name' in body ? body.scene_name : next.scene_name, 'scene_seconds' in body ? body.scene_seconds : next.scene_seconds);
+  if ('error' in scene) return { error: scene.error };
+  next.scene_name = scene.scene_name;
+  next.scene_seconds = scene.scene_seconds;
   if ('needs_input' in body) {
     if (typeof body.needs_input !== 'boolean') return { error: 'needs_input must be true or false' };
     next.needs_input = body.needs_input;
@@ -85,8 +87,8 @@ function validate(input: unknown, base: PointReward | null): Omit<PointReward, '
 export function createPointReward(input: unknown): PointReward | { error: string } {
   const r = validate(input, null);
   if ('error' in r) return r;
-  const id = getDb().prepare('INSERT INTO point_rewards (name, cost, action, scene_name, needs_input, cooldown_seconds, enabled) VALUES (?, ?, ?, ?, ?, ?, ?)')
-    .run(r.name, r.cost, r.action, r.scene_name, r.needs_input ? 1 : 0, r.cooldown_seconds, r.enabled ? 1 : 0).lastInsertRowid;
+  const id = getDb().prepare('INSERT INTO point_rewards (name, cost, action, scene_name, scene_seconds, needs_input, cooldown_seconds, enabled) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+    .run(r.name, r.cost, r.action, r.scene_name, r.scene_seconds, r.needs_input ? 1 : 0, r.cooldown_seconds, r.enabled ? 1 : 0).lastInsertRowid;
   return getPointReward(Number(id))!;
 }
 
@@ -96,8 +98,8 @@ export function updatePointReward(id: number, input: unknown): PointReward | { e
   if (!base) return null;
   const r = validate(input, base);
   if ('error' in r) return r;
-  getDb().prepare('UPDATE point_rewards SET name = ?, cost = ?, action = ?, scene_name = ?, needs_input = ?, cooldown_seconds = ?, enabled = ? WHERE id = ?')
-    .run(r.name, r.cost, r.action, r.scene_name, r.needs_input ? 1 : 0, r.cooldown_seconds, r.enabled ? 1 : 0, id);
+  getDb().prepare('UPDATE point_rewards SET name = ?, cost = ?, action = ?, scene_name = ?, scene_seconds = ?, needs_input = ?, cooldown_seconds = ?, enabled = ? WHERE id = ?')
+    .run(r.name, r.cost, r.action, r.scene_name, r.scene_seconds, r.needs_input ? 1 : 0, r.cooldown_seconds, r.enabled ? 1 : 0, id);
   return getPointReward(id);
 }
 

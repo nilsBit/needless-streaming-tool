@@ -229,10 +229,17 @@ describe('own points', () => {
       await create({ name: 'Rad', cost: 10, action: 'delete_everything' }).expect(400);
     });
 
-    it('switch only to a mapped scene, never to any scene', async () => {
-      await create({ name: 'Desktop', cost: 10, action: 'scene', scene_name: 'Desktop' }).expect(400);
-      await request(app).post('/api/obs/mappings').set(auth()).send({ mappings: [{ reward_title: 'Wald', scene_name: 'Wald' }] }).expect(200);
-      await create({ name: 'Wald', cost: 10, action: 'scene', scene_name: 'Wald' }).expect(201);
+    // The streamer picks the scene and how long it stays when creating the
+    // reward (08.10.); the viewer only redeems. No releasing beforehand.
+    it('switch to the scene chosen on the reward, for as long as it says', async () => {
+      await create({ name: 'Ohne', cost: 10, action: 'scene' }).expect(400);
+      await create({ name: 'Zu lang', cost: 10, action: 'scene', scene_name: 'Wald', scene_seconds: 601 }).expect(400);
+      const wald = await create({ name: 'Wald', cost: 10, action: 'scene', scene_name: 'Wald', scene_seconds: 15 }).expect(201);
+      expect(wald.body).toMatchObject({ scene_name: 'Wald', scene_seconds: 15 });
+      const karte = await create({ name: 'Karte', cost: 10, action: 'scene', scene_name: 'Karte' }).expect(201);
+      expect(karte.body.scene_seconds).toBe(30);
+      const licht = await create({ name: 'Licht', cost: 10, action: 'alert', scene_name: 'Wald', scene_seconds: 15 }).expect(201);
+      expect(licht.body).toMatchObject({ scene_name: null, scene_seconds: null });
     });
   });
 
@@ -287,7 +294,6 @@ describe('own points', () => {
     it('gives the points back when the action does not happen', async () => {
       // No open topic for the wheel, and OBS is not connected for the scene.
       await request(app).post('/api/points/rewards').set(auth()).send({ name: 'Rad', cost: 20, action: 'roulette' }).expect(201);
-      await request(app).post('/api/obs/mappings').set(auth()).send({ mappings: [{ reward_title: 'Wald', scene_name: 'Wald' }] }).expect(200);
       await request(app).post('/api/points/rewards').set(auth()).send({ name: 'Wald', cost: 20, action: 'scene', scene_name: 'Wald' }).expect(201);
       const rad = await redeemFor('mila', { reward: 'Rad' }).expect(502);
       expect(rad.body.message).toContain('sind zurück');

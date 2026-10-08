@@ -1,6 +1,6 @@
 import { getDb } from './db/index';
 import { helixRequest, type HelixReply } from './twitch-helix';
-import { actionFromTitle, isActionKey, mappedScene, type ActionKey } from './reward-actions';
+import { actionFromTitle, isActionKey, sceneOfReward, type ActionKey } from './reward-actions';
 
 /**
  * Twitch channel-point rewards, made and edited from the app (#24). Twitch
@@ -21,6 +21,7 @@ export interface ChannelReward {
   manageable: boolean;
   action: ActionKey | null;
   scene_name: string | null;
+  scene_seconds: number | null;
   /** A dashboard reward: what its title makes it do, or null for an alert only. */
   by_name: ActionKey | null;
 }
@@ -47,13 +48,15 @@ async function broadcasterId(): Promise<string | RewardError> {
   return typeof id === 'string' && id ? id : failure(reply);
 }
 
-function boundAction(id: string): { action: ActionKey; scene_name: string | null } | null {
-  const row = getDb().prepare('SELECT action, scene_name FROM twitch_reward_actions WHERE reward_id = ?').get(id) as { action: string; scene_name: string | null } | undefined;
-  return row && isActionKey(row.action) ? { action: row.action, scene_name: row.scene_name } : null;
+interface Bound { action: ActionKey; scene_name: string | null; scene_seconds: number | null }
+
+function boundAction(id: string): Bound | null {
+  const row = getDb().prepare('SELECT action, scene_name, scene_seconds FROM twitch_reward_actions WHERE reward_id = ?').get(id) as { action: string; scene_name: string | null; scene_seconds: number | null } | undefined;
+  return row && isActionKey(row.action) ? { action: row.action, scene_name: row.scene_name, scene_seconds: row.scene_seconds } : null;
 }
 
 /** The action a redemption of this reward runs — looked up by id, before any name convention. */
-export function actionForReward(id: string): { action: ActionKey; scene_name: string | null } | null {
+export function actionForReward(id: string): Bound | null {
   return id ? boundAction(id) : null;
 }
 
@@ -70,6 +73,7 @@ function fromHelix(r: Record<string, unknown>, manageable: boolean): ChannelRewa
     manageable,
     action: bound?.action ?? null,
     scene_name: bound?.scene_name ?? null,
+    scene_seconds: bound?.scene_seconds ?? null,
     by_name: manageable ? null : actionFromTitle(String(r.title ?? '')),
   };
 }
@@ -98,7 +102,7 @@ export async function listChannelRewards(): Promise<ChannelReward[] | RewardErro
 
 interface Draft {
   title?: string; cost?: number; prompt?: string; input_required?: boolean; enabled?: boolean;
-  action?: ActionKey; scene_name?: string | null;
+  action?: ActionKey; scene_name?: string | null; scene_seconds?: number | null;
 }
 
 /** Checks what the app sends; `creating` makes title, cost and action required. */
@@ -126,9 +130,10 @@ function validate(input: unknown, creating: boolean): Draft | RewardError {
   if ('action' in b || creating) {
     if (!isActionKey(b.action)) return { status: 400, error: 'unknown action' };
     d.action = b.action;
-    d.scene_name = d.action === 'scene' && typeof b.scene_name === 'string' ? b.scene_name : null;
-    // Never a scene the viewer could choose — only one the streamer mapped (security review 06.10., H5).
-    if (d.action === 'scene' && !mappedScene(d.scene_name)) return { status: 400, error: 'scene_name must be one of the mapped scenes' };
+    const scene = sceneOfReward(d.action, b.scene_name, b.scene_seconds);
+    if ('error' in scene) return { status: 400, error: scene.error };
+    d.scene_name = scene.scene_name;
+    d.scene_seconds = scene.scene_seconds;
   }
   return d;
 }
@@ -143,7 +148,7 @@ const toHelix = (d: Draft) => ({
 
 function bind(id: string, d: Draft): void {
   if (!d.action) return;
-  getDb().prepare('INSERT OR REPLACE INTO twitch_reward_actions (reward_id, action, scene_name) VALUES (?, ?, ?)').run(id, d.action, d.scene_name ?? null);
+  getDb().prepare('INSERT OR REPLACE INTO twitch_reward_actions (reward_id, action, scene_name, scene_seconds) VALUES (?, ?, ?, ?)').run(id, d.action, d.scene_name ?? null, d.scene_seconds ?? null);
 }
 
 export async function createChannelReward(input: unknown): Promise<ChannelReward | RewardError> {

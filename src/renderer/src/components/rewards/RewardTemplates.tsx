@@ -20,7 +20,7 @@ export interface RewardTemplate {
 export const REWARD_TEMPLATES: readonly RewardTemplate[] = [
   { key: 'rad', name: 'Glücksrad drehen', does: 'Das Rad wählt ein Thema für dich.', cost: 500, action: 'roulette', feature: 'rad' },
   { key: 'licht', name: 'Licht aus', does: 'Nur ein Alert – du reagierst im Stream.', cost: 300, action: 'alert' },
-  { key: 'szene', name: 'Szene kurz wechseln', does: 'Wechselt für eine Weile auf eine Szene, die du freigibst.', cost: 800, action: 'scene' },
+  { key: 'szene', name: 'Szene kurz wechseln', does: 'Wechselt für eine Weile auf eine Szene, die du wählst.', cost: 800, action: 'scene' },
   { key: 'idee', name: 'Idee einreichen', does: 'Der Zuschauer schreibt eine Idee dazu, sie erscheint im Alert.', cost: 1000, action: 'feature_request', needsInput: true },
   { key: 'musik', name: 'Musik wechseln', does: 'Ein Alert, du wechselst den Song.', cost: 400, action: 'change_music' },
 ];

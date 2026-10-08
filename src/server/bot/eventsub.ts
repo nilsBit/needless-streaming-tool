@@ -108,7 +108,7 @@ export async function handleRedemption(event: Record<string, unknown>) {
   if (point) console.log(`[EventSub] ${userName}: ${point.leaderboard.title} Nr. ${point.count}, Platz ${point.rank}`);
 
   if (bound) {
-    const done = await runAction(bound.action, { sceneName: bound.scene_name });
+    const done = await runAction(bound.action, { sceneName: bound.scene_name, sceneSeconds: bound.scene_seconds });
     if (!done.ok) {
       // Like own points: an action that did not happen gives the points back.
       const refunded = await cancelRedemption(rewardId, String(event.id ?? ''));

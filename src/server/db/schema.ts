@@ -1,4 +1,4 @@
-export const SCHEMA_VERSION = 32;
+export const SCHEMA_VERSION = 33;
 
 export const SCHEMA = `
 CREATE TABLE IF NOT EXISTS schema_version (
@@ -172,9 +172,11 @@ CREATE TABLE IF NOT EXISTS viewer_points (
 -- redemption runs, by the reward's id. Dashboard rewards have no row and
 -- keep working by name.
 CREATE TABLE IF NOT EXISTS twitch_reward_actions (
-  reward_id  TEXT PRIMARY KEY,
-  action     TEXT NOT NULL,
-  scene_name TEXT
+  reward_id     TEXT PRIMARY KEY,
+  action        TEXT NOT NULL,
+  scene_name    TEXT,
+  -- How long a scene change lasts before the scene before comes back (v33).
+  scene_seconds INTEGER
 );
 
 -- Quests the streamer has done (spec 2026-10-08-quests-design). Done stays done.
@@ -199,6 +201,7 @@ CREATE TABLE IF NOT EXISTS point_rewards (
   cost             INTEGER NOT NULL,
   action           TEXT NOT NULL,
   scene_name       TEXT,
+  scene_seconds    INTEGER,
   needs_input      INTEGER NOT NULL DEFAULT 0,
   cooldown_seconds INTEGER NOT NULL DEFAULT 0,
   enabled          INTEGER NOT NULL DEFAULT 1,
