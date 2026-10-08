@@ -16,13 +16,44 @@ let isRecording = false;
 let reconnectTimer: NodeJS.Timeout | null = null;
 let userDisconnect = false;
 
+// While OBS is closed the tool tries again — 5 s, then 10, 20, 40, at most
+// 60 s apart (08.10.: every 5 s built a socket, logged the error and made
+// every window refetch). A connect the user asks for goes at once and starts over.
+const RECONNECT_FIRST_MS = 5000;
+const RECONNECT_MAX_MS = 60_000;
+let reconnectDelay = RECONNECT_FIRST_MS;
+let failedBefore = false;
+
 function scheduleReconnect(): void {
   if (reconnectTimer || userDisconnect || connected) return;
+  const delay = reconnectDelay;
+  reconnectDelay = Math.min(reconnectDelay * 2, RECONNECT_MAX_MS);
   reconnectTimer = setTimeout(() => {
     reconnectTimer = null;
-    connectObs().catch(() => { scheduleReconnect(); });
-  }, 5000);
+    connectObs({ retry: true }).catch(() => { scheduleReconnect(); });
+  }, delay);
 }
+
+/** obs-status goes out only when it changes: every window refetches on it. */
+let lastStatus: boolean | null = null;
+function broadcastStatus(isConnected: boolean): void {
+  if (lastStatus === isConnected) return;
+  lastStatus = isConnected;
+  broadcast('obs-status', { connected: isConnected });
+}
+
+/**
+ * What OBS was asked about scenes and our overlays, kept until OBS says that
+ * something changed (08.10.). The readiness poll and every scene change asked
+ * anew — one request per scene, group and source, 100+ on a full setup, all
+ * landing on OBS mid-stream. Callers at the same time share one request.
+ */
+let scenesCache: Promise<string[]> | null = null;
+let placementCache: Promise<Record<string, string[]>> | null = null;
+let visibleCache: Promise<{ scene: string | null; overlays: string[] }> | null = null;
+
+function forgetPlacement(): void { placementCache = null; visibleCache = null; }
+function forgetScenes(): void { scenesCache = null; forgetPlacement(); }
 
 export interface ObsConfig {
   host: string;
@@ -52,7 +83,7 @@ export function getObsStatus(): { connected: boolean } {
   return { connected };
 }
 
-export async function connectObs(): Promise<boolean> {
+export async function connectObs(opts: { retry?: boolean } = {}): Promise<boolean> {
   const config = getObsConfig();
   if (!config) {
     console.log('[OBS] No config found — skipping connection');
@@ -65,12 +96,20 @@ export async function connectObs(): Promise<boolean> {
   }
 
   userDisconnect = false;
+  if (!opts.retry) {
+    // Asked for by the user or the start: try now, and from the first gap again.
+    reconnectDelay = RECONNECT_FIRST_MS;
+    if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+  }
   obs = new OBSWebSocket();
 
   try {
     const url = `ws://${config.host}:${config.port}`;
     await obs.connect(url, config.password || undefined);
     connected = true;
+    reconnectDelay = RECONNECT_FIRST_MS;
+    failedBefore = false;
+    forgetScenes();
 
     // Sync initial state
     try {
@@ -121,21 +160,31 @@ export async function connectObs(): Promise<boolean> {
         getDb().prepare('UPDATE stream_state SET is_live = 0, is_recording = 0 WHERE id = 1').run();
         broadcast('stream-state', getDb().prepare('SELECT * FROM stream_state WHERE id = 1').get());
       } catch { /* ignore */ }
-      broadcast('obs-status', { connected: false });
+      forgetScenes();
+      broadcastStatus(false);
       scheduleReconnect();
     });
 
     // Scene changes made in OBS itself, and sources switched on or off:
     // the panels show "in der Szene / nicht in der Szene" and need to hear about both.
     obs.on('CurrentProgramSceneChanged', (event) => {
+      visibleCache = null;
       broadcast('obs-scene-changed', { scene: event.sceneName });
     });
     obs.on('SceneItemEnableStateChanged', () => {
+      visibleCache = null;
       void getCurrentScene().then((scene) => broadcast('obs-scene-changed', { scene }));
     });
+    // What else changes where our overlays sit, or which scenes there are.
+    for (const event of ['SceneItemCreated', 'SceneItemRemoved', 'InputSettingsChanged', 'InputNameChanged', 'InputCreated', 'InputRemoved'] as const) {
+      obs.on(event, forgetPlacement);
+    }
+    for (const event of ['SceneCreated', 'SceneRemoved', 'SceneNameChanged'] as const) {
+      obs.on(event, forgetScenes);
+    }
 
     console.log(`[OBS] Connected to ${url}`);
-    broadcast('obs-status', { connected: true });
+    broadcastStatus(true);
 
     // OBS may have started before us: its browser sources then loaded into
     // nothing and stay blank, because a page that never loaded cannot retry.
@@ -148,10 +197,13 @@ export async function connectObs(): Promise<boolean> {
 
     return true;
   } catch (err) {
-    console.error('[OBS] Connection failed:', err);
+    // The whole error once; while OBS stays closed, one short line per try.
+    if (!failedBefore) console.error('[OBS] Connection failed:', err);
+    else console.log(`[OBS] Still not reachable — next try in ${Math.round(reconnectDelay / 1000)} s`);
+    failedBefore = true;
     connected = false;
     obs = null;
-    broadcast('obs-status', { connected: false });
+    broadcastStatus(false);
     scheduleReconnect();
     return false;
   }
@@ -166,7 +218,8 @@ export async function disconnectObs(): Promise<void> {
     obs = null;
     isStreaming = false;
     isRecording = false;
-    broadcast('obs-status', { connected: false });
+    forgetScenes();
+    broadcastStatus(false);
     console.log('[OBS] Disconnected');
   }
 }
@@ -190,20 +243,22 @@ export async function changeScene(sceneName: string): Promise<{ success: boolean
 
 export async function getScenes(): Promise<string[]> {
   if (!obs || !connected) return [];
-
-  try {
-    const { scenes } = await obs.call('GetSceneList');
-    return (scenes as Array<{ sceneName: string }>).map((s) => s.sceneName);
-  } catch (err) {
-    console.error('[OBS] GetSceneList failed:', err);
-    return [];
-  }
+  const client = obs;
+  scenesCache ??= client.call('GetSceneList')
+    .then(({ scenes }) => (scenes as Array<{ sceneName: string }>).map((s) => s.sceneName))
+    .catch((err) => {
+      console.error('[OBS] GetSceneList failed:', err);
+      scenesCache = null;
+      return [];
+    });
+  return scenesCache;
 }
 
 /** The start, pause and end scenes — `null` while OBS is out of reach. */
 export async function createScreens(): Promise<ScreenResult[] | null> {
   if (!obs || !connected) return null;
   const results = await createScreenScenes(obs, PORT);
+  forgetScenes();
   const created = results.filter((r) => r.status === 'created').map((r) => r.scene);
   if (created.length) console.log(`[OBS] Created screen scenes: ${created.join(', ')}`);
   return results;
@@ -213,6 +268,7 @@ export async function createScreens(): Promise<ScreenResult[] | null> {
 export async function placeOverlayNow(overlay: PlaceableOverlay, scene: string): Promise<PlaceResult | null> {
   if (!obs || !connected) return null;
   const result = await placeOverlay(obs, PORT, overlay, scene);
+  forgetPlacement();
   if (result.status === 'created') console.log(`[OBS] Placed overlay "${overlay.name}" in scene "${scene}"`);
   return result;
 }
@@ -316,23 +372,29 @@ export async function getCurrentScene(): Promise<string | null> {
 /** The overlays on screen in the current scene — `scene: null` while OBS is out of reach. */
 export async function getVisibleOverlays(): Promise<{ scene: string | null; overlays: string[] }> {
   if (!obs || !connected) return { scene: null, overlays: [] };
-  const scene = await getCurrentScene();
-  if (!scene) return { scene: null, overlays: [] };
-  try {
-    return { scene, overlays: await visibleOverlays(obs, PORT, scene) };
-  } catch (err) {
-    console.error('[OBS] Reading the visible overlays failed:', err);
-    return { scene, overlays: [] };
-  }
+  const client = obs;
+  visibleCache ??= (async () => {
+    const scene = await getCurrentScene();
+    if (!scene) { visibleCache = null; return { scene: null, overlays: [] }; }
+    try {
+      return { scene, overlays: await visibleOverlays(client, PORT, scene) };
+    } catch (err) {
+      console.error('[OBS] Reading the visible overlays failed:', err);
+      visibleCache = null;
+      return { scene, overlays: [] };
+    }
+  })();
+  return visibleCache;
 }
 
 /** Every scene each own overlay is placed in — `connected: false` while OBS is out of reach. */
 export async function getOverlayScenes(): Promise<{ connected: boolean; byOverlay: Record<string, string[]> }> {
   if (!obs || !connected) return { connected: false, byOverlay: {} };
-  try {
-    return { connected: true, byOverlay: await overlaysByScene(obs, PORT) };
-  } catch (err) {
+  const client = obs;
+  placementCache ??= overlaysByScene(client, PORT).catch((err) => {
     console.error('[OBS] Reading where the overlays sit failed:', err);
-    return { connected: true, byOverlay: {} };
-  }
+    placementCache = null;
+    return {};
+  });
+  return { connected: true, byOverlay: await placementCache };
 }
