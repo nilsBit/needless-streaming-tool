@@ -89,7 +89,7 @@ export default function IssuesPanel() {
         />
         <button type="button" className="card-secondary" onClick={addIssue} disabled={!newIssue.trim()}>Hinzufügen</button>
       </div>
-      <button type="button" className="card-primary" onClick={spin} disabled={spinning || open.length === 0 || cooldown > 0}>
+      <button type="button" className="card-primary" data-quest-target="spin" onClick={spin} disabled={spinning || open.length === 0 || cooldown > 0}>
         {spinLabel}
       </button>
       <div className="card-status">

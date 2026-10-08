@@ -4,6 +4,7 @@ import { useToast } from '../contexts/ToastContext';
 import { useWebSocket } from '../hooks/useWebSocket';
 import Dialog from '../components/ux/Dialog';
 import OverlayQuestPath from '../components/quests/paths/OverlayQuestPath';
+import { useQuestPath } from '../components/quests/questStart';
 import { useNavigate } from '../NavigationContext';
 import { useVisibleInterval } from '../hooks/useVisibleInterval';
 import SearchField, { matchesSearch } from '../components/ux/SearchField';
@@ -75,6 +76,7 @@ export default function OverlaysPanel() {
   const [creating, setCreating] = useState(false);
   // Into OBS on a Quest-Pfad: from the list, or with the overlay that is open.
   const [placing, setPlacing] = useState<{ initial?: string } | null>(null);
+  useQuestPath(['overlay'], (k) => setPlacing(k === 'entryCard' ? { initial: 'character' } : {}));
   const go = useNavigate();
   const [newName, setNewName] = useState('');
   const [uploadMode, setUploadMode] = useState<'template' | 'file'>('template');

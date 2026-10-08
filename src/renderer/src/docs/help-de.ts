@@ -26,7 +26,12 @@ Links stehen die Bereiche nach Situation: **Im Stream** (alles, was du live ausl
     content: `Das Tool führt dich mit **Quests** durch die Einrichtung und deine ersten Streams. Die erste Quest ist immer **„Wähle, was dein Stream können soll“** – danach zeigt der Bereich **Quests** genau die Quests zu dem, was du gewählt hast.
 
 - Jede geschaffte Quest bringt **EP** (Erfahrungspunkte). Mit genug EP steigst du eine **Stufe** auf: Funke · Lagerfeuer · Leuchtfeuer · Leuchtturm · Sternbild. Deine Stufe steht links oben in der Leiste.
-- **Als Nächstes** schlägt die eine Quest vor, die gerade am meisten bringt. **Los geht's** bringt dich an die Stelle, wo du sie erledigst.
+- Die Quests stehen in **Kapiteln**: „Bereit für den ersten Stream“, „Der Chat spielt mit“ und „Aus dem Stream wird Content“. Jedes Kapitel bringt ein **Abzeichen** (Startklar · Gastgeber · Chronist). Das dritte wird frei, sobald das erste geschafft ist.
+- Klick auf eine Quest zeigt **Warum** (wofür sie gut ist) und **So geht's** (die Schritte).
+- **Los geht's** bringt dich an die Stelle, wo du die Quest erledigst. Hat sie einen eigenen Weg (Befehl, Belohnung, Bestenliste, Overlay), öffnet er sich gleich. Sonst leuchtet auf, was du klicken musst, und eine Blase erklärt die Schritte.
+- Die **aktive Quest** steht immer unten in der Leiste, mit ihren Schritten. Das ist die, die du zuletzt mit „Los geht's“ gestartet hast, sonst die, die das Tool als Nächstes vorschlägt.
+- Manche Quests warten auf eine andere, z. B. **Braucht OBS**. Sie stehen schon da, werden aber nie als Nächstes vorgeschlagen.
+- Geschaffte Quests kommen nacheinander unten rechts. Eine neue Stufe oder ein geschafftes Kapitel bekommt einen eigenen kurzen Moment – während du live bist, bleibt es beim Hinweis.
 - Eine Quest gilt als geschafft, wenn das Tool es am Zustand sieht – auch was du vorher oder auf anderem Weg eingerichtet hast, zählt. Einmal geschafft, bleibt geschafft, auch wenn du es später löschst.
 - Schaltest du unter „Was dein Stream kann“ eine Funktion aus, verschwinden ihre Quests und zählen nicht mehr zur Stufe.
 - Stufe, EP und Quests siehst nur du. Das Tool prüft sie nur, wenn sich etwas ändert – nie im Dauerlauf.`,

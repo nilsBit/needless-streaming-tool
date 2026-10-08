@@ -7,6 +7,7 @@ import SearchField from '../components/ux/SearchField';
 import RewardSteps, { type Step } from '../components/rewards/RewardSteps';
 import RewardTemplates, { type RewardTemplate } from '../components/rewards/RewardTemplates';
 import RewardQuestPath, { type RewardDraft } from '../components/rewards/RewardQuestPath';
+import { useQuestPath } from '../components/quests/questStart';
 import { useFeatures } from '../contexts/FeaturesContext';
 import type { FeatureKey } from '../../../shared/features';
 
@@ -62,6 +63,7 @@ export default function PointsPanel() {
   // New rewards are made on a Quest-Pfad; a template opens it filled in.
   const [path, setPath] = useState<{ initial?: Partial<RewardDraft> } | null>(null);
   const applyTemplate = (t: RewardTemplate) => setPath({ initial: { action: t.action, name: t.name, cost: t.cost } });
+  useQuestPath(['pointReward'], () => setPath({}));
   const tryReward = async (name: string) => {
     await giveMyself();
     toast.success(`Du hast jetzt Punkte. Schreib im Chat: !einlösen ${name}`);
@@ -129,7 +131,7 @@ export default function PointsPanel() {
         <aside className="reward-side reward-try" aria-label="Selbst ausprobieren">
           <h3>Selbst ausprobieren</h3>
           <p className="dialog-hint" style={{ margin: 0 }}>Gib dir {currency} und löse eine Belohnung im Chat ein – auch ohne live zu sein.</p>
-          <button type="button" className="card-primary" onClick={giveMyself} disabled={!status?.channel} title={status?.channel ? undefined : 'Erst mit Twitch verbinden'}>500 {currency} an dich</button>
+          <button type="button" className="card-primary" data-quest-target="pointTry" onClick={giveMyself} disabled={!status?.channel} title={status?.channel ? undefined : 'Erst mit Twitch verbinden'}>500 {currency} an dich</button>
           {tried !== null && (
             <p className="dialog-hint" role="status" style={{ margin: 0 }}>
               Du hast jetzt {tried} {currency}. {firstReward ? <>Schreib im Chat: <code>!einlösen {firstReward.name}</code></> : 'Leg oben eine Belohnung an, dann schreib im Chat: !einlösen <Name>'}

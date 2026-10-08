@@ -11,6 +11,9 @@ import StreamPage from './pages/StreamPage';
 import SetupPage from './pages/SetupPage';
 import SceneHint from './components/ux/SceneHint';
 import StageBadge from './components/quests/StageBadge';
+import QuestTracker from './components/quests/QuestTracker';
+import QuestCoach from './components/quests/QuestCoach';
+import QuestCelebrations from './components/quests/QuestCelebrations';
 import logoSvg from './assets/logo.svg';
 
 // Sidebar with the areas and the connection marks, then the page: header,
@@ -91,6 +94,7 @@ export default function Shell() {
           {areas.filter((a) => a.group === 'main').map((a) => renderNavButton(a.key, a.label, false))}
           <div className="shell-nav-divider" role="separator" />
           {areas.filter((a) => a.group === 'secondary').map((a) => renderNavButton(a.key, a.label, true))}
+          <QuestTracker area={area.key} subTab={subTab.key} />
           <ConnectionMarks />
         </nav>
         <div className="shell-page">
@@ -104,6 +108,8 @@ export default function Shell() {
           </main>
         </div>
       </div>
+      <QuestCoach />
+      <QuestCelebrations />
     </NavigationProvider>
   );
 }

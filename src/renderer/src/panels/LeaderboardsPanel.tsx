@@ -4,6 +4,7 @@ import { useWebSocket } from '../hooks/useWebSocket';
 import { useToast } from '../contexts/ToastContext';
 import Dialog from '../components/ux/Dialog';
 import LeaderboardQuestPath from '../components/quests/paths/LeaderboardQuestPath';
+import { useQuestPath } from '../components/quests/questStart';
 
 interface Leaderboard { key: string; title: string; reward_id: string; reward_title: string; viewers: number }
 interface Row { user_name: string; count: number; last_redeemed_at: string }
@@ -23,6 +24,7 @@ export default function LeaderboardsPanel() {
   const [openKey, setOpenKey] = useState<string | null>(null);
   // New lists are made on a Quest-Pfad.
   const [path, setPath] = useState(false);
+  useQuestPath(['leaderboard'], () => setPath(true));
 
   const rewards = rewardsData?.rewards ?? [];
   const listLoaded = !!botStatus?.connected && !!rewardsData && !rewardsData.error;

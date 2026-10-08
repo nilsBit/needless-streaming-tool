@@ -1,27 +1,20 @@
 import React, { useRef } from 'react';
 import { useNavigate } from '../../NavigationContext';
 import { useWebSocket } from '../../hooks/useWebSocket';
-import { useToast } from '../../contexts/ToastContext';
 import { celebrate } from '../ux/celebrate';
 import { stageProgress, useQuests } from './useQuests';
 
 // The streamer's stage in the sidebar, under the logo: a ring with the level,
-// the stage's name and how far to the next. A click opens the quests. A quest
-// done says so in a toast; a new stage makes the ring light up (08.10.).
+// the stage's name and how far to the next. A click opens the quests; a new
+// stage makes the ring light up (08.10.).
 export default function StageBadge() {
   const go = useNavigate();
-  const { toast } = useToast();
   const { quests } = useQuests();
   const ring = useRef<HTMLSpanElement>(null);
 
+  // The celebration itself is QuestCelebrations'; the ring only lights up.
   useWebSocket((event, data) => {
-    if (event !== 'quest-completed') return;
-    const d = data as { title: string; xp: number; levelUp: boolean; stage: { name: string } };
-    toast.success(`Quest geschafft: ${d.title} · +${d.xp} EP`);
-    if (d.levelUp) {
-      toast.success(`Neue Stufe: ${d.stage.name}`);
-      celebrate('success', ring.current);
-    }
+    if (event === 'quest-completed' && (data as { levelUp: boolean }).levelUp) celebrate('success', ring.current);
   });
 
   if (!quests) return null;

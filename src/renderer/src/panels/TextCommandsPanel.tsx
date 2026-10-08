@@ -4,6 +4,7 @@ import { useToast } from '../contexts/ToastContext';
 import EmptyState from '../components/ux/EmptyState';
 import Dialog from '../components/ux/Dialog';
 import CommandQuestPath from '../components/quests/paths/CommandQuestPath';
+import { useQuestPath } from '../components/quests/questStart';
 import SearchField, { matchesSearch } from '../components/ux/SearchField';
 
 // "Befehle" under Chat & Bot: one list for everything the streamer maintains —
@@ -139,6 +140,7 @@ export default function TextCommandsPanel() {
 
   // New commands are made on a Quest-Pfad; the dialog below stays for editing.
   const [path, setPath] = useState<{ trigger?: string } | null>(null);
+  useQuestPath(['command'], () => setPath({}));
   const openEdit = (row: Row) =>
     setDraft({ kind: row.kind, id: row.id, trigger: row.trigger, response: row.response, art: row.art, cooldown_seconds: row.cooldown, description: row.stored ? row.sentence : '', aliases: row.aliases, originalTrigger: row.trigger });
   const close = () => { setDraft(null); setNewAlias(''); };

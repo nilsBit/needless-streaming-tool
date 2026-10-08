@@ -47,7 +47,7 @@ export interface QuestOverview {
   choosing: boolean;
   /** Whether the short intro to quests was shown once. */
   introSeen: boolean;
-  /** OBS is sending: celebrations stay quiet. */
+  /** Live on Twitch: celebrations stay quiet. */
   onAir: boolean;
   next: QuestView | null;
   chapters: ChapterView[];

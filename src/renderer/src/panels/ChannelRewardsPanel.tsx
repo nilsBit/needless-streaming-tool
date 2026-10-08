@@ -6,6 +6,7 @@ import SearchField, { matchesSearch } from '../components/ux/SearchField';
 import RewardSteps, { type Step } from '../components/rewards/RewardSteps';
 import RewardTemplates, { type RewardTemplate } from '../components/rewards/RewardTemplates';
 import RewardQuestPath, { type RewardDraft } from '../components/rewards/RewardQuestPath';
+import { useQuestPath } from '../components/quests/questStart';
 import { useFeatures } from '../contexts/FeaturesContext';
 import type { FeatureKey } from '../../../shared/features';
 
@@ -55,6 +56,7 @@ export default function ChannelRewardsPanel() {
   // New rewards are made on a Quest-Pfad; a template opens it filled in.
   const [path, setPath] = useState<{ initial?: Partial<RewardDraft> } | null>(null);
   const applyTemplate = (t: RewardTemplate) => setPath({ initial: { action: t.action, name: t.name, cost: t.cost } });
+  useQuestPath(['channelReward'], () => setPath({}));
 
   const ownCount = (rewards ?? []).filter((r) => r.manageable && r.enabled).length;
   const steps: Step[] = [

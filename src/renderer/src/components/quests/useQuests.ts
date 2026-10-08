@@ -9,12 +9,31 @@ export interface QuestView {
   xp: number;
   goTo: { area: string; subTab?: string };
   completedAt: string | null;
+  chapter: number;
+  why: string;
+  how: string[];
+  blockedBy: string | null;
+}
+
+export interface ChapterView {
+  n: number;
+  title: string;
+  badge: string;
+  locked: boolean;
+  after: number | null;
+  done: number;
+  total: number;
+  complete: boolean;
+  quests: QuestView[];
 }
 
 export interface QuestOverview {
   stage: { level: number; name: string; xp: number; from: number; next: { name: string; from: number } | null };
   choosing: boolean;
+  introSeen: boolean;
+  onAir: boolean;
   next: QuestView | null;
+  chapters: ChapterView[];
   open: QuestView[];
   done: QuestView[];
 }
