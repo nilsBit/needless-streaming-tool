@@ -91,7 +91,7 @@ export default function OverlayQuestPath({ overlays, initial, onClose, onPlaced 
               <div className="quest-preview-chat">
                 <strong>{chosen?.label}</strong> kommt in die Szene <strong>{pickedScene}</strong>{chosen?.size ? `, ${chosen.size.width} × ${chosen.size.height}` : ''}.
               </div>
-              <p className="dialog-hint" style={{ margin: 0 }}>Liegt es dort schon, legt das Tool es nicht doppelt an. Verschieben und Größe ändern machst du danach in OBS.</p>
+              <p className="dialog-hint" style={{ margin: 0 }}>Liegt es schon in einer Szene, legt das Tool es nicht noch einmal an und sagt dir, wo es liegt. Verschieben und Größe ändern machst du danach in OBS.</p>
             </>
           ),
         },
