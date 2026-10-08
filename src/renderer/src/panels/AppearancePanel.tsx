@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { lightUp, useOpenAt } from '../components/ux/openAt';
 import { useApi, apiPost, apiFetch } from '../hooks/useApi';
 import { useToast } from '../contexts/ToastContext';
 import FigmaDrafts, { type DesignStatus, type ImplementStatus } from '../components/FigmaDrafts';
@@ -82,6 +83,11 @@ export default function AppearancePanel() {
 
   const [overlayConfig, setOverlayConfig] = useState<PaletteConfig>({ global: {}, overrides: {} });
   const [selectedOverride, setSelectedOverride] = useState<string>('');
+  // "Aussehen ändern" on an overlay opens here with that overlay chosen.
+  useOpenAt('appearance', (name) => {
+    setSelectedOverride(name);
+    lightUp(() => document.querySelector('[data-section="einzeln"] select'));
+  });
 
   // The palette as the server last had it, and as it is here now. A save
   // posts the whole config, so it must never carry values the server has
@@ -258,7 +264,7 @@ export default function AppearancePanel() {
         </div>
       </section>
 
-      <section className="appearance-section">
+      <section className="appearance-section" data-section="einzeln">
         <h3 className="dialog-section">Einzelne Overlays</h3>
         <p className="dialog-hint">Ein Overlay darf von den Farben oben abweichen. Es zeigt dann in der Vorschau keine Beispieldaten mehr, sondern sich selbst.</p>
         <div className="card-row card-wrap">

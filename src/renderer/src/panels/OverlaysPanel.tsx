@@ -5,7 +5,8 @@ import { useWebSocket } from '../hooks/useWebSocket';
 import Dialog from '../components/ux/Dialog';
 import OverlayQuestPath from '../components/quests/paths/OverlayQuestPath';
 import { useQuestPath } from '../components/quests/questStart';
-import { useNavigate } from '../NavigationContext';
+import { useNavigate, type NavTarget } from '../NavigationContext';
+import { lightUp, openAt } from '../components/ux/openAt';
 import { useVisibleInterval } from '../hooks/useVisibleInterval';
 import SearchField, { matchesSearch } from '../components/ux/SearchField';
 import { useFeatures } from '../contexts/FeaturesContext';
@@ -65,6 +66,25 @@ function useBoxWidth(): [(el: HTMLDivElement | null) => void, number] {
   }, [box]);
   return [setBox, width];
 }
+
+// Where an overlay's content is set (08.10.: "wie stelle ich die ein?").
+// `card` is the card on "Im Stream" that drives it.
+const CONTENT: Record<string, { where: string; area: NavTarget['area']; subTab: string; card?: string }> = {
+  alerts: { where: 'Overlays & Alerts → Alerts', area: 'overlays', subTab: 'alerts' },
+  milestone: { where: 'Overlays & Alerts → Meilensteine', area: 'overlays', subTab: 'meilensteine' },
+  'reward-leaderboard': { where: 'Overlays & Alerts → Bestenlisten', area: 'overlays', subTab: 'bestenlisten' },
+  'reward-rankchange': { where: 'Overlays & Alerts → Bestenlisten', area: 'overlays', subTab: 'bestenlisten' },
+  start: { where: 'Overlays & Alerts → Szenen in OBS', area: 'overlays', subTab: 'szenen' },
+  pause: { where: 'Overlays & Alerts → Szenen in OBS', area: 'overlays', subTab: 'szenen' },
+  end: { where: 'Overlays & Alerts → Szenen in OBS', area: 'overlays', subTab: 'szenen' },
+  challenge: { where: 'Im Stream → Ziel für heute', area: 'stream', subTab: 'stream', card: 'challenge' },
+  roulette: { where: 'Im Stream → Glücksrad', area: 'stream', subTab: 'stream', card: 'issues' },
+  poll: { where: 'Im Stream → Abstimmung', area: 'stream', subTab: 'stream', card: 'designs' },
+  progress: { where: 'Im Stream → Fortschritt', area: 'stream', subTab: 'stream', card: 'progress' },
+  todos: { where: 'Im Stream → Fortschritt', area: 'stream', subTab: 'stream', card: 'progress' },
+  song: { where: 'Im Stream → Musik', area: 'stream', subTab: 'stream', card: 'song' },
+  character: { where: 'Im Stream → Eintrag aus der Welt', area: 'stream', subTab: 'stream', card: 'world' },
+};
 
 export default function OverlaysPanel() {
   const { toast } = useToast();
@@ -272,6 +292,36 @@ export default function OverlaysPanel() {
               return (
                 <div className="ovl-obs-card done">
                   <div className="ovl-obs-text"><strong>Im Bild</strong><span>in den Szenen {scenes.map((s) => <span key={s} className="ovl-scene">{s}</span>)}</span></div>
+                </div>
+              );
+            })()}
+
+            {selected.builtin && (() => {
+              const content = CONTENT[selected.name];
+              const setContent = () => {
+                if (!content) return;
+                go({ area: content.area, subTab: content.subTab });
+                const card = content.card;
+                if (card) lightUp(() => document.querySelector(`[data-panel="${card}"]`)?.closest('.stream-card') ?? null);
+              };
+              const setLook = () => { openAt('appearance', selected.name); go({ area: 'overlays', subTab: 'aussehen' }); };
+              return (
+                <div className="ovl-settings">
+                  <span className="dialog-field-label">Einstellen</span>
+                  <div className="ovl-settings-row">
+                    {content ? (
+                      <div className="ovl-settings-item">
+                        <button type="button" className="card-secondary" onClick={setContent}>Inhalt einstellen</button>
+                        <span className="dialog-hint">{content.where}</span>
+                      </div>
+                    ) : (
+                      <div className="ovl-settings-item"><span className="dialog-hint">{selected.name === 'chat' ? 'Zeigt, was im Chat steht – ohne Befehle und Bot-Antworten. Da gibt es nichts einzustellen.' : 'Zeigt sich von selbst, wenn es gebraucht wird.'}</span></div>
+                    )}
+                    <div className="ovl-settings-item">
+                      <button type="button" className="card-secondary" onClick={setLook}>Aussehen ändern</button>
+                      <span className="dialog-hint">Farben und Schrift nur für dieses Overlay</span>
+                    </div>
+                  </div>
                 </div>
               );
             })()}
