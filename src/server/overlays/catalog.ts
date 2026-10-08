@@ -20,6 +20,23 @@ import { featureOfOverlay, type FeatureKey } from '../../shared/features';
 
 export type CatalogGroup = 'always' | 'join' | 'today' | 'rewards' | 'screens' | 'alerts' | 'custom';
 
+/**
+ * What the first of the three steps to "einsatzbereit" is (2026-10-08):
+ * `settings` — something to set here first; `live` — what it shows is driven
+ * live under "Im Stream", so there is nothing to set beforehand; `none` — it
+ * shows by itself.
+ */
+export type OverlaySetup = 'settings' | 'live' | 'none';
+
+const SETUP: Record<string, OverlaySetup> = {
+  alerts: 'settings', milestone: 'settings', 'reward-leaderboard': 'settings', 'reward-rankchange': 'settings',
+  challenge: 'live', roulette: 'live', poll: 'live', progress: 'live', todos: 'live', song: 'live', character: 'live',
+};
+
+export function overlaySetup(name: string): OverlaySetup {
+  return SETUP[name] ?? 'none';
+}
+
 export interface CatalogEntry {
   name: string;
   label: string;
@@ -37,6 +54,7 @@ export interface CatalogEntry {
   customizedBy: Array<'html' | 'palette' | 'figma'>;
   /** The feature ("Was dein Stream kann") this overlay belongs to; null for a custom overlay. */
   feature: FeatureKey | null;
+  setup: OverlaySetup;
 }
 
 export const GROUP_LABELS: Record<CatalogGroup, string> = {
@@ -122,6 +140,7 @@ export function overlayCatalog(host: string): CatalogEntry[] {
       customized: by.length > 0,
       customizedBy: by,
       feature: featureOfOverlay(name),
+      setup: overlaySetup(name),
     };
   });
 
@@ -138,6 +157,7 @@ export function overlayCatalog(host: string): CatalogEntry[] {
       customized: true,
       customizedBy: ['html'],
       feature: null,
+      setup: 'none',
     });
   }
 

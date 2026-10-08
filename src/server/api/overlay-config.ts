@@ -62,6 +62,24 @@ router.post('/', (req, res) => {
   res.json({ success: true });
 });
 
+// PUT /overrides/:name { vars } — one overlay's own look, the rest untouched
+// (2026-10-08: "Aussehen" in an overlay's workshop). Empty vars: it follows
+// the style for all again.
+router.put('/overrides/:name(*)', (req, res) => {
+  const name = req.params.name;
+  if (!/^[a-z0-9][a-z0-9/_-]{0,80}$/.test(name)) { res.status(400).json({ error: 'invalid overlay name' }); return; }
+  const vars = (req.body ?? {}).vars;
+  if (!vars || typeof vars !== 'object' || Array.isArray(vars)) { res.status(400).json({ error: 'vars must be an object' }); return; }
+  const config = getOverlayConfig();
+  const overrides = { ...(config.overrides ?? {}) };
+  const cleaned = validateVars(vars as Record<string, string>);
+  if (Object.keys(cleaned).length > 0) overrides[name] = cleaned; else delete overrides[name];
+  const next = { ...config, global: config.global ?? {}, overrides };
+  saveOverlayConfig(next);
+  broadcast('overlay-config', next);
+  res.json(next);
+});
+
 router.delete('/', (_req, res) => {
   getDb().prepare('DELETE FROM settings WHERE key = ?').run('overlay_config');
   broadcast('overlay-config', { global: {}, overrides: {} });

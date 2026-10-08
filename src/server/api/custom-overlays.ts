@@ -4,6 +4,9 @@ import path from 'path';
 import { getBuiltinOverlaysDir, getUserDataPath } from '../paths';
 import { PORT } from '../index';
 import { overlayCatalog } from '../overlays/catalog';
+import { READY_XP, markOverlayStep, overlaySteps } from '../overlays/readiness';
+import { currentStage } from '../quests/index';
+import { broadcast } from '../websocket/index';
 
 const router = Router();
 
@@ -77,6 +80,29 @@ router.get('/', (req, res) => {
 router.get('/catalog', (req, res) => {
   const host = req.headers.host || `localhost:${PORT}`;
   res.json(overlayCatalog(host));
+});
+
+// GET /steps — each overlay's way to "einsatzbereit": set up, in OBS, tested.
+router.get('/steps', async (req, res) => {
+  const names = overlayCatalog(req.headers.host || `localhost:${PORT}`).map((e) => e.name);
+  const { steps, becameReady } = await overlaySteps(names);
+  if (becameReady.length) broadcast('overlay-ready', { names: becameReady });
+  res.json({ steps, xp: READY_XP });
+});
+
+// POST /steps/:name { step: 'tuned' | 'tested' } — one step done. When the
+// overlay becomes ready with it, the answer carries the EP and the stage.
+router.post('/steps/:name(*)', async (req, res) => {
+  const step = (req.body ?? {}).step;
+  if (step !== 'tuned' && step !== 'tested') { res.status(400).json({ error: "step must be 'tuned' or 'tested'" }); return; }
+  const entry = overlayCatalog(req.headers.host || `localhost:${PORT}`).find((e) => e.name === req.params.name);
+  if (!entry) { res.status(404).json({ error: 'unknown overlay' }); return; }
+  const before = currentStage();
+  const { steps, becameReady } = await markOverlayStep(entry.name, step);
+  const stage = currentStage();
+  const levelUp = stage.level > before.level;
+  if (becameReady) broadcast('overlay-ready', { names: [entry.name] });
+  res.json({ steps, becameReady, xp: READY_XP, stage, levelUp });
 });
 
 router.get('/builtin', (req, res) => {

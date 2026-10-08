@@ -40,16 +40,27 @@
     el.textContent = config.styles[name] || '';
   }
 
+  // What the last config set, so a value it no longer carries (an overlay's
+  // own look removed) falls back to the stylesheet instead of staying.
+  var appliedKeys = [];
+
   function apply(config) {
     applyStyles(config);
     var vars = Object.assign({}, config.global || {}, (config.overrides || {})[name] || {});
     var root = document.documentElement;
+    appliedKeys.forEach(function (k) {
+      if (!(k in vars)) {
+        root.style.removeProperty(k);
+        root.style.removeProperty(k + '-rgb');
+      }
+    });
     Object.keys(vars).forEach(function (k) {
       root.style.setProperty(k, vars[k]);
     });
     RGB_KEYS.forEach(function (k) {
       if (vars[k]) root.style.setProperty(k + '-rgb', hexToRgb(vars[k]));
     });
+    appliedKeys = Object.keys(vars);
     return vars;
   }
 
@@ -62,9 +73,7 @@
     // Italics are requested explicitly. The Entry Card sets secondary names and
     // empty-page notes in italic, and a browser-faked oblique on a serif face
     // is plainly visible.
-    var link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href =
+    var href =
       'https://fonts.googleapis.com/css2?' +
       families
         .map(function (f) {
@@ -72,6 +81,10 @@
         })
         .join('&') +
       '&display=swap';
+    if (document.querySelector('link[href="' + href + '"]')) return;
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
     document.head.appendChild(link);
   }
 
@@ -105,6 +118,20 @@
   var params = new URLSearchParams(window.location.search);
   var showcaseState = params.get('state');
   if (showcaseState) installShowcase(name, showcaseState, params.has('live'));
+
+  // The app's preview frames a showcase state and sends colours and fonts
+  // while they are being chosen, before they are saved, so the preview
+  // follows every change at once. Only the palette, never the Figma styles,
+  // and only from the frame around it. An overlay in OBS has no `?state=`
+  // and never listens.
+  if (showcaseState && window.parent !== window) {
+    window.addEventListener('message', function (msg) {
+      if (msg.source !== window.parent) return;
+      var data = msg.data;
+      if (!data || data.type !== 'nst-preview-config' || !data.config) return;
+      loadFonts(apply({ global: data.config.global || {}, overrides: data.config.overrides || {} }));
+    });
+  }
 
   function installShowcase(overlay, stateName, live) {
     var root = document.documentElement;

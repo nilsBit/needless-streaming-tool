@@ -1,4 +1,4 @@
-export const SCHEMA_VERSION = 31;
+export const SCHEMA_VERSION = 32;
 
 export const SCHEMA = `
 CREATE TABLE IF NOT EXISTS schema_version (
@@ -181,6 +181,15 @@ CREATE TABLE IF NOT EXISTS twitch_reward_actions (
 CREATE TABLE IF NOT EXISTS quest_progress (
   key          TEXT PRIMARY KEY,
   completed_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- How far each overlay is on its way to "einsatzbereit" (2026-10-08): set up
+-- and tested; "in OBS" is read from OBS. Ready stays ready and brings EP.
+CREATE TABLE IF NOT EXISTS overlay_steps (
+  name     TEXT PRIMARY KEY,
+  tuned    INTEGER NOT NULL DEFAULT 0,
+  tested   INTEGER NOT NULL DEFAULT 0,
+  ready_at DATETIME
 );
 
 -- A Punkte-Belohnung: bought with own points in chat, runs one action.

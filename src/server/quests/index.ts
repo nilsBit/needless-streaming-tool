@@ -4,6 +4,7 @@ import { featureOn } from '../features';
 import { getOverlayScenes, getObsStatus } from '../obs/index';
 import { CHAPTERS, GUIDE, QUESTS, STAGES, type Quest, type QuestContext } from './catalog';
 import { markQuestFlag } from './flags';
+import { READY_XP, readyCount } from '../overlays/readiness';
 
 /**
  * Checks the quests against the state, keeps what is newly done and tells
@@ -121,8 +122,14 @@ export async function evaluateQuests(): Promise<string[]> {
   return newly.map((q) => q.key);
 }
 
+/** EP from the quests done, plus READY_XP for every overlay made ready. */
 function xpOf(done: Map<string, string>): number {
-  return QUESTS.filter((q) => done.has(q.key) && visible(q)).reduce((sum, q) => sum + q.xp, 0);
+  return QUESTS.filter((q) => done.has(q.key) && visible(q)).reduce((sum, q) => sum + q.xp, 0) + READY_XP * readyCount();
+}
+
+/** The stage as it stands now. */
+export function currentStage(): Stage {
+  return stageFor(xpOf(completions()));
 }
 
 function view(q: Quest, have: Map<string, string>): QuestView {
