@@ -1,8 +1,9 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import { useApi, apiPost, apiFetch, getServerPort } from '../hooks/useApi';
 import { useToast } from '../contexts/ToastContext';
 import { useWebSocket } from '../hooks/useWebSocket';
 import Dialog from '../components/ux/Dialog';
+import { useVisibleInterval } from '../hooks/useVisibleInterval';
 import SearchField, { matchesSearch } from '../components/ux/SearchField';
 import { useFeatures } from '../contexts/FeaturesContext';
 import type { FeatureKey } from '../../../shared/features';
@@ -81,10 +82,8 @@ export default function OverlaysPanel() {
     if (event === 'obs-status' || event === 'obs-scene-changed') refetchPlacement();
     if (event === 'overlay-config' || event === 'design-implement') refetchCatalog();
   });
-  useEffect(() => {
-    const timer = setInterval(() => refetchPlacement(), 30_000);
-    return () => clearInterval(timer);
-  }, [refetchPlacement]);
+  // Only while the window is seen; on show it looks once at once.
+  useVisibleInterval(refetchPlacement, 30_000);
 
   // Overlays of features that are off stay out of the list — they are hidden, not gone.
   const entries = (catalog ?? []).filter((e) => e.feature === null || isOn(e.feature));

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useApi, apiPost, apiFetch } from '../../hooks/useApi';
 import { useWebSocket } from '../../hooks/useWebSocket';
 import { useToast } from '../../contexts/ToastContext';
+import { useVisibleInterval } from '../../hooks/useVisibleInterval';
 import { useFeatures } from '../../contexts/FeaturesContext';
 import NotionDatabasePicker from '../NotionDatabasePicker';
 import type { BotStatus } from '../../../../shared/types';
@@ -76,11 +77,7 @@ export default function ConnectionCards({ only }: Props) {
     if (event === 'obs-status') refetchObsStatus();
     if (event === 'entry-changed' || event === 'follow-changed') refetchWorld();
   });
-  useEffect(() => {
-    if (!show('worldbuilder')) return;
-    const timer = setInterval(() => refetchWorld(), 30_000);
-    return () => clearInterval(timer);
-  }, [refetchWorld, only]);
+  useVisibleInterval(refetchWorld, 30_000, show('worldbuilder'));
 
   const connectTwitch = async () => {
     try { await apiFetch('/auth/twitch/open', { method: 'POST' }); }

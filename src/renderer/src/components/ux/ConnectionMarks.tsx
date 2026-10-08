@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useApi } from '../../hooks/useApi';
 import { useWebSocket } from '../../hooks/useWebSocket';
 import { useNavigate } from '../../NavigationContext';
 import { useFeatures } from '../../contexts/FeaturesContext';
+import { useVisibleInterval } from '../../hooks/useVisibleInterval';
 
 interface BotStatus { connected: boolean; channel: string | null; error?: string | null }
 interface ObsStatus { connected: boolean }
@@ -25,11 +26,9 @@ export default function ConnectionMarks() {
     if (event === 'entry-changed' || event === 'follow-changed') refetchWorld();
   });
 
-  // The Worldbuilder sends no push; look every half minute.
-  useEffect(() => {
-    const timer = setInterval(() => refetchWorld(), 30_000);
-    return () => clearInterval(timer);
-  }, [refetchWorld]);
+  // The Worldbuilder sends no push; look every half minute — only where it
+  // is set up, and only while the window is seen.
+  useVisibleInterval(refetchWorld, 30_000, worldbuilder);
 
   const worldTone: Tone = !world ? 'off' : world.source !== 'worldbuilder' ? 'off' : world.error ? 'bad' : 'ok';
   const marks: Array<{ key: string; label: string; detail: string; tone: Tone; onClick: () => void }> = [

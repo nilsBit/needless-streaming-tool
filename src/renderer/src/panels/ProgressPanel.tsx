@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApi, apiPost, apiPatch, apiDelete, apiDownload } from '../hooks/useApi';
 import { ProjectItem, StreamState, Milestone } from '../../../shared/types';
 import { useWebSocket } from '../hooks/useWebSocket';
+import { useVisibleInterval } from '../hooks/useVisibleInterval';
 import { useToast } from '../contexts/ToastContext';
 import { celebrate } from '../components/ux/celebrate';
 import Dialog from '../components/ux/Dialog';
@@ -35,12 +36,19 @@ export default function ProgressPanel() {
     if (event.startsWith('milestone-')) refetchMilestones();
   });
 
-  useEffect(() => { if (streamState) setLiveSeconds(streamState.timer_seconds); }, [streamState]);
+  // The time shows minutes, so it is worked out from when the server's count
+  // was read, every 15 s and on show — not counted up every second, which
+  // re-rendered the whole board each second, also hidden (08.10.).
+  const readAt = useRef(Date.now());
   useEffect(() => {
-    if (!streamState?.timer_running) return;
-    const interval = setInterval(() => setLiveSeconds((s) => s + 1), 1000);
-    return () => clearInterval(interval);
-  }, [streamState?.timer_running]);
+    if (!streamState) return;
+    readAt.current = Date.now();
+    setLiveSeconds(streamState.timer_seconds);
+  }, [streamState]);
+  useVisibleInterval(() => {
+    if (!streamState) return;
+    setLiveSeconds(streamState.timer_seconds + Math.floor((Date.now() - readAt.current) / 1000));
+  }, 15_000, !!streamState?.timer_running);
 
   const formatTime = (seconds: number): string => {
     if (seconds < 60) return '< 1 min';

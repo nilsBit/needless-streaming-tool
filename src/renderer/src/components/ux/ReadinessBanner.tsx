@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { useWebSocket } from '../../hooks/useWebSocket';
+import { useVisibleInterval } from '../../hooks/useVisibleInterval';
 import { useNavigate } from '../../NavigationContext';
 import type { AreaKey } from '../../navigation';
 
@@ -27,10 +28,7 @@ export default function ReadinessBanner() {
   useWebSocket((event) => {
     if (event === 'bot-status' || event === 'obs-status') refetch();
   });
-  useEffect(() => {
-    const timer = setInterval(() => refetch(), 30_000);
-    return () => clearInterval(timer);
-  }, [refetch]);
+  useVisibleInterval(refetch, 30_000);
 
   const missing = data?.items.filter((item) => item.ok === false) ?? [];
   if (missing.length === 0) return null;
