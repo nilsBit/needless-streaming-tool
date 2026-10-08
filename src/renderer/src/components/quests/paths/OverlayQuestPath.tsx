@@ -49,7 +49,7 @@ export default function OverlayQuestPath({ overlays, initial, onClose, onPlaced 
 
   return (
     <QuestPath
-      title="Overlay ins Bild bringen"
+      title="Overlay in OBS anlegen"
       sentence="Das Tool legt die Browserquelle in OBS an – du wählst nur, was und wo."
       startAt={initial ? 1 : 0}
       finishLabel="In OBS anlegen"
@@ -61,7 +61,7 @@ export default function OverlayQuestPath({ overlays, initial, onClose, onPlaced 
           ready: !!chosen,
           content: (
             <>
-              <h3 className="quest-step-title">Was soll ins Bild?</h3>
+              <h3 className="quest-step-title">Welches Overlay soll in OBS?</h3>
               <ChoiceCards label="Overlay" value={overlay} onChange={setOverlay} options={offer.map((o) => ({ value: o.name, title: o.label, text: o.sentence }))} />
             </>
           ),
@@ -98,7 +98,7 @@ export default function OverlayQuestPath({ overlays, initial, onClose, onPlaced 
       ]}
       done={
         <PathDone
-          title={result?.status === 'exists' ? `${chosen?.label} lag schon in „${result.scene}“` : `${chosen?.label} ist im Bild!`}
+          title={result?.status === 'exists' ? `${chosen?.label} lag schon in „${result.scene}“` : `${chosen?.label} ist in OBS!`}
           xp={quest ? quest.xp : null}
           text={`Schau in OBS in die Szene „${result?.scene ?? pickedScene}“ – dort sitzt die Browserquelle. Unter „Im Stream“ siehst du, ob sie gerade zu sehen ist.`}
         />

@@ -10,7 +10,7 @@ import { lightUp, useOpenAt } from '../components/ux/openAt';
 import { useVisibleInterval } from '../hooks/useVisibleInterval';
 import { useFeatures } from '../contexts/FeaturesContext';
 import type { FeatureKey } from '../../../shared/features';
-import OverlayPreview, { withSampleState } from '../components/overlays/OverlayPreview';
+import OverlayPreview from '../components/overlays/OverlayPreview';
 import OverlayLook from '../components/overlays/OverlayLook';
 import AppearancePanel from './AppearancePanel';
 import AlertSettings from '../components/AlertSettings';
@@ -178,9 +178,10 @@ export default function OverlaysPanel() {
     await mark(entry, 'tested');
   };
 
+  // Big, with real data — the preview has the sample data.
   const openLarge = (entry: CatalogEntry) => {
     const size = entry.size ?? { width: 1280, height: 720 };
-    window.open(withSampleState(entry), '_blank', `noopener,width=${size.width},height=${size.height}`);
+    window.open(entry.url, '_blank', `noopener,width=${size.width},height=${size.height}`);
   };
   const openShowcase = (live: boolean) => {
     window.open(`http://localhost:${getServerPort()}/overlay/showcase/${live ? '?live' : ''}`, '_blank', 'noopener,width=1400,height=900');
@@ -330,7 +331,7 @@ export default function OverlaysPanel() {
             {more && (
               <div className="ovl-more-menu" role="menu">
                 <button type="button" role="menuitem" onClick={() => { setMore(false); copy(current.url, 'Adresse kopiert'); }}>Adresse kopieren</button>
-                <button type="button" role="menuitem" onClick={() => { setMore(false); openLarge(current); }}>Groß im Browser ansehen</button>
+                <button type="button" role="menuitem" onClick={() => { setMore(false); openLarge(current); }}>Groß im Browser ansehen – mit echten Daten</button>
                 <button type="button" role="menuitem" onClick={() => openEditor(current)}>HTML bearbeiten</button>
                 {current.builtin && current.customizedBy.includes('html') && <button type="button" role="menuitem" onClick={() => resetBuiltin(current)}>HTML zurücksetzen</button>}
                 {!current.builtin && <button type="button" role="menuitem" onClick={() => { setMore(false); deleteCustom(current); }}>Löschen</button>}

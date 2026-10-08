@@ -33,6 +33,7 @@ Links stehen die Bereiche nach Situation: **Im Stream** (alles, was du live ausl
 - Manche Quests warten auf eine andere, z. B. **Braucht OBS**. Sie stehen schon da, werden aber nie als Nächstes vorgeschlagen.
 - Geschaffte Quests kommen nacheinander unten rechts. Eine neue Stufe oder ein geschafftes Kapitel bekommt einen eigenen kurzen Moment – während du live bist, bleibt es beim Hinweis.
 - Eine Quest gilt als geschafft, wenn das Tool es am Zustand sieht – auch was du vorher oder auf anderem Weg eingerichtet hast, zählt. Einmal geschafft, bleibt geschafft, auch wenn du es später löschst.
+- Jedes Overlay, das du **einsatzbereit** machst (Overlays & Alerts), bringt zusätzlich 20 EP.
 - Schaltest du unter „Was dein Stream kann“ eine Funktion aus, verschwinden ihre Quests und zählen nicht mehr zur Stufe.
 - Stufe, EP und Quests siehst nur du. Das Tool prüft sie nur, wenn sich etwas ändert – nie im Dauerlauf.`,
   },
@@ -51,9 +52,11 @@ Links stehen die Bereiche nach Situation: **Im Stream** (alles, was du live ausl
 | Projekt → Erklär-Commands | Chat & Bot → Befehle |
 | Settings → Features → Chat Commands | Chat & Bot → Von selbst |
 | Settings → Overlays | Overlays & Alerts → Overlays |
-| Settings → Features → Alerts | Overlays & Alerts → Alerts |
-| Settings → Milestones | Overlays & Alerts → Meilensteine |
-| Live → OBS Scenes | Overlays & Alerts → Szenen in OBS |
+| Settings → Features → Alerts | Overlays & Alerts → Karte Alerts → Einstellungen |
+| Settings → Milestones | Overlays & Alerts → Karte Meilenstein → Einstellungen |
+| Overlays & Alerts → Bestenlisten | Overlays & Alerts → Karte Bestenliste → Einstellungen |
+| Overlays & Alerts → Aussehen | Overlays & Alerts → Stil für alle; ein einzelnes Overlay in seiner Karte unter Aussehen |
+| Live → OBS Scenes, Overlays & Alerts → Szenen in OBS | Start-, Pausen- und Endbild: ihre Karte → In OBS; Szene per Kanalpunkt: beim Anlegen der Belohnung |
 | Produktion → Clip Moments | Nach dem Stream → Content planen |
 | Settings → Features → Auto-Clips | Nach dem Stream → Content planen → Von selbst merken |
 | Projekt → Statistiken | Nach dem Stream → Statistik |
@@ -200,7 +203,7 @@ Alle Befehle lassen sich unter Chat & Bot → Von selbst umbenennen. Antworten, 
 
 **Damit sie immer in ihre Quelle passt,** auch bei langen Einträgen: Der Titel hat höchstens zwei Zeilen und wird kleiner, wenn er länger ist; Zweitname und Rolle eine Zeile; die Beschreibung höchstens vier Zeilen; Felder und Beziehungen zusammen höchstens drei, jede einzeilig — hat der Eintrag Beziehungen, ist mindestens eine davon dabei. Was darüber hinausgeht, endet mit „…“. Den ganzen Text gibt es mit !figur im Chat. Beziehungen zu verworfenen Einträgen erscheinen nicht. Jede Beziehung hat im Panel ihren eigenen 👁-Schalter (↔).
 
-**Umgestalten:** Farben und Schriften kommen aus Overlays & Alerts → Aussehen und gelten für alle Overlays zugleich; einzelne lassen sich dort übersteuern. Die Karte selbst nutzt den Kompendium-Stil aus /overlay/lexikon.css — dort liegen auch die drei Gewichte (voll, schlank, flüchtig), die alle Overlays teilen. Nur was dieser Karte allein gehört (Breite, das Wort „Kompendium“ über dem Titel) steht oben in ihrer Datei. Über Overlays & Alerts → Overlays → „HTML bearbeiten“ lässt sich eine eigene Fassung anlegen.`,
+**Umgestalten:** Farben und Schriften kommen aus Overlays & Alerts → Stil für alle und gelten für alle Overlays zugleich; ein einzelnes bekommt in seiner Karte unter „Aussehen“ einen eigenen Stil. Die Karte selbst nutzt den Kompendium-Stil aus /overlay/lexikon.css — dort liegen auch die drei Gewichte (voll, schlank, flüchtig), die alle Overlays teilen. Nur was dieser Karte allein gehört (Breite, das Wort „Kompendium“ über dem Titel) steht oben in ihrer Datei. In der Karte unter „⋯ Mehr“ → „HTML bearbeiten“ lässt sich eine eigene Fassung anlegen.`,
   },
   {
     title: 'Discord: Live-Meldung',
@@ -244,7 +247,7 @@ Alle Befehle lassen sich unter Chat & Bot → Von selbst umbenennen. Antworten, 
   },
   {
     title: 'Kanalpunkte & Bestenliste',
-    content: `Kanalpunkte gibt es auf Twitch erst mit **Affiliate oder Partner**. Belohnungen legst du am einfachsten unter **Chat & Bot → Kanalpunkte → + Belohnung** an: Name, Preis, ein Text für Zuschauer und **was passiert** – nur ein Alert, Glücksrad, Vorschlag, Musik oder eine freigegebene Szene. Die Belohnung erscheint sofort bei deinen Zuschauern; ändern und löschen geht an derselben Stelle. Klappt die Aktion nicht (OBS nicht verbunden, kein Thema fürs Rad), gibt das Tool die Kanalpunkte zurück. Dafür braucht das Tool das Recht channel:manage:redemptions – einmal neu mit Twitch verbinden.
+    content: `Kanalpunkte gibt es auf Twitch erst mit **Affiliate oder Partner**. Belohnungen legst du am einfachsten unter **Chat & Bot → Kanalpunkte → + Belohnung** an: Name, Preis, ein Text für Zuschauer und **was passiert** – nur ein Alert, Glücksrad, Vorschlag, Musik oder eine Szene wechseln (Szene und Dauer wählst du gleich dabei). Die Belohnung erscheint sofort bei deinen Zuschauern; ändern und löschen geht an derselben Stelle. Klappt die Aktion nicht (OBS nicht verbunden, kein Thema fürs Rad), gibt das Tool die Kanalpunkte zurück. Dafür braucht das Tool das Recht channel:manage:redemptions – einmal neu mit Twitch verbinden.
 
 Twitch lässt das Tool nur Belohnungen ändern, die es selbst angelegt hat. Was im **Creator-Dashboard** (Zuschauer belohnen → Kanalpunkte) angelegt ist, steht auf derselben Seite unter „In Twitch angelegt“ zum Ansehen, mit dem, was das Tool an ihrem Namen erkennt:
 
@@ -254,9 +257,9 @@ Twitch lässt das Tool nur Belohnungen ändern, die es selbst angelegt hat. Was 
 | "roulette" | Glücksrad drehen |
 | "feature" | Vorschlag einreichen |
 | "musik" oder "song" | Musik ändern |
-| "scene" oder "szene" | Szene wechseln – nur in Szenen, die unter Szenen in OBS → Szene per Kanalpunkt stehen |
+| "scene" oder "szene" | Szene wechseln – nur in Szenen, die früher unter „Szenen in OBS“ freigegeben wurden. Eine neue Szenen-Belohnung legst du im Tool an. |
 
-Bestenlisten legst du unter **Overlays & Alerts → Bestenlisten** an: ein Name und die Belohnung aus deinem Kanal. Die Wahl hängt an der Belohnung selbst, nicht an ihrem Namen – umbenennen in Twitch ist kein Problem. Löschst du sie in Twitch, zeigt die Liste das an, bis du eine andere wählst.
+Bestenlisten legst du unter **Overlays & Alerts → Karte Bestenliste → Einstellungen** an: ein Name und die Belohnung aus deinem Kanal. Die Wahl hängt an der Belohnung selbst, nicht an ihrem Namen – umbenennen in Twitch ist kein Problem. Löschst du sie in Twitch, zeigt die Liste das an, bis du eine andere wählst.
 
 **Eine Bestenliste** zählt jede Einlösung ihrer Belohnung. Im Chat sagt der Bot dazu nichts und die Alert-Tafel bleibt still: Das Overlay **Bestenliste** blendet bei jeder Einlösung für ein paar Sekunden die Top 3 der Liste ein, die Zeile der Person leuchtet auf; wer nicht in den Top 3 steht, bekommt eine vierte Zeile mit seinem Platz. **Rangwechsel** meldet Überholer zusätzlich. \`!stats\` zeigt den eigenen Stand in jeder Liste, \`!stats <Name>\` den eines anderen. Dafür reicht eine Browserquelle: Das Overlay zeigt immer die Liste, in der gerade eingelöst wurde, mit ihrem Namen im Kopf. Soll eine Quelle nur eine bestimmte Liste zeigen, hängst du \`?type=<Schlüssel>\` an die Adresse.
 
@@ -264,7 +267,7 @@ In der Liste siehst du die Rangliste, kannst Zahlen korrigieren, Einträge von H
 
 **Zuschauerdaten:** Einlösungen werden mit dem Twitch-Login gezählt, nicht protokolliert. Erledigte Songwünsche löscht das Tool nach 90 Tagen von selbst, Zuschauer ohne Einlösung seit einem Jahr fallen aus der Zählung. Sicherung und Sync-Ordner enthalten keine Zugangsdaten.
 
-**Feste Szenen-Belohnungen:** Unter Overlays & Alerts → Szenen in OBS → Szene per Kanalpunkt ordnest du einer Belohnung eine Szene zu, mit Dauer und Rückwechsel.`,
+**Szene per Kanalpunkt:** Legst du eine Belohnung mit „Szene wechseln“ an, kommt nach der Wirkung der Schritt **Szene**: die Szene direkt aus OBS und wie lange sie bleibt – 15 Sekunden, 30 Sekunden oder 1 Minute. Danach kommt von selbst die Szene zurück, die vorher lief. Nur diese eine Szene kann die Belohnung zeigen; der Zuschauer wählt nichts. Vorher freigeben musst du nichts mehr.`,
   },
   {
     title: 'Eigene Punkte',
@@ -286,7 +289,7 @@ Alle Zahlen und den Namen der Währung stellst du unter **Verdienen → Einstell
 
 **Oben auf der Seite** zeigen drei Schritte, wo du stehst: Verdienen – Belohnungen anlegen – im Chat einlösen. Darunter liegen **Vorlagen** (Glücksrad drehen, Licht aus, Szene kurz wechseln, Idee einreichen, Musik wechseln): „Übernehmen“ legt eine mit einem Klick an, bei der Szene wählst du sie vorher. Dieselben Vorlagen gibt es unter Kanalpunkte für Twitch. **Selbst ausprobieren** gibt dir mit einem Klick 500 Punkte, dann löst du im Chat ein – auch ohne live zu sein.
 
-**Ausgeben:** Unter **+ Eigene Belohnung** legst du an, was es gibt: Name, Preis und was passiert – nur ein Alert, Glücksrad drehen, Vorschlag einreichen, Musik wechseln oder eine Szene wechseln (nur Szenen, die unter Szenen in OBS freigegeben sind). Dazu, ob der Zuschauer einen Text schreibt, und eine Sperre je Zuschauer. Im Chat: \`!belohnungen\` zeigt die Liste, \`!einlösen <Name> [Text]\` löst ein. Reichen die Punkte nicht, ist die Belohnung aus oder gesperrt, wird nichts abgezogen; klappt die Aktion nicht (OBS nicht verbunden, kein Thema fürs Rad), kommen die Punkte zurück. Die Einlösung steht wie eine von Twitch in der Liste und im Alert – mit dem Namen deiner Währung statt „Kanalpunkte“.
+**Ausgeben:** Unter **+ Eigene Belohnung** legst du an, was es gibt: Name, Preis und was passiert – nur ein Alert, Glücksrad drehen, Vorschlag einreichen, Musik wechseln oder eine Szene wechseln (Szene und Dauer wählst du gleich dabei). Dazu, ob der Zuschauer einen Text schreibt, und eine Sperre je Zuschauer. Im Chat: \`!belohnungen\` zeigt die Liste, \`!einlösen <Name> [Text]\` löst ein. Reichen die Punkte nicht, ist die Belohnung aus oder gesperrt, wird nichts abgezogen; klappt die Aktion nicht (OBS nicht verbunden, kein Thema fürs Rad), kommen die Punkte zurück. Die Einlösung steht wie eine von Twitch in der Liste und im Alert – mit dem Namen deiner Währung statt „Kanalpunkte“.
 
 **Zuschauer:** Die Liste zeigt alle nach Beitrag. **Öffnen** gibt oder nimmt Punkte (Nehmen ist eine Korrektur und senkt auch den Beitrag), löst für jemanden ein – nach denselben Regeln wie im Chat – oder vergisst ihn. Mods geben und nehmen im Chat mit \`!punkte geben @Name 50\` und \`!punkte nehmen @Name 50\`.
 
@@ -296,9 +299,18 @@ Alle Zahlen und den Namen der Währung stellst du unter **Verdienen → Einstell
     title: 'Overlays',
     content: `Overlays werden als **Browser Source** in OBS eingebunden.
 
-**Ein Overlay einstellen:** Unter Overlays & Alerts → **Overlays** wählst du links eines. Rechts steht unter **Einstellen**:
-- **Inhalt einstellen** bringt dich dorthin, wo du festlegst, was drinsteht – bei der Bestenliste zu „Bestenlisten“, beim Glücksrad, Ziel, Fortschritt oder der Abstimmung zu ihrer Karte unter „Im Stream“, die kurz aufleuchtet.
-- **Aussehen ändern** öffnet „Aussehen“ mit genau diesem Overlay gewählt: eigene Farben und Schrift nur dafür.
+**Die Werkstatt:** Unter Overlays & Alerts ist jedes Overlay eine Karte, sortiert nach Immer da, Mitmachen, Heute im Stream, Bestenlisten und Meldungen. Oben steht, wie viele **einsatzbereit** sind. Ein Overlay wird in drei Schritten einsatzbereit – **Einstellungen**, **In OBS**, **Testen** – und bringt dann **+20 EP** für deine Stufe. Die Striche auf der Karte zeigen, wie weit es ist („1 von 3“, grün mit „★ Einsatzbereit“, sobald alles erledigt ist). Wartet ein Entwurf aus Figma, trägt die Karte ein lila Schildchen.
+
+Ein Klick auf eine Karte öffnet ihre Werkstatt: links die Vorschau, rechts die drei Schritte. Die Schritte sind zugleich die Reiter – ein Klick öffnet einen; erledigte sind grün, eine Zeile darunter sagt, was als Nächstes zu tun ist.
+- **Einstellungen:** was drinsteht – bei den Alerts Text und Ton je Anlass, beim Meilenstein deine Meilensteine, bei Bestenliste und Rangwechsel deine Listen. „Weiter: In OBS“ hakt den Schritt ab. Bei Live-Overlays (Glücksrad, Ziel, Fortschritt, Aufgaben, Abstimmung, Musik, Eintragskarte) heißt er **Live** und ist von Anfang an erledigt: Was sie zeigen, steuerst du unter „Im Stream“ – „Zu „Im Stream““ bringt dich zu ihrer Karte. Beim Chat und bei Start-, Pausen- und Endbild gibt es nichts einzustellen.
+- **In OBS:** Szene wählen, **In OBS anlegen** – das Tool legt die Browserquelle in der richtigen Größe selbst an. Start-, Pausen- und Endbild bekommen eigene Szenen („start“, „brb“, „end“). Darunter steht die Adresse, falls du sie lieber selbst anlegst. Erledigt ist der Schritt, sobald das Overlay in einer Szene liegt – das Tool sieht es in OBS.
+- **Testen:** **Im Stream testen** zeigt das Overlay einmal im Stream – auch deine Zuschauer sehen den Test. Wo es keinen Test gibt, schaust du in OBS nach und klickst **Sieht gut aus**.
+- **Aussehen** steht abgesetzt daneben, ist freiwillig und zählt nicht zu den drei Schritten: **Wie alle** oder **Eigener Stil** mit eigenen Farben und Grundgröße.
+- Unter **⋯ Mehr**: Adresse kopieren, groß im Browser ansehen, HTML bearbeiten oder zurücksetzen, ein eigenes Overlay löschen.
+
+**Die Vorschau** zeigt immer Beispieldaten – auch wenn das Overlay einen eigenen Stil hat – und jede Änderung an Farben, Schrift und Größe sofort, noch bevor sie gespeichert ist. Gespeichert wird von selbst nach einem Augenblick; erst dann gilt es auch in OBS. Mit echten Daten zeigt es „⋯ Mehr“ → „Groß im Browser ansehen“.
+
+**Stil für alle** (oben rechts auf der Seite): ein Stil, Farben und Schriften für alle Overlays, die keinen eigenen Stil haben – links drei Overlays nebeneinander, die jede Änderung sofort zeigen. Dort warten auch die **Entwürfe aus Figma**; der Knopf zeigt, wie viele offen sind.
 
 **Eingebaute Overlays:**
 | Overlay | URL | Beschreibung |
@@ -325,18 +337,18 @@ Alle Zahlen und den Namen der Währung stellst du unter **Verdienen → Einstell
 3. Breite/Höhe anpassen
 4. Fertig
 
-**Alerts:** Das Overlay meldet neue Follower, Abos (auch Wiederholungen und Geschenke), Raids, Bits und eingelöste Kanalpunkte. Die Texte und Töne stellst du unter Overlays & Alerts → **Alerts** ein: je Anlass eine Überschrift, der Text nach dem Namen und, wenn du willst, eine Tondatei (.mp3, .wav, .ogg, bis 5 MB) mit eigener Lautstärke. Unter **Töne verwalten** findest du jede Datei über die Suche – nach Dateiname oder nach dem Alert, bei dem sie spielt. Platzhalter wie {monate}, {empfaenger}, {abos}, {zuschauer} und {bits} füllt das Toolkit aus („7 Monate“, „42 Zuschauer“); mit einer Rechnung dahinter — {monate*5}, auch + - / — steht nur die gerundete Zahl da, ohne Einheit („35“), sodass du selbst benennst, was gezählt wird; mit einer Kommazahl ({monate*4.99}) bleiben zwei Nachkommastellen („34,93“); ein leeres Feld nimmt wieder den Standardtext. Jede Karte hat einen Schalter **An/Aus**: Ist ein Anlass aus (etwa Follower), erscheint dafür keine Tafel mehr. Willst du gar keine Alerts, wählst du unter Einstellungen → Programm → „Was dein Stream kann“ die Funktion **Alerts** ab – dann schickt das Tool keine Tafel mehr, auch wenn die Quelle noch in OBS steckt. „Test“ speichert und zeigt den Alert im Overlay — im Stream sichtbar und hörbar. Damit der Ton im Stream ankommt, muss in OBS an der Browser-Quelle der Alerts „Audio über OBS steuern“ an sein. Die Texte für Kanalpunkte stehen fest. Was ein Zuschauer beim Abo oder bei den Bits dazuschreibt, steht darunter in Anführungszeichen. Jede Meldung ist eine Kompendium-Tafel oben rechts, in drei Größen: Follower klein (5 s), Abos, Geschenke und Bits etwas größer (6 s), ein Raid breit mit großem Namen (9 s). Kommen mehrere zugleich, erscheinen sie nacheinander; fünf verschenkte Abos sind eine Meldung, nicht sechs. **Abos, Geschenke, Raids und Bits kommen über den Chat** und brauchen keine zusätzlichen Rechte. **Neue Follower brauchen ein Recht mehr** (moderator:read:followers): Verbinde dich in Einstellungen → Verbindungen einmal neu mit Twitch, sonst bleiben Follower-Meldungen aus. Ob es geklappt hat, steht im Log — „Subscribed to follows“ oder ein Hinweis, dass Twitch die Anmeldung abgelehnt hat.
+**Alerts:** Das Overlay meldet neue Follower, Abos (auch Wiederholungen und Geschenke), Raids, Bits und eingelöste Kanalpunkte. Die Texte und Töne stellst du unter Overlays & Alerts → Karte **Alerts** → Einstellungen ein: je Anlass eine Überschrift, der Text nach dem Namen und, wenn du willst, eine Tondatei (.mp3, .wav, .ogg, bis 5 MB) mit eigener Lautstärke. Unter **Töne verwalten** findest du jede Datei über die Suche – nach Dateiname oder nach dem Alert, bei dem sie spielt. Platzhalter wie {monate}, {empfaenger}, {abos}, {zuschauer} und {bits} füllt das Toolkit aus („7 Monate“, „42 Zuschauer“); mit einer Rechnung dahinter — {monate*5}, auch + - / — steht nur die gerundete Zahl da, ohne Einheit („35“), sodass du selbst benennst, was gezählt wird; mit einer Kommazahl ({monate*4.99}) bleiben zwei Nachkommastellen („34,93“); ein leeres Feld nimmt wieder den Standardtext. Jede Karte hat einen Schalter **An/Aus**: Ist ein Anlass aus (etwa Follower), erscheint dafür keine Tafel mehr. Willst du gar keine Alerts, wählst du unter Einstellungen → Programm → „Was dein Stream kann“ die Funktion **Alerts** ab – dann schickt das Tool keine Tafel mehr, auch wenn die Quelle noch in OBS steckt. „Test“ speichert und zeigt den Alert im Overlay — im Stream sichtbar und hörbar. Damit der Ton im Stream ankommt, muss in OBS an der Browser-Quelle der Alerts „Audio über OBS steuern“ an sein. Die Texte für Kanalpunkte stehen fest. Was ein Zuschauer beim Abo oder bei den Bits dazuschreibt, steht darunter in Anführungszeichen. Jede Meldung ist eine Kompendium-Tafel oben rechts, in drei Größen: Follower klein (5 s), Abos, Geschenke und Bits etwas größer (6 s), ein Raid breit mit großem Namen (9 s). Kommen mehrere zugleich, erscheinen sie nacheinander; fünf verschenkte Abos sind eine Meldung, nicht sechs. **Abos, Geschenke, Raids und Bits kommen über den Chat** und brauchen keine zusätzlichen Rechte. **Neue Follower brauchen ein Recht mehr** (moderator:read:followers): Verbinde dich in Einstellungen → Verbindungen einmal neu mit Twitch, sonst bleiben Follower-Meldungen aus. Ob es geklappt hat, steht im Log — „Subscribed to follows“ oder ein Hinweis, dass Twitch die Anmeldung abgelehnt hat.
 
-**Showcase:** Über den eingebauten Overlays öffnet **🖼️ Showcase** jedes Overlay in jedem Zustand mit Testdaten — zum Ansehen und Gestalten, ohne dass etwas in OBS erscheint. Die Seite hält jeden Zustand an, so wie ihn das Erfassen für Figma sieht; **▶ In Bewegung** zeigt dasselbe mit laufenden Animationen und Knöpfen zum Ausprobieren: **↻ Nochmal** spielt einen Zustand von vorn — Alerts und das Glücksrad blenden sich wie im Stream nach ein paar Sekunden aus —, dazu je Overlay Aktionen wie Punkt abhaken, Rad drehen oder Song wechseln. Direkt erreichbar unter http://localhost:4000/overlay/showcase/. Wie ein Overlay in Figma gestaltet und zurückgeholt wird, steht in docs/design-workflow.md.
+**Showcase:** Unten auf der Seite öffnet **Alle Overlays in allen Zuständen ansehen** jedes Overlay in jedem Zustand mit Testdaten — zum Ansehen und Gestalten, ohne dass etwas in OBS erscheint. Die Seite hält jeden Zustand an, so wie ihn das Erfassen für Figma sieht; **▶ In Bewegung** zeigt dasselbe mit laufenden Animationen und Knöpfen zum Ausprobieren: **↻ Nochmal** spielt einen Zustand von vorn — Alerts und das Glücksrad blenden sich wie im Stream nach ein paar Sekunden aus —, dazu je Overlay Aktionen wie Punkt abhaken, Rad drehen oder Song wechseln. Direkt erreichbar unter http://localhost:4000/overlay/showcase/. Wie ein Overlay in Figma gestaltet und zurückgeholt wird, steht in docs/design-workflow.md.
 
-**Aus Figma:** Sendest du im Figma-Plugin einen Frame, übernimmt das Toolkit sofort, was eindeutig ist — Palette, Textfarbe, Schriftgröße und -schnitt, Rahmen, Ecken, Deckkraft — und die Overlays zeigen es live. Was mehr verlangt (Verschieben, Größen, neue Ebenen, deine Wünsche aus der Notiz), wartet unter Overlays & Alerts → Aussehen → **Entwürfe aus Figma**; der Reiter zeigt, wie viel offen ist. In der Entwicklungsversion startet **Umsetzen lassen** dort Claude im Hintergrund: Es setzt nur die offenen Entwürfe um, ändert nur Overlay-Dateien, und das Ergebnis erscheint im Reiter und im Showcase. Versucht der Lauf, Skripte oder externe Adressen in ein Overlay zu schreiben, wird das zurückgenommen und nichts verbucht. Dort lässt sich jede übernommene Änderung auch zurücknehmen; eine Palettenfarbe kannst du stattdessen „behalten“. Im Figma-Plugin gehört das **Figma-Token** eingetragen (im Log: „Figma token“) — es gilt nur für diese Figma-Verbindung, nicht für die ganze App.
+**Aus Figma:** Sendest du im Figma-Plugin einen Frame, übernimmt das Toolkit sofort, was eindeutig ist — Palette, Textfarbe, Schriftgröße und -schnitt, Rahmen, Ecken, Deckkraft — und die Overlays zeigen es live. Was mehr verlangt (Verschieben, Größen, neue Ebenen, deine Wünsche aus der Notiz), wartet unter Overlays & Alerts → **Stil für alle** → **Entwürfe aus Figma**; der Knopf „Stil für alle“ zeigt, wie viel offen ist, und die Karte des Overlays trägt ein lila Schildchen. In der Entwicklungsversion startet **Umsetzen lassen** dort Claude im Hintergrund: Es setzt nur die offenen Entwürfe um, ändert nur Overlay-Dateien, und das Ergebnis erscheint dort und im Showcase. Versucht der Lauf, Skripte oder externe Adressen in ein Overlay zu schreiben, wird das zurückgenommen und nichts verbucht. Dort lässt sich jede übernommene Änderung auch zurücknehmen; eine Palettenfarbe kannst du stattdessen „behalten“. Im Figma-Plugin gehört das **Figma-Token** eingetragen (im Log: „Figma token“) — es gilt nur für diese Figma-Verbindung, nicht für die ganze App.
 
 **Die Reihenfolge ist egal.** Startet OBS vor dem Toolkit, laden die Browser-Quellen ins Leere und bleiben leer — deshalb lädt das Toolkit jede Browser-Quelle, die auf localhost:4000 zeigt, selbst neu, sobald es OBS erreicht. Quellen anderer Dienste bleiben unangetastet.
 
-**Größe der Schrift:** Ein einziger Regler unter Overlays & Alerts → Aussehen stellt sie für alle Overlays zugleich — Titel, Kicker und Zahlen ziehen mit, nicht nur der Fließtext. Standard sind 18px. Wächst die Schrift, wächst auch der Kasten: Passt eine Browser-Quelle in OBS danach nicht mehr, gib ihr ein paar Pixel mehr Höhe.
+**Größe der Schrift:** Ein einziger Regler unter Overlays & Alerts → Stil für alle stellt sie für alle Overlays zugleich — Titel, Kicker und Zahlen ziehen mit, nicht nur der Fließtext. Standard sind 18px. Wächst die Schrift, wächst auch der Kasten: Passt eine Browser-Quelle in OBS danach nicht mehr, gib ihr ein paar Pixel mehr Höhe.
 
 **Custom Overlays:**
-- Overlays & Alerts → Overlays → „+ Eigenes Overlay“
+- Overlays & Alerts → „+ Eigenes Overlay“ unten auf der Seite
 - Aus Template erstellen oder eigene HTML-Datei hochladen
 - URL: http://localhost:4000/overlay/custom/<name>/index.html
 
@@ -429,6 +441,7 @@ Auth-Header: Authorization: Bearer <token>
 **Clip-Tags & Overlay-Farben:**
 - GET /api/clip-tags — POST /api/clip-tags — DELETE /api/clip-tags/:tag
 - GET /api/overlay-config — POST /api/overlay-config — DELETE /api/overlay-config
+- PUT /api/overlay-config/overrides/:name mit { "vars": { … } } — der eigene Stil eines Overlays, leer = wie alle
 
 **Clips:**
 - GET /api/clips — POST /api/clips — PATCH /api/clips/:id — DELETE /api/clips/:id
@@ -464,7 +477,9 @@ Auth-Header: Authorization: Bearer <token>
 **Overlays:**
 - GET /api/overlays/builtin — GET /api/overlays
 - POST /api/overlays — PUT /api/overlays/:name — DELETE /api/overlays/:name
-- GET /api/overlays/template`,
+- GET /api/overlays/template
+- GET /api/overlays/steps — je Overlay: eingestellt, in OBS, getestet, einsatzbereit
+- POST /api/overlays/steps/:name mit { "step": "tuned" | "tested" } — einen Schritt abhaken`,
   },
   {
     title: 'WebSocket Events',
@@ -518,7 +533,8 @@ Alle Events werden als JSON gesendet: { "event": "name", "data": { ... } }
 - roulette-spin / roulette-result / roulette-cooldown — Glücksrad
 
 **Overlays:**
-- overlay-config — Farben oder Schriften geändert`,
+- overlay-config — Farben oder Schriften geändert
+- overlay-ready — ein Overlay ist einsatzbereit geworden`,
   },
   {
     title: 'Tastenkürzel',
