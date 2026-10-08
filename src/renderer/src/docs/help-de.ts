@@ -18,7 +18,7 @@ Links stehen die Bereiche nach Situation: **Im Stream** (alles, was du live ausl
 
 - Jeder Schritt lässt sich überspringen. Wer die Einrichtung überspringt, sieht die ganze App.
 - Die Auswahl **blendet aus, sie löscht nicht**: Karten auf „Im Stream“, Overlays in der Liste, Unterreiter, eingebaute Befehle, Tastenkürzel und Prüfpunkte im Balken richten sich danach. Der Bot antwortet auf einen ausgeschalteten Befehl nicht, und \`!befehle\` nennt ihn nicht.
-- Ändern: **Einstellungen → Programm → Was dein Stream kann → Ändern** öffnet die Einrichtung noch einmal, mit dem, was schon steht.
+- Ändern: Unter **Einstellungen → Programm → Was dein Stream kann** steht jede Funktion mit ihrem Satz und **An/Aus** – ein Klick gilt sofort. Braucht etwas Neues eine Verbindung oder Browserquellen in OBS, führt **Einrichtung noch einmal durchgehen** auf derselben Karte durch alle vier Schritte; dort übernimmt **Speichern** im ersten Schritt die Auswahl und bringt dich zurück in die App.
 - Die Gruppe **Welt** (Eintragskarte, Start-, Pausen- und Endbild) erscheint nur auf einem Rechner, auf dem der Worldbuilder eingerichtet ist.`,
   },
   {

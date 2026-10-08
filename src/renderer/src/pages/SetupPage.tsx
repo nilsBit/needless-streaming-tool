@@ -58,6 +58,17 @@ export default function SetupPage() {
     await finish();
   };
 
+  // Opened again to change the choice: save it and go back to the app,
+  // without walking through the other steps (Nils, 08.10.).
+  const saveAndClose = async () => {
+    setSaving(true);
+    const ok = await save(pickedList);
+    setSaving(false);
+    if (!ok) { toast.error('Auswahl nicht gespeichert'); return; }
+    toast.success('Gespeichert');
+    closeSetup();
+  };
+
   return (
     <div className="setup" data-setup-step={step}>
       <nav className="setup-rail" aria-label="Schritte der Einrichtung">
@@ -102,11 +113,15 @@ export default function SetupPage() {
             {step === 4 && <>Ändern geht jederzeit unter <strong>Einstellungen → Programm → Was dein Stream kann</strong>.</>}
           </p>
           <div className="setup-foot-actions">
-            {step < 4 && <button type="button" className="card-link" onClick={leave} disabled={saving}>{firstRun ? 'Später einrichten' : 'Abbrechen'}</button>}
+            {/* Past the first step the choice is saved already: leaving closes, it does not undo. */}
+            {step < 4 && <button type="button" className="card-link" onClick={leave} disabled={saving}>{firstRun ? 'Später einrichten' : step === 1 ? 'Abbrechen' : 'Schließen'}</button>}
             {step > 1 && <button type="button" className="card-secondary" onClick={() => goTo(step - 1)} disabled={saving}>Zurück</button>}
-            {step < 4
-              ? <button type="button" className="card-primary" onClick={() => goTo(step + 1)} disabled={saving}>{saving ? 'Speichert …' : `Weiter: ${STEPS[step].label}`}</button>
-              : <button type="button" className="card-primary" onClick={finishUp}>Zur App</button>}
+            {!firstRun && step === 1 && <button type="button" className="card-secondary" onClick={() => goTo(2)} disabled={saving}>Weiter: Verbinden</button>}
+            {!firstRun && step === 1
+              ? <button type="button" className="card-primary" onClick={saveAndClose} disabled={saving}>{saving ? 'Speichert …' : 'Speichern'}</button>
+              : step < 4
+                ? <button type="button" className="card-primary" onClick={() => goTo(step + 1)} disabled={saving}>{saving ? 'Speichert …' : `Weiter: ${STEPS[step].label}`}</button>
+                : <button type="button" className="card-primary" onClick={finishUp}>Zur App</button>}
           </div>
         </footer>
       </div>

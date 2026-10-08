@@ -48,7 +48,7 @@ export default function PointsPanel() {
   return (
     <div className="panel card-slim rewards">
       <p className="dialog-hint" style={{ margin: 0 }}>
-        Eigene {currency} laufen neben den Kanalpunkten von Twitch. Zuschauer verdienen sie nur, solange du live bist, und lösen sie mit !einlösen ein. Der Beitrag zählt alles je Verdiente und sinkt beim Ausgeben nicht.
+        Verdient wird nur, solange du live bist. Der Beitrag zählt alles je Verdiente und sinkt beim Ausgeben nicht – eingelöst wird im Chat mit !einlösen.
       </p>
 
       <section className="card-line card-wrap" aria-label="Verdienen">

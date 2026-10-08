@@ -386,6 +386,21 @@ body {
 .setup-cards .s-card { margin: 0; }
 .s-card-note { color: var(--muted); font-weight: 400; font-size: 13px; }
 
+/* Einstellungen → Programm: what the stream can do, switched right here (08.10.) */
+.s-card-body.feat-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 20px 28px; padding: 16px; }
+.feat-group { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.feat-group-head { padding-bottom: 8px; margin-bottom: 4px; border-bottom: 1px solid var(--border-subtle); }
+.feat-group-head h3 { margin: 0; font-size: 13px; font-weight: 600; color: var(--text); }
+.feat-group-head p { margin: 2px 0 0; font-size: 12px; color: var(--muted); }
+.feat-row { display: flex; align-items: center; gap: 14px; padding: 8px 0; border-bottom: 1px solid var(--border-subtle); }
+.feat-row:last-child { border-bottom: none; }
+.feat-text { flex: 1; min-width: 0; }
+.feat-name { font-size: 13px; font-weight: 600; color: var(--muted); }
+.feat-row.on .feat-name { color: var(--text); }
+.feat-sentence { font-size: 12px; line-height: 1.45; color: var(--muted); }
+.feat-needs { opacity: 0.8; }
+.feat-setup { grid-column: 1 / -1; margin: 0; }
+
 /* Step 1: features as cards to tick */
 .feature-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 28px 32px; }
 .feature-group { display: flex; flex-direction: column; gap: 10px; }

@@ -1,13 +1,29 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useFeatures } from '../../contexts/FeaturesContext';
-import { FEATURES, PERSONAL_FEATURES } from '../../../../shared/features';
+import { useToast } from '../../contexts/ToastContext';
+import { CONNECTION_LABELS, FEATURE_GROUPS, FEATURES, PERSONAL_FEATURES, type FeatureKey } from '../../../../shared/features';
 
-// Einstellungen → Programm: what the stream can do, as chips, and the way back
-// into the setup. Off is hidden, never gone.
+// Einstellungen → Programm: what the stream can do, switched on and off right
+// here (Nils, 08.10.: no detour through the setup, no dialog). The groups and
+// sentences are the setup's; a click saves. Off is hidden, never gone. The
+// whole setup, with connecting and OBS, stays one link away.
 export default function FeaturesCard() {
-  const { features, worldbuilder, openSetup } = useFeatures();
+  const { toast } = useToast();
+  const { features, worldbuilder, save, openSetup } = useFeatures();
+  const [saving, setSaving] = useState<FeatureKey | null>(null);
+  const groups = FEATURE_GROUPS.filter((g) => worldbuilder || !g.personal);
   const available = FEATURES.filter((f) => worldbuilder || !PERSONAL_FEATURES.includes(f.key));
-  const on = available.filter((f) => features.has(f.key));
+  const onCount = available.filter((f) => features.has(f.key)).length;
+
+  const set = async (key: FeatureKey, on: boolean) => {
+    if (features.has(key) === on) return;
+    const next = available.map((f) => f.key).filter((k) => (k === key ? on : features.has(k)));
+    setSaving(key);
+    const ok = await save(next);
+    setSaving(null);
+    if (!ok) toast.error('Nicht gespeichert');
+  };
+
   return (
     <div className="s-card" data-card="features">
       <div className="s-card-header">
@@ -15,18 +31,38 @@ export default function FeaturesCard() {
           <div>
             <div className="s-card-title">Was dein Stream kann</div>
             <div className="s-card-status" style={{ color: '#888' }}>
-              {on.length} von {available.length} Funktionen sind an. Die App zeigt nur die – Karten auf „Im Stream“, Overlays in der Liste, Befehle im Chat. Ausgeschaltetes ist nicht weg, nur ausgeblendet.
+              {onCount} von {available.length} an. Die App zeigt nur, was an ist – Ausgeschaltetes ist ausgeblendet, nicht gelöscht.
             </div>
           </div>
         </div>
-        <button type="button" className="s-card-action primary" onClick={openSetup}>Ändern</button>
       </div>
-      <div className="s-card-body" style={{ paddingTop: 0 }}>
-        <div className="chip-row">
-          {on.map((f) => <span key={f.key} className="chip chip-on">{f.label}</span>)}
-          {on.length === 0 && <span className="dialog-hint">Nichts ist an.</span>}
-        </div>
-        <p className="dialog-hint" style={{ margin: '10px 0 0' }}>„Ändern“ öffnet die Einrichtung mit allen vier Schritten – Auswahl, Verbinden, OBS, Fertig – mit dem, was schon steht.</p>
+      <div className="s-card-body feat-groups">
+        {groups.map((g) => (
+          <section key={g.key} className="feat-group" aria-label={g.label}>
+            <div className="feat-group-head">
+              <h3>{g.label}</h3>
+              <p>{g.sentence}</p>
+            </div>
+            {FEATURES.filter((f) => f.group === g.key).map((f) => {
+              const on = features.has(f.key);
+              return (
+                <div key={f.key} className={`feat-row ${on ? 'on' : ''}`} data-feature={f.key}>
+                  <div className="feat-text">
+                    <div className="feat-name">{f.label}</div>
+                    <div className="feat-sentence">{f.sentence}{f.needs.length ? <span className="feat-needs"> · braucht {f.needs.map((n) => CONNECTION_LABELS[n]).join(', ')}</span> : null}</div>
+                  </div>
+                  <div className="s-toggle-row compact" role="group" aria-label={f.label}>
+                    <button type="button" className={`s-toggle-btn ${on ? 'active' : ''}`} aria-pressed={on} onClick={() => set(f.key, true)} disabled={saving !== null}>An</button>
+                    <button type="button" className={`s-toggle-btn ${!on ? 'active' : ''}`} aria-pressed={!on} onClick={() => set(f.key, false)} disabled={saving !== null}>Aus</button>
+                  </div>
+                </div>
+              );
+            })}
+          </section>
+        ))}
+        <p className="dialog-hint feat-setup">
+          Braucht etwas Neues eine Verbindung oder Browserquellen in OBS? <button type="button" className="card-link" onClick={openSetup}>Einrichtung noch einmal durchgehen</button>
+        </p>
       </div>
     </div>
   );
