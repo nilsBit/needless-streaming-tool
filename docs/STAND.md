@@ -332,8 +332,8 @@ braucht den Bot.
   App-Tastenkürzel decken den Rest. Raus sind die Route `/settings/streamdeck/install`, das
   Hilfekapitel, `build:plugin` aus den Build-Skripten und die Extra-Ressource im Paket. Der
   Ordner `streamdeck-plugin/` bleibt im Repo, die Server-Endpunkte und der API-Token
-  (jetzt „API-Token für externe Werkzeuge") auch. Issues #10 und #11 sind damit hinfällig —
-  schließen. Nicht wieder aufgreifen, solange Nils das Deck im Stream nicht nutzt. **Twitch-Bot auf dem Mac nicht verbunden (06.10., Nacht):**
+  (jetzt „API-Token für externe Werkzeuge") auch. Issues #10 und #11 sind damit hinfällig,
+  am 08.10. geschlossen. Nicht wieder aufgreifen, solange Nils das Deck im Stream nicht nutzt. **Twitch-Bot auf dem Mac nicht verbunden (06.10., Nacht):**
   Seit Electron 44 meldet `safeStorage.isEncryptionAvailable()` auf dem Mac `false`, der
   verschlüsselte Twitch-Token lässt sich nicht lesen. Die App sagt das jetzt auf der Twitch-Karte
   und in der Seitenleiste (`getBotStatus().error`, `/api/auth/twitch/rewards` liefert `error`).
