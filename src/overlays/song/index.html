@@ -49,14 +49,17 @@
     .eq-bar {
       width: 4px;
       background: var(--art);
-      animation: eqBounce 0.8s ease-in-out infinite alternate;
+      /* In steps of 1/8 s, every bar on the same beat: OBS takes 8 frames a
+         second from this source instead of 60, for as long as music plays
+         (08.10.). The delays are whole steps, or the bars' frames would add up. */
+      animation: eqBounce 0.75s steps(6, jump-none) infinite alternate;
     }
 
     .eq-bar:nth-child(1) { height: 60%; animation-delay: 0s; }
-    .eq-bar:nth-child(2) { height: 100%; animation-delay: 0.15s; }
-    .eq-bar:nth-child(3) { height: 40%; animation-delay: 0.3s; }
-    .eq-bar:nth-child(4) { height: 80%; animation-delay: 0.45s; }
-    .eq-bar:nth-child(5) { height: 50%; animation-delay: 0.1s; }
+    .eq-bar:nth-child(2) { height: 100%; animation-delay: 0.125s; }
+    .eq-bar:nth-child(3) { height: 40%; animation-delay: 0.25s; }
+    .eq-bar:nth-child(4) { height: 80%; animation-delay: 0.375s; }
+    .eq-bar:nth-child(5) { height: 50%; animation-delay: 0.5s; }
 
     @keyframes eqBounce {
       0% { transform: scaleY(0.3); }

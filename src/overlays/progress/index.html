@@ -301,14 +301,31 @@ function render() {
     if (isInProgress) timeSpent += liveTimerSeconds;
     var timeStr = timeSpent > 0 ? formatTime(timeSpent) : '';
 
+    // A running item always gets its time span, so the second-by-second tick
+    // only has to change its text (updateLiveTimes), never rebuild the list.
     html += '<div class="item" style="animation-delay:' + (i * 0.06) + 's">'
       + '<div class="' + checkClass + '">' + checkmark + '</div>'
       + '<span class="' + textClass + '">' + escapeHtml(item.title) + '</span>'
-      + (timeStr ? '<span class="item-time' + (isInProgress ? ' active' : '') + '">' + timeStr + '</span>' : '')
+      + (isInProgress
+        ? '<span class="item-time active" data-base="' + (item.time_spent || 0) + '">' + timeStr + '</span>'
+        : (timeStr ? '<span class="item-time">' + timeStr + '</span>' : ''))
       + '</div>';
   });
 
   list.innerHTML = html;
+}
+
+/**
+ * The timer ticks once a second. Rebuilding the list each time replayed every
+ * row's slide-in — a flicker on stream and a constant repaint in OBS (08.10.).
+ * Only the running items' time changes now.
+ */
+function updateLiveTimes() {
+  document.querySelectorAll('.item-time[data-base]').forEach(function (el) {
+    var total = Number(el.getAttribute('data-base')) + liveTimerSeconds;
+    var text = total > 0 ? formatTime(total) : '';
+    if (el.textContent !== text) el.textContent = text;
+  });
 }
 
 function escapeHtml(str) {
@@ -355,7 +372,7 @@ function connectWS() {
       if (msg.event && msg.event.startsWith('progress-')) fetchProgress();
       if (msg.event === 'stream-state' && msg.data) {
         liveTimerSeconds = msg.data.timer_seconds || 0;
-        render();
+        updateLiveTimes();
       }
       if (msg.event === 'overlay-config' && window.__applyOverlayConfig) window.__applyOverlayConfig(msg.data);
     } catch {}

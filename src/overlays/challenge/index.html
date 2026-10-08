@@ -22,7 +22,8 @@
 
     .status-dot.in_progress {
       background: var(--art);
-      animation: dotPulse 1.2s ease-in-out infinite;
+      /* Two states, not a fade: two frames per beat for OBS instead of 60 a second (08.10.). */
+      animation: dotPulse 1.2s steps(2, jump-none) infinite;
     }
 
     .status-dot.done { background: var(--art); }
