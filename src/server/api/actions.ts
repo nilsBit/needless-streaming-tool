@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { markQuestFlag } from '../quests/flags';
 import { listLeaderboards } from '../leaderboards';
 import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
@@ -18,6 +19,7 @@ const WHEEL_SPIN_MS = 5000;
 const RESULT_AFTER_MS = WHEEL_SPIN_MS + 500;
 
 function announceWinner(issues: Array<{ id: number; title: string }>, winner: { id: number; title: string }): void {
+  markQuestFlag('spin');
   broadcast('roulette-spin', { issues, winner_id: winner.id });
   setTimeout(() => broadcast('roulette-result', { title: winner.title, id: winner.id }), RESULT_AFTER_MS);
 }

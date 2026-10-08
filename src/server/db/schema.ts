@@ -1,4 +1,4 @@
-export const SCHEMA_VERSION = 30;
+export const SCHEMA_VERSION = 31;
 
 export const SCHEMA = `
 CREATE TABLE IF NOT EXISTS schema_version (
@@ -175,6 +175,12 @@ CREATE TABLE IF NOT EXISTS twitch_reward_actions (
   reward_id  TEXT PRIMARY KEY,
   action     TEXT NOT NULL,
   scene_name TEXT
+);
+
+-- Quests the streamer has done (spec 2026-10-08-quests-design). Done stays done.
+CREATE TABLE IF NOT EXISTS quest_progress (
+  key          TEXT PRIMARY KEY,
+  completed_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 -- A Punkte-Belohnung: bought with own points in chat, runs one action.

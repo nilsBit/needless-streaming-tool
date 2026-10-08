@@ -1,4 +1,6 @@
 import { getDb } from '../db/index';
+import { markQuestFlag } from '../quests/flags';
+import { getBotConfig } from '../bot/config';
 import { broadcast } from '../websocket/index';
 import { featureOn } from '../features';
 import { rewardTypeOf, runAction } from '../reward-actions';
@@ -87,5 +89,7 @@ export async function redeem(name: string, displayName: string, rewardName: stri
   broadcast('reward-redeemed', { ...row, data: JSON.stringify({ ...stored, message: text || undefined }) });
 
   const after = standing(login)!;
+  // The streamer trying their own reward is a quest of its own.
+  if (login === getBotConfig()?.channel?.toLowerCase()) markQuestFlag('pointTry');
   return { ok: true, reward, standing: after, message: `@${who} löst „${reward.name}“ ein (−${reward.cost} ${currency}, noch ${after.balance}).` };
 }

@@ -1,4 +1,5 @@
 import tmi from 'tmi.js';
+import { markQuestFlag } from '../quests/flags';
 import { getBotConfig, botTokenProblem, loadBotToken } from './config';
 import { botHelix } from './shoutout';
 import { refreshLive } from '../points/earn';
@@ -60,6 +61,7 @@ export async function connectBot(): Promise<boolean> {
     lastError = null;
     broadcast('bot-status', { connected: true, channel: config.channel });
     console.log(`[Bot] Connected to #${config.channel}`);
+    markQuestFlag('twitch');
 
     if (!reminderTimer) {
       reminderTimer = setInterval(() => {

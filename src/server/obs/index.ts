@@ -1,4 +1,5 @@
 import OBSWebSocket from 'obs-websocket-js';
+import { markQuestFlag } from '../quests/flags';
 import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
 import { announceLive } from '../discord/live';
@@ -110,11 +111,13 @@ export async function connectObs(opts: { retry?: boolean } = {}): Promise<boolea
     reconnectDelay = RECONNECT_FIRST_MS;
     failedBefore = false;
     forgetScenes();
+    markQuestFlag('obs');
 
     // Sync initial state
     try {
       const streamStatus = await obs.call('GetStreamStatus');
       isStreaming = streamStatus.outputActive;
+      if (isStreaming) markQuestFlag('stream');
     } catch (err) { console.error('[OBS] GetStreamStatus failed:', err); isStreaming = false; }
     try {
       const recordStatus = await obs.call('GetRecordStatus');
@@ -130,6 +133,7 @@ export async function connectObs(opts: { retry?: boolean } = {}): Promise<boolea
     // Listen for state changes
     obs.on('StreamStateChanged', (event) => {
       isStreaming = event.outputActive;
+      if (isStreaming) markQuestFlag('stream');
       try {
         getDb().prepare('UPDATE stream_state SET is_live = ? WHERE id = 1').run(isStreaming ? 1 : 0);
         broadcast('stream-state', getDb().prepare('SELECT * FROM stream_state WHERE id = 1').get());

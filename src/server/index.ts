@@ -1,6 +1,6 @@
 import express from 'express';
 import http from 'http';
-import { initWebSocket } from './websocket/index';
+import { initWebSocket, onBroadcast } from './websocket/index';
 import { initDatabase } from './db/index';
 import { generateApiToken, validateApiToken, validateDesignToken, getApiToken } from './auth-token';
 import { writeConnectionFile, deleteConnectionFile } from './connection-file';
@@ -28,6 +28,9 @@ import statsRouter from './api/stats';
 import rewardStatsRouter from './api/reward-stats';
 import leaderboardsRouter from './api/leaderboards';
 import pointsRouter from './api/points';
+import questsRouter from './api/quests';
+import { requestQuestCheck, setQuestRunner } from './quests/schedule';
+import { evaluateQuests } from './quests/index';
 import channelRewardsRouter from './api/channel-rewards';
 import { watchTick } from './points/earn';
 import { getPointsConfig } from './points/config';
@@ -134,6 +137,13 @@ export function createApp(): express.Express {
     next();
   });
 
+  // A change that went through may have finished a quest: ask for a check
+  // (gathered, at most every 2 s — no polling).
+  app.use('/api', (req, res, next) => {
+    if (req.method !== 'GET') res.on('finish', () => { if (res.statusCode < 400) requestQuestCheck(); });
+    next();
+  });
+
   // Health check (hinter Auth — braucht Token)
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -162,6 +172,7 @@ export function createApp(): express.Express {
   app.use('/api/reward-stats', rewardStatsRouter);
   app.use('/api/leaderboards', leaderboardsRouter);
   app.use('/api/points', pointsRouter);
+  app.use('/api/quests', questsRouter);
   app.use('/api/channel-rewards', channelRewardsRouter);
   app.use('/api/obs', obsRouter);
   app.use('/api/overlays', customOverlaysRouter);
@@ -339,6 +350,11 @@ export async function startServer(): Promise<{ token: string; port: number }> {
 
       // Init auto-clips after bot connects (needs a small delay for bot to be ready)
       setTimeout(() => initAutoClips(), 3000);
+      // Quests: checked when something may have finished one, never by polling.
+      setQuestRunner(evaluateQuests);
+      const questEvents = new Set(['bot-status', 'obs-status', 'reward-redeemed', 'features-changed', 'progress-updated']);
+      onBroadcast((event) => { if (questEvents.has(event)) requestQuestCheck(); });
+      requestQuestCheck();
 
       if (getAutoDetectSetting()) startSMTC();
 
