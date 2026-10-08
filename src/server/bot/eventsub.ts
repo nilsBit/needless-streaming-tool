@@ -134,6 +134,9 @@ export async function handleRedemption(event: Record<string, unknown>) {
   }
 }
 
+/** Set by disconnectEventSub: a closing socket then schedules no reconnect. */
+let stopped = false;
+
 export async function connectEventSub(): Promise<boolean> {
   const config = getBotConfig();
   const clientId = getClientId();
@@ -150,72 +153,90 @@ export async function connectEventSub(): Promise<boolean> {
     return false;
   }
 
+  stopped = false;
   return new Promise((resolve) => {
-    ws = new WebSocket(EVENTSUB_WS_URL);
+    openSocket(EVENTSUB_WS_URL, { token, clientId, userId }, resolve, false);
+  });
+}
 
-    ws.on('open', () => {
-      console.log('[EventSub] WebSocket connected');
-    });
+/**
+ * One EventSub socket with its handlers. On `session_reconnect` Twitch hands
+ * a new URL; the new socket keeps the subscriptions and gets the same
+ * handlers, and the old one is closed once the new one is welcomed. Only the
+ * current socket schedules a reconnect when it closes, and none after the
+ * user disconnected (08.10.: the old close re-connected after "Bot trennen",
+ * and the reconnect socket had no handlers).
+ */
+function openSocket(url: string, auth: { token: string; clientId: string; userId: string }, resolve: (ok: boolean) => void, isReconnect: boolean): void {
+  const socket = new WebSocket(url);
+  const previous = ws;
+  ws = socket;
 
-    ws.on('message', async (raw) => {
-      try {
-        const msg = JSON.parse(raw.toString());
-        const type = msg.metadata?.message_type;
+  socket.on('open', () => {
+    console.log('[EventSub] WebSocket connected');
+  });
 
-        if (type === 'session_welcome') {
-          sessionId = msg.payload?.session?.id;
-          console.log(`[EventSub] Session: ${sessionId}`);
-          await subscribeToEvents(token, clientId, userId);
-          resolve(true);
+  socket.on('message', async (raw) => {
+    try {
+      const msg = JSON.parse(raw.toString());
+      const type = msg.metadata?.message_type;
+
+      if (type === 'session_welcome') {
+        sessionId = msg.payload?.session?.id;
+        console.log(`[EventSub] Session: ${sessionId}`);
+        if (isReconnect) {
+          // The subscriptions carry over to the new session; the old socket can go.
+          previous?.close();
+        } else {
+          await subscribeToEvents(auth.token, auth.clientId, auth.userId);
         }
-
-        if (type === 'notification') {
-          const subType = msg.metadata?.subscription_type;
-          if (subType === 'channel.channel_points_custom_reward_redemption.add') {
-            handleRedemption(msg.payload?.event);
-          }
-          if (subType === 'channel.follow') {
-            const event = msg.payload?.event;
-            sendAlert('follow', { user: event?.user_name ?? event?.user_login });
-            if (event?.user_login) onFollow(event.user_login, event.user_name);
-          }
-          if (subType === 'stream.online') setLive(true, msg.payload?.event?.started_at);
-          if (subType === 'stream.offline') setLive(false);
-        }
-
-        if (type === 'session_keepalive') {
-          // Twitch keepalive — no action needed
-        }
-
-        if (type === 'session_reconnect') {
-          const reconnectUrl = msg.payload?.session?.reconnect_url;
-          console.log('[EventSub] Reconnecting...');
-          disconnectEventSub();
-          if (reconnectUrl) {
-            ws = new WebSocket(reconnectUrl);
-          }
-        }
-      } catch (err) {
-        console.error('[EventSub] Parse error:', err);
+        resolve(true);
       }
-    });
 
-    ws.on('close', () => {
-      console.log('[EventSub] Disconnected');
-      sessionId = null;
-      // Auto-reconnect after 5s
-      reconnectTimeout = setTimeout(() => connectEventSub(), 5000);
-    });
+      if (type === 'notification') {
+        const subType = msg.metadata?.subscription_type;
+        if (subType === 'channel.channel_points_custom_reward_redemption.add') {
+          handleRedemption(msg.payload?.event);
+        }
+        if (subType === 'channel.follow') {
+          const event = msg.payload?.event;
+          sendAlert('follow', { user: event?.user_name ?? event?.user_login });
+          if (event?.user_login) onFollow(event.user_login, event.user_name);
+        }
+        if (subType === 'stream.online') setLive(true, msg.payload?.event?.started_at);
+        if (subType === 'stream.offline') setLive(false);
+      }
 
-    ws.on('error', (err) => {
-      console.error('[EventSub] Error:', err.message);
-      resolve(false);
-    });
+      if (type === 'session_reconnect') {
+        const reconnectUrl = msg.payload?.session?.reconnect_url;
+        if (reconnectUrl && socket === ws) {
+          console.log('[EventSub] Reconnecting...');
+          openSocket(reconnectUrl, auth, () => {}, true);
+        }
+      }
+    } catch (err) {
+      console.error('[EventSub] Parse error:', err);
+    }
+  });
+
+  socket.on('close', () => {
+    // A socket that was replaced, or one the user closed, ends here.
+    if (socket !== ws || stopped) return;
+    console.log('[EventSub] Disconnected');
+    sessionId = null;
+    ws = null;
+    reconnectTimeout = setTimeout(() => { reconnectTimeout = null; void connectEventSub(); }, 5000);
+  });
+
+  socket.on('error', (err) => {
+    console.error('[EventSub] Error:', err.message);
+    resolve(false);
   });
 }
 
 export function disconnectEventSub() {
-  if (reconnectTimeout) clearTimeout(reconnectTimeout);
+  stopped = true;
+  if (reconnectTimeout) { clearTimeout(reconnectTimeout); reconnectTimeout = null; }
   if (ws) {
     ws.close();
     ws = null;

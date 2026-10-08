@@ -1,4 +1,5 @@
 import { onBroadcast } from './websocket/index';
+import { featureOn } from './features';
 import { createClip } from './api/clips';
 import { getDb } from './db/index';
 
@@ -40,8 +41,11 @@ async function autoClip(tag: string, note: string, confidence: 'high' | 'medium'
 
 export function initAutoClips(): void {
   // Listen for broadcast events
+  // Every broadcast comes through here — a chat line, the timer each second.
+  // The event name is checked first; the setting only for the three that count.
   onBroadcast((event: string, data: unknown) => {
-    if (!isEnabled()) return;
+    if (event !== 'reward-redeemed' && event !== 'compile-pray' && event !== 'milestone-trigger') return;
+    if (!featureOn('autoclips') || !isEnabled()) return;
 
     if (event === 'reward-redeemed' && isTriggerEnabled('reward')) {
       const d = data as { user_name?: string; reward_type?: string } | null;

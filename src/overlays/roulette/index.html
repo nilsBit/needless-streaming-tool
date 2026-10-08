@@ -55,7 +55,7 @@
     left: 0;
     right: 0;
     top: 0;
-    will-change: transform;
+    /* will-change only while spinning (spin()): a layer kept for good costs OBS even while hidden. */
   }
   .row {
     height: var(--row);
@@ -197,6 +197,7 @@ async function loadIssues() {
 function spin(winnerId) {
   if (spinning || !topics.length) return;
   spinning = true;
+  band.style.willChange = 'transform';
   showOverlay();
   band.querySelectorAll('.won').forEach((r) => r.classList.remove('won'));
   document.getElementById('foot').textContent = HINT;
@@ -221,6 +222,7 @@ function spin(winnerId) {
     band.children[to].classList.add('won');
     document.getElementById('foot').textContent = 'Als Nächstes dran';
     spinning = false;
+    band.style.willChange = '';
     hideTimeout = setTimeout(hideOverlay, RESULT_DISPLAY_MS);
   }
   requestAnimationFrame(frame);
