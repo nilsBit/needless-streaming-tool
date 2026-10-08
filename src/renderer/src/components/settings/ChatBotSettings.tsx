@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import SearchField, { matchesSearch } from '../ux/SearchField';
 import { useApi, apiPost, apiFetch } from '../../hooks/useApi';
 import { useToast } from '../../contexts/ToastContext';
+import { useFeatures } from '../../contexts/FeaturesContext';
+import { commandVisible } from '../../../../shared/features';
+
+interface Builtin { key: string; label: string; description: string; modsOnly: boolean }
 
 // What the bot does on its own: the reminder it says every so often, the
 // shoutout after a raid, the pause between answers of the built-in commands,
@@ -40,6 +44,10 @@ export default function ChatBotSettings() {
   const { data: commandsData, refetch: refetchCommands } = useApi<Record<string, string>>('/settings/commands');
   const [editCommands, setEditCommands] = useState<Record<string, string>>({});
   const [commandSearch, setCommandSearch] = useState('');
+  // Each built-in's name in the app and its sentence (08.10.: the internal key alone said nothing).
+  const { data: builtins } = useApi<Builtin[]>('/commands/builtins');
+  const { features } = useFeatures();
+  const infoOf = (key: string) => builtins?.find((b) => b.key === key);
   const [commandsLoaded, setCommandsLoaded] = useState(false);
   useEffect(() => {
     if (commandsData && !commandsLoaded) {
@@ -115,7 +123,7 @@ export default function ChatBotSettings() {
             <div>
               <div className="s-card-title">Pause zwischen Antworten</div>
               <div className="s-card-status" style={{ color: '#888' }}>
-                Für die eingebauten Befehle, die nur etwas sagen (!song, !uptime, !progress, !todo, !themen, !queue, !stats, !challenge, !befehle).
+                Für die eingebauten Befehle, die nur etwas sagen (!song, !uptime, !progress, !todo, !themen, !queue, !stats, !punkte, !belohnungen, !challenge, !datenschutz, !befehle).
                 Die Pause gilt für einen ruhigen Chat: ab 20 Nachrichten pro Minute halbiert sie sich, ab 60 ist es ein Viertel.
                 Wer die Antwort gerade bekommen hat, bekommt sie frühestens nach dem Vierfachen wieder; Mods und du warten nie.
               </div>
@@ -145,12 +153,25 @@ export default function ChatBotSettings() {
           <SearchField value={commandSearch} onChange={setCommandSearch} label="Befehle suchen" />
         </div>
         <div className="s-card-body">
-          {Object.entries(editCommands).filter(([key, value]) => matchesSearch(commandSearch, key, value)).map(([key, value]) => (
-            <div key={key} className="s-command-row">
-              <span className="s-command-label">{key}</span>
-              <input type="text" value={value} onChange={e => setEditCommands(prev => ({ ...prev, [key]: e.target.value }))} />
-            </div>
-          ))}
+          {Object.entries(editCommands)
+            .filter(([key, value]) => matchesSearch(commandSearch, key, value, infoOf(key)?.label, infoOf(key)?.description))
+            .map(([key, value]) => {
+              const info = infoOf(key);
+              const off = !commandVisible(features, key);
+              return (
+                <div key={key} className={`s-command-row ${off ? 'off' : ''}`}>
+                  <div className="s-command-text">
+                    <div className="s-command-name">
+                      {info?.label ?? key}
+                      {info?.modsOnly && <span className="s-command-tag">nur Mods</span>}
+                      {off && <span className="s-command-tag">Funktion aus</span>}
+                    </div>
+                    {info?.description && <div className="s-command-sentence">{info.description}</div>}
+                  </div>
+                  <input type="text" aria-label={`Name für ${info?.label ?? key}`} value={value} onChange={e => setEditCommands(prev => ({ ...prev, [key]: e.target.value }))} />
+                </div>
+              );
+            })}
           <button className="s-card-action primary" onClick={saveCommands}>Speichern</button>
         </div>
       </div>

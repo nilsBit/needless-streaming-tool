@@ -157,4 +157,22 @@ describe('the command list', () => {
     expect(await find('!stats')).toMatchObject({ group: 'builtin', description: 'Zeigt deinen Stand in jeder Bestenliste: !stats, oder !stats <Name>.' });
     expect(await find('!flex')).toBeUndefined();
   });
+  it('names every built-in in the app with words and a sentence, mods-only ones marked', async () => {
+    const builtins = (await request(app).get('/api/commands/builtins').set(auth()).expect(200)).body as Array<{ key: string; label: string; description: string; modsOnly: boolean }>;
+    const names = (await request(app).get('/api/settings/commands').set(auth()).expect(200)).body as Record<string, string>;
+    // A built-in added without a name or sentence for the app fails here by its key.
+    expect(builtins.map((b) => b.key).sort()).toEqual(Object.keys(names).sort());
+    for (const b of builtins) {
+      expect(b.label, b.key).not.toBe(b.key);
+      expect(b.description, b.key).not.toBe('');
+    }
+    expect(builtins.find((b) => b.key === 'rewardstats')).toMatchObject({ label: 'Stand in den Bestenlisten', modsOnly: false });
+    expect(builtins.filter((b) => b.modsOnly).map((b) => b.key).sort()).toEqual(['design', 'scene', 'shoutout']);
+  });
+
+  it('lists the commands of own points for viewers, the mods-only ones not', async () => {
+    const triggers = (await list()).commands.map((c) => c.trigger);
+    expect(triggers).toEqual(expect.arrayContaining(['!punkte', '!belohnungen', '!einlösen']));
+    expect(triggers).not.toContain('!so');
+  });
 });

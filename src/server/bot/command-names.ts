@@ -123,6 +123,9 @@ export const VIEWER_COMMAND_KEYS = [
   'vote',
   'hype',
   'rewardstats',
+  'points',
+  'rewards_list',
+  'redeem',
   'uptime',
   'privacy',
 ] as const;

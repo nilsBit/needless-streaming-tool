@@ -49,6 +49,57 @@ const BUILTIN_DESCRIPTIONS: Record<string, string> = {
   commands: 'Nennt die wichtigsten Befehle. „!befehle alle“ listet jeden, „!befehle <Name>“ erklärt einen.',
 };
 
+/**
+ * What a built-in is called in the app — the key is internal (`rewardstats`,
+ * `issues`), the trigger can be renamed. Shown next to the field that renames it.
+ */
+const BUILTIN_LABELS: Record<string, string> = {
+  challenge: 'Ziel für heute',
+  progress: 'Fortschritt',
+  todo: 'Nächste Aufgabe',
+  issues: 'Themen fürs Glücksrad',
+  song: 'Aktueller Song',
+  sr: 'Songwunsch',
+  queue: 'Songwünsche',
+  vote: 'Abstimmen',
+  hype: 'Hype-Moment',
+  rewardstats: 'Stand in den Bestenlisten',
+  points: 'Eigene Punkte',
+  rewards_list: 'Belohnungen für Punkte',
+  redeem: 'Mit Punkten einlösen',
+  uptime: 'Laufzeit',
+  privacy: 'Datenschutz',
+  commands: 'Befehlsliste',
+  shoutout: 'Shoutout',
+  scene: 'Szene wechseln',
+  design: 'Abstimmung führen',
+};
+
+/** The built-ins for mods: never in `!befehle`, so their sentence lives here, for the app only. */
+const MOD_DESCRIPTIONS: Record<string, string> = {
+  shoutout: 'Empfiehlt einen anderen Kanal: !so <Name>.',
+  scene: 'Wechselt die Szene in OBS: !scene <Name>, ohne Namen nennt er die Szenen.',
+  design: 'Startet, beendet und zeigt eine Abstimmung: !design start 60 A B …, !design end, !design status.',
+};
+
+export interface BuiltinInfo {
+  key: string;
+  label: string;
+  description: string;
+  modsOnly: boolean;
+}
+
+/** Every built-in with its name and sentence, in the order of DEFAULT_COMMANDS — for the renaming card. */
+export function builtinCatalog(): BuiltinInfo[] {
+  const own = builtinDescriptions();
+  return Object.keys(DEFAULT_COMMANDS).map((key) => ({
+    key,
+    label: BUILTIN_LABELS[key] ?? key,
+    description: own[key]?.trim() || BUILTIN_DESCRIPTIONS[key] || MOD_DESCRIPTIONS[key] || '',
+    modsOnly: key in MOD_DESCRIPTIONS,
+  }));
+}
+
 const DESCRIPTIONS_KEY = 'command_descriptions';
 
 /** The streamer's own wording for a built-in, by command key. */

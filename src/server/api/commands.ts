@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { builtinDescriptions, commandList, featuredCommands, MAX_FEATURED, panelText, saveBuiltinDescriptions, saveFeaturedCommands } from '../bot/command-list';
+import { builtinCatalog, builtinDescriptions, commandList, featuredCommands, MAX_FEATURED, panelText, saveBuiltinDescriptions, saveFeaturedCommands } from '../bot/command-list';
 import { getAliases, saveAliases } from '../bot/command-names';
 
 /** The whole command list — for the app's overview and the text for a Twitch panel. */
@@ -18,6 +18,11 @@ function overview() {
 
 router.get('/', (_req, res) => {
   res.json(overview());
+});
+
+/** Every built-in with its name in the app and its sentence — for renaming them. */
+router.get('/builtins', (_req, res) => {
+  res.json(builtinCatalog());
 });
 
 /** The streamer's own wording for built-in commands, by command key. */
