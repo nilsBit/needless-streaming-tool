@@ -1,4 +1,4 @@
-export const SCHEMA_VERSION = 28;
+export const SCHEMA_VERSION = 29;
 
 export const SCHEMA = `
 CREATE TABLE IF NOT EXISTS schema_version (
@@ -154,6 +154,31 @@ CREATE TABLE IF NOT EXISTS leaderboards (
   reward_id    TEXT NOT NULL UNIQUE,
   reward_title TEXT NOT NULL,
   created_at   DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Eigene Punkte (2026-10-08): the tool's own currency next to Twitch channel
+-- points. Totals only, no log. total is the Beitrag (never lowered by
+-- spending), balance the Guthaben, stream_total the Beitrag of this stream.
+CREATE TABLE IF NOT EXISTS viewer_points (
+  user_name      TEXT PRIMARY KEY,
+  display_name   TEXT NOT NULL,
+  balance        INTEGER NOT NULL DEFAULT 0,
+  total          INTEGER NOT NULL DEFAULT 0,
+  stream_total   INTEGER NOT NULL DEFAULT 0,
+  last_earned_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- A Punkte-Belohnung: bought with own points in chat, runs one action.
+CREATE TABLE IF NOT EXISTS point_rewards (
+  id               INTEGER PRIMARY KEY AUTOINCREMENT,
+  name             TEXT NOT NULL UNIQUE COLLATE NOCASE,
+  cost             INTEGER NOT NULL,
+  action           TEXT NOT NULL,
+  scene_name       TEXT,
+  needs_input      INTEGER NOT NULL DEFAULT 0,
+  cooldown_seconds INTEGER NOT NULL DEFAULT 0,
+  enabled          INTEGER NOT NULL DEFAULT 1,
+  created_at       DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_clips_session_date ON clips(session_date);

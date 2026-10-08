@@ -3,7 +3,8 @@ import { getDb } from './db/index';
 /**
  * What the app keeps about viewers, and for how long. Twitch logins are
  * personal data: finished song requests go after 90 days; a viewer who has
- * not redeemed anything for a year leaves the leaderboard counts; a viewer
+ * not redeemed anything for a year leaves the leaderboard counts, one who has
+ * not earned own points for a year loses their point account; a viewer
  * can be forgotten on request, with everything stored under their name.
  * There is no log of redemptions — only the counts. privacy-text.ts tells
  * viewers exactly this.
@@ -11,7 +12,7 @@ import { getDb } from './db/index';
 export const RETENTION_DAYS = 90;
 export const LEADERBOARD_INACTIVE_DAYS = 365;
 
-export interface PruneResult { songRequests: number; leaderboard: number }
+export interface PruneResult { songRequests: number; leaderboard: number; points: number }
 
 export function pruneViewerData(days: number = RETENTION_DAYS, inactiveDays: number = LEADERBOARD_INACTIVE_DAYS): PruneResult {
   const db = getDb();
@@ -19,18 +20,21 @@ export function pruneViewerData(days: number = RETENTION_DAYS, inactiveDays: num
   const inactive = `-${Math.max(1, Math.floor(inactiveDays))} days`;
   const songRequests = db.prepare("DELETE FROM song_requests WHERE status IN ('done', 'skipped') AND created_at < datetime('now', ?)").run(cutoff).changes;
   const leaderboard = db.prepare("DELETE FROM reward_stats WHERE last_redeemed_at < datetime('now', ?)").run(inactive).changes;
-  if (songRequests || leaderboard) {
-    console.log(`[Retention] Pruned ${songRequests} finished song requests older than ${days} days and ${leaderboard} leaderboard entries idle for ${inactiveDays} days`);
+  // Own points go after the same year without earning anything.
+  const points = db.prepare("DELETE FROM viewer_points WHERE last_earned_at < datetime('now', ?)").run(inactive).changes;
+  if (songRequests || leaderboard || points) {
+    console.log(`[Retention] Pruned ${songRequests} finished song requests older than ${days} days, ${leaderboard} leaderboard entries and ${points} point accounts idle for ${inactiveDays} days`);
   }
-  return { songRequests, leaderboard };
+  return { songRequests, leaderboard, points };
 }
 
-export function forgetViewer(name: string): { rewardStats: number; rewards: number; songRequests: number } {
+export function forgetViewer(name: string): { rewardStats: number; rewards: number; songRequests: number; points: number } {
   const login = name.trim().toLowerCase();
   const db = getDb();
   return {
     rewardStats: db.prepare('DELETE FROM reward_stats WHERE user_name = ?').run(login).changes,
     rewards: db.prepare('DELETE FROM rewards WHERE LOWER(user_name) = ?').run(login).changes,
     songRequests: db.prepare('DELETE FROM song_requests WHERE LOWER(requested_by) = ?').run(login).changes,
+    points: db.prepare('DELETE FROM viewer_points WHERE user_name = ?').run(login).changes,
   };
 }

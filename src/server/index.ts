@@ -27,6 +27,10 @@ import customOverlaysRouter from './api/custom-overlays';
 import statsRouter from './api/stats';
 import rewardStatsRouter from './api/reward-stats';
 import leaderboardsRouter from './api/leaderboards';
+import pointsRouter from './api/points';
+import { watchTick } from './points/earn';
+import { getPointsConfig } from './points/config';
+import { botHelix } from './bot/shoutout';
 import { getLeaderboard } from './leaderboards';
 import backupRouter from './api/backup';
 import designRouter from './api/design';
@@ -157,6 +161,7 @@ export function createApp(): express.Express {
   app.use('/api/milestones', milestonesRouter);
   app.use('/api/reward-stats', rewardStatsRouter);
   app.use('/api/leaderboards', leaderboardsRouter);
+  app.use('/api/points', pointsRouter);
   app.use('/api/obs', obsRouter);
   app.use('/api/overlays', customOverlaysRouter);
   app.use('/api/stats', statsRouter);
@@ -313,6 +318,13 @@ export async function startServer(): Promise<{ token: string; port: number }> {
       // Viewer data has a shelf life: the redemption log and finished song requests go after 90 days.
       pruneViewerData();
       setInterval(() => pruneViewerData(), 24 * 60 * 60 * 1000);
+      // Eigene Punkte: everyone in chat earns on each watch tick. The gap is read anew each time.
+      const scheduleWatchTick = () => setTimeout(async () => {
+        const helix = botHelix();
+        if (helix) await watchTick(helix).catch((err) => console.error('[Punkte] Watch tick failed:', err));
+        scheduleWatchTick();
+      }, (getPointsConfig().watch_minutes || 10) * 60_000);
+      scheduleWatchTick();
 
       // Init auto-clips after bot connects (needs a small delay for bot to be ready)
       setTimeout(() => initAutoClips(), 3000);

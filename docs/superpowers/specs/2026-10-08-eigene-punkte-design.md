@@ -155,8 +155,8 @@ Verbindung, damit Tests sie über die HTTP-Naht erreichen.
 - Verwaltung: Belohnung anlegen, doppelter Name 400, bearbeiten, löschen; Einstellungen.
 - Geben/Nehmen über die Route, nie unter null; Rangliste und Suche.
 - Einlösen: zu wenig Guthaben, gesperrt, aus, Erfolg mit Abzug, Rückbuchung bei
-  fehlgeschlagener Aktion. **Offen:** Chat-Befehle erreicht heute kein Test — die einzige Naht
-  ist die HTTP-API, und eine zweite braucht Nils' Zustimmung (`CLAUDE.md`). Vorschlag: Die App
+  fehlgeschlagener Aktion. Chat-Befehle erreicht kein Test — die einzige Naht ist die HTTP-API.
+  **Entschieden (08.10.):** Die App
   bekommt im Zuschauer-Dialog „Für jemanden einlösen“ (`POST /api/points/viewers/:login/redeem`),
   das dieselbe Funktion wie `!einlösen` aufruft. Das ist für Mods nützlich und macht die Regeln an
   der bestehenden Naht prüfbar; die Chat-Zeile selbst bleibt ein dünner Aufruf darauf.

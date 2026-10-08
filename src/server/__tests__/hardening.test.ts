@@ -137,6 +137,6 @@ describe('hardened routes', () => {
   });
 
   it('prunes nothing that is fresh', () => {
-    expect(pruneViewerData(90)).toEqual({ songRequests: 0, leaderboard: 0 });
+    expect(pruneViewerData(90)).toEqual({ songRequests: 0, leaderboard: 0, points: 0 });
   });
 });

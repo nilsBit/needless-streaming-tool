@@ -7,6 +7,7 @@ import { changeScene, sceneMappingForRedemption, getCurrentScene } from '../obs/
 import { countRedemption } from '../leaderboards';
 import { getClientId } from '../twitch-config';
 import { sendAlert } from './alerts';
+import { onFollow, setLive } from '../points/earn';
 
 let ws: WebSocket | null = null;
 let sessionId: string | null = null;
@@ -67,6 +68,9 @@ async function subscribeToEvents(token: string, clientId: string, userId: string
   // A follow is only visible to a moderator of the channel — the broadcaster
   // is one of their own channel.
   await subscribe(token, clientId, 'channel.follow', '2', { broadcaster_user_id: userId, moderator_user_id: userId }, 'follows');
+  // Own points are earned only live. No scope needed for these two.
+  await subscribe(token, clientId, 'stream.online', '1', { broadcaster_user_id: userId }, 'stream online');
+  await subscribe(token, clientId, 'stream.offline', '1', { broadcaster_user_id: userId }, 'stream offline');
 }
 
 async function handleRedemption(event: Record<string, unknown>) {
@@ -181,7 +185,10 @@ export async function connectEventSub(): Promise<boolean> {
           if (subType === 'channel.follow') {
             const event = msg.payload?.event;
             sendAlert('follow', { user: event?.user_name ?? event?.user_login });
+            if (event?.user_login) onFollow(event.user_login, event.user_name);
           }
+          if (subType === 'stream.online') setLive(true, msg.payload?.event?.started_at);
+          if (subType === 'stream.offline') setLive(false);
         }
 
         if (type === 'session_keepalive') {

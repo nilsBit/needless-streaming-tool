@@ -19,6 +19,8 @@ const TWITCH_SCOPES = [
   // A token from before this line has to be renewed once — the follow
   // subscription says so in the log when it is refused.
   'moderator:read:followers',
+  // Own points for watching: who is in chat (2026-10-08). Same story, one reconnect.
+  'moderator:read:chatters',
 ].join('+');
 
 // A login the tool itself started carries a one-time `state`. Twitch hands it

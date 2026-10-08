@@ -40,7 +40,7 @@ describe('setup and features', () => {
     const res = await request(app).get('/api/setup').set(auth()).expect(200);
     expect(res.body.done).toBe(false);
     // Everything but the personal features — the Worldbuilder is not set up here.
-    expect(res.body.features).toHaveLength(16);
+    expect(res.body.features).toHaveLength(17);
     expect(res.body.features).not.toContain('welt');
     expect(res.body.defaults).toEqual(['chat', 'alerts', 'momente']);
     expect(res.body.worldbuilder).toBe(false);

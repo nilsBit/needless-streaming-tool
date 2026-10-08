@@ -1,5 +1,7 @@
 import tmi from 'tmi.js';
 import { getBotConfig, botTokenProblem, loadBotToken } from './config';
+import { botHelix } from './shoutout';
+import { refreshLive } from '../points/earn';
 import { registerCommands } from './commands';
 import { sayInParts } from './chat-message';
 import { registerEvents } from './events';
@@ -68,6 +70,10 @@ export async function connectBot(): Promise<boolean> {
         console.log('[Bot] Reminder said');
       }, REMINDER_TICK_MS);
     }
+
+    // The tool may start mid-stream: earning own points waits for this answer.
+    const helix = botHelix();
+    if (helix) refreshLive(helix).catch(() => null);
 
     // Start EventSub for channel point redemptions
     connectEventSub().catch((err) => console.error('[Bot] EventSub failed:', err));
