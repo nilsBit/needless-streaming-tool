@@ -14,7 +14,7 @@ Links stehen die Bereiche nach Situation: **Im Stream** (alles, was du live ausl
   },
   {
     title: 'Einrichtung: Was dein Stream kann',
-    content: `Beim ersten Start fragt das Tool **„Was soll dein Stream können?“** – siebzehn Funktionen in vier Gruppen (Im Chat, Overlays, Mit Kanalpunkten, Nach dem Stream), jede mit einem Satz und dem Hinweis, was sie braucht. Danach **Verbinden** (nur Twitch, OBS, Discord – was die Auswahl braucht), **In OBS einrichten** (das Tool legt die Browserquellen an, du wählst die Szene) und **Fertig** (was steht, was fehlt, welche Belohnungen in Twitch anzulegen sind).
+    content: `Beim ersten Start fragt das Tool **„Was soll dein Stream können?“** – siebzehn Funktionen in vier Gruppen (Im Chat, Overlays, Mit Kanalpunkten, Nach dem Stream), jede mit einem Satz und dem Hinweis, was sie braucht. Danach **Verbinden** (nur Twitch, OBS, Discord – was die Auswahl braucht), **In OBS einrichten** (das Tool legt die Browserquellen an, du wählst die Szene) und **Fertig** (deine Stufe, was steht, was fehlt und deine nächsten Quests). Die Einrichtung ist deine erste Quest: jede Etappe zeigt, welche EP sie bringt.
 
 - Jeder Schritt lässt sich überspringen. Wer die Einrichtung überspringt, sieht die ganze App.
 - Die Auswahl **blendet aus, sie löscht nicht**: Karten auf „Im Stream“, Overlays in der Liste, Unterreiter, eingebaute Befehle, Tastenkürzel und Prüfpunkte im Balken richten sich danach. Der Bot antwortet auf einen ausgeschalteten Befehl nicht, und \`!befehle\` nennt ihn nicht.

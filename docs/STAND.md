@@ -185,6 +185,13 @@ braucht den Bot.
   laufende Player fragen, nicht blockierend (Mac). EventSub verbindet nach „Trennen“ nicht mehr
   von selbst neu. Leerlauf auf dem Mac: 0,57 % → 0,36 % eines Kerns. **Unter Windows mit OBS noch
   nicht nachgemessen.**
+- **Quests (08.10.)** über das ganze Tool, Spec `docs/superpowers/specs/2026-10-08-quests-design.md`
+  (Nils wählte auf der Leinwand Weg B, den Quest-Pfad). Grundsatz ab jetzt: jeder Ablauf
+  nutzergeführt, mit Gamification. Server: Quests am Zustand bzw. Merker (`quest_flag_*`),
+  `quest_progress` (Schema v31), Prüfung nur bei Änderungen, `GET /api/quests`. App: Stufe in der
+  Leiste, Bereich „Quests“, Hinweis bei geschaffter Quest. Quest-Pfade (`QuestPath`) für
+  Belohnungen (Punkte, Kanalpunkte), Befehle, Bestenlisten, Overlay in OBS; die Einrichtung ist
+  die erste Quest. `npm run ui:flow` klickt einen Pfad in Chrome durch und macht Bilder.
 - **Noch für Nils:** einmal neu mit Twitch verbinden (neue Rechte `moderator:read:chatters`
   und `channel:manage:redemptions`), eine Belohnung unter Chat & Bot → Kanalpunkte anlegen und
   einlösen, im nächsten Stream prüfen, ob Zuschauen, Chat und

@@ -370,6 +370,12 @@ body {
 .setup-step.current .setup-step-n { background: var(--accent); border-color: var(--accent); color: #161616; font-weight: 700; }
 .setup-step.done .setup-step-n { border-color: var(--accent); color: var(--accent); }
 .setup-step-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+/* The setup as the first quest (08.10.): the EP each step brings, the next quests */
+.setup-quests { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.setup-quests li { display: flex; flex-direction: column; gap: 2px; }
+.setup-quests .quest-row-title { display: flex; justify-content: space-between; gap: 8px; }
+.setup-step-xp { font-size: 12px; font-weight: 700; color: var(--accent); }
+.setup-finish { display: flex; flex-direction: column; gap: 18px; }
 .setup-step-text span { color: var(--muted); font-size: 13px; }
 .setup-page { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 .setup-head { padding: 32px 36px 0; display: flex; flex-direction: column; gap: 6px; max-width: 860px; }

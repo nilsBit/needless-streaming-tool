@@ -15,10 +15,10 @@ import logoSvg from '../assets/logo.svg';
 // Spec: docs/superpowers/specs/2026-10-06-einrichtung-design.md
 
 const STEPS = [
-  { n: 1, label: 'Können', sub: 'Was dein Stream kann', title: 'Was soll dein Stream können?', sentence: 'Wähle aus, was du brauchst. Das Tool zeigt dir danach nur das – und sagt dir unten, was dafür verbunden werden muss. Ändern geht jederzeit.' },
-  { n: 2, label: 'Verbinden', sub: 'Twitch, OBS und mehr', title: 'Verbinden', sentence: 'Für deine Auswahl braucht das Tool diese Verbindungen. Was steht, wird grün. Was du jetzt nicht hast, holst du später unter Einstellungen → Verbindungen nach.' },
-  { n: 3, label: 'In OBS einrichten', sub: 'Overlays als Quellen', title: 'In OBS einrichten', sentence: 'Deine Auswahl braucht Browserquellen in OBS. Das Tool legt sie an – du wählst nur die Szene. Was in OBS schon da ist, erkennt es und lässt es in Ruhe.' },
-  { n: 4, label: 'Fertig', sub: 'Bereit für den Stream', title: 'Bereit für den Stream', sentence: 'Die App zeigt dir jetzt nur, was du gewählt hast. Hier steht, was dein Stream kann, was steht und was noch fehlt.' },
+  { n: 1, xp: '+20 EP', label: 'Können', sub: 'Was dein Stream kann', title: 'Was soll dein Stream können?', sentence: 'Wähle aus, was du brauchst. Das Tool zeigt dir danach nur das – und sagt dir unten, was dafür verbunden werden muss. Ändern geht jederzeit.' },
+  { n: 2, xp: '+40 EP je Verbindung', label: 'Verbinden', sub: 'Twitch, OBS und mehr', title: 'Verbinden', sentence: 'Für deine Auswahl braucht das Tool diese Verbindungen. Was steht, wird grün. Was du jetzt nicht hast, holst du später unter Einstellungen → Verbindungen nach.' },
+  { n: 3, xp: '+40 EP', label: 'In OBS einrichten', sub: 'Overlays als Quellen', title: 'In OBS einrichten', sentence: 'Deine Auswahl braucht Browserquellen in OBS. Das Tool legt sie an – du wählst nur die Szene. Was in OBS schon da ist, erkennt es und lässt es in Ruhe.' },
+  { n: 4, xp: '', label: 'Fertig', sub: 'Bereit für den Stream', title: 'Bereit für den Stream', sentence: 'Die App zeigt dir jetzt nur, was du gewählt hast. Hier steht, was dein Stream kann, was steht und was noch fehlt.' },
 ];
 
 export default function SetupPage() {
@@ -73,7 +73,7 @@ export default function SetupPage() {
     <div className="setup" data-setup-step={step}>
       <nav className="setup-rail" aria-label="Schritte der Einrichtung">
         <img src={logoSvg} alt="NST" className="shell-logo" />
-        <p className="setup-rail-title">Einrichtung</p>
+        <p className="setup-rail-title">Deine erste Quest</p>
         {STEPS.map((s) => {
           const state = s.n === step ? 'current' : s.n < step ? 'done' : 'ahead';
           return (
@@ -83,17 +83,17 @@ export default function SetupPage() {
                   ? <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M3 8.5l3.2 3L13 4.5" /></svg>
                   : s.n}
               </span>
-              <span className="setup-step-text"><strong>{s.label}</strong><span>{s.n === 1 && step > 1 ? `${pickedList.length} ${pickedList.length === 1 ? 'Funktion' : 'Funktionen'} gewählt` : s.sub}</span></span>
+              <span className="setup-step-text"><strong>{s.label}</strong><span>{s.n === 1 && step > 1 ? `${pickedList.length} ${pickedList.length === 1 ? 'Funktion' : 'Funktionen'} gewählt` : s.sub}</span>{s.xp && <span className="setup-step-xp">{s.xp}</span>}</span>
             </button>
           );
         })}
         <div style={{ flex: 1 }} />
-        <p className="setup-rail-hint">Jeder Schritt lässt sich überspringen. Alles hier findest du später wieder unter Einstellungen.</p>
+        <p className="setup-rail-hint">Jeder Schritt lässt sich überspringen. Danach geht es im Bereich „Quests“ weiter – mit genau dem, was du gewählt hast.</p>
       </nav>
 
       <div className="setup-page">
         <header className="setup-head">
-          <p className="setup-eyebrow">Schritt {step} von 4</p>
+          <p className="setup-eyebrow">Etappe {step} von 4</p>
           <h1>{current.title}</h1>
           <p>{current.sentence}</p>
         </header>
