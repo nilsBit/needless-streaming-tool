@@ -1,5 +1,5 @@
 import tmi from 'tmi.js';
-import { getBotConfig, botTokenProblem } from './config';
+import { getBotConfig, botTokenProblem, loadBotToken } from './config';
 import { registerCommands } from './commands';
 import { sayInParts } from './chat-message';
 import { registerEvents } from './events';
@@ -24,6 +24,7 @@ export function getBotStatus(): { connected: boolean; channel: string | null; er
 }
 
 export async function connectBot(): Promise<boolean> {
+  await loadBotToken();
   const config = getBotConfig();
   if (!config) {
     console.log('[Bot] No config found — skipping connection');

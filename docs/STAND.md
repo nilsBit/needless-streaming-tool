@@ -337,7 +337,11 @@ braucht den Bot.
   Seit Electron 44 meldet `safeStorage.isEncryptionAvailable()` auf dem Mac `false`, der
   verschlüsselte Twitch-Token lässt sich nicht lesen. Die App sagt das jetzt auf der Twitch-Karte
   und in der Seitenleiste (`getBotStatus().error`, `/api/auth/twitch/rewards` liefert `error`).
-  Ursache noch offen (Schlüsselbund-Dialog verweigert? Electron-Änderung?). Offen bleibt sonst
+  **Gelöst am 08.10.:** Die synchrone Abfrage schwankt auf dem Mac (nachgestellt: derselbe
+  Start meldet mal `false`, mal `true`), die asynchrone (`isAsyncEncryptionAvailable`) stimmt.
+  `src/server/bot/config.ts` ver- und entschlüsselt jetzt nur noch asynchron; `connectBot()`
+  lädt den Token vorher einmal (`loadBotToken()`), danach liegt er im Speicher. Gleiches
+  `v10`-Format, alte Tokens bleiben lesbar (im echten Electron geprüft). Offen bleibt sonst
   nur die Signatur der Releases.
 - **Nächster Schritt:** Auf dem Windows-Rechner pullen, **`npm ci`** (baut better-sqlite3 für
   Electron 44 – dauert beim ersten Mal einen Moment; meldet sich `windows-smtc-monitor` mit einem

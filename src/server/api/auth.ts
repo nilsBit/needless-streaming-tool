@@ -155,7 +155,7 @@ router.post('/twitch/save', async (req, res) => {
     const username = user.login;
 
     // Save config with encrypted token
-    saveBotConfig({
+    await saveBotConfig({
       channel,
       username,
       oauth_token: `oauth:${access_token}`,

@@ -33,13 +33,18 @@ router.get('/twitch', (_req, res) => {
   });
 });
 
-router.post('/twitch', (req, res) => {
+router.post('/twitch', async (req, res) => {
   const { channel, username, oauth_token } = req.body as BotConfig;
   if (!channel || !username || !oauth_token) {
     res.status(400).json({ error: 'channel, username and oauth_token required' });
     return;
   }
-  saveBotConfig({ channel, username, oauth_token });
+  try {
+    await saveBotConfig({ channel, username, oauth_token });
+  } catch {
+    res.status(500).json({ error: 'Twitch config could not be saved' });
+    return;
+  }
   res.json({ success: true });
 });
 
