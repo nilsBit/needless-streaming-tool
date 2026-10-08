@@ -14,7 +14,7 @@ Links stehen die Bereiche nach Situation: **Im Stream** (alles, was du live ausl
   },
   {
     title: 'Einrichtung: Was dein Stream kann',
-    content: `Beim ersten Start fragt das Tool **„Was soll dein Stream können?“** – sechzehn Funktionen in vier Gruppen (Im Chat, Overlays, Mit Kanalpunkten, Nach dem Stream), jede mit einem Satz und dem Hinweis, was sie braucht. Danach **Verbinden** (nur Twitch, OBS, Discord – was die Auswahl braucht), **In OBS einrichten** (das Tool legt die Browserquellen an, du wählst die Szene) und **Fertig** (was steht, was fehlt, welche Belohnungen in Twitch anzulegen sind).
+    content: `Beim ersten Start fragt das Tool **„Was soll dein Stream können?“** – siebzehn Funktionen in vier Gruppen (Im Chat, Overlays, Mit Kanalpunkten, Nach dem Stream), jede mit einem Satz und dem Hinweis, was sie braucht. Danach **Verbinden** (nur Twitch, OBS, Discord – was die Auswahl braucht), **In OBS einrichten** (das Tool legt die Browserquellen an, du wählst die Szene) und **Fertig** (was steht, was fehlt, welche Belohnungen in Twitch anzulegen sind).
 
 - Jeder Schritt lässt sich überspringen. Wer die Einrichtung überspringt, sieht die ganze App.
 - Die Auswahl **blendet aus, sie löscht nicht**: Karten auf „Im Stream“, Overlays in der Liste, Unterreiter, eingebaute Befehle, Tastenkürzel und Prüfpunkte im Balken richten sich danach. Der Bot antwortet auf einen ausgeschalteten Befehl nicht, und \`!befehle\` nennt ihn nicht.
@@ -52,9 +52,9 @@ Auf „Im Stream“ steht an jeder Karte, ob ihr Overlay in der laufenden OBS-Sz
     title: 'Daten: was gespeichert wird, was den Rechner verlässt',
     content: `Alles liegt in einer Datenbank auf deinem Rechner. Das Tool hat keinen eigenen Server, keine Telemetrie, keine Werbe-IDs. Die einzige Verbindung nach draußen, die es von sich aus aufbaut, ist die Update-Prüfung bei GitHub – ohne Daten von dir.
 
-**Über Zuschauer gespeichert:** der Twitch-Login mit der Zahl seiner Einlösungen je Bestenliste, Songwünsche, Themen und Vorschläge, dazu Namen in Moment-Notizen aus der Hype-Erkennung. Es gibt kein Protokoll, wer wann was eingelöst oder eingetippt hat. Chatzeilen bleiben nur im Speicher und sind nach dem Neustart weg.
+**Über Zuschauer gespeichert:** der Twitch-Login mit der Zahl seiner Einlösungen je Bestenliste, mit eingeschalteten eigenen Punkten sein Guthaben und Beitrag, Songwünsche, Themen und Vorschläge, dazu Namen in Moment-Notizen aus der Hype-Erkennung. Es gibt kein Protokoll, wer wann was eingelöst oder eingetippt hat. Chatzeilen bleiben nur im Speicher und sind nach dem Neustart weg.
 
-**Wie lange:** Erledigte Songwünsche löscht das Tool nach 90 Tagen von selbst. Wer ein Jahr nicht geflext hat, verschwindet aus der Bestenliste. Unter **Nach dem Stream → Kanalpunkte → Bearbeiten → Zuschauer vergessen** verschwindet alles, was unter einem Namen gespeichert ist, sofort.
+**Wie lange:** Erledigte Songwünsche löscht das Tool nach 90 Tagen von selbst. Wer ein Jahr nicht eingelöst hat, verschwindet aus der Bestenliste, wer ein Jahr keine Punkte verdient hat, mit seinen Punkten. Was ein Zuschauer beim Einlösen dazuschreibt, steht nur im Alert und wird nicht gespeichert. Unter **Nach dem Stream → Kanalpunkte → Bearbeiten → Zuschauer vergessen** verschwindet alles, was unter einem Namen gespeichert ist, sofort.
 
 **Was den Rechner verlässt – nur wenn du es anschließt:**
 - **Notion:** Moment-Notizen mit Schlagwort, Zeitmarke und Text, also auch Zuschauernamen aus der Hype-Erkennung. Notion ist ein US-Anbieter.
@@ -115,6 +115,10 @@ Auf „Im Stream“ steht an jeder Karte, ob ihr Overlay in der laufenden OBS-Sz
 | !uptime | Zeigt Stream-Laufzeit |
 | !stats [Name] | Stand in jeder Bestenliste |
 | !datenschutz (auch !privacy) | Sagt, was das Tool über Zuschauer speichert, wie lange, und dass es auf Wunsch gelöscht wird |
+| !punkte [Name] | Guthaben, Beitrag und Platz bei den eigenen Punkten |
+| !punkte geben/nehmen @Name <Anzahl> | Punkte geben oder nehmen (nur Mods) |
+| !belohnungen | Was man mit Punkten einlösen kann, und was es kostet |
+| !einlösen <Name> [Text] (auch !einloesen) | Löst eine Belohnung mit Punkten ein |
 
 Alle Befehle lassen sich unter Chat & Bot → Von selbst umbenennen. Antworten, die länger als eine Chat-Nachricht (500 Zeichen) sind, verteilt der Bot automatisch auf mehrere Nachrichten.`,
   },
@@ -242,6 +246,30 @@ In der Liste siehst du die Rangliste, kannst Zahlen korrigieren, Einträge von H
 **Zuschauerdaten:** Einlösungen werden mit dem Twitch-Login gezählt, nicht protokolliert. Erledigte Songwünsche löscht das Tool nach 90 Tagen von selbst, Zuschauer ohne Einlösung seit einem Jahr fallen aus der Zählung. Sicherung und Sync-Ordner enthalten keine Zugangsdaten.
 
 **Feste Szenen-Belohnungen:** Unter Overlays & Alerts → Szenen in OBS → Szene per Kanalpunkt ordnest du einer Belohnung eine Szene zu, mit Dauer und Rückwechsel.`,
+  },
+  {
+    title: 'Eigene Punkte',
+    content: `Neben den Kanalpunkten von Twitch kann das Tool **eigene Punkte** vergeben – auch auf einem Kanal ohne Affiliate. Die beiden haben nichts miteinander zu tun: Es gibt keinen Umtausch, Twitch-Belohnungen bleiben, wie sie sind. Einschalten unter **Einstellungen → Programm → Was dein Stream kann → Eigene Punkte**, einrichten unter **Chat & Bot → Punkte**.
+
+**Verdienen – nur, solange du live bist:**
+| Wofür | Standard |
+|-------|----------|
+| Zuschauen | 5 alle 10 Minuten, für jeden im Chat, auch stille Mitleser |
+| Chatten | 1 je Nachricht, höchstens einmal je Minute |
+| Follow | 50 |
+| Sub, Resub | 200, verschenkte Subs 200 je Sub an den, der schenkt |
+| Raid | 100 an den Raider |
+| Bits | 1 je 10 Bits |
+
+Alle Zahlen und den Namen der Währung stellst du unter **Verdienen → Einstellen** ein; 0 schaltet eine Quelle ab. Dein Kanal, dein Bot und die Bots in der Liste (StreamElements, Nightbot …) bekommen nichts. **Fürs Zuschauen braucht das Tool ein Recht mehr** (moderator:read:chatters): Verbinde dich in Einstellungen → Verbindungen einmal neu mit Twitch. Fehlt es, steht im Log ein Hinweis, die anderen Quellen laufen weiter.
+
+**Zwei Zahlen je Zuschauer:** Das **Guthaben** ist, was man ausgeben kann. Der **Beitrag** ist alles, was jemand je verdient hat – er sinkt beim Ausgeben nicht und zeigt, wer am meisten beigetragen hat. Dazu der Beitrag **heute**, der mit jedem neuen Stream bei null beginnt (nicht, wenn das Tool mitten im Stream neu startet).
+
+**Ausgeben:** Unter **Belohnungen → + Belohnung** legst du an, was es gibt: Name, Preis und was passiert – nur ein Alert, Glücksrad drehen, Vorschlag einreichen, Musik wechseln oder eine Szene wechseln (nur Szenen, die unter Szenen in OBS freigegeben sind). Dazu, ob der Zuschauer einen Text schreibt, und eine Sperre je Zuschauer. Im Chat: \`!belohnungen\` zeigt die Liste, \`!einlösen <Name> [Text]\` löst ein. Reichen die Punkte nicht, ist die Belohnung aus oder gesperrt, wird nichts abgezogen; klappt die Aktion nicht (OBS nicht verbunden, kein Thema fürs Rad), kommen die Punkte zurück. Die Einlösung steht wie eine von Twitch in der Liste und im Alert – mit dem Namen deiner Währung statt „Kanalpunkte“.
+
+**Zuschauer:** Die Liste zeigt alle nach Beitrag. **Öffnen** gibt oder nimmt Punkte (Nehmen ist eine Korrektur und senkt auch den Beitrag), löst für jemanden ein – nach denselben Regeln wie im Chat – oder vergisst ihn. Mods geben und nehmen im Chat mit \`!punkte geben @Name 50\` und \`!punkte nehmen @Name 50\`.
+
+**Im Bild:** Die Bestenliste mit \`?type=beitrag\` zeigt die Top 3 nach Beitrag, \`?type=beitrag-stream\` die von heute. Diese beiden stehen fest im Bild und zählen mit, statt kurz einzufahren. Rangwechsel meldet Überholer bei den Punkten nur mit einem dieser beiden \`?type=\`. Die Namen „Beitrag“ und „Beitrag Stream“ sind für diese Listen reserviert.`,
   },
   {
     title: 'Overlays',

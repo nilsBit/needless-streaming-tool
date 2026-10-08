@@ -3,6 +3,7 @@ import { getPointsConfig, savePointsConfig } from '../points/config';
 import { adjustPoints, listViewers } from '../points/ledger';
 import { createPointReward, deletePointReward, listPointRewards, updatePointReward } from '../points/rewards';
 import { redeem, type RedeemRefusal } from '../points/redeem';
+import { pointBoardsChanged } from '../points/earn';
 
 const router = Router();
 
@@ -35,6 +36,7 @@ router.post('/viewers/:login/adjust', (req, res) => {
   }
   const result = adjustPoints(login, amount as number);
   if (!result) { res.status(404).json({ error: 'this viewer has no points' }); return; }
+  pointBoardsChanged();
   res.json(result);
 });
 

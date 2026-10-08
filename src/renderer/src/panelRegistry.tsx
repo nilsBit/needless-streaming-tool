@@ -18,6 +18,7 @@ import ClipsPanel from './panels/ClipsPanel';
 import AutoClipsSettings from './components/settings/AutoClipsSettings';
 import StatsPanel from './panels/StatsPanel';
 import LeaderboardsPanel from './panels/LeaderboardsPanel';
+import PointsPanel from './panels/PointsPanel';
 import SettingsPanel from './panels/SettingsPanel';
 import HotkeysPanel from './panels/HotkeysPanel';
 import HelpPanel from './panels/HelpPanel';
@@ -47,6 +48,7 @@ export const PANEL_REGISTRY: Record<PanelKey, React.ComponentType> = {
   autoclips: AutoClipsSettings,
   stats: StatsPanel,
   leaderboards: LeaderboardsPanel,
+  points: PointsPanel,
   'settings-connections': SettingsConnections,
   'settings-app': SettingsApp,
   hotkeys: HotkeysPanel,

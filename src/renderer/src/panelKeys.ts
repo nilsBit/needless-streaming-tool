@@ -13,6 +13,7 @@ export const PANEL_KEYS = [
   'textcommands',
   'chatbot',
   'trycommands',
+  'points',
   // Overlays & Alerts
   'overlays',
   'appearance',

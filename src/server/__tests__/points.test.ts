@@ -341,4 +341,30 @@ describe('own points', () => {
       expect(await say('!belohnungen')).toEqual(['Belohnungen (!einlösen <Name>): Vorschlag 100 · Licht aus 300 Punkte']);
     });
   });
+  describe('the Beitrag lists', () => {
+    const top = async (type: string) => (await request(app).get(`/public/reward-stats/top?type=${type}`).expect(200)).body;
+
+    it('rank by Beitrag of all time and of this stream', async () => {
+      setLive(true, '2026-10-08T18:00:00Z');
+      onRaid('saldor', 'Saldor');
+      setLive(false);
+      setLive(true, '2026-10-09T18:00:00Z');
+      onFollow('mila', 'Mila');
+      expect(await top('beitrag')).toMatchObject({ title: 'Beitrag', leaderboard: [{ rank: 1, userName: 'Saldor', count: 100 }, { rank: 2, userName: 'Mila', count: 50 }] });
+      expect(await top('beitrag-stream')).toMatchObject({ title: 'Beitrag heute', leaderboard: [{ rank: 1, userName: 'Mila', count: 50 }] });
+    });
+
+    it('do not move when points are spent', async () => {
+      setLive(true, '2026-10-08T18:00:00Z');
+      onFollow('mila', 'Mila');
+      await request(app).post('/api/points/rewards').set(auth()).send({ name: 'Licht aus', cost: 30, action: 'alert' }).expect(201);
+      await request(app).post('/api/points/viewers/mila/redeem').set(auth()).send({ reward: 'Licht aus' }).expect(200);
+      expect((await top('beitrag')).leaderboard[0]).toMatchObject({ userName: 'Mila', count: 50 });
+    });
+
+    it('keep their names — no Bestenliste may take them', async () => {
+      await request(app).post('/api/leaderboards').set(auth()).send({ title: 'Beitrag', reward: { id: 'r1', title: 'Flex' } }).expect(400);
+      await request(app).post('/api/leaderboards').set(auth()).send({ title: 'Beitrag Stream', reward: { id: 'r1', title: 'Flex' } }).expect(400);
+    });
+  });
 });

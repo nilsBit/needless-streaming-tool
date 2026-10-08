@@ -67,6 +67,8 @@ export function createLeaderboard(input: unknown): { leaderboard: Leaderboard } 
   const reward = cleanReward(rawReward);
   if (!reward) return { error: 'reward must carry the Twitch id and the name of the reward' };
   const key = keyFromTitle(title);
+  // The lists of own points carry these keys (reward-leaderboard.ts).
+  if (key === 'beitrag' || key === 'beitrag-stream') return { error: `this name is taken by the own points (${key})` };
   if (getLeaderboard(key)) return { error: `a list with this name exists already (${key})` };
   if (leaderboardForReward(reward.id)) return { error: 'this reward has a list already' };
   getDb().prepare('INSERT INTO leaderboards (key, title, reward_id, reward_title) VALUES (?, ?, ?, ?)').run(key, title, reward.id, reward.title);

@@ -116,6 +116,21 @@ _Avoid_: Search, query command.
 **Reward**:
 A Twitch channel-point redemption a viewer has spent points on. `rewards` holds the pending queue, `reward_log` the full history, and `reward_stats` the per-viewer running totals that feed the leaderboard.
 
+**Punkte** (UI: der Name der Währung, Standard „Punkte“):
+The tool's own currency (2026-10-08), next to Twitch channel points and unrelated to them — no exchange. Earned only while the stream is live: per watch tick for everyone in chat, per chat message (once a minute), for follow, sub, gifted subs, raid and bits; given and taken by mods. One row per viewer in `viewer_points`, totals only, no log.
+_Avoid_: coins, credits, channel points (that is Twitch's), score.
+
+**Beitrag**:
+Everything a viewer ever earned in Punkte (`viewer_points.total`). Spending never lowers it; a mod's take does, as a correction. The Beitrag lists rank by it — `beitrag` of all time and `beitrag-stream` (UI „Beitrag heute“), which starts at zero with each new stream. Both keys are reserved for these lists.
+
+**Guthaben**:
+The Punkte a viewer can spend now (`viewer_points.balance`).
+_Avoid_: balance in German UI text, Kontostand.
+
+**Punkte-Belohnung** (UI: „Belohnung“ under Chat & Bot → Punkte):
+What viewers buy with Punkte via `!einlösen <Name>` — made in the app, not in Twitch (`point_rewards`). Carries a cost and an action from `reward-actions.ts` (wheel, suggestion, music, a mapped scene, alert only); a failed action refunds. A redemption leaves a Reward row and a `reward-redeemed` event with `source: 'points'`.
+_Avoid_: shop item, Twitch reward.
+
 **Song Request**:
 A track a viewer asked for by URL, moving through `pending` → `playing` → `done` (or `skipped`). Separate from the Now Playing panel, which reads what the machine is actually playing via SMTC.
 

@@ -31,7 +31,6 @@ import pointsRouter from './api/points';
 import { watchTick } from './points/earn';
 import { getPointsConfig } from './points/config';
 import { botHelix } from './bot/shoutout';
-import { getLeaderboard } from './leaderboards';
 import backupRouter from './api/backup';
 import designRouter from './api/design';
 import devRouter from './api/dev';
@@ -50,7 +49,7 @@ import readinessRouter from './api/readiness';
 import { connectBot } from './bot/index';
 import { connectObs } from './obs/index';
 import { initAutoClips } from './auto-clips';
-import { initRewardLeaderboard, getTopRewards } from './reward-leaderboard';
+import { initRewardLeaderboard, getTopRewards, boardTitle } from './reward-leaderboard';
 import { checkDatabase, healDatabase } from './api/notion-sync';
 import { startSMTC, getAutoDetectSetting } from './integrations/smtc';
 import { getDb } from './db/index';
@@ -247,7 +246,7 @@ export function createApp(): express.Express {
   app.get('/public/reward-stats/top', (req, res) => {
     const type = (req.query.type as string) || '';
     const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 3, 1), 10);
-    res.json({ type, title: getLeaderboard(type)?.title ?? null, leaderboard: type ? getTopRewards(type, limit) : [] });
+    res.json({ type, title: type ? boardTitle(type) : null, leaderboard: type ? getTopRewards(type, limit) : [] });
   });
 
   // Overlay paths

@@ -103,7 +103,10 @@ const params = new URLSearchParams(window.location.search);
 // shows whichever list just got a point; with ?type=<key> only that one.
 const configuredType = params.get('type');
 // In the showcase (?state=) the list stands still, so it can be looked at.
-const standing = params.has('state');
+// The Beitrag lists of own points (2026-10-08) get a point with every chat line —
+// they stand in the picture and count up instead of sliding in and out.
+const POINT_BOARDS = ['beitrag', 'beitrag-stream'];
+const standing = params.has('state') || POINT_BOARDS.includes(configuredType);
 let shownType = configuredType || 'all';
 const SHOW_MS = 6000;
 
@@ -181,6 +184,7 @@ function show() {
 
 async function handlePoint(data) {
   if (configuredType && data.key !== configuredType) return;
+  if (!configuredType && POINT_BOARDS.includes(data.key)) return;
   shownType = data.key;
   me = { login: String(data.login || data.user || '').toLowerCase(), user: data.user, count: data.count, rank: data.rank };
   await fetchLeaderboard();

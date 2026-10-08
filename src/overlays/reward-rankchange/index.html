@@ -147,8 +147,12 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
+// Own points move with every chat line; their overtakes show only on an address that asks for them.
+const POINT_BOARDS = ['beitrag', 'beitrag-stream'];
+
 function handleLeaderboardUpdate(data) {
   if (configuredType && data.type !== configuredType) return;
+  if (!configuredType && POINT_BOARDS.includes(data.type)) return;
   if ((!data.changes || data.changes.length === 0) && (!data.entered || data.entered.length === 0)) return;
   queue.push(data);
   processQueue();

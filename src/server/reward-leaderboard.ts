@@ -1,5 +1,6 @@
 import { getDb } from './db/index';
 import { broadcast } from './websocket/index';
+import { topByContribution } from './points/ledger';
 import type {
   LeaderboardEntry,
   LeaderboardUpdateEntry,
@@ -8,6 +9,20 @@ import type {
   RankEntry,
   RankExit,
 } from '../shared/types';
+
+/**
+ * The two lists of own points (2026-10-08): ranked by Beitrag of all time and
+ * of this stream. Their keys are reserved — no Bestenliste may take them.
+ */
+export const POINT_BOARDS: Record<string, 'all' | 'stream' | undefined> = { beitrag: 'all', 'beitrag-stream': 'stream' };
+const POINT_BOARD_TITLES: Record<string, string> = { beitrag: 'Beitrag', 'beitrag-stream': 'Beitrag heute' };
+
+/** The title an overlay shows for a list. */
+export function boardTitle(type: string): string | null {
+  if (POINT_BOARD_TITLES[type]) return POINT_BOARD_TITLES[type];
+  const row = getDb().prepare('SELECT title FROM leaderboards WHERE key = ?').get(type) as { title: string } | undefined;
+  return row?.title ?? null;
+}
 
 // In-memory cache: type key → current top 3
 const cache = new Map<string, LeaderboardEntry[]>();
@@ -18,6 +33,12 @@ let initialized = false;
  * list's key (2026-10-06); there is no aggregate over every list.
  */
 function queryTop(type: string, limit = 3): LeaderboardEntry[] {
+  const scope = POINT_BOARDS[type];
+  if (scope) {
+    return topByContribution(limit, scope).map((row, i) => ({
+      rank: i + 1, userName: row.display_name, count: scope === 'stream' ? row.stream_total : row.total,
+    }));
+  }
   try {
     const rows = getDb()
       .prepare(
@@ -87,6 +108,7 @@ export function initRewardLeaderboard(): void {
     for (const { reward_type } of types) {
       cache.set(reward_type, queryTop(reward_type));
     }
+    for (const key of Object.keys(POINT_BOARDS)) cache.set(key, queryTop(key));
 
     initialized = true;
     console.log('[Leaderboard] Initialized with', cache.size, 'type(s)');
@@ -123,10 +145,9 @@ export function checkAndBroadcast(type: string): void {
     return { ...entry, previousRank: old?.rank ?? null };
   });
 
-  const titleRow = getDb().prepare('SELECT title FROM leaderboards WHERE key = ?').get(type) as { title: string } | undefined;
   const update: LeaderboardUpdate = {
     type,
-    title: titleRow?.title ?? null,
+    title: boardTitle(type),
     leaderboard,
     changes,
     entered,

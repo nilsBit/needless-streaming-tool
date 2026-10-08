@@ -42,6 +42,7 @@ export const PANEL_LABELS: Record<PanelKey, string> = {
   textcommands: 'Befehle',
   chatbot: 'Von selbst',
   trycommands: 'Ausprobieren',
+  points: 'Punkte',
   overlays: 'Overlays',
   appearance: 'Aussehen',
   alerts: 'Alerts',
@@ -78,7 +79,7 @@ export const AREAS: readonly Area[] = [
     key: 'chat',
     label: 'Chat & Bot',
     sentence: 'Was der Bot antwortet und was er von selbst sagt.',
-    keywords: ['Befehle', 'Nachschlagen in der Welt', 'Erinnerung', 'Shoutout', 'Ausprobieren'],
+    keywords: ['Befehle', 'Nachschlagen in der Welt', 'Erinnerung', 'Shoutout', 'Punkte', 'Ausprobieren'],
     group: 'main',
     subTabs: [
       {
@@ -92,6 +93,12 @@ export const AREAS: readonly Area[] = [
         label: 'Von selbst',
         sentence: 'Was der Bot ohne Aufforderung sagt, wie lange er zwischen Antworten wartet und wie die eingebauten Befehle heißen.',
         panels: ['chatbot'],
+      },
+      {
+        key: 'punkte',
+        label: 'Punkte',
+        sentence: 'Eigene Punkte neben den Kanalpunkten von Twitch: wofür es welche gibt, was man dafür einlöst und wer am meisten beigetragen hat.',
+        panels: ['points'],
       },
       {
         key: 'ausprobieren',

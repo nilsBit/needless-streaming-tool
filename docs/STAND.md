@@ -4,7 +4,7 @@ Einstieg für einen neuen Rechner oder eine neue Claude-Session. **Offene Arbeit
 steht in den GitHub Issues** (`gh issue list`) — dieses Dokument erklärt das
 Große Ganze, wie die beiden Projekte zusammenhängen und wo wir stehen.
 
-Stand: 6. Oktober 2026.
+Stand: 8. Oktober 2026.
 
 ## Worum es geht
 
@@ -155,6 +155,23 @@ braucht den Bot.
   Warum kein Sync: ADR-0023 im Worldbuilder.
 
 ## Wo wir stehen geblieben sind
+
+**Hier aufgehört (08.10., auf dem Mac)**
+
+- Twitch-Bot auf dem Mac wieder verbunden: der Token wird asynchron entschlüsselt (siehe unten).
+- Issues #10, #11, #23, #25 geschlossen.
+- **Eigene Punkte (#28)** neben den Twitch-Kanalpunkten, in drei Stufen gebaut — Spec
+  `docs/superpowers/specs/2026-10-08-eigene-punkte-design.md`, Plan
+  `docs/superpowers/plans/2026-10-08-eigene-punkte.md`. Verdienen (nur live), Beitrag und
+  Guthaben, Punkte-Belohnungen mit `!einlösen`, `!punkte`, `!belohnungen`, Seite Chat & Bot →
+  Punkte, Bestenliste `?type=beitrag` / `?type=beitrag-stream`. Die Aktionen der Belohnungen
+  liegen in `src/server/reward-actions.ts`; #24 soll sie mitbenutzen.
+- Nebenbei behoben: `!datenschutz` hat Zuschauern im echten Chat nie geantwortet (Info-Pause
+  doppelt geprüft).
+- **Noch für Nils:** Feature „Eigene Punkte“ einschalten, einmal neu mit Twitch verbinden
+  (neues Recht `moderator:read:chatters`), im nächsten Stream prüfen, ob Zuschauen, Chat und
+  Follow ankommen (Log `[EventSub] Subscribed to stream online`), die Bestenliste mit
+  `?type=beitrag` in OBS anlegen.
 
 **Hier aufgehört (07.10., unter Windows)**
 

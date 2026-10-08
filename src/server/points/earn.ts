@@ -3,6 +3,7 @@ import { getBotConfig } from '../bot/config';
 import { featureOn } from '../features';
 import { getPointsConfig } from './config';
 import { addPoints, resetStreamContribution } from './ledger';
+import { checkAndBroadcast } from '../reward-leaderboard';
 
 /**
  * Who earns the tool's own points, and when. Only while the stream is live —
@@ -45,6 +46,7 @@ export function setLive(on: boolean, startedAt?: string): void {
   const row = getDb().prepare('SELECT value FROM settings WHERE key = ?').get(STARTED_KEY) as { value: string } | undefined;
   if (row?.value === String(started)) return;
   resetStreamContribution();
+  checkAndBroadcast('beitrag-stream');
   getDb().prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run(STARTED_KEY, String(started));
 }
 
@@ -61,7 +63,14 @@ function earn(name: string, displayName: string | undefined, amount: number): bo
   if (!login || !Number.isInteger(amount) || amount <= 0) return false;
   if (!live || !featureOn('punkte') || excluded(login)) return false;
   addPoints(login, displayName || login, amount);
+  pointBoardsChanged();
   return true;
+}
+
+/** The two Beitrag lists follow every credit, give and take — the overlays count up. */
+export function pointBoardsChanged(): void {
+  checkAndBroadcast('beitrag');
+  checkAndBroadcast('beitrag-stream');
 }
 
 /** A chat message: points at most once a minute per viewer. */
