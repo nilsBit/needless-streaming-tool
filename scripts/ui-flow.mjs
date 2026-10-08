@@ -40,7 +40,7 @@ try {
   for (const label of clicks) {
     // A button, or a choice card (role radio, as in ChoiceCards).
     await page.getByRole('button', { name: label, exact: true }).or(page.getByRole('radio', { name: new RegExp(`^${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`) })).first().click();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(Number(process.env.UI_FLOW_WAIT ?? 500));
     n += 1;
     await page.screenshot({ path: path.join(outDir, `${n}.png`) });
     console.log(`${n}: ${label}`);

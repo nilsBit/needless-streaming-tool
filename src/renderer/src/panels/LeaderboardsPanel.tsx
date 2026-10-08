@@ -3,6 +3,7 @@ import { useApi, apiPost, apiPatch, apiDelete } from '../hooks/useApi';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { useToast } from '../contexts/ToastContext';
 import Dialog from '../components/ux/Dialog';
+import LeaderboardQuestPath from '../components/quests/paths/LeaderboardQuestPath';
 
 interface Leaderboard { key: string; title: string; reward_id: string; reward_title: string; viewers: number }
 interface Row { user_name: string; count: number; last_redeemed_at: string }
@@ -16,28 +17,17 @@ const n = (count: number, one: string, many: string) => `${count} ${count === 1 
 // A list hangs on one Twitch reward, chosen from the channel's rewards and
 // kept by its id; a reward gone from Twitch is said so until another is chosen.
 export default function LeaderboardsPanel() {
-  const { toast } = useToast();
   const { data: lists, refetch: refetchLists } = useApi<Leaderboard[]>('/leaderboards');
   const { data: rewardsData } = useApi<{ rewards: TwitchReward[]; error?: string }>('/auth/twitch/rewards');
   const { data: botStatus } = useApi<{ connected: boolean }>('/settings/bot-status');
   const [openKey, setOpenKey] = useState<string | null>(null);
-  const [creating, setCreating] = useState<{ title: string; rewardId: string } | null>(null);
+  // New lists are made on a Quest-Pfad.
+  const [path, setPath] = useState(false);
 
   const rewards = rewardsData?.rewards ?? [];
   const listLoaded = !!botStatus?.connected && !!rewardsData && !rewardsData.error;
   const gone = (l: Leaderboard) => listLoaded && !rewards.some((r) => r.id === l.reward_id);
   const taken = new Set((lists ?? []).map((l) => l.reward_id));
-
-  const create = async () => {
-    if (!creating) return;
-    const reward = rewards.find((r) => r.id === creating.rewardId);
-    if (!creating.title.trim() || !reward) return;
-    const result = await apiPost<{ leaderboard: Leaderboard }>('/leaderboards', { title: creating.title.trim(), reward });
-    if (!result) { toast.error('Nicht angelegt – gibt es den Namen oder die Belohnung schon?'); return; }
-    toast.success(`Bestenliste „${result.leaderboard.title}“ angelegt`);
-    setCreating(null);
-    refetchLists();
-  };
 
   const open = (lists ?? []).find((l) => l.key === openKey) ?? null;
 
@@ -45,7 +35,7 @@ export default function LeaderboardsPanel() {
     <div className="panel card-slim rewards">
       <div className="card-line card-wrap">
         <p className="dialog-hint" style={{ margin: 0 }}>Jede Liste zählt die Einlösungen einer Belohnung. Die Overlays dazu stehen unter Overlays, je Liste eine Bestenliste und ein Rangwechsel.</p>
-        <button type="button" className="card-primary" onClick={() => setCreating({ title: '', rewardId: '' })} disabled={!listLoaded} title={listLoaded ? undefined : 'Mit Twitch verbinden, um eine Liste anzulegen'}>+ Bestenliste</button>
+        <button type="button" className="card-primary" onClick={() => setPath(true)} disabled={!listLoaded} title={listLoaded ? undefined : 'Mit Twitch verbinden, um eine Liste anzulegen'}>+ Bestenliste</button>
       </div>
       {!listLoaded && <p className="dialog-hint" style={{ margin: 0 }}>Twitch ist nicht verbunden – Listen anlegen und Belohnungen wählen geht erst dann.</p>}
       {lists && lists.length === 0 && <p className="dialog-empty">Noch keine Bestenliste. Lege eine an und wähle die Belohnung, die zählen soll.</p>}
@@ -63,29 +53,7 @@ export default function LeaderboardsPanel() {
         ))}
       </section>
 
-      {creating && (
-        <Dialog
-          title="Bestenliste anlegen"
-          sentence="Ein Name für die Liste und die Belohnung in Twitch, deren Einlösungen zählen."
-          onClose={() => setCreating(null)}
-          width={520}
-          footer={<>
-            <button type="button" className="card-secondary" onClick={() => setCreating(null)}>Abbrechen</button>
-            <button type="button" className="card-primary" onClick={create} disabled={!creating.title.trim() || !creating.rewardId}>Anlegen</button>
-          </>}
-        >
-          <div className="dialog-grid">
-            <div className="dialog-field"><label htmlFor="lb-title">Name</label><input id="lb-title" type="text" maxLength={45} value={creating.title} onChange={(e) => setCreating({ ...creating, title: e.target.value })} autoFocus /></div>
-            <div className="dialog-field">
-              <label htmlFor="lb-reward">Belohnung</label>
-              <select id="lb-reward" value={creating.rewardId} onChange={(e) => setCreating({ ...creating, rewardId: e.target.value })}>
-                <option value="">{rewards.length === 0 ? 'Keine Belohnungen in Twitch' : 'Belohnung wählen …'}</option>
-                {rewards.map((r) => <option key={r.id} value={r.id} disabled={taken.has(r.id)}>{r.title}{taken.has(r.id) ? ' (hat schon eine Liste)' : ''}</option>)}
-              </select>
-            </div>
-          </div>
-        </Dialog>
-      )}
+      {path && <LeaderboardQuestPath taken={taken} onClose={() => setPath(false)} onCreated={refetchLists} />}
 
       {open && (
         <ListDialog

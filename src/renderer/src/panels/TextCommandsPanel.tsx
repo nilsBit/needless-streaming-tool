@@ -3,6 +3,7 @@ import { apiDelete, apiFetch, apiGet, apiPost, useApi } from '../hooks/useApi';
 import { useToast } from '../contexts/ToastContext';
 import EmptyState from '../components/ux/EmptyState';
 import Dialog from '../components/ux/Dialog';
+import CommandQuestPath from '../components/quests/paths/CommandQuestPath';
 import SearchField, { matchesSearch } from '../components/ux/SearchField';
 
 // "Befehle" under Chat & Bot: one list for everything the streamer maintains —
@@ -136,8 +137,8 @@ export default function TextCommandsPanel() {
     { kind: 'lookup', title: 'Aus der Welt nachschlagen', rows: shown.filter((r) => r.kind === 'lookup') },
   ];
 
-  const openNew = (kind: Kind, trigger = '') =>
-    setDraft({ kind, id: null, trigger, response: '', art: arten?.[0] ?? '', cooldown_seconds: 30, description: '', aliases: [], originalTrigger: null });
+  // New commands are made on a Quest-Pfad; the dialog below stays for editing.
+  const [path, setPath] = useState<{ trigger?: string } | null>(null);
   const openEdit = (row: Row) =>
     setDraft({ kind: row.kind, id: row.id, trigger: row.trigger, response: row.response, art: row.art, cooldown_seconds: row.cooldown, description: row.stored ? row.sentence : '', aliases: row.aliases, originalTrigger: row.trigger });
   const close = () => { setDraft(null); setNewAlias(''); };
@@ -241,7 +242,7 @@ export default function TextCommandsPanel() {
         </div>
         <div className="card-row card-wrap">
           {rows.length > 0 && <SearchField value={search} onChange={setSearch} label="Befehle suchen" />}
-          <button type="button" className="card-primary" onClick={() => openNew('text')}>+ Neuer Befehl</button>
+          <button type="button" className="card-primary" onClick={() => setPath({})}>+ Neuer Befehl</button>
         </div>
       </div>
 
@@ -250,7 +251,7 @@ export default function TextCommandsPanel() {
           <EmptyState size="compact" icon="✍️" title="Noch keine eigenen Befehle" description="Womit fängst du an? Ein Klick legt den Befehl an, den Text schreibst du." />
           <div className="card-row card-wrap">
             {SUGGESTIONS.map((s) => (
-              <button key={s.trigger} type="button" className="card-secondary" title={s.hint} onClick={() => openNew('text', s.trigger)}>{s.trigger}</button>
+              <button key={s.trigger} type="button" className="card-secondary" title={s.hint} onClick={() => setPath({ trigger: s.trigger })}>{s.trigger}</button>
             ))}
           </div>
         </>
@@ -308,6 +309,7 @@ export default function TextCommandsPanel() {
         </Dialog>
       )}
 
+      {path && <CommandQuestPath initialTrigger={path.trigger} taken={[...rows.map((r) => r.trigger), ...Object.keys(list?.aliases ?? {})]} onClose={() => setPath(null)} onCreated={refetchAll} />}
       {draft && (
         <Dialog
           title={draft.id === null ? 'Neuer Befehl' : `${draft.originalTrigger} bearbeiten`}

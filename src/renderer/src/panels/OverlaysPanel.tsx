@@ -3,6 +3,7 @@ import { useApi, apiPost, apiFetch, getServerPort } from '../hooks/useApi';
 import { useToast } from '../contexts/ToastContext';
 import { useWebSocket } from '../hooks/useWebSocket';
 import Dialog from '../components/ux/Dialog';
+import OverlayQuestPath from '../components/quests/paths/OverlayQuestPath';
 import { useVisibleInterval } from '../hooks/useVisibleInterval';
 import SearchField, { matchesSearch } from '../components/ux/SearchField';
 import { useFeatures } from '../contexts/FeaturesContext';
@@ -71,6 +72,8 @@ export default function OverlaysPanel() {
   const [selectedName, setSelectedName] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [creating, setCreating] = useState(false);
+  // Into OBS on a Quest-Pfad: from the list, or with the overlay that is open.
+  const [placing, setPlacing] = useState<{ initial?: string } | null>(null);
   const [newName, setNewName] = useState('');
   const [uploadMode, setUploadMode] = useState<'template' | 'file'>('template');
   const [busy, setBusy] = useState(false);
@@ -198,6 +201,7 @@ export default function OverlaysPanel() {
     <div className="panel ovl">
       <div className="ovl-layout">
         <div className="ovl-list" aria-label="Alle Overlays">
+          <button type="button" className="card-primary" onClick={() => setPlacing({})}>Overlay ins Bild bringen</button>
           <SearchField value={search} onChange={setSearch} label="Overlays suchen" width={260} />
           {groups.length === 0 && <p className="dialog-empty">Kein Overlay passt zu „{search.trim()}“.</p>}
           {groups.map((g) => (
@@ -265,7 +269,8 @@ export default function OverlaysPanel() {
             </div>
 
             <div className="card-row card-wrap ovl-actions">
-              <button type="button" className="card-primary" onClick={() => openLarge(selected)}>Groß im Browser ansehen</button>
+              {selected.builtin && <button type="button" className="card-primary" onClick={() => setPlacing({ initial: selected.name })}>Ins Bild bringen</button>}
+              <button type="button" className={selected.builtin ? 'card-secondary' : 'card-primary'} onClick={() => openLarge(selected)}>Groß im Browser ansehen</button>
               {TESTABLE.has(selected.name) && <button type="button" className="card-secondary" onClick={() => testOnStream(selected)}>Im Stream testen</button>}
               <button type="button" className="card-link" onClick={() => openEditor(selected)}>HTML bearbeiten</button>
               {selected.builtin && selected.customizedBy.includes('html') && <button type="button" className="card-link" onClick={() => resetBuiltin(selected)}>HTML zurücksetzen</button>}
@@ -322,6 +327,7 @@ export default function OverlaysPanel() {
           <textarea className="ovl-editor" value={editor.loading ? 'Lade …' : editor.html} onChange={(e) => setEditor({ ...editor, html: e.target.value })} disabled={editor.loading || editor.saving} spellCheck={false} />
         </Dialog>
       )}
+      {placing && <OverlayQuestPath overlays={entries} initial={placing.initial} onClose={() => setPlacing(null)} onPlaced={refetchPlacement} />}
     </div>
   );
 }
