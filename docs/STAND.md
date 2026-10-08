@@ -175,6 +175,16 @@ braucht den Bot.
   über die ID (`twitch_reward_actions`, Schema v30), Dashboard-Belohnungen nur zum Ansehen und
   weiter über den Namen. Schlägt die Aktion fehl, wird die Einlösung storniert (Punkte zurück).
   Tests gegen einen Helix-Stub (`NST_HELIX_URL`, nur `127.0.0.1`).
+- **Leistung (08.10.)**, weil das Tool neben Stream, Spiel und Musik läuft. Gemessen auf dem
+  Mac, Overlays in einem unsichtbaren Chrome in 1920×1080 (gezählt: Bilder pro Sekunde, die eine
+  Browserquelle an OBS gibt). Musik-Overlay mit Song 60 → 8, Ziel mit Uhr 60 → 2,8, Fortschritt
+  mit Uhr 24 + Neuaufbau je Sekunde → 0,2. OBS-Abfragen werden zwischengespeichert, bis OBS eine
+  Änderung meldet (vorher 100+ Anfragen je „Bereit?“-Prüfung); OBS geschlossen: Versuche 5 → 60 s
+  auseinander. Folge-Modus 1 s nur, wenn es etwas zu folgen gibt. Fenster: eine Verbindung statt
+  ~11, keine Abfragen, solange es verborgen ist. Musik: Cover nur bei neuem Song (Windows), nur
+  laufende Player fragen, nicht blockierend (Mac). EventSub verbindet nach „Trennen“ nicht mehr
+  von selbst neu. Leerlauf auf dem Mac: 0,57 % → 0,36 % eines Kerns. **Unter Windows mit OBS noch
+  nicht nachgemessen.**
 - **Noch für Nils:** einmal neu mit Twitch verbinden (neue Rechte `moderator:read:chatters`
   und `channel:manage:redemptions`), eine Belohnung unter Chat & Bot → Kanalpunkte anlegen und
   einlösen, im nächsten Stream prüfen, ob Zuschauen, Chat und
