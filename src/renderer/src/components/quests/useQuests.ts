@@ -42,7 +42,7 @@ export interface QuestOverview {
 export function useQuests() {
   const { data, refetch } = useApi<QuestOverview>('/quests');
   useWebSocket((event) => {
-    if (event === 'quest-completed' || event === 'features-changed') refetch();
+    if (event === 'quest-completed' || event === 'features-changed' || event === 'overlay-ready') refetch();
   });
   return { quests: data, refetch };
 }

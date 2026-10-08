@@ -10,14 +10,9 @@ import TextCommandsPanel from './panels/TextCommandsPanel';
 import ChatBotSettings from './components/settings/ChatBotSettings';
 import TryCommandsPanel from './panels/TryCommandsPanel';
 import OverlaysPanel from './panels/OverlaysPanel';
-import AppearancePanel from './panels/AppearancePanel';
-import AlertSettings from './components/AlertSettings';
-import MilestonesPanel from './panels/MilestonesPanel';
-import ObsPanel from './panels/ObsPanel';
 import ClipsPanel from './panels/ClipsPanel';
 import AutoClipsSettings from './components/settings/AutoClipsSettings';
 import StatsPanel from './panels/StatsPanel';
-import LeaderboardsPanel from './panels/LeaderboardsPanel';
 import PointsPanel from './panels/PointsPanel';
 import ChannelRewardsPanel from './panels/ChannelRewardsPanel';
 import QuestsPanel from './panels/QuestsPanel';
@@ -42,14 +37,9 @@ export const PANEL_REGISTRY: Record<PanelKey, React.ComponentType> = {
   chatbot: ChatBotSettings,
   trycommands: TryCommandsPanel,
   overlays: OverlaysPanel,
-  appearance: AppearancePanel,
-  alerts: AlertSettings,
-  milestones: MilestonesPanel,
-  obs: ObsPanel,
   clips: ClipsPanel,
   autoclips: AutoClipsSettings,
   stats: StatsPanel,
-  leaderboards: LeaderboardsPanel,
   points: PointsPanel,
   channelrewards: ChannelRewardsPanel,
   quests: QuestsPanel,

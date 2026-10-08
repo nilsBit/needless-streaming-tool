@@ -282,38 +282,88 @@ body {
 
 /* "Overlays": list on the left, the chosen overlay on the right */
 .ovl { gap: 16px; }
-.ovl-layout { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
-.ovl-list { flex: 1 1 260px; max-width: 380px; display: flex; flex-direction: column; gap: 12px; }
-.ovl-group { display: flex; flex-direction: column; gap: 4px; }
-.ovl-row { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid var(--border-subtle); border-radius: 6px; background: none; color: var(--text-secondary); font: inherit; text-align: left; cursor: pointer; }
-.ovl-row:hover { background: var(--bg-hover); border-color: var(--border); }
-.ovl-row.active { border-color: var(--accent); background: #221a12; color: var(--text); }
-.ovl-row.active .ovl-row-label { font-weight: 600; }
-.ovl-dot { width: 8px; height: 8px; border-radius: 50%; background: #555; flex: none; }
-.ovl-dot.on { background: #4ade80; }
-.ovl-row-label { flex: 1; min-width: 0; }
-.ovl-row-short { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 45%; }
+.ovl-group { display: flex; flex-direction: column; gap: 8px; }
 .ovl-add { border-style: dashed; color: var(--text-secondary); }
-.ovl-detail { flex: 2 1 420px; min-width: 0; border: 1px solid var(--border); border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
-.panel h2.ovl-title { display: block; font-size: 20px; font-weight: 700; }
-.ovl-sentence { margin-top: 4px; color: var(--text-secondary); }
-.ovl-preview { background: repeating-conic-gradient(#222222 0 25%, #2c2c2c 0 50%) 0 0 / 20px 20px; border: 1px solid var(--border); border-radius: 6px; display: flex; align-items: center; justify-content: center; padding: 12px; box-sizing: border-box; overflow: hidden; }
+/* .panel h2 is hidden app-wide; the workshop's name is not. */
+.ovl .ovl-title { display: block; font-size: 20px; margin: 0; }
+.ovl-sentence { margin: 0; color: var(--text-secondary); }
+.ovl-preview { background: repeating-conic-gradient(#222222 0 25%, #2c2c2c 0 50%) 0 0 / 20px 20px; border: 1px solid var(--border); border-radius: 10px; display: flex; align-items: center; justify-content: center; padding: 12px; box-sizing: border-box; overflow: hidden; }
 .ovl-preview-frame { overflow: hidden; flex: none; }
 .ovl-chip { padding: 4px 10px; border-radius: 999px; background: var(--border-subtle); color: var(--text-secondary); font-size: 12px; white-space: nowrap; }
 .ovl-chip.on { background: #15241a; color: #4ade80; }
 .ovl-chip.warm { background: #2a1f12; color: var(--accent); }
-.ovl-settings { display: flex; flex-direction: column; gap: 8px; }
-.ovl-settings-row { display: flex; flex-wrap: wrap; gap: 12px 24px; }
-.ovl-settings-item { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; flex: 1 1 200px; }
+/* Overview: the collection and the cards (08.10., A + B) */
+.ovl-collection { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 14px 18px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg-header); }
+.ovl-collection-icon { font-size: 26px; }
+.ovl-collection-text { flex: 1 1 240px; display: flex; flex-direction: column; gap: 6px; }
+.ovl-bar { display: block; height: 8px; border-radius: 8px; background: #2a2a2a; overflow: hidden; }
+.ovl-bar > span { display: block; height: 100%; background: var(--accent); transition: width .5s; }
+.ovl-collection-xp { color: #c9a97a; font-size: 13px; }
+.ovl-style-btn { display: inline-flex; align-items: center; gap: 8px; }
+.ovl-figma-chip { align-self: flex-start; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: #2a2142; color: #c7b8ff; }
+.ovl-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+.ovl-card { display: flex; flex-direction: column; padding: 0; text-align: left; border: 1.5px solid var(--border-subtle); border-radius: 12px; background: var(--bg-header); color: var(--text); font: inherit; overflow: hidden; cursor: pointer; }
+.ovl-card:hover { border-color: var(--border-strong); }
+.ovl-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ovl-card.ready { border-color: #1f4d2e; background: #152018; box-shadow: 0 8px 24px rgba(74,222,128,.08); }
+.ovl-card-art { height: 76px; display: flex; align-items: center; justify-content: center; font-size: 30px; background: repeating-conic-gradient(#202020 0% 25%, #1c1c1c 0% 50%) 0 0 / 18px 18px; border-bottom: 1px solid var(--border-subtle); }
+.ovl-card-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.ovl-card-body strong { font-size: 15px; }
+.ovl-card-progress { display: flex; align-items: center; gap: 8px; }
+.ovl-card-marks { display: flex; gap: 5px; }
+.ovl-card-marks > span { width: 22px; height: 6px; border-radius: 6px; background: #3a3a3a; }
+.ovl-card-marks > span.on { background: var(--accent); }
+.ovl-card-marks > span.ready { background: #4ade80; }
+.ovl-card-badge { font-size: 12px; font-weight: 700; color: var(--muted); }
+.ovl-card-badge.ready { color: #4ade80; }
+/* Workshop: preview left, the steps right */
+.ovl-work-head { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.ovl-work-icon { font-size: 22px; }
+.ovl-badge { padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; color: var(--accent); background: #2a1d12; }
+.ovl-badge.ready { color: #4ade80; background: #13261a; }
+.ovl-more { position: relative; }
+.ovl-more-menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 30; min-width: 220px; display: flex; flex-direction: column; padding: 6px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-header); box-shadow: 0 12px 32px rgba(0,0,0,.4); }
+.ovl-more-menu button { min-height: 40px; padding: 8px 10px; border: none; border-radius: 6px; background: none; color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+.ovl-more-menu button:hover, .ovl-more-menu button:focus-visible { background: var(--bg-hover); }
+.ovl-work { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
+.ovl-work-left { flex: 1 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 8px; position: sticky; top: 0; }
+.ovl-work-right { flex: 1.15 1 440px; min-width: 0; border: 1px solid var(--border); border-radius: 12px; background: var(--bg-header); padding: 16px 18px; display: flex; flex-direction: column; gap: 16px; }
+.ovl-style-preview { display: flex; flex-direction: column; gap: 4px; }
+.ovl-steps-head { display: flex; flex-direction: column; gap: 8px; padding-bottom: 12px; border-bottom: 1px solid var(--border-subtle); }
+.ovl-kicker { font-size: 12px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); }
+.ovl-steps { display: flex; flex-wrap: wrap; gap: 8px; align-items: stretch; }
+.ovl-step { flex: 1 1 auto; min-height: 44px; padding: 6px 10px; white-space: nowrap; border-radius: 8px; border: 1.5px solid var(--border-subtle); background: var(--bg-panel); color: var(--text-secondary); font: inherit; font-weight: 600; cursor: pointer; }
+.ovl-step.done { border-color: #1f4d2e; background: #13261a; color: #a7f3c0; }
+.ovl-step.on { border-color: var(--accent); background: #221a12; color: var(--text); box-shadow: inset 0 -3px 0 var(--accent); }
+.ovl-step.done.on { color: #a7f3c0; }
+.ovl-step:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ovl-step-mark { display: inline-block; min-width: 1em; }
+.ovl-steps-divider { width: 1px; background: var(--border-subtle); margin: 4px 2px; }
+.ovl-step.optional { flex: 0 0 auto; border-style: dashed; border-color: var(--border); background: transparent; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; line-height: 1.2; }
+.ovl-step.optional small { font-size: 11px; font-weight: 500; color: var(--muted); }
+.ovl-step.optional.on { border-color: var(--accent); background: #221a12; }
+.ovl-work-body { display: flex; flex-direction: column; gap: 14px; }
+.ovl-work-body > .panel { border: none; padding: 0; background: none; overflow: visible; }
+.ovl-next { align-self: flex-start; }
+.ovl-plain { margin: 0; color: var(--text-secondary); }
+.ovl-live-note { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: 10px; background: #18202a; border: 1px solid #2a3a4f; color: #c9dcf2; }
+.ovl-scene-picks { display: flex; flex-wrap: wrap; gap: 8px; }
+.ovl-scene-pick { min-height: 44px; padding: 0 16px; border-radius: 10px; border: 1.5px solid var(--border-subtle); background: var(--bg-panel); color: var(--text); font: inherit; cursor: pointer; }
+.ovl-scene-pick.on { border-color: var(--accent); background: #231a12; }
+.ovl-address { padding-top: 12px; border-top: 1px solid var(--border-subtle); }
 .ovl-obs-card { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 10px; }
-.ovl-obs-card.todo { border: 2px solid var(--accent); background: rgba(230,126,34,0.07); }
 .ovl-obs-card.done { border-color: #1f4d2e; background: #122018; }
-.ovl-obs-text { flex: 1 1 260px; display: flex; flex-direction: column; gap: 2px; min-width: 0; color: var(--text-secondary); font-size: 13px; }
+.ovl-obs-text { flex: 1 1 260px; display: flex; flex-direction: column; gap: 4px; min-width: 0; color: var(--text-secondary); font-size: 13px; }
 .ovl-obs-text strong { color: var(--text); font-size: 14px; }
 .ovl-obs-card.done .ovl-obs-text strong { color: #4ade80; }
-.ovl-scene { padding: 4px 10px; border: 1px solid var(--border); border-radius: 999px; color: var(--text-secondary); font-size: 12px; }
+.ovl-scene { display: inline-block; margin-right: 4px; padding: 2px 10px; border: 1px solid var(--border); border-radius: 999px; color: var(--text-secondary); font-size: 12px; }
 .ovl-url { flex: 1 1 260px; min-width: 0; padding: 12px; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 6px; color: var(--text-secondary); font-size: 13px; overflow-wrap: anywhere; }
-.ovl-actions { padding-top: 12px; border-top: 1px solid var(--border-subtle); }
+.ovl-look { display: flex; flex-direction: column; gap: 14px; }
+.ovl-look-choice { display: flex; flex-wrap: wrap; gap: 10px; }
+.ovl-look-card { flex: 1 1 180px; display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; text-align: left; border-radius: 10px; border: 1.5px solid var(--border-subtle); background: var(--bg-panel); color: var(--text); font: inherit; cursor: pointer; }
+.ovl-look-card span { color: var(--muted); font-size: 13px; }
+.ovl-look-card.active { border-color: var(--accent); background: #221a12; }
+.ovl-moment-icon { font-size: 54px; animation: quest-pop .7s ease-out; }
 .ovl-editor { width: 100%; min-height: 420px; box-sizing: border-box; padding: 12px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font: 13px/1.5 ui-monospace, 'JetBrains Mono', monospace; resize: vertical; }
 
 /* "Alerts": a card per occasion with the Tafel as preview */

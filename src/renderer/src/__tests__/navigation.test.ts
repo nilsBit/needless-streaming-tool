@@ -67,7 +67,8 @@ describe('navigation', () => {
     // A stored 'start' from the first build of the shell lands on Im Stream too.
     expect(findArea('start').key).toBe('stream');
     const overlays = findArea('overlays');
-    expect(findSubTab(overlays, 'alerts').key).toBe('alerts');
+    // Alerts was a sub tab until 08.10.; it is an overlay's workshop now.
+    expect(findSubTab(overlays, 'alerts').key).toBe('overlays');
     expect(findSubTab(overlays, 'nope').key).toBe(overlays.subTabs[0].key);
     expect(findSubTab(overlays, undefined).key).toBe(overlays.subTabs[0].key);
   });
@@ -85,7 +86,7 @@ describe('navigation', () => {
     expect(few.map((a) => a.key)).toEqual(['stream', 'chat', 'overlays', 'after', 'quests', 'settings', 'help']);
     // Im Stream keeps its place for the moment card, with no card panel left.
     expect(few.find((a) => a.key === 'stream')!.subTabs[0].panels).toEqual([]);
-    expect(few.find((a) => a.key === 'overlays')!.subTabs.map((t) => t.key)).toEqual(['overlays', 'alerts', 'aussehen']);
+    expect(few.find((a) => a.key === 'overlays')!.subTabs.map((t) => t.key)).toEqual(['overlays']);
     expect(few.find((a) => a.key === 'after')!.subTabs.map((t) => t.key)).toEqual(['content', 'statistik']);
     expect(few.find((a) => a.key === 'after')!.subTabs[0].panels).toEqual(['clips']);
 

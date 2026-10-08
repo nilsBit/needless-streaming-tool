@@ -36,7 +36,7 @@ export default function LeaderboardsPanel() {
   return (
     <div className="panel card-slim rewards">
       <div className="card-line card-wrap">
-        <p className="dialog-hint" style={{ margin: 0 }}>Jede Liste zählt die Einlösungen einer Belohnung. Die Overlays dazu stehen unter Overlays, je Liste eine Bestenliste und ein Rangwechsel.</p>
+        <p className="dialog-hint" style={{ margin: 0 }}>Jede Liste zählt die Einlösungen einer Belohnung. Bestenliste und Rangwechsel zeigen alle Listen – eine Adresse für alle.</p>
         <button type="button" className="card-primary" onClick={() => setPath(true)} disabled={!listLoaded} title={listLoaded ? undefined : 'Mit Twitch verbinden, um eine Liste anzulegen'}>+ Bestenliste</button>
       </div>
       {!listLoaded && <p className="dialog-hint" style={{ margin: 0 }}>Twitch ist nicht verbunden – Listen anlegen und Belohnungen wählen geht erst dann.</p>}

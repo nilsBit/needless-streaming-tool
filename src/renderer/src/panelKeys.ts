@@ -16,17 +16,13 @@ export const PANEL_KEYS = [
   'points',
   'channelrewards',
   'quests',
-  // Overlays & Alerts
+  // Overlays & Alerts — alerts, milestones, leaderboards and the style for
+  // all live in the overlay workshop, not as panels of their own (08.10.)
   'overlays',
-  'appearance',
-  'alerts',
-  'milestones',
-  'obs',
   // Nach dem Stream
   'clips',
   'autoclips',
   'stats',
-  'leaderboards',
   // Einstellungen
   'settings-connections',
   'settings-app',

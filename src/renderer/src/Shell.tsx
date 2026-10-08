@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { visibleNavigation, type Area, type AreaKey } from './navigation';
+import { OVERLAY_OF_OLD_TAB, visibleNavigation, type Area, type AreaKey } from './navigation';
+import { openAt } from './components/ux/openAt';
 import { NavigationProvider, type NavTarget } from './NavigationContext';
 import { useFeatures } from './contexts/FeaturesContext';
 import PageHeader from './components/ux/PageHeader';
@@ -64,6 +65,13 @@ export default function Shell() {
   const hasTabRow = area.subTabs.length > 1;
 
   const go = useCallback((target: NavTarget) => {
+    // An old sub tab of Overlays & Alerts opens the workshop it became.
+    const overlay = target.area === 'overlays' && target.subTab ? OVERLAY_OF_OLD_TAB[target.subTab] : undefined;
+    if (overlay) {
+      setNav({ area: 'overlays', subTab: 'overlays' });
+      openAt('overlay', overlay);
+      return;
+    }
     setNav({ area: target.area, subTab: target.subTab ?? null });
   }, []);
   const goSubTab = (key: string) => setNav({ area: area.key, subTab: key });

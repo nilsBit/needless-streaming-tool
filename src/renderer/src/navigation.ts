@@ -46,14 +46,9 @@ export const PANEL_LABELS: Record<PanelKey, string> = {
   channelrewards: 'Kanalpunkte',
   quests: 'Quests',
   overlays: 'Overlays',
-  appearance: 'Aussehen',
-  alerts: 'Alerts',
-  milestones: 'Meilensteine',
-  obs: 'Szenen in OBS',
   clips: 'Content planen',
   autoclips: 'Von selbst merken',
   stats: 'Statistik',
-  leaderboards: 'Bestenlisten',
   'settings-connections': 'Verbindungen',
   'settings-app': 'Programm',
   hotkeys: 'Tastenkürzel',
@@ -119,45 +114,15 @@ export const AREAS: readonly Area[] = [
   {
     key: 'overlays',
     label: 'Overlays & Alerts',
-    sentence: 'Hier richtest du ein, was im Stream-Bild erscheint und wie es aussieht. Ausgelöst wird es unter „Im Stream“.',
-    keywords: ['Overlays', 'Alerts', 'Meilensteine', 'Bestenlisten', 'Aussehen', 'Szenen in OBS'],
+    sentence: 'Hier richtest du ein, was in deinem Stream erscheint – einmal. Gesteuert wird live unter „Im Stream“.',
+    keywords: ['Overlays', 'Alerts', 'Meilensteine', 'Bestenlisten', 'Stil für alle', 'Start-, Pausen- und Endbild'],
     group: 'main',
     subTabs: [
       {
         key: 'overlays',
         label: 'Overlays',
-        sentence: 'Jedes Overlay ist eine Browserquelle in OBS mit einer eigenen Adresse. Links wählst du eines, rechts siehst du es und alles, was du damit tun kannst.',
+        sentence: 'Jedes Overlay wird in drei Schritten einsatzbereit: einstellen, in OBS anlegen, testen.',
         panels: ['overlays'],
-      },
-      {
-        key: 'alerts',
-        label: 'Alerts',
-        sentence: 'Die Tafel oben rechts, wenn jemand folgt, abonniert, raidet oder Bits gibt – Text und Ton je Anlass.',
-        panels: ['alerts'],
-      },
-      {
-        key: 'meilensteine',
-        label: 'Meilensteine',
-        sentence: 'Ziele, die du dir setzt und im Stream abhakst. Beim Abhaken feiert sie eine Einblendung.',
-        panels: ['milestones'],
-      },
-      {
-        key: 'bestenlisten',
-        label: 'Bestenlisten',
-        sentence: 'Wer eine Belohnung am öftesten einlöst. Jede Liste hängt an einer Belohnung in Twitch und läuft als Overlay im Stream.',
-        panels: ['leaderboards'],
-      },
-      {
-        key: 'aussehen',
-        label: 'Aussehen',
-        sentence: 'Ein Stil für alle Overlays auf einmal, Farben und Schrift, einzelne Overlays abweichend, Entwürfe aus Figma.',
-        panels: ['appearance'],
-      },
-      {
-        key: 'szenen',
-        label: 'Szenen in OBS',
-        sentence: 'Start-, Pausen- und Endbild als Szenen anlegen und Szenen per Kanalpunkt wechseln lassen.',
-        panels: ['obs'],
       },
     ],
   },
@@ -250,6 +215,15 @@ export function visibleNavigation(on: ReadonlySet<string>): Area[] {
     }))
     .filter((area) => area.subTabs.length > 0);
 }
+
+/**
+ * Overlays & Alerts had sub tabs until 08.10.; each became an overlay's
+ * workshop or "Stil für alle". A link to one of them (a quest, the readiness
+ * banner) opens that instead — `@style` is Stil für alle.
+ */
+export const OVERLAY_OF_OLD_TAB: Record<string, string> = {
+  alerts: 'alerts', meilensteine: 'milestone', bestenlisten: 'reward-leaderboard', szenen: 'start', aussehen: '@style',
+};
 
 /** The area for a stored key; the first area when the key is unknown. */
 export function findArea(key: string | null | undefined): Area {

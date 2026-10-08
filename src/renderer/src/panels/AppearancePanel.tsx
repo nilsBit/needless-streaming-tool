@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { lightUp, useOpenAt } from '../components/ux/openAt';
 import { useApi, apiPost, apiFetch } from '../hooks/useApi';
 import { useToast } from '../contexts/ToastContext';
 import FigmaDrafts, { type DesignStatus, type ImplementStatus } from '../components/FigmaDrafts';
 import { useWebSocket } from '../hooks/useWebSocket';
+import { sendPreview } from '../components/overlays/previewBus';
 
-// "Aussehen" under Overlays & Alerts: a style for every overlay at once, the
-// colours and fonts behind it, single overlays that differ, and the drafts
-// that come in from Figma. Moved here from the old Overlays panel's "Design"
-// and "Figma" tabs; the palette logic is unchanged.
+// "Stil für alle" in the overlay workshop (08.10.): a style for every overlay
+// at once, the colours and fonts behind it, and the drafts that come in from
+// Figma. An overlay's own look is set in its workshop under "Aussehen".
+// Every change goes to the previews at once (previewBus), saved a moment later.
 
 const FONT_OPTIONS = [
   { value: "'JetBrains Mono', ui-monospace, monospace", label: 'JetBrains Mono' },
@@ -72,33 +72,27 @@ function isThemeActive(theme: typeof THEME_PRESETS[0], global: Record<string, st
     && theme.values['--color-accent'] === global['--color-accent'];
 }
 
-interface CatalogEntry { name: string; label: string; builtin: boolean }
-
 export default function AppearancePanel() {
   const { toast } = useToast();
-  const { data: catalog } = useApi<CatalogEntry[]>('/overlays/catalog');
   const { data: designStatus, refetch: refetchDesign } = useApi<DesignStatus>('/design/status');
   const { data: implementStatus, refetch: refetchImplement } = useApi<ImplementStatus>('/dev/implement');
   const waitingDrafts = (designStatus?.drafts ?? []).filter((d) => !d.done).length;
 
   const [overlayConfig, setOverlayConfig] = useState<PaletteConfig>({ global: {}, overrides: {} });
-  const [selectedOverride, setSelectedOverride] = useState<string>('');
-  // "Aussehen ändern" on an overlay opens here with that overlay chosen.
-  useOpenAt('appearance', (name) => {
-    setSelectedOverride(name);
-    lightUp(() => document.querySelector('[data-section="einzeln"] select'));
-  });
 
   // The palette as the server last had it, and as it is here now. A save
   // posts the whole config, so it must never carry values the server has
   // since changed from elsewhere (a Figma draft) that weren't edited here.
   const syncedRef = useRef<PaletteConfig>({ global: {}, overrides: {} });
   const latestRef = useRef(overlayConfig);
-  useEffect(() => { latestRef.current = overlayConfig; }, [overlayConfig]);
+  // Until the server's config is here, the empty start must not reach the previews.
+  const loadedRef = useRef(false);
+  useEffect(() => { latestRef.current = overlayConfig; if (loadedRef.current) sendPreview(overlayConfig); }, [overlayConfig]);
 
   useEffect(() => {
     apiFetch('/overlay-config').then((r) => r.json()).then((config) => {
       syncedRef.current = config;
+      loadedRef.current = true;
       setOverlayConfig(config);
     }).catch(() => {});
   }, []);
@@ -134,20 +128,8 @@ export default function AppearancePanel() {
     setOverlayConfig((prev) => ({ ...prev, global: { ...prev.global, [key]: value } }));
     autoSave();
   };
-  const updateOverride = (overlay: string, key: string, value: string) => {
-    setOverlayConfig((prev) => ({ ...prev, overrides: { ...prev.overrides, [overlay]: { ...(prev.overrides[overlay] || {}), [key]: value } } }));
-    autoSave();
-  };
-  const removeOverride = (overlay: string) => {
-    setOverlayConfig((prev) => {
-      const next = { ...prev, overrides: { ...prev.overrides } };
-      delete next.overrides[overlay];
-      return next;
-    });
-    autoSave();
-  };
   const resetConfig = async () => {
-    if (!window.confirm('Alle Farben, Schriften und Abweichungen einzelner Overlays zurücksetzen?')) return;
+    if (!window.confirm('Alle Farben und Schriften zurücksetzen – auch den eigenen Stil einzelner Overlays?')) return;
     try {
       cancelSave();
       await apiFetch('/overlay-config', { method: 'DELETE' });
@@ -189,12 +171,8 @@ export default function AppearancePanel() {
     if (importRef.current) importRef.current.value = '';
   };
 
-  const builtins = (catalog ?? []).filter((c) => c.builtin);
-  const overrideValue = (key: string, fallback: string) =>
-    overlayConfig.overrides[selectedOverride]?.[key] || overlayConfig.global[key] || fallback;
-
   return (
-    <div className="panel card-slim appearance">
+    <div className="appearance">
       <section className="appearance-section">
         <h3 className="dialog-section">Stil</h3>
         <p className="dialog-hint">Ein Stil färbt alle Overlays auf einmal um. „Kompendium“ ist der Standard.</p>
@@ -226,7 +204,7 @@ export default function AppearancePanel() {
 
       <section className="appearance-section">
         <h3 className="dialog-section">Farben und Schrift</h3>
-        <p className="dialog-hint">Gilt für alle Overlays zugleich. Änderungen werden von selbst gespeichert.</p>
+        <p className="dialog-hint">Gilt für alle Overlays, die keinen eigenen Stil haben. Die Vorschau zeigt jede Änderung sofort, gespeichert wird von selbst.</p>
         <div className="ov2-color-grid">
           {([
             ['--color-primary', 'Erste Farbe', '#f3ecdd'], ['--color-secondary', 'Zweite Farbe', '#a79f90'], ['--color-accent', 'Akzent', '#e0201b'],
@@ -264,31 +242,6 @@ export default function AppearancePanel() {
         </div>
       </section>
 
-      <section className="appearance-section" data-section="einzeln">
-        <h3 className="dialog-section">Einzelne Overlays</h3>
-        <p className="dialog-hint">Ein Overlay darf von den Farben oben abweichen. Es zeigt dann in der Vorschau keine Beispieldaten mehr, sondern sich selbst.</p>
-        <div className="card-row card-wrap">
-          <select className="card-select" aria-label="Overlay" value={selectedOverride} onChange={(e) => setSelectedOverride(e.target.value)}>
-            <option value="">Overlay wählen …</option>
-            {builtins.map((c) => (
-              <option key={c.name} value={c.name}>{c.label}{overlayConfig.overrides[c.name] ? ' · weicht ab' : ''}</option>
-            ))}
-          </select>
-          {selectedOverride && overlayConfig.overrides[selectedOverride] && (
-            <button type="button" className="card-link" onClick={() => removeOverride(selectedOverride)}>Abweichung entfernen</button>
-          )}
-        </div>
-        {selectedOverride && (
-          <div className="ov2-color-grid">
-            {([['--color-primary', 'Erste Farbe', '#f3ecdd'], ['--color-secondary', 'Zweite Farbe', '#a79f90'], ['--color-accent', 'Akzent', '#e0201b']] as const).map(([key, label, fallback]) => (
-              <div key={key} className="ov2-color-item">
-                <input type="color" aria-label={label} value={overrideValue(key, fallback)} onChange={(e) => updateOverride(selectedOverride, key, e.target.value)} />
-                <span>{label}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
 
       <section className="appearance-section">
         <h3 className="dialog-section">Entwürfe aus Figma{waitingDrafts > 0 ? ` · ${waitingDrafts} offen` : ''}</h3>
