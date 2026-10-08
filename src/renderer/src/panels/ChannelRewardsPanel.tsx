@@ -3,6 +3,10 @@ import { apiFetch, apiDelete, useApi } from '../hooks/useApi';
 import { useToast } from '../contexts/ToastContext';
 import Dialog from '../components/ux/Dialog';
 import SearchField, { matchesSearch } from '../components/ux/SearchField';
+import RewardSteps, { type Step } from '../components/rewards/RewardSteps';
+import RewardTemplates, { type RewardTemplate } from '../components/rewards/RewardTemplates';
+import { useFeatures } from '../contexts/FeaturesContext';
+import type { FeatureKey } from '../../../shared/features';
 
 type Action = 'roulette' | 'feature_request' | 'change_music' | 'scene' | 'alert';
 interface Reward {
@@ -27,18 +31,59 @@ const emptyDraft = (): Draft => ({ title: '', cost: 500, prompt: '', input_requi
 // Dashboard are shown read-only and keep working by their name.
 export default function ChannelRewardsPanel() {
   const { toast } = useToast();
+  const { isOn } = useFeatures();
   const [rewards, setRewards] = useState<Reward[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Listing needs only the read right; creating answers 401 until the login is renewed.
+  const [needsReconnect, setNeedsReconnect] = useState(false);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [search, setSearch] = useState('');
 
   const load = async () => {
     const res = await apiFetch('/channel-rewards');
     const body = await res.json().catch(() => ({}));
-    if (!res.ok) { setError(body.error ?? 'Twitch konnte nicht gefragt werden.'); setRewards([]); return; }
+    if (!res.ok) { setError(body.error ?? 'Twitch konnte nicht gefragt werden.'); setNeedsReconnect(res.status === 401 || res.status === 503); setRewards([]); return; }
     setError(null); setRewards(body);
   };
   useEffect(() => { void load(); }, []);
+
+  const reconnect = async () => {
+    try { await apiFetch('/auth/twitch/open', { method: 'POST' }); toast.success('Twitch ist im Browser offen – bestätigen, dann diese Seite neu öffnen.'); }
+    catch { toast.error('Twitch ließ sich nicht öffnen'); }
+  };
+
+  const applyTemplate = async (t: RewardTemplate) => {
+    const draft: Draft = { title: t.name, cost: t.cost, prompt: t.needsInput ? 'Schreib deine Idee dazu.' : '', input_required: !!t.needsInput, enabled: true, action: t.action, scene_name: null };
+    if (t.action === 'scene') { setDraft(draft); return; }
+    const res = await apiFetch('/channel-rewards', { method: 'POST', body: JSON.stringify(draft) });
+    if (res.status === 401) { setNeedsReconnect(true); toast.error('Dem Twitch-Login fehlt das Recht, Belohnungen anzulegen.'); return; }
+    if (!res.ok) { toast.error((await res.json().catch(() => ({}))).error ?? 'Nicht angelegt'); return; }
+    toast.success(`„${t.name}“ in Twitch angelegt`);
+    void load();
+  };
+
+  const ownCount = (rewards ?? []).filter((r) => r.manageable && r.enabled).length;
+  const steps: Step[] = [
+    {
+      title: 'Verbinden',
+      text: 'Das Tool braucht das Recht, in deinem Kanal Belohnungen anzulegen. Kanalpunkte gibt es mit Affiliate oder Partner.',
+      state: needsReconnect ? 'Recht fehlt – einmal neu verbinden' : error ? 'Twitch antwortet nicht' : 'Verbunden',
+      done: !needsReconnect && !error,
+      action: needsReconnect || error ? { label: 'Neu mit Twitch verbinden', onClick: reconnect } : undefined,
+    },
+    {
+      title: 'Belohnung anlegen',
+      text: 'Sie erscheint sofort bei deinen Zuschauern. Fang mit einer Vorlage an.',
+      state: ownCount ? `${ownCount} aus dem Tool an` : 'Noch keine aus dem Tool',
+      done: ownCount > 0,
+    },
+    {
+      title: 'Zuschauer lösen ein',
+      text: 'Im Kanalpunkte-Fenster unter dem Chat. Klappt die Aktion nicht, gibt es die Punkte zurück.',
+      state: ownCount ? 'Bereit' : 'Wartet auf Schritt 2',
+      done: ownCount > 0,
+    },
+  ];
 
   const shown = (rewards ?? []).filter((r) => matchesSearch(search, r.title, r.prompt, r.action ? ACTIONS[r.action] : '', r.by_name ? ACTIONS[r.by_name] : ''));
   const own = shown.filter((r) => r.manageable);
@@ -63,14 +108,25 @@ export default function ChannelRewardsPanel() {
 
   return (
     <div className="panel card-slim rewards">
+      <RewardSteps steps={steps} label="So laufen die Kanalpunkte" />
+
+      {needsReconnect && (
+        <div className="reward-banner" role="alert">
+          <span>Dem Twitch-Login fehlt das Recht, Belohnungen anzulegen. Ein Klick, dann bestätigst du bei Twitch.</span>
+          <button type="button" className="card-primary" onClick={reconnect}>Neu mit Twitch verbinden</button>
+        </div>
+      )}
+
+      <RewardTemplates unit="Kanalpunkte" existing={(rewards ?? []).map((r) => r.title)} isOn={(f) => isOn(f as FeatureKey)} disabled={!!error && !needsReconnect} madeLabel="gibt es schon" onUse={applyTemplate} />
+
       <div className="card-line card-wrap">
-        <p className="dialog-hint" style={{ margin: 0 }}>Kanalpunkte gibt es mit Affiliate oder Partner. Twitch lässt das Tool nur Belohnungen ändern, die es selbst angelegt hat.</p>
+        <div className="rewards-name">Deine Belohnungen in Twitch</div>
         <div className="card-row card-wrap">
           {(rewards?.length ?? 0) > 0 && <SearchField value={search} onChange={setSearch} label="Belohnungen suchen" />}
-          <button type="button" className="card-primary" onClick={() => setDraft(emptyDraft())} disabled={!!error}>+ Belohnung</button>
+          <button type="button" className="card-primary" onClick={() => setDraft(emptyDraft())} disabled={!!error && !needsReconnect}>+ Eigene Belohnung</button>
         </div>
       </div>
-      {error && <p className="dialog-hint" role="alert">{error}</p>}
+      {error && !needsReconnect && <p className="dialog-hint" role="alert">{error}</p>}
       {rewards && !error && rewards.length === 0 && <p className="dialog-empty">Noch keine Belohnung in deinem Kanal. Lege hier eine an – sie erscheint sofort bei den Zuschauern.</p>}
       {rewards && rewards.length > 0 && shown.length === 0 && <p className="dialog-empty">Keine Belohnung passt zu „{search.trim()}“.</p>}
 

@@ -367,4 +367,9 @@ describe('own points', () => {
       await request(app).post('/api/leaderboards').set(auth()).send({ title: 'Beitrag Stream', reward: { id: 'r1', title: 'Flex' } }).expect(400);
     });
   });
+  it('tells the page whether points flow now, and the channel to test with', async () => {
+    expect((await request(app).get('/api/points/status').set(auth()).expect(200)).body).toEqual({ live: false, channel: 'kanal' });
+    setLive(true, '2026-10-08T18:00:00Z');
+    expect((await request(app).get('/api/points/status').set(auth()).expect(200)).body.live).toBe(true);
+  });
 });

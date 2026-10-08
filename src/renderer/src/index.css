@@ -386,6 +386,39 @@ body {
 .setup-cards .s-card { margin: 0; }
 .s-card-note { color: var(--muted); font-weight: 400; font-size: 13px; }
 
+/* Punkte and Kanalpunkte, design B (08.10.): three steps, then templates */
+.reward-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 12px; }
+.reward-step { border: 1px solid var(--border); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 6px; background: var(--bg-panel); }
+.reward-step.waiting { border-color: var(--accent); }
+.reward-step-head { display: flex; align-items: center; gap: 10px; }
+.reward-step-n { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border); display: inline-flex; align-items: center; justify-content: center; font-weight: 700; color: var(--muted); flex: none; }
+.reward-step.waiting .reward-step-n { border-color: var(--accent); color: var(--accent); }
+.reward-step-title { font-weight: 700; color: var(--text); }
+.reward-step-text { font-size: 13px; color: var(--text-secondary); }
+.reward-step-state { font-size: 13px; font-weight: 600; color: #4caf50; }
+.reward-step.waiting .reward-step-state { color: var(--accent); }
+.reward-step-action { align-self: flex-start; margin-top: 4px; }
+.reward-templates { display: flex; flex-direction: column; gap: 10px; }
+.reward-templates-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px; }
+.reward-templates-head h3 { margin: 0; font-size: 15px; font-weight: 600; color: var(--text); }
+.reward-template-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr)); gap: 10px; }
+.reward-template { border: 1px solid var(--border); border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+.reward-template-name { font-weight: 600; color: var(--text); }
+.reward-template-does { font-size: 13px; color: var(--muted); flex: 1; }
+.reward-template-foot { display: flex; flex-direction: column; align-items: stretch; gap: 8px; }
+.reward-template-cost { font-weight: 700; color: var(--text); }
+.reward-template-cost span { font-weight: 400; font-size: 12px; color: var(--muted); }
+.reward-template-made { font-size: 13px; font-weight: 600; color: #4caf50; }
+.reward-template-use { color: var(--accent); border-color: var(--accent); width: 100%; }
+.reward-template-made { min-height: 44px; display: flex; align-items: center; }
+.reward-columns { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
+.reward-columns > .reward-main { flex: 999 1 420px; min-width: 0; }
+.reward-columns > .reward-side { flex: 1 1 280px; min-width: 0; }
+.reward-try { border: 1px dashed var(--accent); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.reward-try h3 { margin: 0; font-size: 15px; font-weight: 600; color: var(--text); }
+.reward-banner { padding: 14px 16px; border: 1px solid var(--accent); border-radius: 8px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.reward-banner span { flex: 1 1 320px; color: var(--text); }
+
 /* Einstellungen → Programm: what the stream can do, switched right here (08.10.) */
 .s-card-body.feat-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 20px 28px; padding: 16px; }
 .feat-group { display: flex; flex-direction: column; gap: 2px; min-width: 0; }

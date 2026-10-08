@@ -3,7 +3,8 @@ import { getPointsConfig, savePointsConfig } from '../points/config';
 import { adjustPoints, listViewers } from '../points/ledger';
 import { createPointReward, deletePointReward, listPointRewards, updatePointReward } from '../points/rewards';
 import { redeem, type RedeemRefusal } from '../points/redeem';
-import { pointBoardsChanged } from '../points/earn';
+import { isLive, pointBoardsChanged } from '../points/earn';
+import { getBotConfig } from '../bot/config';
 
 const router = Router();
 
@@ -18,6 +19,11 @@ router.put('/config', (req, res) => {
   const result = savePointsConfig(req.body);
   if ('error' in result) { res.status(400).json(result); return; }
   res.json(result.config);
+});
+
+/** For the steps on the Punkte page: whether points flow right now, and who the channel is (to test with). */
+router.get('/status', (_req, res) => {
+  res.json({ live: isLive(), channel: getBotConfig()?.channel?.toLowerCase() ?? null });
 });
 
 router.get('/viewers', (req, res) => {

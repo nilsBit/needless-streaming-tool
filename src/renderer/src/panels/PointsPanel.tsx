@@ -3,6 +3,11 @@ import { useApi, apiFetch, apiPost, apiDelete } from '../hooks/useApi';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { useToast } from '../contexts/ToastContext';
 import Dialog from '../components/ux/Dialog';
+import SearchField from '../components/ux/SearchField';
+import RewardSteps, { type Step } from '../components/rewards/RewardSteps';
+import RewardTemplates, { type RewardTemplate } from '../components/rewards/RewardTemplates';
+import { useFeatures } from '../contexts/FeaturesContext';
+import type { FeatureKey } from '../../../shared/features';
 
 interface Config {
   currency: string; watch_points: number; watch_minutes: number; chat_points: number;
@@ -35,38 +40,77 @@ const RATES: Array<[keyof Config, string, string]> = [
 const emptyReward = (): Omit<Reward, 'id'> => ({ name: '', cost: 100, action: 'alert', scene_name: null, needs_input: false, cooldown_seconds: 0, enabled: true });
 
 // "Punkte" under Chat & Bot: the tool's own points next to Twitch channel
-// points (spec 2026-10-08-eigene-punkte). How they are earned, what they buy,
-// and who has how many — with give, take and "Für jemanden einlösen".
+// points (spec 2026-10-08-eigene-punkte), laid out as design B (08.10.):
+// three steps that say where the streamer stands, templates to start from,
+// the rewards, how points are earned, who contributed and a corner to try
+// it out — with give, take and "Für jemanden einlösen" on each viewer.
 export default function PointsPanel() {
+  const { toast } = useToast();
+  const { isOn } = useFeatures();
   const { data: config, refetch: refetchConfig } = useApi<Config>('/points/config');
   const { data: rewards, refetch: refetchRewards } = useApi<Reward[]>('/points/rewards');
+  const { data: status } = useApi<{ live: boolean; channel: string | null }>('/points/status');
   const [editingConfig, setEditingConfig] = useState(false);
   const [editingReward, setEditingReward] = useState<(Omit<Reward, 'id'> & { id?: number }) | null>(null);
   const [openViewer, setOpenViewer] = useState<Viewer | null>(null);
+  const [tried, setTried] = useState<number | null>(null);
+  const [viewersKey, setViewersKey] = useState(0);
   const currency = config?.currency ?? 'Punkte';
+  const count = rewards?.filter((r) => r.enabled).length ?? 0;
+  const firstReward = rewards?.find((r) => r.enabled);
+
+  const applyTemplate = async (t: RewardTemplate) => {
+    const draft = { name: t.name, cost: t.cost, action: t.action, scene_name: null, needs_input: !!t.needsInput, cooldown_seconds: 0, enabled: true };
+    // A scene has to be chosen: the dialog opens filled in.
+    if (t.action === 'scene') { setEditingReward(draft); return; }
+    const res = await apiFetch('/points/rewards', { method: 'POST', body: JSON.stringify(draft) });
+    if (!res.ok) { toast.error(`Nicht angelegt – ${(await res.json().catch(() => ({}))).error ?? 'Fehler'}`); return; }
+    toast.success(`„${t.name}“ angelegt`);
+    refetchRewards();
+  };
+
+  const giveMyself = async () => {
+    if (!status?.channel) return;
+    const result = await apiPost<Viewer>(`/points/viewers/${encodeURIComponent(status.channel)}/adjust`, { amount: 500 });
+    if (!result) { toast.error('Nicht gegeben'); return; }
+    setTried(result.balance);
+    setViewersKey((k) => k + 1);
+  };
+
+  const steps: Step[] = [
+    {
+      title: 'Verdienen',
+      text: `Zuschauen, Chatten, Follow, Sub, Raid und Bits bringen ${currency} – nur, solange du live bist.`,
+      state: status?.live ? 'Läuft gerade – du bist live' : 'Läuft in deinem nächsten Stream',
+      done: true,
+      action: { label: 'Einstellen', onClick: () => setEditingConfig(true) },
+    },
+    {
+      title: 'Belohnungen anlegen',
+      text: 'Was es dafür gibt. Fang mit einer Vorlage an.',
+      state: count ? `${count} ${count === 1 ? 'Belohnung' : 'Belohnungen'} an` : 'Noch keine – unten eine Vorlage wählen',
+      done: count > 0,
+    },
+    {
+      title: 'Im Chat einlösen',
+      text: 'Zuschauer schreiben !einlösen Name. !belohnungen zeigt die Liste, !punkte den eigenen Stand.',
+      state: count ? 'Bereit' : 'Wartet auf Schritt 2',
+      done: count > 0,
+    },
+  ];
 
   return (
     <div className="panel card-slim rewards">
-      <p className="dialog-hint" style={{ margin: 0 }}>
-        Verdient wird nur, solange du live bist. Der Beitrag zählt alles je Verdiente und sinkt beim Ausgeben nicht – eingelöst wird im Chat mit !einlösen.
-      </p>
+      <RewardSteps steps={steps} label="So laufen die Punkte" />
 
-      <section className="card-line card-wrap" aria-label="Verdienen">
-        <div className="rewards-who">
-          <div className="rewards-name">Verdienen</div>
-          <div className="dialog-hint">
-            {config ? `${config.watch_points} je ${config.watch_minutes} Min. zuschauen · ${config.chat_points} je Nachricht · Follow ${config.follow_points} · Sub ${config.sub_points} · Raid ${config.raid_points} · 1 je ${config.bits_per_point} Bits` : '…'}
-          </div>
-        </div>
-        <button type="button" className="card-secondary" onClick={() => setEditingConfig(true)} disabled={!config}>Einstellen</button>
-      </section>
+      <RewardTemplates unit={currency} existing={(rewards ?? []).map((r) => r.name)} isOn={(f) => isOn(f as FeatureKey)} onUse={applyTemplate} />
 
-      <section aria-label="Belohnungen">
+      <section aria-label="Deine Belohnungen">
         <div className="card-line card-wrap">
-          <div className="rewards-name">Belohnungen</div>
-          <button type="button" className="card-primary" onClick={() => setEditingReward(emptyReward())}>+ Belohnung</button>
+          <div className="rewards-name">Deine Belohnungen</div>
+          <button type="button" className="card-primary" onClick={() => setEditingReward(emptyReward())}>+ Eigene Belohnung</button>
         </div>
-        {rewards && rewards.length === 0 && <p className="dialog-empty">Noch keine Belohnung. Lege eine an – der Chat sieht sie mit !belohnungen.</p>}
+        {rewards && rewards.length === 0 && <p className="dialog-empty">Noch keine. Eine Vorlage oben ist der schnellste Anfang.</p>}
         <div className="rewards-ranking">
           {(rewards ?? []).map((r) => (
             <div key={r.id} className="rewards-row">
@@ -81,7 +125,19 @@ export default function PointsPanel() {
         </div>
       </section>
 
-      <ViewerList currency={currency} onOpen={setOpenViewer} />
+      <div className="reward-columns">
+        <div className="reward-main"><ViewerList key={viewersKey} currency={currency} onOpen={setOpenViewer} /></div>
+        <aside className="reward-side reward-try" aria-label="Selbst ausprobieren">
+          <h3>Selbst ausprobieren</h3>
+          <p className="dialog-hint" style={{ margin: 0 }}>Gib dir {currency} und löse eine Belohnung im Chat ein – auch ohne live zu sein.</p>
+          <button type="button" className="card-primary" onClick={giveMyself} disabled={!status?.channel} title={status?.channel ? undefined : 'Erst mit Twitch verbinden'}>500 {currency} an dich</button>
+          {tried !== null && (
+            <p className="dialog-hint" role="status" style={{ margin: 0 }}>
+              Du hast jetzt {tried} {currency}. {firstReward ? <>Schreib im Chat: <code>!einlösen {firstReward.name}</code></> : 'Leg oben eine Belohnung an, dann schreib im Chat: !einlösen <Name>'}
+            </p>
+          )}
+        </aside>
+      </div>
 
       {editingConfig && config && <ConfigDialog config={config} onClose={() => setEditingConfig(false)} onSaved={refetchConfig} />}
       {editingReward && <RewardDialog reward={editingReward} currency={currency} onClose={() => setEditingReward(null)} onSaved={refetchRewards} />}
@@ -104,8 +160,8 @@ function ViewerList({ currency, onOpen }: { currency: string; onOpen: (v: Viewer
   return (
     <section aria-label="Zuschauer">
       <div className="card-line card-wrap" style={{ justifyContent: 'space-between' }}>
-        <div className="rewards-name">Zuschauer nach Beitrag</div>
-        <input type="text" placeholder="Zuschauer suchen" aria-label="Zuschauer suchen" value={search} onChange={(e) => setSearch(e.target.value)} style={{ flex: '0 0 220px', width: 220 }} />
+        <div className="rewards-name">Wer am meisten beiträgt</div>
+        <SearchField value={search} onChange={setSearch} label="Zuschauer suchen" width={220} />
       </div>
       {viewers && viewers.length === 0 && <p className="dialog-empty">{search.trim() ? 'Niemand passt zur Suche.' : `Noch hat niemand ${currency}. Sie kommen im nächsten Stream.`}</p>}
       <div className="rewards-ranking">

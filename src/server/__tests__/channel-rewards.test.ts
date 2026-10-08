@@ -29,7 +29,8 @@ function startStub(): Promise<number> {
       const url = new URL(req.url || '/', 'http://127.0.0.1');
       const body = raw ? JSON.parse(raw) : undefined;
       calls.push({ method: req.method ?? '', path: url.pathname, body });
-      const out = (r: StubReward) => { const { mine: _mine, ...rest } = r; return rest; };
+      // What Twitch answers: the reward without the stub's own `mine` flag.
+      const out = ({ id, title, cost, prompt, is_user_input_required, is_enabled }: StubReward) => ({ id, title, cost, prompt, is_user_input_required, is_enabled });
       if (url.pathname === '/users') return json({ data: [{ id: '42', login: 'kanal' }] });
       if (url.pathname === '/channel_points/custom_rewards/redemptions' && req.method === 'PATCH') return json({ data: [{ status: body?.status }] });
       if (url.pathname !== '/channel_points/custom_rewards') return json({ message: 'not found' }, 404);
