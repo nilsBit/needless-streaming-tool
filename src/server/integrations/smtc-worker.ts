@@ -40,13 +40,13 @@ function poll(): void {
       artist: String(session.media.artist || ''),
       source: String(session.sourceAppId || ''),
     };
-    if (session.media.thumbnail) {
-      data.artworkUrl = `data:image/png;base64,${Buffer.from(session.media.thumbnail).toString('base64')}`;
-    }
+    // Compared first: the cover is copied only when the song changed, not on
+    // every look (08.10.: it was base64-encoded every 3 s while music played).
     const key = `${data.title}|${data.artist}`;
     if (key === lastKey) return;
     lastKey = key;
-    parentPort!.postMessage({ type: 'update', data });
+    const thumbnail = session.media.thumbnail ? new Uint8Array(session.media.thumbnail) : undefined;
+    parentPort!.postMessage({ type: 'update', data, thumbnail }, thumbnail ? [thumbnail.buffer as ArrayBuffer] : []);
   } catch (e) {
     parentPort!.postMessage({ type: 'error', message: (e as Error).message });
   }

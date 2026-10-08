@@ -52,7 +52,7 @@ import { connectObs } from './obs/index';
 import { initAutoClips } from './auto-clips';
 import { initRewardLeaderboard, getTopRewards, boardTitle } from './reward-leaderboard';
 import { checkDatabase, healDatabase } from './api/notion-sync';
-import { startSMTC, getAutoDetectSetting } from './integrations/smtc';
+import { startSMTC, getAutoDetectSetting, currentSongArt } from './integrations/smtc';
 import { getDb } from './db/index';
 import { rateLimit, publicRateLimit } from './middleware/rate-limit';
 import { getBuiltinOverlaysDir, getUserDataPath } from './paths';
@@ -244,6 +244,16 @@ export function createApp(): express.Express {
 
   // The streamer's alert sounds — the Alerts overlay plays them as an alert appears.
   app.use('/public/alert-sound', express.static(ALERT_SOUND_DIR));
+
+  // The cover of the song playing now (Windows media session). The song carries
+  // this address with a version, so a new cover is a new address.
+  app.get('/public/song-art', (_req, res) => {
+    const art = currentSongArt();
+    if (!art) { res.status(404).end(); return; }
+    res.set('Content-Type', art.image[0] === 0xff ? 'image/jpeg' : 'image/png');
+    res.set('Cache-Control', 'public, max-age=86400');
+    res.send(art.image);
+  });
 
   app.get('/public/reward-stats/top', (req, res) => {
     const type = (req.query.type as string) || '';
