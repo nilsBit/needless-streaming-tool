@@ -66,7 +66,7 @@ Ziel: Im Stream sammeln Zuschauer Punkte, die App kann sie anzeigen, geben und n
 
 - `src/server/reward-leaderboard.ts`: Schlüssel `beitrag` und `beitrag-stream` lesen aus
   `viewer_points`; Rangwechsel nach jedem `credit`.
-- Alerts-Overlay: Karte für `punkte-einloesung`.
+- ~~Alerts-Overlay: Karte für `punkte-einloesung`.~~ In Stufe 2 erledigt über `reward-redeemed`.
 - Renderer: Unterreiter **Punkte** unter Chat & Bot (`navigation.ts`, Panel `points`) mit
   Einstellungen, Belohnungen (Dialog) und Zuschauern (Geben/Nehmen/Für jemanden einlösen).
 - `CONTEXT.md`, Hilfeseite, `docs/STAND.md`.

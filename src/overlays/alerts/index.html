@@ -165,10 +165,13 @@
           let extra = {};
           try { extra = JSON.parse(data.data || '{}'); } catch {}
           if (data.reward_type === 'roulette' || extra.leaderboard) break;
+          // Own points (2026-10-08) carry their currency and the reward's name; what the viewer typed comes along.
+          const own = extra.source === 'points';
           showAlert({
-            label: 'Kanalpunkte',
+            label: own ? (extra.currency || 'Punkte') : 'Kanalpunkte',
             who: data.user_name,
-            text: REWARDS[data.reward_type] || 'löst eine Belohnung ein.',
+            text: REWARDS[data.reward_type] || (own && extra.reward_title ? `löst „${extra.reward_title}“ ein.` : 'löst eine Belohnung ein.'),
+            message: own ? extra.message : undefined,
             kind: 'reward',
           });
           break;

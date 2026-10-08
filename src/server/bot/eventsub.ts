@@ -3,7 +3,8 @@ import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
 import { getBotConfig } from './config';
 import { triggerRoulette } from '../api/actions';
-import { changeScene, sceneMappingForRedemption, getCurrentScene } from '../obs/index';
+import { sceneMappingForRedemption } from '../obs/index';
+import { switchMappedScene } from '../reward-actions';
 import { countRedemption } from '../leaderboards';
 import { getClientId } from '../twitch-config';
 import { sendAlert } from './alerts';
@@ -12,7 +13,6 @@ import { onFollow, setLive } from '../points/earn';
 let ws: WebSocket | null = null;
 let sessionId: string | null = null;
 let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
-let sceneRevertTimer: ReturnType<typeof setTimeout> | null = null;
 
 const EVENTSUB_WS_URL = 'wss://eventsub.wss.twitch.tv/ws';
 
@@ -117,28 +117,10 @@ async function handleRedemption(event: Record<string, unknown>) {
   // able to put a desktop scene on stream (security review 2026-10-06, H5).
   const mapping = sceneMappingForRedemption(rewardTitle, rewardType, userInput);
   if (mapping) {
-    // Capture current scene before switching so we can revert to it
-    const previousScene = await getCurrentScene();
-    const sceneResult = await changeScene(mapping.scene_name);
-    if (sceneResult.success) {
-      console.log(`[EventSub] Scene changed to "${mapping.scene_name}" via mapping by ${userName}`);
-      // Auto-revert after duration: use per-mapping revert_scene, fallback to previous scene
-      if (mapping.duration_seconds && mapping.duration_seconds > 0) {
-        const revertTo = mapping.revert_scene || previousScene;
-        if (revertTo) {
-          if (sceneRevertTimer) clearTimeout(sceneRevertTimer);
-          sceneRevertTimer = setTimeout(async () => {
-            sceneRevertTimer = null;
-            const revertResult = await changeScene(revertTo);
-            if (revertResult.success) {
-              console.log(`[EventSub] Reverted to "${revertTo}" after ${mapping.duration_seconds}s`);
-            }
-          }, mapping.duration_seconds * 1000);
-        }
-      }
-    } else {
-      console.log(`[EventSub] Mapped scene change failed for "${mapping.scene_name}": ${sceneResult.error}`);
-    }
+    // The switch and the way back are shared with the Punkte-Belohnungen (reward-actions.ts).
+    const sceneResult = await switchMappedScene(mapping);
+    if (sceneResult.ok) console.log(`[EventSub] Scene changed to "${mapping.scene_name}" via mapping by ${userName}`);
+    else console.log(`[EventSub] Mapped scene change failed for "${mapping.scene_name}": ${sceneResult.reason}`);
   }
 }
 

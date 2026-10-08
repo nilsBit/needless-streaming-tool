@@ -88,8 +88,11 @@ Szene aus dem Zuschauertext (Sicherheits-Review 06.10., H5).
   (gesamt) und `?type=beitrag-stream` (dieser Stream). `getTopRewards` und
   `checkAndBroadcast` in `src/server/reward-leaderboard.ts` lesen für diese Schlüssel aus der
   Punkte-Tabelle statt aus `reward_stats`. Die Schlüssel sind für Bestenlisten reserviert.
-- Eine Einlösung mit Aktion „nur Alert“ (und jede andere) geht als Alert `punkte-einloesung`
-  ans Alerts-Overlay, mit Name, Belohnung und Text.
+- Eine Einlösung geht wie eine Twitch-Einlösung als `reward-redeemed` hinaus (Zeile in der
+  Warteschlange, Statistik, Auto-Clips) und trägt in `data` `source: 'points'`, die Währung und
+  den Namen der Belohnung. Das Alerts-Overlay zeigt dann die Währung statt „Kanalpunkte“, den
+  Namen und den Text des Zuschauers; der Text steht nur im Ereignis, nicht in der Datenbank.
+  (Geändert in Stufe 2: statt eines eigenen Alerts `punkte-einloesung`.)
 
 ## Datenmodell
 

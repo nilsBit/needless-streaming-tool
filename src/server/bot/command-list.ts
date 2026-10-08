@@ -43,6 +43,9 @@ const BUILTIN_DESCRIPTIONS: Record<string, string> = {
   rewardstats: 'Zeigt deinen Stand in jeder Bestenliste: !stats, oder !stats <Name>.',
   uptime: 'Sagt, wie lange der Stream schon läuft.',
   privacy: 'Sagt, was das Tool über dich speichert, wie lange, und wie du es löschen lässt.',
+  points: 'Zeigt deine Punkte, deinen Beitrag und deinen Platz: !punkte, oder !punkte <Name>.',
+  rewards_list: 'Nennt, was du mit deinen Punkten einlösen kannst, und was es kostet.',
+  redeem: 'Löst eine Belohnung mit deinen Punkten ein: !einlösen <Name>.',
   commands: 'Nennt die wichtigsten Befehle. „!befehle alle“ listet jeden, „!befehle <Name>“ erklärt einen.',
 };
 

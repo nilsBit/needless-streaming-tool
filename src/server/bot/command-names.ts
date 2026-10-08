@@ -26,6 +26,10 @@ export const DEFAULT_COMMANDS: Record<string, string> = {
   commands: '!befehle',
   shoutout: '!so',
   privacy: '!datenschutz',
+  // Eigene Punkte (2026-10-08).
+  points: '!punkte',
+  rewards_list: '!belohnungen',
+  redeem: '!einlösen',
 };
 
 /**
@@ -37,6 +41,8 @@ export const COMMAND_ALIASES: Record<string, readonly string[]> = {
   commands: ['!commands', '!help'],
   // What the wheel's list was called before it became "Themen".
   issues: ['!issues'],
+  // For a keyboard without umlauts.
+  redeem: ['!einloesen'],
 };
 
 const ALIASES_KEY = 'command_aliases';

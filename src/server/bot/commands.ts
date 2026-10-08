@@ -13,6 +13,11 @@ import { commandEnabled } from '../features';
 import { answerChatMessage } from './chat-answers';
 import { builtinCooldownSeconds, INFO_BUILTINS, passCooldown } from './cooldown';
 import { botHelix, shoutoutText } from './shoutout';
+import { adjustReply } from '../points/chat';
+import { parseRedeem, redeem } from '../points/redeem';
+
+/** Built-ins that answer through answerChatMessage, which applies the info cooldown itself. */
+const ANSWERED_IN_CHAT_ANSWERS: ReadonlySet<string> = new Set(['commands', 'uptime', 'privacy', 'points', 'rewards_list']);
 
 /** Broadcaster and mods — the people allowed to steer the stream from chat. */
 function isPrivileged(tags: { mod?: boolean; badges?: { broadcaster?: string } | null }): boolean {
@@ -32,9 +37,11 @@ export function registerCommands(client: Client) {
     // A built-in of a feature that is off ("Was dein Stream kann") is not there for the chat.
     if (command !== null && !commandEnabled(command)) return;
 
-    // The built-ins that only tell something share one cooldown; `!befehle` and
-    // `!uptime` are gated where they answer (chat-answers.ts).
-    if (command !== null && INFO_BUILTINS.has(command) && command !== 'commands' && command !== 'uptime'
+    // The built-ins that only tell something share one cooldown. The ones that
+    // answer in chat-answers.ts are gated there — checked here as well, the
+    // second check saw the first one's cooldown and `!datenschutz` never
+    // answered a viewer (found 2026-10-08).
+    if (command !== null && INFO_BUILTINS.has(command) && !ANSWERED_IN_CHAT_ANSWERS.has(command)
       && !passCooldown(`builtin:${command}`, builtinCooldownSeconds(), isPrivileged(tags), { viewer: tags.username })) return;
 
     switch (command) {
@@ -260,6 +267,24 @@ export function registerCommands(client: Client) {
         const asked = args[0]?.replace(/^@/, '') ?? '';
         const target = /^[a-z0-9_]{1,25}$/i.test(asked) ? asked : (tags.username || 'Unknown');
         say(standingsText(target));
+        break;
+      }
+
+      // `!punkte geben|nehmen @name n` for mods; everything else is `!punkte [Name]` below.
+      case 'points': {
+        const adjusted = isPrivileged(tags) ? adjustReply(message) : null;
+        if (adjusted !== null) { say(adjusted); break; }
+        const answer = await answerChatMessage(message, isPrivileged(tags), tags.username);
+        for (const reply of answer.replies ?? []) say(reply);
+        break;
+      }
+
+      case 'redeem': {
+        if (!tags.username) break;
+        const { name, input } = parseRedeem(message.trim().replace(/^\S+\s*/, ''));
+        if (!name) { say(`@${tags['display-name'] ?? tags.username} !einlösen <Name> — !belohnungen zeigt, was es gibt.`); break; }
+        const result = await redeem(tags.username, tags['display-name'] ?? tags.username, name, input);
+        say(result.message);
         break;
       }
 
