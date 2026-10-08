@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { apiDelete, apiFetch, apiGet, getServerPort } from '../hooks/useApi';
 import { useToast } from '../contexts/ToastContext';
 import Dialog from '../components/ux/Dialog';
+import SearchField, { matchesSearch } from '../components/ux/SearchField';
 
 interface AlertRow {
   slot: string;
@@ -57,6 +58,7 @@ export default function AlertSettings() {
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState<AlertRow | null>(null);
   const [sounds, setSounds] = useState(false);
+  const [soundSearch, setSoundSearch] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
 
   const take = (overview: Overview | null) => {
@@ -205,19 +207,25 @@ export default function AlertSettings() {
         <Dialog
           title="Töne verwalten"
           sentence="Eigene Dateien, .mp3, .wav oder .ogg, bis 5 MB. Das Tool bringt keine Töne mit."
-          onClose={() => setSounds(false)}
+          onClose={() => { setSounds(false); setSoundSearch(''); }}
           width={560}
           footer={<>
             <button type="button" className="card-secondary" onClick={() => fileRef.current?.click()}>Tondatei hinzufügen</button>
             <span style={{ flex: 1 }} />
-            <button type="button" className="card-primary" onClick={() => setSounds(false)}>Fertig</button>
+            <button type="button" className="card-primary" onClick={() => { setSounds(false); setSoundSearch(''); }}>Fertig</button>
           </>}
         >
           <input ref={fileRef} type="file" accept=".mp3,.wav,.ogg,audio/*" onChange={upload} style={{ display: 'none' }} />
           {data.sounds.length === 0 && <p className="dialog-empty">Noch keine Töne. Erst eine Datei hinzufügen, dann je Alert auswählen.</p>}
+          {/* Found by file name or by the alert it plays at ("raid" finds the raid sound). */}
+          {data.sounds.length > 0 && <SearchField value={soundSearch} onChange={setSoundSearch} label="Töne suchen" width={260} />}
+          {data.sounds.length > 0 && !data.sounds.some((s) => matchesSearch(soundSearch, s, ...list.filter((r) => r.sound === s).map((r) => r.name))) && (
+            <p className="dialog-empty">Kein Ton passt zur Suche.</p>
+          )}
           <ul className="dialog-list">
             {data.sounds.map((s) => {
               const used = list.filter((r) => r.sound === s).map((r) => r.name);
+              if (!matchesSearch(soundSearch, s, ...used)) return null;
               return (
                 <li key={s}>
                   <span className="dialog-list-text">{s}{used.length > 0 && <span className="dialog-hint"> · bei {used.join(', ')}</span>}</span>
