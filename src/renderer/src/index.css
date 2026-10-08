@@ -59,20 +59,21 @@ body {
 .page-header-aside { padding-top: 8px; }
 .scene-hint { color: var(--muted); font-size: 14px; }
 .scene-hint strong { color: var(--text); font-weight: 600; }
-.sub-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 18px 32px 0; border-bottom: 1px solid var(--border); }
+/* Sub-tabs as pills, like the sidebar's buttons (08.10.: the orange line
+   only at the bottom looked odd). */
+.sub-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 32px 0; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
 .sub-tab {
-  min-height: 44px;
+  min-height: 38px;
   padding: 0 16px;
   background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
   color: var(--text-secondary);
   font-size: 14px;
   cursor: pointer;
 }
-.sub-tab:hover { color: var(--text); background: none; border-color: transparent; border-bottom-color: var(--border-strong); }
-.sub-tab.active:hover { border-bottom-color: var(--accent); }
-.sub-tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+.sub-tab:hover { color: var(--text); background: rgba(255,255,255,0.04); border-color: var(--border); }
+.sub-tab.active, .sub-tab.active:hover { color: var(--accent); border-color: var(--accent); background: rgba(230,126,34,0.08); font-weight: 600; }
 .shell-main { flex: 1; min-height: 0; overflow: auto; padding: 22px 32px 40px; }
 .page-sentence { color: var(--text-secondary); font-size: 14px; margin-bottom: 16px; max-width: 820px; line-height: 1.45; }
 .page-panels { display: flex; flex-direction: column; gap: 24px; }
@@ -301,6 +302,9 @@ body {
 .ovl-chip { padding: 4px 10px; border-radius: 999px; background: var(--border-subtle); color: var(--text-secondary); font-size: 12px; white-space: nowrap; }
 .ovl-chip.on { background: #15241a; color: #4ade80; }
 .ovl-chip.warm { background: #2a1f12; color: var(--accent); }
+.ovl-settings { display: flex; flex-direction: column; gap: 8px; }
+.ovl-settings-row { display: flex; flex-wrap: wrap; gap: 12px 24px; }
+.ovl-settings-item { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; flex: 1 1 200px; }
 .ovl-obs-card { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 10px; }
 .ovl-obs-card.todo { border: 2px solid var(--accent); background: rgba(230,126,34,0.07); }
 .ovl-obs-card.done { border-color: #1f4d2e; background: #122018; }
@@ -401,12 +405,22 @@ body {
 
 /* Quests, guided (08.10.): tracker, coach, chapters, celebrations, intro */
 .quest-tracker + .shell-marks { margin-top: 0; }
-.quest-tracker { margin: auto 0 10px; padding: 12px; border: 1px solid var(--accent); border-radius: 12px; background: rgba(230,126,34,0.08); display: flex; flex-direction: column; gap: 8px; }
-.quest-tracker-title { font-size: 14px; color: var(--text); }
-.quest-tracker-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
-.quest-tracker-steps li { display: flex; gap: 8px; font-size: 12px; color: var(--text-secondary); line-height: 1.35; }
+.quest-tracker { margin: auto 0 12px; border: 1px solid var(--border); border-radius: 10px; display: flex; flex-direction: column; gap: 10px; }
+.quest-tracker.open { padding-bottom: 14px; border-color: var(--accent); background: rgba(230,126,34,0.08); }
+.quest-tracker.open > :not(.quest-tracker-head) { margin: 0 14px; }
+.quest-tracker-head { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border: none; background: none; color: var(--text); font: inherit; text-align: left; cursor: pointer; border-radius: 10px; }
+.quest-tracker-head:hover { background: rgba(255,255,255,0.04); }
+.quest-tracker-mark { flex: none; width: 10px; height: 10px; transform: rotate(45deg); background: var(--accent); border-radius: 2px; }
+.quest-tracker-mark.fresh { animation: quest-mark-pulse .8s ease-out 3; }
+@keyframes quest-mark-pulse { 0% { box-shadow: 0 0 0 0 rgba(230,126,34,.7); } 100% { box-shadow: 0 0 0 9px rgba(230,126,34,0); } }
+.quest-tracker-title { flex: 1; min-width: 0; font-size: 13px; line-height: 1.25; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.quest-tracker.open .quest-tracker-title { white-space: normal; }
+.quest-tracker-head .quest-xp { font-size: 12px; }
+.quest-tracker .quest-tracker-go { min-height: 30px; padding: 0 10px; font-size: 12px; }
+.quest-tracker-steps { list-style: none; margin: 2px 0 4px; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.quest-tracker-steps li { display: flex; gap: 8px; font-size: 11px; color: var(--text-secondary); line-height: 1.4; }
 .quest-tracker-steps li.done { color: var(--muted); text-decoration: line-through; }
-.quest-tracker-dot { flex: none; width: 17px; height: 17px; border-radius: 50%; border: 1.5px solid var(--accent); color: var(--accent); font-size: 10px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; }
+.quest-tracker-dot { flex: none; width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--accent); color: var(--accent); font-size: 9px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; }
 .quest-tracker-steps li.done .quest-tracker-dot { background: var(--accent); color: #161616; }
 @media (max-width: 1100px) { .quest-tracker { display: none; } }
 .quest-spot { outline: 3px solid var(--accent) !important; outline-offset: -3px; animation: quest-spot-glow 1.4s ease-in-out infinite; }

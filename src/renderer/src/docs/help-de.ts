@@ -29,7 +29,7 @@ Links stehen die Bereiche nach Situation: **Im Stream** (alles, was du live ausl
 - Die Quests stehen in **Kapiteln**: „Bereit für den ersten Stream“, „Der Chat spielt mit“ und „Aus dem Stream wird Content“. Jedes Kapitel bringt ein **Abzeichen** (Startklar · Gastgeber · Chronist). Das dritte wird frei, sobald das erste geschafft ist.
 - Klick auf eine Quest zeigt **Warum** (wofür sie gut ist) und **So geht's** (die Schritte).
 - **Los geht's** bringt dich an die Stelle, wo du die Quest erledigst. Hat sie einen eigenen Weg (Befehl, Belohnung, Bestenliste, Overlay), öffnet er sich gleich. Sonst leuchtet auf, was du klicken musst, und eine Blase erklärt die Schritte.
-- Die **aktive Quest** steht immer unten in der Leiste, mit ihren Schritten. Das ist die, die du zuletzt mit „Los geht's“ gestartet hast, sonst die, die das Tool als Nächstes vorschlägt.
+- Die **aktive Quest** steht unten in der Leiste als schmale Zeile mit einer orangen Raute. Ein Klick klappt ihre Schritte und „Los geht's“ auf, ein zweiter wieder zu – das Tool merkt sich, wie du es magst. Kommt eine neue aktive Quest, pulsiert die Raute kurz. Das ist die, die du zuletzt mit „Los geht's“ gestartet hast, sonst die, die das Tool als Nächstes vorschlägt.
 - Manche Quests warten auf eine andere, z. B. **Braucht OBS**. Sie stehen schon da, werden aber nie als Nächstes vorgeschlagen.
 - Geschaffte Quests kommen nacheinander unten rechts. Eine neue Stufe oder ein geschafftes Kapitel bekommt einen eigenen kurzen Moment – während du live bist, bleibt es beim Hinweis.
 - Eine Quest gilt als geschafft, wenn das Tool es am Zustand sieht – auch was du vorher oder auf anderem Weg eingerichtet hast, zählt. Einmal geschafft, bleibt geschafft, auch wenn du es später löschst.
@@ -295,6 +295,10 @@ Alle Zahlen und den Namen der Währung stellst du unter **Verdienen → Einstell
   {
     title: 'Overlays',
     content: `Overlays werden als **Browser Source** in OBS eingebunden.
+
+**Ein Overlay einstellen:** Unter Overlays & Alerts → **Overlays** wählst du links eines. Rechts steht unter **Einstellen**:
+- **Inhalt einstellen** bringt dich dorthin, wo du festlegst, was drinsteht – bei der Bestenliste zu „Bestenlisten“, beim Glücksrad, Ziel, Fortschritt oder der Abstimmung zu ihrer Karte unter „Im Stream“, die kurz aufleuchtet.
+- **Aussehen ändern** öffnet „Aussehen“ mit genau diesem Overlay gewählt: eigene Farben und Schrift nur dafür.
 
 **Eingebaute Overlays:**
 | Overlay | URL | Beschreibung |
