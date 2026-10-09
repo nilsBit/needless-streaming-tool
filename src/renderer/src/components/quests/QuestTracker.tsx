@@ -3,8 +3,8 @@ import { useNavigate } from '../../NavigationContext';
 import { getActiveQuest, setActiveQuest, startQuest } from './questStart';
 import { useQuests, type QuestView } from './useQuests';
 
-// The active quest at the bottom of the sidebar (08.10.): folded, one slim
-// line with a marker, its title and EP; open, its steps — the first ticked
+// The active quest in the sidebar, right under the stage (09.10.; before at
+// the bottom): folded, one line with a marker, its whole title and EP; open, its steps — the first ticked
 // once you are where it is done — and "Los geht's". Folded is the default
 // ("müssen wir die aktive quest immer anzeigen?"); the choice is kept. A new
 // active quest makes the marker pulse once. The active quest is the one last

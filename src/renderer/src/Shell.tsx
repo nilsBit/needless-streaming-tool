@@ -99,10 +99,10 @@ export default function Shell() {
         <nav className="shell-nav" aria-label="Bereiche">
           <img src={logoSvg} alt="NST" className="shell-logo" />
           <StageBadge />
+          <QuestTracker area={area.key} subTab={subTab.key} />
           {areas.filter((a) => a.group === 'main').map((a) => renderNavButton(a.key, a.label, false))}
           <div className="shell-nav-divider" role="separator" />
           {areas.filter((a) => a.group === 'secondary').map((a) => renderNavButton(a.key, a.label, true))}
-          <QuestTracker area={area.key} subTab={subTab.key} />
           <ConnectionMarks />
         </nav>
         <div className="shell-page">
