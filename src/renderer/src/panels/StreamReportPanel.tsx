@@ -103,7 +103,9 @@ function ReportView({ id, streams, onPick }: { id: number; streams: StreamItem[]
                 <span className="report-bar"><span className={p.rate > r.average_rate ? 'above' : ''} style={{ width: `${Math.round((p.rate / maxRate) * 100)}%` }} /></span>
                 <strong>{comma(p.rate)}</strong>
               </span>
-              <span role="cell">{p.chatters}</span><span role="cell">{p.follows}</span><span role="cell">{p.moments}</span>
+              <span role="cell" className="report-count"><small>Chatter</small>{p.chatters}</span>
+              <span role="cell" className="report-count"><small>Follows</small>{p.follows}</span>
+              <span role="cell" className="report-count"><small>Momente</small>{p.moments}</span>
             </div>
           ))}
         </div>

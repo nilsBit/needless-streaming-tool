@@ -3872,7 +3872,7 @@ button.character-active { width: 100%; color: var(--text); text-align: left; cur
 .report-empty h3 { margin: 0 0 8px; font-size: 17px; }
 .report-empty p { margin: 0; color: var(--text-secondary); line-height: 1.5; }
 
-.report-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.report-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
 .report-kpi { display: flex; flex-direction: column; gap: 6px; padding: 16px 18px; border: 1px solid var(--border-subtle); border-radius: 12px; background: var(--bg-hover); }
 .report-kpi-value { font-size: 30px; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
 .report-kpi small { font-size: 12px; }
@@ -3891,6 +3891,8 @@ button.character-active { width: 100%; color: var(--text); text-align: left; cur
 .report-part-head { padding-top: 0; padding-bottom: 0; border: 0; background: none; color: var(--muted); font-size: 12px; }
 .report-time, .report-what { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .report-time small, .report-what small { color: var(--muted); font-size: 12px; }
+.report-time strong { white-space: nowrap; }
+.report-count small { display: none; }
 .report-what small { color: var(--text-secondary); font-size: 13px; }
 .report-rate { display: flex; align-items: center; gap: 10px; }
 .report-rate strong { width: 40px; text-align: right; font-variant-numeric: tabular-nums; }
@@ -3898,8 +3900,10 @@ button.character-active { width: 100%; color: var(--text); text-align: left; cur
 .report-bar > span { display: block; height: 100%; border-radius: 4px; background: #6b6b6b; }
 .report-bar > span.above { background: var(--accent); }
 @media (max-width: 760px) {
-  .report-part { grid-template-columns: 80px minmax(0, 1fr); }
-  .report-part > :nth-child(n + 3) { grid-column: 2; }
+  .report-part { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 12px; }
+  .report-time, .report-what, .report-rate { grid-column: 1 / -1; }
+  .report-time { flex-direction: row; align-items: baseline; gap: 8px; }
+  .report-count small { display: block; color: var(--muted); font-size: 12px; }
   .report-part-head { display: none; }
 }
 

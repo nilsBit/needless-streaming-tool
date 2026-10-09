@@ -202,7 +202,7 @@ export function streamReport(id: number, now: number = Date.now()): StreamReport
   }
   if (parts.length >= 2) {
     const quiet = parts.reduce((a, b) => (b.rate < a.rate || (b.rate === a.rate && b.minutes > a.minutes) ? b : a));
-    insights.push({ kind: 'Ruhigste Phase', tone: 'quiet', big: `${String(quiet.rate).replace('.', ',')}/min`, text: `${quiet.label}, ${clock(quiet.from)}–${clock(quiet.to)}.` });
+    insights.push({ kind: 'Ruhigste Phase', tone: 'quiet', big: `${String(quiet.rate).replace('.', ',')}/min`, text: `${quiet.label}, ${clock(quiet.from)}\u2060–\u2060${clock(quiet.to)}.` });
   }
 
   // The people: who was here before, who is new, who is missing.
