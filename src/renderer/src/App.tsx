@@ -12,7 +12,7 @@ export default function App() {
     const api = window.electronAPI;
     if (!api?.onUpdateAvailable) return;
     const handler = (data: UpdateInfo) => {
-      toast.errorAction({
+      toast.update({
         message: `Neues Update verfügbar: v${data.version}`,
         action: {
           label: 'Herunterladen',
@@ -23,7 +23,7 @@ export default function App() {
     api.onUpdateAvailable(handler);
     // Windows: the update is already downloaded and installs on quit anyway.
     api.onUpdateDownloaded?.((data) => {
-      toast.errorAction({
+      toast.update({
         message: `Update v${data.version} ist bereit`,
         action: {
           label: 'Jetzt neu starten',

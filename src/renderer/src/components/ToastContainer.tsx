@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useToast } from '../contexts/ToastContext';
 
 export default function ToastContainer() {
-  const { toasts } = useToast();
+  const { toasts, dismiss } = useToast();
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
 
   if (toasts.length === 0) return null;
@@ -20,6 +20,9 @@ export default function ToastContainer() {
     <div className="toast-container">
       {toasts.map((t) => (
         <div key={t.id} className={`toast toast-${t.type}`}>
+          {t.sticky && (
+            <button className="toast-close" onClick={() => dismiss(t.id)} aria-label="Schließen">×</button>
+          )}
           <div className="toast-message">{t.message}</div>
           {t.action && (
             <button className="toast-action" onClick={t.action.onClick}>{t.action.label}</button>

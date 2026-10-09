@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
 
-type ToastType = 'success' | 'error' | 'info' | 'error-action';
+type ToastType = 'success' | 'error' | 'info' | 'error-action' | 'update';
 
 export interface ToastAction {
   label: string;
@@ -13,6 +13,8 @@ export interface ToastItem {
   type: ToastType;
   action?: ToastAction;
   details?: string;
+  // Stays until dismissed; newer toasts never push it out.
+  sticky?: boolean;
 }
 
 export interface ErrorActionParams {
@@ -28,12 +30,15 @@ interface ToastContextType {
     error: (msg: string) => void;
     info: (msg: string) => void;
     errorAction: (params: ErrorActionParams) => void;
+    update: (params: { message: string; action: ToastAction }) => void;
   };
+  dismiss: (id: number) => void;
 }
 
 const ToastContext = createContext<ToastContextType>({
   toasts: [],
-  toast: { success: () => {}, error: () => {}, info: () => {}, errorAction: () => {} },
+  toast: { success: () => {}, error: () => {}, info: () => {}, errorAction: () => {}, update: () => {} },
+  dismiss: () => {},
 });
 
 const MAX_TOASTS = 3;
@@ -49,11 +54,18 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     const duration = item.type === 'error-action' ? TOAST_DURATION_ACTION : TOAST_DURATION;
     setToasts((prev) => {
       const next = [...prev, { ...item, id }];
-      return next.slice(-MAX_TOASTS);
+      const sticky = next.filter((t) => t.sticky);
+      const passing = next.filter((t) => !t.sticky).slice(-Math.max(MAX_TOASTS - sticky.length, 1));
+      return next.filter((t) => t.sticky || passing.includes(t));
     });
+    if (item.sticky) return;
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
     }, duration);
+  }, []);
+
+  const dismiss = useCallback((id: number) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
   const toast = {
@@ -66,10 +78,16 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       action: params.action,
       details: params.details,
     }), [pushToast]),
+    update: useCallback((params: { message: string; action: ToastAction }) => pushToast({
+      message: params.message,
+      type: 'update',
+      action: params.action,
+      sticky: true,
+    }), [pushToast]),
   };
 
   return (
-    <ToastContext.Provider value={{ toasts, toast }}>
+    <ToastContext.Provider value={{ toasts, toast, dismiss }}>
       {children}
     </ToastContext.Provider>
   );

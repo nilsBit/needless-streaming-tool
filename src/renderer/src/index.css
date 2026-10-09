@@ -2697,6 +2697,27 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .toast-success { background: #2ecc71; }
 .toast-error { background: #e74c3c; }
 .toast-info { background: #3498db; }
+.toast-error-action { background: #e74c3c; }
+.toast-update {
+  background: #3498db;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-right: 36px;
+}
+.toast-close {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.8);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+.toast-close:hover { color: #fff; }
 
 @keyframes toast-in {
   from { opacity: 0; transform: translateX(100%); }
