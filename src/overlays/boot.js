@@ -124,12 +124,28 @@
   // follows every change at once. Only the palette, never the Figma styles,
   // and only from the frame around it. An overlay in OBS has no `?state=`
   // and never listens.
+  // Any page may frame an overlay and post to it, so only the known palette
+  // keys pass, with plain values: colours, numbers, px, font lists — nothing
+  // with brackets, so no url() or var().
+  var PREVIEW_KEY = /^--(color-(primary|secondary|accent|text|bg|bg-opacity|bg-secondary)|font-(display|body|size-base))$/;
+  var PREVIEW_VALUE = /^[#A-Za-z0-9 .,'_-]{1,120}$/;
+  function cleanVars(vars) {
+    var out = {};
+    if (!vars || typeof vars !== 'object') return out;
+    Object.keys(vars).forEach(function (k) {
+      if (PREVIEW_KEY.test(k) && typeof vars[k] === 'string' && PREVIEW_VALUE.test(vars[k])) out[k] = vars[k];
+    });
+    return out;
+  }
   if (showcaseState && window.parent !== window) {
     window.addEventListener('message', function (msg) {
       if (msg.source !== window.parent) return;
       var data = msg.data;
       if (!data || data.type !== 'nst-preview-config' || !data.config) return;
-      loadFonts(apply({ global: data.config.global || {}, overrides: data.config.overrides || {} }));
+      var overrides = {};
+      var own = data.config.overrides && Object.prototype.hasOwnProperty.call(data.config.overrides, name) ? data.config.overrides[name] : null;
+      if (own) overrides[name] = cleanVars(own);
+      loadFonts(apply({ global: cleanVars(data.config.global), overrides: overrides }));
     });
   }
 

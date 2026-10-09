@@ -29,10 +29,14 @@ export function saveOverlayConfig(config: { global: Record<string, string>; over
   getDb().prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('overlay_config', JSON.stringify(config));
 }
 
+// Plain values only — colours, numbers, px, font lists. Nothing with brackets,
+// so no url() reaches an overlay running in OBS (review 09.10.).
+const PLAIN_VALUE = /^[#A-Za-z0-9 .,'_-]{1,120}$/;
+
 function validateVars(vars: Record<string, string>): Record<string, string> {
   const clean: Record<string, string> = {};
   for (const [k, v] of Object.entries(vars)) {
-    if (VALID_KEYS.has(k) && typeof v === 'string') {
+    if (VALID_KEYS.has(k) && typeof v === 'string' && PLAIN_VALUE.test(v)) {
       clean[k] = v;
     }
   }

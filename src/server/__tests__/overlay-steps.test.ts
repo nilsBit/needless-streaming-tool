@@ -83,6 +83,13 @@ describe('one overlay\'s own look', () => {
     expect(config.overrides).toEqual({ song: { '--color-accent': '#00ff00' } });
   });
 
+  it('keeps only plain values, never url()', async () => {
+    await request(app).put('/api/overlay-config/overrides/alerts').set(auth())
+      .send({ vars: { '--color-accent': 'url(https://example.com/x)', '--font-body': "'Inter', sans-serif", '--font-size-base': '20px' } }).expect(200);
+    const config = (await request(app).get('/api/overlay-config').set(auth()).expect(200)).body;
+    expect(config.overrides.alerts).toEqual({ '--font-body': "'Inter', sans-serif", '--font-size-base': '20px' });
+  });
+
   it('refuses a bad name or body', async () => {
     await request(app).put('/api/overlay-config/overrides/..%2Fx').set(auth()).send({ vars: {} }).expect(400);
     await request(app).put('/api/overlay-config/overrides/alerts').set(auth()).send({ vars: [] }).expect(400);
