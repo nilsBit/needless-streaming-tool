@@ -125,12 +125,18 @@ body {
 /* "Im Stream" — cards in a grid, each with a chip for "in der Szene" */
 .stream-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; align-items: stretch; }
 .stream-card { border: 1px solid var(--border); border-radius: 8px; padding: 18px; display: flex; flex-direction: column; gap: 10px; min-width: 0; height: 100%; box-sizing: border-box; }
-.stream-card.on-screen { border-color: var(--accent); }
+.stream-card.on-screen { border: 1.5px solid #2f7a48; }
 .stream-card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
 .stream-card-head h2 { font-size: 16px; font-weight: 600; }
-.stream-chip { font-size: 12px; white-space: nowrap; }
-.stream-chip.on { color: var(--accent); font-weight: 600; }
-.stream-chip.off { color: var(--muted); }
+.stream-chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); font-size: 12px; font-weight: 700; white-space: nowrap; }
+.stream-chip-dot { width: 8px; height: 8px; border-radius: 50%; background: #555; }
+.stream-chip.on { background: #1d4a2c; border-color: #2f7a48; color: #a7f3c0; }
+.stream-chip.on .stream-chip-dot { background: #4ade80; animation: stream-live 1.6s infinite; }
+.stream-chip.none { border-color: #6b4520; color: #f0a35e; }
+.stream-chip.none .stream-chip-dot { background: #f0a35e; }
+@keyframes stream-live { 0% { box-shadow: 0 0 0 0 rgba(74,222,128,.6); } 100% { box-shadow: 0 0 0 8px rgba(74,222,128,0); } }
+@media (prefers-reduced-motion: reduce) { .stream-chip.on .stream-chip-dot { animation: none; } }
+.stream-card-where { margin: -4px 0 0; color: var(--muted); font-size: 13px; align-self: flex-start; }
 .stream-card-sentence { color: var(--muted); font-size: 14px; line-height: 1.45; min-height: 2.9em; }
 .stream-card-body { min-width: 0; flex: 1; display: flex; flex-direction: column; }
 .stream-card-body > [data-panel] { flex: 1; display: flex; flex-direction: column; }

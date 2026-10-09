@@ -1,6 +1,8 @@
 import React from 'react';
 import ErrorBoundary from '../components/ErrorBoundary';
-import StreamCard from '../components/ux/StreamCard';
+import StreamCard, { type SceneState } from '../components/ux/StreamCard';
+import { openAt } from '../components/ux/openAt';
+import { useNavigate } from '../NavigationContext';
 import MomentCard from '../components/stream/MomentCard';
 import { PANEL_REGISTRY } from '../panelRegistry';
 import { PANEL_LABELS, findArea } from '../navigation';
@@ -10,6 +12,7 @@ import { useWebSocket } from '../hooks/useWebSocket';
 import { useFeatures } from '../contexts/FeaturesContext';
 
 interface VisibleOverlays { scene: string | null; overlays: string[] }
+interface OverlayScenes { connected: boolean; byOverlay: Record<string, string[]> }
 
 // One sentence per card, and which overlay sources belong to it — the names
 // are the overlay folders under src/overlays, as their OBS url carries them.
@@ -23,27 +26,39 @@ const CARDS: Record<string, { sentence: string; overlays: string[] }> = {
 };
 
 // "Im Stream": every trigger on one page, as cards. The order comes from
-// navigation.ts, so the panel test still sees one place per panel.
+// navigation.ts, so the panel test still sees one place per panel — except
+// that cards whose overlay is in the current scene come first, then those in
+// another scene, then those in none (09.10.: what is live belongs together).
 export default function StreamPage() {
   const { panelVisible, isOn } = useFeatures();
   const panels = findArea('stream').subTabs[0].panels.filter((key) => panelVisible(key));
+  const go = useNavigate();
   const { data: visible, refetch } = useApi<VisibleOverlays>('/obs/visible-overlays');
+  const { data: placement, refetch: refetchPlacement } = useApi<OverlayScenes>('/obs/overlay-scenes');
   useWebSocket((event) => {
-    if (event === 'obs-scene-changed' || event === 'obs-status') refetch();
+    if (event === 'obs-scene-changed' || event === 'obs-status') { refetch(); refetchPlacement(); }
   });
 
-  const onScreen = (overlays: string[]): boolean | null => {
+  const sceneOf = (overlays: string[]): SceneState => {
     if (!visible || visible.scene === null) return null;
-    return overlays.some((name) => visible.overlays.includes(name));
+    if (overlays.some((name) => visible.overlays.includes(name))) return { state: 'on' };
+    if (!placement?.connected) return null;
+    const where = [...new Set(overlays.flatMap((name) => placement.byOverlay[name] ?? []))];
+    return where.length ? { state: 'elsewhere', where } : { state: 'none' };
   };
+  const rank = (s: SceneState) => (s?.state === 'on' ? 0 : s?.state === 'elsewhere' ? 1 : s?.state === 'none' ? 2 : 1);
+  const ordered = panels
+    .map((key, i) => ({ key, i, scene: sceneOf((CARDS[key] ?? { overlays: [] }).overlays) }))
+    .sort((a, b) => rank(a.scene) - rank(b.scene) || a.i - b.i);
 
   return (
     <div className="stream-cards">
-      {panels.map((key: PanelKey) => {
+      {ordered.map(({ key, scene }: { key: PanelKey; scene: SceneState }) => {
         const Component = PANEL_REGISTRY[key];
         const card = CARDS[key] ?? { sentence: '', overlays: [] };
+        const place = card.overlays[0] ? () => { go({ area: 'overlays', subTab: 'overlays' }); openAt('overlay', `${card.overlays[0]}:obs`); } : undefined;
         return (
-          <StreamCard key={key} title={PANEL_LABELS[key]} sentence={card.sentence} onScreen={onScreen(card.overlays)}>
+          <StreamCard key={key} title={PANEL_LABELS[key]} sentence={card.sentence} scene={scene} onPlace={place}>
             <ErrorBoundary fallback={PANEL_LABELS[key]} errorTitle="Fehler" errorMessage="Etwas ist schiefgelaufen." retryLabel="Nochmal versuchen">
               <div data-panel={key}><Component /></div>
             </ErrorBoundary>
@@ -56,7 +71,7 @@ export default function StreamPage() {
       {isOn('momente') && <StreamCard
         title="Moment merken"
         sentence="Setzt eine Marke im Stream. Danach landet sie unter „Nach dem Stream → Content planen“, wo du entscheidest, was daraus wird."
-        onScreen={null}
+        scene={null}
       >
         <MomentCard />
       </StreamCard>}
