@@ -3871,9 +3871,7 @@ button.character-active { width: 100%; color: var(--text); text-align: left; cur
 .report-empty-text { flex: 1 1 360px; display: flex; flex-direction: column; gap: 4px; }
 .report-empty-text strong { font-size: 17px; }
 .report-empty-text span { color: var(--text-secondary); line-height: 1.5; max-width: 760px; }
-.report-empty-next { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
-.report-empty-next button { min-height: 44px; padding: 0 18px; }
-.report-empty-next small { max-width: 280px; text-align: right; color: var(--muted); font-size: 12px; line-height: 1.4; }
+.report-empty-next { min-height: 44px; padding: 0 18px; }
 .report-ghost { display: flex; flex-direction: column; gap: 18px; opacity: 0.45; pointer-events: none; }
 .report-ghost .report-kpi-value { color: var(--muted); }
 .report-ghost-line { display: block; height: 12px; border-radius: 6px; background: var(--border-subtle); }

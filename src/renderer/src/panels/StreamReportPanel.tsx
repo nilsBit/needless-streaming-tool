@@ -82,16 +82,13 @@ function NextStep() {
     if (event === 'obs-status') refetchObs();
   });
   if (!bot || !obs) return null;
-  const step: { label: string; why: string | null; to: NavTarget } = !bot.connected
-    ? { label: 'Twitch verbinden', why: null, to: { area: 'settings', subTab: 'verbindungen' } }
+  const step: { label: string; to: NavTarget } = !bot.connected
+    ? { label: 'Twitch verbinden', to: { area: 'settings', subTab: 'verbindungen' } }
     : !obs.connected
-      ? { label: 'OBS verbinden', why: 'Damit die Teile im Ablauf deine Szenennamen tragen. Geht auch ohne.', to: { area: 'settings', subTab: 'verbindungen' } }
-      : { label: 'Zu „Im Stream“', why: 'Alles steht. Geh live – danach steht hier dein Stream.', to: { area: 'stream' } };
+      ? { label: 'OBS verbinden', to: { area: 'settings', subTab: 'verbindungen' } }
+      : { label: 'Zu „Im Stream“', to: { area: 'stream' } };
   return (
-    <div className="report-empty-next">
-      <button type="button" className="card-primary" onClick={() => go(step.to)}>{step.label}</button>
-      {step.why && <small>{step.why}</small>}
-    </div>
+    <button type="button" className="card-primary report-empty-next" onClick={() => go(step.to)}>{step.label}</button>
   );
 }
 
