@@ -20,6 +20,7 @@ interface Report {
 }
 
 const LIVE_REFRESH_MS = 60_000;
+const GHOST_KPIS = ['Zuschauer im Schnitt', 'Höchstens gleichzeitig', 'Neue Follower', 'Aktive Chatter', 'Nachrichten', 'Belohnungen eingelöst'];
 const comma = (n: number) => String(n).replace('.', ',');
 const clock = (seconds: number) => `${Math.floor(seconds / 3600)}:${String(Math.floor((seconds % 3600) / 60)).padStart(2, '0')}`;
 const duration = (minutes: number) => `${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, '0')} h`;
@@ -30,11 +31,34 @@ export default function StreamReportPanel() {
   const [picked, setPicked] = useState<number | null>(null);
   if (loading && !streams) return <div className="panel"><p className="empty">Laden …</p></div>;
   if (!streams || streams.length === 0) {
+    // No stream yet: a note, and the page as it will look, greyed out.
     return (
       <div className="panel report">
-        <div className="report-empty">
-          <h3>Noch kein Stream ausgewertet</h3>
-          <p>Sobald du live gehst und das Tool mit Twitch verbunden ist, schreibt es mit, was läuft: Szenen, dein Ziel, Abstimmungen, das Glücksrad, wie viel im Chat los ist und wer neu dazukommt. Nach dem Stream steht hier die Auswertung.</p>
+        <section className="report-empty">
+          <strong>Ab deinem nächsten Stream steht hier die Auswertung</strong>
+          <span>Das Tool schreibt mit, solange du live bist: was lief, wie viel im Chat los war, wer neu dazukam. Danach füllt sich diese Seite – so wie unten.</span>
+        </section>
+        <div className="report-ghost" aria-hidden="true">
+          <section className="report-kpis">
+            {GHOST_KPIS.map((label) => (
+              <div key={label} className="report-kpi">
+                <span className="report-muted">{label}</span>
+                <span className="report-kpi-value">–</span>
+                <span className="report-ghost-line short" />
+              </div>
+            ))}
+          </section>
+          <section className="report-card">
+            <h3>Ablauf des Streams</h3>
+            <div className="report-parts">
+              {[70, 45, 60].map((w) => (
+                <div key={w} className="report-part">
+                  <span className="report-ghost-line" /><span className="report-ghost-line" style={{ width: `${w}%` }} /><span className="report-ghost-line thin" />
+                  <span /><span /><span />
+                </div>
+              ))}
+            </div>
+          </section>
         </div>
       </div>
     );
