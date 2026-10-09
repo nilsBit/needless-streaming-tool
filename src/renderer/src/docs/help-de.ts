@@ -10,7 +10,7 @@ Links stehen die Bereiche nach Situation: **Im Stream** (alles, was du live ausl
 **Voraussetzungen:**
 - OBS Studio (Version 28+) mit aktiviertem WebSocket Server
 - Twitch-Account mit einer App auf dev.twitch.tv
-- Optional: Notion-Account für Clip-Sync`,
+- Optional: Notion-Account, wenn deine Figuren aus Notion kommen`,
   },
   {
     title: 'Einrichtung: Was dein Stream kann',
@@ -26,7 +26,7 @@ Links stehen die Bereiche nach Situation: **Im Stream** (alles, was du live ausl
     content: `Das Tool führt dich mit **Quests** durch die Einrichtung und deine ersten Streams. Die erste Quest ist immer **„Wähle, was dein Stream können soll“** – danach zeigt der Bereich **Quests** genau die Quests zu dem, was du gewählt hast.
 
 - Jede geschaffte Quest bringt **EP** (Erfahrungspunkte). Mit genug EP steigst du eine **Stufe** auf: Funke · Lagerfeuer · Leuchtfeuer · Leuchtturm · Sternbild. Deine Stufe steht links oben in der Leiste.
-- Die Quests stehen in **Kapiteln**: „Bereit für den ersten Stream“, „Der Chat spielt mit“ und „Aus dem Stream wird Content“. Jedes Kapitel bringt ein **Abzeichen** (Startklar · Gastgeber · Chronist). Das dritte wird frei, sobald das erste geschafft ist.
+- Die Quests stehen in **Kapiteln**: „Bereit für den ersten Stream“, „Der Chat spielt mit“ und „Den Stream verstehen“. Jedes Kapitel bringt ein **Abzeichen** (Startklar · Gastgeber · Chronist). Das dritte wird frei, sobald das erste geschafft ist.
 - Klick auf eine Quest zeigt **Warum** (wofür sie gut ist) und **So geht's** (die Schritte).
 - **Los geht's** bringt dich an die Stelle, wo du die Quest erledigst. Hat sie einen eigenen Weg (Befehl, Belohnung, Bestenliste, Overlay), öffnet er sich gleich. Sonst leuchtet auf, was du klicken musst, und eine Blase erklärt die Schritte.
 - Die **aktive Quest** steht unten in der Leiste als schmale Zeile mit einer orangen Raute. Ein Klick klappt ihre Schritte und „Los geht's“ auf, ein zweiter wieder zu – das Tool merkt sich, wie du es magst. Kommt eine neue aktive Quest, pulsiert die Raute kurz. Das ist die, die du zuletzt mit „Los geht's“ gestartet hast, sonst die, die das Tool als Nächstes vorschlägt.
@@ -41,7 +41,7 @@ Links stehen die Bereiche nach Situation: **Im Stream** (alles, was du live ausl
     title: 'Wo finde ich was',
     content: `Die Oberfläche ist nach Situation sortiert, nicht nach Technik. Links die Bereiche, oben auf einer Seite die Themen.
 
-**Suchen:** Lange Listen haben oben ein Suchfeld – Was dein Stream kann, Befehle, die Namen der eingebauten Befehle, Overlays, Content planen, Punkte und diese Hilfe. Groß- und Kleinschreibung ist egal, „ae“ findet auch „ä“, Escape leert das Feld.
+**Suchen:** Lange Listen haben oben ein Suchfeld – Was dein Stream kann, Befehle, die Namen der eingebauten Befehle, Overlays, Punkte und diese Hilfe. Groß- und Kleinschreibung ist egal, „ae“ findet auch „ä“, Escape leert das Feld.
 
 | Früher | Jetzt |
 |--------|-------|
@@ -57,9 +57,9 @@ Links stehen die Bereiche nach Situation: **Im Stream** (alles, was du live ausl
 | Overlays & Alerts → Bestenlisten | Overlays & Alerts → Karte Bestenliste → Einstellungen |
 | Overlays & Alerts → Aussehen | Overlays & Alerts → Stil für alle; ein einzelnes Overlay in seiner Karte unter Aussehen |
 | Live → OBS Scenes, Overlays & Alerts → Szenen in OBS | Start-, Pausen- und Endbild: ihre Karte → In OBS; Szene per Kanalpunkt: beim Anlegen der Belohnung |
-| Produktion → Clip Moments | Nach dem Stream → Content planen |
-| Settings → Features → Auto-Clips | Nach dem Stream → Content planen → Von selbst merken |
-| Projekt → Statistiken | Nach dem Stream → Statistik |
+| Produktion → Clip Moments | Im Stream → Moment merken; die Marken stehen unter Nach dem Stream |
+| Nach dem Stream → Content planen | entfallen – das Tool ist nur noch fürs Streamen |
+| Projekt → Statistiken, Nach dem Stream → Statistik | Nach dem Stream → Auswertung |
 | Live → Reward Stats | Nach dem Stream → Kanalpunkte |
 | Settings → Verbindungen / App / Daten & API | Einstellungen → Verbindungen / Programm / Daten |
 | Hotkeys | Einstellungen → Programm → Tastenkürzel |
@@ -72,12 +72,12 @@ Auf „Im Stream“ steht an jeder Karte, ob ihr Overlay in der laufenden OBS-Sz
     title: 'Daten: was gespeichert wird, was den Rechner verlässt',
     content: `Alles liegt in einer Datenbank auf deinem Rechner. Das Tool hat keinen eigenen Server, keine Telemetrie, keine Werbe-IDs. Die einzige Verbindung nach draußen, die es von sich aus aufbaut, ist die Update-Prüfung bei GitHub – ohne Daten von dir.
 
-**Über Zuschauer gespeichert:** der Twitch-Login mit der Zahl seiner Einlösungen je Bestenliste, mit eingeschalteten eigenen Punkten sein Guthaben und Beitrag, Songwünsche, Themen und Vorschläge, dazu Namen in Moment-Notizen aus der Hype-Erkennung. Es gibt kein Protokoll, wer wann was eingelöst oder eingetippt hat. Chatzeilen bleiben nur im Speicher und sind nach dem Neustart weg.
+**Über Zuschauer gespeichert:** der Twitch-Login mit der Zahl seiner Einlösungen je Bestenliste, mit eingeschalteten eigenen Punkten sein Guthaben und Beitrag, Songwünsche, Themen und Vorschläge. Für **Nach dem Stream** zählt das Tool pro Stream, wer wie oft geschrieben hat (je Minute), wer gefolgt ist und wer welchen Befehl oder welche Belohnung genutzt hat – nie, was geschrieben wurde. Chatzeilen bleiben nur im Speicher und sind nach dem Neustart weg.
 
-**Wie lange:** Erledigte Songwünsche löscht das Tool nach 90 Tagen von selbst. Wer ein Jahr nicht eingelöst hat, verschwindet aus der Bestenliste, wer ein Jahr keine Punkte verdient hat, mit seinen Punkten. Was ein Zuschauer beim Einlösen dazuschreibt, steht nur im Alert und wird nicht gespeichert. Unter **Nach dem Stream → Kanalpunkte → Bearbeiten → Zuschauer vergessen** verschwindet alles, was unter einem Namen gespeichert ist, sofort.
+**Wie lange:** Erledigte Songwünsche löscht das Tool nach 90 Tagen von selbst. Wer ein Jahr nicht eingelöst hat, verschwindet aus der Bestenliste, wer ein Jahr keine Punkte verdient hat, mit seinen Punkten. Ein Stream mit allem, was dazu gezählt wurde, bleibt ein Jahr. Was ein Zuschauer beim Einlösen dazuschreibt, steht nur im Alert und wird nicht gespeichert. Bei einem Zuschauer unter **Chat & Bot → Punkte** oder in einer Bestenliste verschwindet mit **Zuschauer vergessen** alles, was unter seinem Namen gespeichert ist, sofort – auch in den Streams.
 
 **Was den Rechner verlässt – nur wenn du es anschließt:**
-- **Notion:** Moment-Notizen mit Schlagwort, Zeitmarke und Text, also auch Zuschauernamen aus der Hype-Erkennung. Notion ist ein US-Anbieter.
+- **Notion:** nur Abfragen deiner Figuren, wenn Notion die Quelle der Eintragskarte ist. Notion ist ein US-Anbieter.
 - **Discord:** nur die Live-Meldung mit deinem Kanalnamen. Keine Zuschauerdaten.
 - **Sync-Ordner:** die ganze Datenbank, also auch alle Zuschauerdaten – ohne Zugangsdaten. Liegt der Ordner in Dropbox oder iCloud, liegt sie dort.
 - **Sicherung:** dieselbe Datenbank als Datei, ohne Zugangsdaten. Du entscheidest, wo sie hinkommt.
@@ -86,14 +86,22 @@ Auf „Im Stream“ steht an jeder Karte, ob ihr Overlay in der laufenden OBS-Sz
 **Was Zuschauer erfahren:** \`!datenschutz\` antwortet im Chat mit einem Satz, der genau das sagt – Daten, Fristen, Löschen auf Wunsch. Derselbe Satz steht im Text fürs Kanal-Panel (Chat & Bot → Befehle → Panel-Text). Ein Twitch-Login ist ein Pseudonym, aber personenbezogen; wer öffentlich streamt, ist für sein Tool verantwortlich und sagt den Zuschauern am besten, was es tut.`,
   },
   {
-    title: 'Content planen',
-    content: `Aus Momenten wird Content. Jeder Moment, den du im Stream mit „Moment merken“, am Stream Deck oder per Tastenkürzel setzt, landet unter **Nach dem Stream → Content planen** in der Spalte **Neu**. Von dort schiebst du ihn weiter: **Geplant** (du weißt, wohin und wann), **Geschnitten** (der Clip ist fertig), **Veröffentlicht**.
+    title: 'Nach dem Stream',
+    content: `Nach jedem Stream steht hier, wie er gelaufen ist. Das Tool schreibt mit, solange du live bist und es mit Twitch verbunden ist. Alles ist gezählt, nichts geraten – keine KI.
 
-- Eine Karte anklicken öffnet den Dialog: Schritt, Plattformen (TikTok, Shorts, Reels, Discord, Twitch-Clip), Termin, Titel oder Hook, Schlagwort, Notiz. Ziehen in eine andere Spalte geht auch.
-- Was das Tool von selbst gemerkt hat (Kanalpunkte, Meilensteine, Hype), steht in Neu mit „Behalten“ oder „Verwerfen“.
-- **+ Idee** legt Content an, der nicht aus einem Stream-Moment kommt.
-- Veröffentlichtes bleibt 30 Tage auf dem Brett und wandert dann ins Archiv („Archiv anzeigen“). Nichts wird dabei gelöscht.
-- Unten: einen Stream-Tag als CSV für DaVinci Resolve exportieren oder nach Notion schicken; die Notion-Übergabe von selbst lässt sich dort an- und ausschalten.`,
+**Oben:** ein Satz, welcher Teil den Chat am meisten bewegt hat, und sechs Zahlen: Zuschauer im Schnitt, höchstens gleichzeitig, neue Follower, aktive Chatter, Nachrichten und eingelöste Belohnungen (Kanalpunkte und eigene Punkte). Jede Zahl steht neben dem Schnitt der bis zu fünf Streams davor. Die Zuschauerzahl fragt das Tool alle fünf Minuten bei Twitch ab.
+
+**Ablauf des Streams:** der Stream in Teilen, benannt nach dem, was lief – eine Abstimmung, das Glücksrad (zehn Minuten ab dem Drehen), dein Ziel, sonst die OBS-Szene. Teile unter drei Minuten (etwa eine Szene für 30 Sekunden) gehören zum Teil davor. Je Teil: Zeit, Nachrichten pro Minute (orange über dem Schnitt), Chatter, Follows und Momente. Darunter steht, was gezählt wurde – wie viele abgestimmt haben, der meistgenutzte Befehl, deine Momente mit Uhrzeit und Notiz. Der lebhafteste Teil ist orange umrandet.
+
+**Was funktioniert hat:** was den Chat in Gang bringt, wie viele mitgemacht haben, wann die Follows kamen und die ruhigste Phase.
+
+**Deine Leute:** wie viele im Chat du schon aus früheren Streams kennst, wer zum ersten Mal da war, wer sonst immer da ist (in drei der letzten fünf Streams) und heute fehlte, und wie viele neue Follower auch geschrieben haben. Du und dein Bot zählen nicht mit.
+
+**Was genutzt wurde:** Befehle und Belohnungen, wie oft und von wie vielen Leuten. Darunter deine eigenen Befehle, die seit fünf Streams niemand getippt hat.
+
+**Moment merken** (Im Stream, Stream Deck oder Tastenkürzel) setzt eine Marke in den Ablauf. Die Hype-Erkennung setzt ihre eigenen.
+
+Läuft der Stream noch, füllt sich die Seite einmal pro Minute. Oben rechts wählst du einen früheren Stream. Ein Stream bleibt ein Jahr.`,
   },
   {
     title: 'Twitch verbinden',
@@ -360,28 +368,6 @@ Das Template unter /overlay/_template/index.html enthält:
 - Helper-Funktionen (Auto-Reconnect, escapeHtml)`,
   },
   {
-    title: 'Notion Integration',
-    content: `Clips werden automatisch in eine Notion-Datenbank gesynct.
-
-**Einrichtung:**
-1. Gehe auf notion.so/my-integrations
-2. Neue Integration erstellen
-3. Token kopieren → im Toolkit unter Settings eintragen
-4. Notion-Datenbank erstellen mit diesen Properties:
-   - Clip (Title)
-   - Tag (Select)
-   - Session (Date)
-   - Zeitstempel (Rich Text)
-   - Notiz (Rich Text)
-   - Synced (Checkbox)
-5. Datenbank mit der Integration teilen (Share → Invite)
-6. Datenbank-ID im Toolkit eintragen (URL oder ID)
-
-**Sync:**
-- Clips Panel → "Sync to Notion" Button
-- Synct alle Clips der aktuellen Session`,
-  },
-  {
     title: 'API Referenz',
     content: `Alle API-Endpoints sind unter http://localhost:4000/api/ erreichbar.
 Auth-Header: Authorization: Bearer <token>
@@ -439,13 +425,11 @@ Auth-Header: Authorization: Bearer <token>
 - POST /api/reward-stats — DELETE /api/reward-stats/:username/:type
 
 **Clip-Tags & Overlay-Farben:**
-- GET /api/clip-tags — POST /api/clip-tags — DELETE /api/clip-tags/:tag
 - GET /api/overlay-config — POST /api/overlay-config — DELETE /api/overlay-config
 - PUT /api/overlay-config/overrides/:name mit { "vars": { … } } — der eigene Stil eines Overlays, leer = wie alle
 
 **Clips:**
-- GET /api/clips — POST /api/clips — PATCH /api/clips/:id — DELETE /api/clips/:id
-- GET /api/clips/sessions — POST /api/clips/sync
+- GET /api/clips — POST /api/clips (Moment merken: tag, note) — DELETE /api/clips/:id
 
 **Milestones:**
 - GET /api/milestones — POST /api/milestones — PATCH /api/milestones/:id — DELETE /api/milestones/:id
@@ -469,7 +453,8 @@ Auth-Header: Authorization: Bearer <token>
 - GET /api/actions/song — POST /api/actions/song
 
 **Stats:**
-- GET /api/stats
+- GET /api/streams — die ausgewerteten Streams
+- GET /api/streams/:id — die Auswertung eines Streams
 
 **Backup:**
 - GET /api/backup/export — POST /api/backup/import
@@ -505,9 +490,7 @@ Alle Events werden als JSON gesendet: { "event": "name", "data": { ... } }
 - milestone-trigger / milestone-created / milestone-updated / milestone-deleted
 
 **Clips:**
-- clip-created / clip-updated / clip-deleted
-- clip-sync-failed — Notion-Sync fehlgeschlagen
-- clip-tags-changed
+- clip-created / clip-deleted
 
 **Rewards:**
 - reward-redeemed / reward-updated

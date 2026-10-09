@@ -16,15 +16,14 @@ import actionsRouter, { currentSong, rouletteTitle } from './api/actions';
 import authRouter from './api/auth';
 import votingRouter from './api/voting';
 import progressRouter from './api/progress';
-import clipsRouter, { archivePublishedClips } from './api/clips';
+import clipsRouter from './api/clips';
 import setupRouter from './api/setup';
 import { allowedOrigin } from './origins';
 import { pruneViewerData } from './retention';
-import clipTagsRouter from './api/clip-tags';
 import milestonesRouter from './api/milestones';
 import obsRouter from './api/obs';
 import customOverlaysRouter from './api/custom-overlays';
-import statsRouter from './api/stats';
+import streamsRouter from './api/streams';
 import rewardStatsRouter from './api/reward-stats';
 import leaderboardsRouter from './api/leaderboards';
 import pointsRouter from './api/points';
@@ -52,9 +51,9 @@ import chatRouter from './api/chat';
 import readinessRouter from './api/readiness';
 import { connectBot } from './bot/index';
 import { connectObs } from './obs/index';
+import { watchStreams } from './stream-report/watch';
 import { initAutoClips } from './auto-clips';
 import { initRewardLeaderboard, getTopRewards, boardTitle } from './reward-leaderboard';
-import { checkDatabase, healDatabase } from './api/notion-sync';
 import { startSMTC, getAutoDetectSetting, currentSongArt } from './integrations/smtc';
 import { getDb } from './db/index';
 import { rateLimit, publicRateLimit } from './middleware/rate-limit';
@@ -167,7 +166,6 @@ export function createApp(): express.Express {
   app.use('/api/voting', votingRouter);
   app.use('/api/progress', progressRouter);
   app.use('/api/clips', clipsRouter);
-  app.use('/api/clip-tags', clipTagsRouter);
   app.use('/api/milestones', milestonesRouter);
   app.use('/api/reward-stats', rewardStatsRouter);
   app.use('/api/leaderboards', leaderboardsRouter);
@@ -176,7 +174,7 @@ export function createApp(): express.Express {
   app.use('/api/channel-rewards', channelRewardsRouter);
   app.use('/api/obs', obsRouter);
   app.use('/api/overlays', customOverlaysRouter);
-  app.use('/api/stats', statsRouter);
+  app.use('/api/streams', streamsRouter);
   app.use('/api/backup', backupRouter);
   app.use('/api/overlay-config', overlayConfigRouter);
   app.use('/api/song-requests', songRequestsRouter);
@@ -332,11 +330,10 @@ export async function startServer(): Promise<{ token: string; port: number }> {
       initRewardLeaderboard();
       connectBot().catch(() => {});
       connectObs().catch(() => {});
+      // Nach dem Stream: what runs while live, and the viewer count every five minutes.
+      watchStreams();
       // Follow Mode looks at Worldbuilder once a second — a connection, so here and not in createApp().
       startFollowing();
-      // Published moments leave the content board after 30 days — checked at start and every six hours.
-      archivePublishedClips();
-      setInterval(() => archivePublishedClips(), 6 * 60 * 60 * 1000);
       // Viewer data has a shelf life: the redemption log and finished song requests go after 90 days.
       pruneViewerData();
       setInterval(() => pruneViewerData(), 24 * 60 * 60 * 1000);
@@ -358,21 +355,6 @@ export async function startServer(): Promise<{ token: string; port: number }> {
 
       if (getAutoDetectSetting()) startSMTC();
 
-      // Auto-heal Notion schema: existing users get new rich_text columns added
-      // silently on startup so sync keeps working after property additions.
-      (async () => {
-        const dbId = (getDb().prepare('SELECT value FROM settings WHERE key = ?').get('notion_clips_db') as { value: string } | undefined)?.value;
-        if (!dbId) return;
-        const check = await checkDatabase();
-        if (check.ok) return;
-        if (!('missing_properties' in check) || !check.missing_properties?.length) return;
-        try {
-          const result = await healDatabase(dbId);
-          if (result.added.length > 0) console.log(`[Notion] Auto-healed schema: added ${result.added.join(', ')}`);
-        } catch (err) {
-          console.warn('[Notion] Auto-heal failed:', err instanceof Error ? err.message : err);
-        }
-      })();
 
       resolve({ token, port: PORT });
     });

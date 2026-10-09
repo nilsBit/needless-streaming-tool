@@ -6,6 +6,7 @@ import { broadcast } from '../websocket/index';
 import { sampleAlert } from '../bot/alerts';
 import { getAutoDetectSetting, setAutoDetectSetting, isSMTCSupported, isSMTCRunning } from '../integrations/smtc';
 import { activeCard, type EntryCard } from './active-entry';
+import { noteActivity } from '../stream-report/log';
 
 const router = Router();
 
@@ -20,6 +21,7 @@ const RESULT_AFTER_MS = WHEEL_SPIN_MS + 500;
 
 function announceWinner(issues: Array<{ id: number; title: string }>, winner: { id: number; title: string }): void {
   markQuestFlag('spin');
+  noteActivity('wheel', winner.title);
   broadcast('roulette-spin', { issues, winner_id: winner.id });
   setTimeout(() => broadcast('roulette-result', { title: winner.title, id: winner.id }), RESULT_AFTER_MS);
 }

@@ -70,7 +70,7 @@ export default function StreamPage() {
       )}
       {isOn('momente') && <StreamCard
         title="Moment merken"
-        sentence="Setzt eine Marke im Stream. Danach landet sie unter „Nach dem Stream → Content planen“, wo du entscheidest, was daraus wird."
+        sentence="Setzt eine Marke im Stream. Nach dem Stream steht sie im Ablauf, mit Uhrzeit und deiner Notiz."
         scene={null}
       >
         <MomentCard />

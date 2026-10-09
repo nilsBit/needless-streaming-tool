@@ -10,6 +10,7 @@ import { countRedemption } from '../leaderboards';
 import { getClientId } from '../twitch-config';
 import { sendAlert } from './alerts';
 import { onFollow, setLive } from '../points/earn';
+import { noteFollow, noteReward } from '../stream-report/log';
 
 let ws: WebSocket | null = null;
 let sessionId: string | null = null;
@@ -100,6 +101,7 @@ export async function handleRedemption(event: Record<string, unknown>) {
   // The row is for alerts and the statistics count; what the viewer typed is used right here and not kept.
   ).run(userName, rewardType, JSON.stringify({ reward_title: rewardTitle, reward_id: rewardId, leaderboard: point?.leaderboard.key ?? null }));
 
+  noteReward(rewardTitle, login);
   const reward = getDb().prepare('SELECT * FROM rewards WHERE id = ?').get(result.lastInsertRowid);
   broadcast('reward-redeemed', reward);
 
@@ -201,7 +203,10 @@ function openSocket(url: string, auth: { token: string; clientId: string; userId
         if (subType === 'channel.follow') {
           const event = msg.payload?.event;
           sendAlert('follow', { user: event?.user_name ?? event?.user_login });
-          if (event?.user_login) onFollow(event.user_login, event.user_name);
+          if (event?.user_login) {
+            onFollow(event.user_login, event.user_name);
+            noteFollow(event.user_login, event.user_name);
+          }
         }
         if (subType === 'stream.online') setLive(true, msg.payload?.event?.started_at);
         if (subType === 'stream.offline') setLive(false);

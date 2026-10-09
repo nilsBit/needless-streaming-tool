@@ -42,17 +42,10 @@ async function autoClip(tag: string, note: string, confidence: 'high' | 'medium'
 export function initAutoClips(): void {
   // Listen for broadcast events
   // Every broadcast comes through here — a chat line, the timer each second.
-  // The event name is checked first; the setting only for the three that count.
+  // The event name is checked first; the setting only for the two that count.
   onBroadcast((event: string, data: unknown) => {
-    if (event !== 'reward-redeemed' && event !== 'compile-pray' && event !== 'milestone-trigger') return;
+    if (event !== 'compile-pray' && event !== 'milestone-trigger') return;
     if (!featureOn('autoclips') || !isEnabled()) return;
-
-    if (event === 'reward-redeemed' && isTriggerEnabled('reward')) {
-      const d = data as { user_name?: string; reward_type?: string } | null;
-      const user = d?.user_name || 'Unknown';
-      const type = d?.reward_type || 'reward';
-      autoClip('auto-reward', `Reward: ${type} by ${user}`, 'medium');
-    }
 
     if (event === 'compile-pray' && isTriggerEnabled('hype')) {
       autoClip('auto-hype', 'Hype moment', 'high');

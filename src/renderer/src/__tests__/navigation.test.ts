@@ -87,8 +87,8 @@ describe('navigation', () => {
     // Im Stream keeps its place for the moment card, with no card panel left.
     expect(few.find((a) => a.key === 'stream')!.subTabs[0].panels).toEqual([]);
     expect(few.find((a) => a.key === 'overlays')!.subTabs.map((t) => t.key)).toEqual(['overlays']);
-    expect(few.find((a) => a.key === 'after')!.subTabs.map((t) => t.key)).toEqual(['content', 'statistik']);
-    expect(few.find((a) => a.key === 'after')!.subTabs[0].panels).toEqual(['clips']);
+    expect(few.find((a) => a.key === 'after')!.subTabs.map((t) => t.key)).toEqual(['auswertung']);
+    expect(few.find((a) => a.key === 'after')!.subTabs[0].panels).toEqual(['report']);
 
     // Nothing chosen: only what belongs to no feature — the quests too, whose first is choosing.
     const none = visibleNavigation(new Set());

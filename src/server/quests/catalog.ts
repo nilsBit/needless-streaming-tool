@@ -134,15 +134,15 @@ export const QUESTS: readonly Quest[] = [
   },
   {
     key: 'moment', group: 'momente', title: 'Ersten Moment merken', xp: 30, feature: 'momente',
-    text: 'Ein Klick im Stream merkt die Stelle für später.',
+    text: 'Ein Klick im Stream setzt eine Marke in den Ablauf.',
     goTo: { area: 'stream' },
     done: () => count('SELECT COUNT(*) AS n FROM clips') > 0,
   },
   {
-    key: 'published', group: 'momente', title: 'Moment veröffentlicht', xp: 60, feature: 'momente',
-    text: 'Aus einem Moment wird ein Clip auf TikTok, Shorts oder Reels.',
-    goTo: { area: 'after', subTab: 'content' },
-    done: () => count(`SELECT COUNT(*) AS n FROM clips WHERE status = 'published'`) > 0,
+    key: 'report', group: 'momente', title: 'Ersten Stream ausgewertet', xp: 60, feature: 'momente',
+    text: 'Nach dem Stream siehst du, was den Chat bewegt hat.',
+    goTo: { area: 'after' },
+    done: () => count('SELECT COUNT(*) AS n FROM streams WHERE ended_at IS NOT NULL') > 0,
   },
   {
     key: 'discord', group: 'discord', title: 'Live-Meldung einrichten', xp: 40, feature: 'discord',
@@ -183,8 +183,8 @@ export const GUIDE: Record<string, QuestGuide> = {
   spin: { chapter: 2, why: 'Der Chat sieht, wie der Zufall entscheidet.', how: ['Im Stream → Glücksrad', '„Rad drehen“'], needs: 'topics3', blockedBy: 'Erst drei Themen' },
   alertSound: { chapter: 2, why: 'Ein Follow oder Raid fällt auf, auch wenn du gerade nicht hinschaust.', how: ['Overlays & Alerts → Karte Alerts', 'Bei einem Anlass eine Tondatei wählen'] },
   discord: { chapter: 2, why: 'Dein Discord erfährt von selbst, wenn du live gehst.', how: ['Einstellungen → Verbindungen → Discord', 'Webhook-Adresse eintragen'] },
-  moment: { chapter: 3, why: 'Aus guten Stellen wird später Content.', how: ['Im Stream → „Moment merken“, wenn etwas passiert'] },
-  published: { chapter: 3, why: 'Dein Stream wächst über TikTok, Shorts und Reels.', how: ['Nach dem Stream → Content planen', 'Eine Karte bis „Veröffentlicht“ schieben'], needs: 'moment', blockedBy: 'Erst ein Moment' },
+  moment: { chapter: 3, why: 'Die Stelle steht nach dem Stream im Ablauf, mit Uhrzeit.', how: ['Im Stream → „Moment merken“, wenn etwas passiert'] },
+  report: { chapter: 3, why: 'Du siehst, welcher Teil den Chat bewegt hat und wer neu dazukam.', how: ['Mit Twitch verbunden live gehen', 'Danach: Nach dem Stream'], needs: 'twitch', blockedBy: 'Braucht Twitch' },
   entryCard: { chapter: 3, why: 'Die Zuschauer sehen, woran du in der Welt gerade schreibst.', how: ['Overlays & Alerts → Eintragskarte', '„In OBS anlegen“'], needs: 'obs', blockedBy: 'Braucht OBS' },
 };
 
@@ -192,7 +192,7 @@ export const GUIDE: Record<string, QuestGuide> = {
 export const CHAPTERS: ReadonlyArray<{ n: number; title: string; badge: string; after?: number }> = [
   { n: 1, title: 'Bereit für den ersten Stream', badge: 'Startklar' },
   { n: 2, title: 'Der Chat spielt mit', badge: 'Gastgeber' },
-  { n: 3, title: 'Aus dem Stream wird Content', badge: 'Chronist', after: 1 },
+  { n: 3, title: 'Den Stream verstehen', badge: 'Chronist', after: 1 },
 ];
 
 /** The stages, by the EP they start at. Things, not people. */

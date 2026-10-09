@@ -4,7 +4,7 @@ import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
 import { getUserDataPath } from '../paths';
 import { fold } from '../fold';
-import { notionFetch } from './notion-sync';
+import { notionFetch } from './notion';
 import { holdCard } from './follow-state';
 import { portraitHeaders } from './worldbuilder';
 import type { Character } from './characters';

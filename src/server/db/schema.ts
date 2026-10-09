@@ -1,4 +1,4 @@
-export const SCHEMA_VERSION = 33;
+export const SCHEMA_VERSION = 34;
 
 export const SCHEMA = `
 CREATE TABLE IF NOT EXISTS schema_version (
@@ -208,6 +208,38 @@ CREATE TABLE IF NOT EXISTS point_rewards (
   created_at       DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Nach dem Stream (2026-10-09): one row per Twitch stream, by its start.
+-- What happened is told in seconds after that start; chat only as counts per
+-- minute and viewer, never what was written. Streams go after a year.
+CREATE TABLE IF NOT EXISTS streams (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  started_at   TEXT NOT NULL UNIQUE,
+  ended_at     TEXT,
+  last_seen_at TEXT
+);
+
+-- kind: scene, goal, poll, wheel (what ran), follow, reward, command,
+-- moment, viewers. name: the scene, title, command or reward; login: who.
+CREATE TABLE IF NOT EXISTS stream_events (
+  id        INTEGER PRIMARY KEY AUTOINCREMENT,
+  stream_id INTEGER NOT NULL REFERENCES streams(id) ON DELETE CASCADE,
+  at        INTEGER NOT NULL,
+  kind      TEXT NOT NULL,
+  name      TEXT,
+  login     TEXT,
+  value     INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS stream_chat (
+  stream_id INTEGER NOT NULL REFERENCES streams(id) ON DELETE CASCADE,
+  minute    INTEGER NOT NULL,
+  login     TEXT NOT NULL,
+  name      TEXT,
+  messages  INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (stream_id, minute, login)
+);
+
+CREATE INDEX IF NOT EXISTS idx_stream_events_stream ON stream_events(stream_id, at);
 CREATE INDEX IF NOT EXISTS idx_clips_session_date ON clips(session_date);
 CREATE INDEX IF NOT EXISTS idx_project_items_status ON project_items(status);
 CREATE INDEX IF NOT EXISTS idx_song_requests_status ON song_requests(status);

@@ -20,9 +20,7 @@ export const PANEL_KEYS = [
   // all live in the overlay workshop, not as panels of their own (08.10.)
   'overlays',
   // Nach dem Stream
-  'clips',
-  'autoclips',
-  'stats',
+  'report',
   // Einstellungen
   'settings-connections',
   'settings-app',

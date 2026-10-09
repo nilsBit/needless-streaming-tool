@@ -42,7 +42,7 @@ describe('chat', () => {
     expect(reply).toContain('Twitch-Namen');
     expect(reply).toContain('90 Tage');
     expect(reply).toContain('Bestenliste');
-    expect(reply).toContain('Kein Protokoll, kein Chat');
+    expect(reply).toContain('nie den Inhalt');
     expect(reply.length).toBeLessThanOrEqual(500);
     // The English second name answers the same.
     expect((await tryInChat('!privacy').expect(200)).body.replies).toEqual(res.body.replies);

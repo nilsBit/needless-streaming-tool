@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { apiPost } from '../../hooks/useApi';
 import { useToast } from '../../contexts/ToastContext';
 
-// "Moment merken" during the stream: one note, one button. The moment lands
-// under Nach dem Stream → Content planen with the stream timecode, like the
-// Stream Deck key and the hotkey do it. Same endpoint as the clips panel.
+// "Moment merken" during the stream: one note, one button. The moment is a
+// mark in the timeline under Nach dem Stream, like the Stream Deck key and the
+// hotkey set it.
 export default function MomentCard() {
   const { toast } = useToast();
   const [note, setNote] = useState('');

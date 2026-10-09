@@ -46,7 +46,7 @@ export const FEATURE_GROUPS: readonly FeatureGroup[] = [
   { key: 'chat', label: 'Im Chat', sentence: 'Was der Bot im Chat tut.' },
   { key: 'overlays', label: 'Overlays', sentence: 'Was Zuschauer im Stream sehen. Jedes ist eine Browserquelle in OBS.' },
   { key: 'rewards', label: 'Mit Kanalpunkten', sentence: 'Belohnungen legst du hier oder in Twitch an, das Tool reagiert darauf.' },
-  { key: 'after', label: 'Nach dem Stream', sentence: 'Was aus dem Stream wird.' },
+  { key: 'after', label: 'Nach dem Stream', sentence: 'Wie der Stream gelaufen ist.' },
   { key: 'welt', label: 'Welt', sentence: 'Deine Welt aus dem Worldbuilder im Stream. Erscheint, weil der Worldbuilder auf diesem Rechner eingerichtet ist.', personal: true },
 ];
 
@@ -67,8 +67,8 @@ export const FEATURES: readonly Feature[] = [
   { key: 'bestenliste', group: 'rewards', label: 'Bestenlisten', sentence: 'Wer eine Belohnung am öftesten einlöst – je Liste eine Belohnung. Als Overlay, mit Rangwechsel-Meldung und !stats.', needs: ['twitch', 'obs'], overlays: ['reward-leaderboard', 'reward-rankchange'], commands: ['rewardstats'], panels: [], hotkeys: [], readiness: [] },
   { key: 'belohnungen', group: 'rewards', label: 'Belohnungen auslösen', sentence: 'Kanalpunkte drehen das Rad, wechseln kurz die Szene, ändern die Musik oder reichen einen Vorschlag ein.', needs: ['twitch', 'obs'], overlays: [], commands: ['scene'], panels: ['channelrewards'], hotkeys: [], readiness: [] },
 
-  { key: 'momente', group: 'after', label: 'Momente merken und Content planen', sentence: 'Ein Klick merkt die Stelle. Danach wird daraus ein Brett für TikTok, Shorts und Reels.', needs: [], overlays: [], commands: ['hype'], panels: ['clips'], hotkeys: ['hype_moment'], readiness: [] },
-  { key: 'autoclips', group: 'after', label: 'Hype von selbst erkennen', sentence: 'Wenn der Chat explodiert, merkt das Tool den Moment für dich.', needs: ['twitch'], overlays: [], commands: [], panels: ['autoclips'], hotkeys: [], readiness: [] },
+  { key: 'momente', group: 'after', label: 'Momente merken', sentence: 'Ein Klick setzt eine Marke. Nach dem Stream steht sie im Ablauf, mit Uhrzeit.', needs: [], overlays: [], commands: ['hype'], panels: [], hotkeys: ['hype_moment'], readiness: [] },
+  { key: 'autoclips', group: 'after', label: 'Hype von selbst erkennen', sentence: 'Wenn der Chat explodiert, setzt das Tool die Marke für dich.', needs: ['twitch'], overlays: [], commands: [], panels: [], hotkeys: [], readiness: [] },
   { key: 'meilensteine', group: 'after', label: 'Meilensteine feiern', sentence: 'Ein abgehakter Meilenstein wird groß gefeiert, über allem anderen.', needs: ['obs'], overlays: ['milestone'], commands: [], panels: [], hotkeys: ['milestone_minor', 'milestone_major', 'milestone_epic'], readiness: [] },
   { key: 'discord', group: 'after', label: 'Live-Meldung nach Discord', sentence: 'Wenn du live gehst, postet das Tool eine Nachricht in deinen Server.', needs: ['discord'], overlays: [], commands: [], panels: [], hotkeys: [], readiness: [] },
 

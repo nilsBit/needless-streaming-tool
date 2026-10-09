@@ -240,22 +240,3 @@ export interface SongRequest {
 
 export const VALID_SONG_REQUEST_STATUS = ['pending', 'playing', 'done', 'skipped'] as const;
 
-export interface NotionDatabase {
-  id: string;
-  title: string;
-  icon: string | null;
-  url: string;
-  missing_properties: string[];
-}
-
-export interface NotionPage {
-  id: string;
-  title: string;
-  icon: string | null;
-  url: string;
-}
-
-export type NotionDatabaseCheck =
-  | { ok: true }
-  | { ok: false; missing_properties: string[] }
-  | { ok: false; error: 'token_invalid' | 'db_gone' | 'no_db' };

@@ -4,7 +4,6 @@ import { useWebSocket } from '../../hooks/useWebSocket';
 import { useToast } from '../../contexts/ToastContext';
 import { useVisibleInterval } from '../../hooks/useVisibleInterval';
 import { useFeatures } from '../../contexts/FeaturesContext';
-import NotionDatabasePicker from '../NotionDatabasePicker';
 import type { BotStatus } from '../../../../shared/types';
 import type { ConnectionKey } from '../../../../shared/features';
 
@@ -206,7 +205,6 @@ export default function ConnectionCards({ only }: Props) {
           <div className="s-card-inputs">
             <input type="text" placeholder="Notion Internal Integration Token (ntn_...)" value={notionToken} onChange={(e) => setNotionToken(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && saveNotionToken()} />
             <button type="button" className="s-card-action primary" onClick={saveNotionToken}>Speichern</button>
-            <NotionDatabasePicker compact />
           </div>
         </Card>
       )}

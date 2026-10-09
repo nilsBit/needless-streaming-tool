@@ -1,6 +1,6 @@
 import { Router, Response } from 'express';
 import { getDb } from '../db/index';
-import { notionFetch } from './notion-sync';
+import { notionFetch } from './notion';
 import { loadCharactersFromWorld, loadWorld, loadWorldEntries } from './worldbuilder';
 import {
   activeCharacter,

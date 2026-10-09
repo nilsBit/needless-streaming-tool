@@ -10,8 +10,8 @@ import { featureOn } from './features';
  */
 export function privacySentence(): string {
   const months = Math.round(LEADERBOARD_INACTIVE_DAYS / 30);
-  const points = featureOn('punkte') ? ` und deine Punkte (bis ${months} Monate nach dem letzten Verdienen)` : '';
-  return `Dieser Kanal nutzt das Needless Streaming Tool. Es zählt auf dem Rechner des Streamers unter deinem Twitch-Namen deine Einlösungen für die Bestenlisten (bis ${months} Monate nach dem letzten)${points} und merkt sich deine Songwünsche und Vorschläge (erledigte ${RETENTION_DAYS} Tage). Kein Protokoll, kein Chat. Löschen auf Wunsch: schreib dem Streamer.`;
+  const points = featureOn('punkte') ? `, deine Punkte (bis ${months} Monate nach dem letzten Verdienen)` : '';
+  return `Dieser Kanal nutzt das Needless Streaming Tool. Es zählt lokal beim Streamer unter deinem Twitch-Namen deine Einlösungen für die Bestenlisten (bis ${months} Monate nach dem letzten)${points} und wie oft du pro Stream schreibst – nie den Inhalt (${months} Monate). Deine Songwünsche und Vorschläge: erledigte ${RETENTION_DAYS} Tage. Löschen auf Wunsch: schreib dem Streamer.`;
 }
 
 /** The same, as the block for the Twitch panel under the stream. */

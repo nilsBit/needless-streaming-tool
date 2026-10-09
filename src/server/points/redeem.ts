@@ -4,6 +4,7 @@ import { getBotConfig } from '../bot/config';
 import { broadcast } from '../websocket/index';
 import { featureOn } from '../features';
 import { rewardTypeOf, runAction } from '../reward-actions';
+import { noteReward } from '../stream-report/log';
 import { getPointsConfig } from './config';
 import { refundPoints, spendPoints, standing, type Standing } from './ledger';
 import { findPointReward, listPointRewards, type PointReward } from './rewards';
@@ -87,6 +88,7 @@ export async function redeem(name: string, displayName: string, rewardName: stri
     .run(who, rewardTypeOf(reward.action), JSON.stringify(stored)).lastInsertRowid;
   const row = getDb().prepare('SELECT * FROM rewards WHERE id = ?').get(id) as Record<string, unknown>;
   broadcast('reward-redeemed', { ...row, data: JSON.stringify({ ...stored, message: text || undefined }) });
+  noteReward(reward.name, login);
 
   const after = standing(login)!;
   // The streamer trying their own reward is a quest of its own.

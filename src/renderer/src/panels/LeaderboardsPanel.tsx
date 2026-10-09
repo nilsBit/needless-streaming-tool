@@ -133,7 +133,7 @@ function ListDialog({ list, rewards, listLoaded, gone, taken, onClose, onChanged
   };
   const forget = async () => {
     if (!editing) return;
-    if (!window.confirm(`${editing.user_name} vergessen? Alles, was unter diesem Namen gespeichert ist – in jeder Bestenliste, Songwünsche –, wird gelöscht.`)) return;
+    if (!window.confirm(`${editing.user_name} vergessen? Alles, was unter diesem Namen gespeichert ist – in jeder Bestenliste, Songwünsche, Zählungen in den Streams –, wird gelöscht.`)) return;
     const result = await apiPost('/reward-stats/forget', { user_name: editing.user_name });
     if (!result) { toast.error('Nicht gelöscht'); return; }
     toast.success(`${editing.user_name} vergessen`); setEditing(null); refetch(); onChanged();

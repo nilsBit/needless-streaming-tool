@@ -12,7 +12,7 @@ import { getDb } from './db/index';
 export const RETENTION_DAYS = 90;
 export const LEADERBOARD_INACTIVE_DAYS = 365;
 
-export interface PruneResult { songRequests: number; leaderboard: number; points: number }
+export interface PruneResult { songRequests: number; leaderboard: number; points: number; streams: number }
 
 export function pruneViewerData(days: number = RETENTION_DAYS, inactiveDays: number = LEADERBOARD_INACTIVE_DAYS): PruneResult {
   const db = getDb();
@@ -22,13 +22,15 @@ export function pruneViewerData(days: number = RETENTION_DAYS, inactiveDays: num
   const leaderboard = db.prepare("DELETE FROM reward_stats WHERE last_redeemed_at < datetime('now', ?)").run(inactive).changes;
   // Own points go after the same year without earning anything.
   const points = db.prepare("DELETE FROM viewer_points WHERE last_earned_at < datetime('now', ?)").run(inactive).changes;
-  if (songRequests || leaderboard || points) {
+  // Nach dem Stream: a stream and who chatted in it go after the same year.
+  const streams = db.prepare("DELETE FROM streams WHERE started_at < strftime('%Y-%m-%dT%H:%M:%fZ', 'now', ?)").run(inactive).changes;
+  if (songRequests || leaderboard || points || streams) {
     console.log(`[Retention] Pruned ${songRequests} finished song requests older than ${days} days, ${leaderboard} leaderboard entries and ${points} point accounts idle for ${inactiveDays} days`);
   }
-  return { songRequests, leaderboard, points };
+  return { songRequests, leaderboard, points, streams };
 }
 
-export function forgetViewer(name: string): { rewardStats: number; rewards: number; songRequests: number; points: number } {
+export function forgetViewer(name: string): { rewardStats: number; rewards: number; songRequests: number; points: number; streams: number } {
   const login = name.trim().toLowerCase();
   const db = getDb();
   return {
@@ -36,5 +38,8 @@ export function forgetViewer(name: string): { rewardStats: number; rewards: numb
     rewards: db.prepare('DELETE FROM rewards WHERE LOWER(user_name) = ?').run(login).changes,
     songRequests: db.prepare('DELETE FROM song_requests WHERE LOWER(requested_by) = ?').run(login).changes,
     points: db.prepare('DELETE FROM viewer_points WHERE user_name = ?').run(login).changes,
+    // In the streams: their chat counts, follows, commands and redemptions.
+    streams: db.prepare('DELETE FROM stream_chat WHERE login = ?').run(login).changes
+      + db.prepare('DELETE FROM stream_events WHERE login = ?').run(login).changes,
   };
 }

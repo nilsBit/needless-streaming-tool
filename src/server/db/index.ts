@@ -397,6 +397,11 @@ function runMigrations(from: number, to: number) {
     console.log('[DB] Migrated: scene_seconds on rewards');
   }
 
+  if (from < 34) {
+    // streams, stream_events and stream_chat come with the schema itself.
+    console.log('[DB] Migrated: streams for Nach dem Stream');
+  }
+
   // Safety check: ensure experiment_* columns were renamed to challenge_*
   // (can be missed if DB was copied from an older version after migration ran)
   try {

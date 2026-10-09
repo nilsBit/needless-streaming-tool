@@ -95,6 +95,9 @@ braucht den Bot.
 - **Verworfene Einträge** erscheinen nirgends im Stream.
 - **Harte Regel: Alles bleibt kostenlos.** Keine bezahlten Dienste, auch keine
   kostenlosen Tarife, die später Geld kosten könnten.
+- **Nur Streamen (09.10.).** Content planen (Clip-Brett, Plattformen, Notion für Clips)
+  gehört nicht ins Tool. „Nach dem Stream“ wertet nur aus, was im Stream passiert ist –
+  gezählt, ohne KI.
 
 ## Erledigt
 
@@ -155,6 +158,19 @@ braucht den Bot.
   Warum kein Sync: ADR-0023 im Worldbuilder.
 
 ## Wo wir stehen geblieben sind
+
+**Hier aufgehört (09.10., auf dem Mac)**
+
+- **Nach dem Stream ist eine Auswertung** (Leinwand-Bogen „A überarbeitet · mehr als Twitch“).
+  Das Tool schreibt live mit (`src/server/stream-report/`, Schema **v34**: `streams`,
+  `stream_events`, `stream_chat`): Start und Ende über EventSub und Helix, Zuschauer alle fünf
+  Minuten, Chat je Minute und Login (nie der Text), Follows, Einlösungen, Befehle, Szenen,
+  Ziel, Abstimmung, Glücksrad, Momente. `GET /api/streams`, `GET /api/streams/:id`. Seite:
+  sechs Zahlen gegen die fünf Streams davor, Ablauf in Teilen nach dem, was lief, was
+  funktioniert hat, Deine Leute, Was genutzt wurde. Content-Brett, Statistik, Clip-Schlagworte,
+  Notion-Clip-Sync und die Quest „Moment veröffentlicht“ sind weg; neu ist „Ersten Stream
+  ausgewertet“. `!datenschutz` sagt jetzt, dass pro Stream gezählt wird, wie oft jemand
+  schreibt. Streams gehen nach einem Jahr, „Zuschauer vergessen“ löscht auch dort.
 
 **Hier aufgehört (08.10., auf dem Mac)**
 

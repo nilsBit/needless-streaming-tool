@@ -4,6 +4,7 @@ import { featureOn } from '../features';
 import { getPointsConfig } from './config';
 import { addPoints, resetStreamContribution } from './ledger';
 import { checkAndBroadcast } from '../reward-leaderboard';
+import { noteViewers, streamEnded, streamStarted } from '../stream-report/log';
 
 /**
  * Who earns the tool's own points, and when. Only while the stream is live —
@@ -37,8 +38,11 @@ export function setLive(on: boolean, startedAt?: string): void {
   live = on;
   if (!on) {
     lastChat.clear();
+    streamEnded();
     return;
   }
+  // Nach dem Stream writes this stream down from here on.
+  streamStarted(startedAt);
   // EventSub and Helix may write the same start with and without fractions
   // of a second, so the start is compared to the second.
   const started = Math.floor(Date.parse(startedAt ?? '') / 1000);
@@ -108,6 +112,7 @@ export async function refreshLive(helix: PagedHelix): Promise<string | null> {
   if (stream) {
     const running = stream.data?.[0];
     setLive(!!running, running?.started_at);
+    if (running) noteViewers(Number(running.viewer_count));
   }
   return me;
 }

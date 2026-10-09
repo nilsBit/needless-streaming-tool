@@ -10,9 +10,7 @@ import TextCommandsPanel from './panels/TextCommandsPanel';
 import ChatBotSettings from './components/settings/ChatBotSettings';
 import TryCommandsPanel from './panels/TryCommandsPanel';
 import OverlaysPanel from './panels/OverlaysPanel';
-import ClipsPanel from './panels/ClipsPanel';
-import AutoClipsSettings from './components/settings/AutoClipsSettings';
-import StatsPanel from './panels/StatsPanel';
+import StreamReportPanel from './panels/StreamReportPanel';
 import PointsPanel from './panels/PointsPanel';
 import ChannelRewardsPanel from './panels/ChannelRewardsPanel';
 import QuestsPanel from './panels/QuestsPanel';
@@ -37,9 +35,7 @@ export const PANEL_REGISTRY: Record<PanelKey, React.ComponentType> = {
   chatbot: ChatBotSettings,
   trycommands: TryCommandsPanel,
   overlays: OverlaysPanel,
-  clips: ClipsPanel,
-  autoclips: AutoClipsSettings,
-  stats: StatsPanel,
+  report: StreamReportPanel,
   points: PointsPanel,
   channelrewards: ChannelRewardsPanel,
   quests: QuestsPanel,

@@ -298,7 +298,7 @@ function ViewerDialog({ viewer, currency, rewards, onClose }: { viewer: Viewer; 
     toast.success(`„${reward.name}“ eingelöst`);
   };
   const forget = async () => {
-    if (!window.confirm(`${current.display_name} vergessen? Alles, was unter diesem Namen gespeichert ist – Punkte, Bestenlisten, Songwünsche –, wird gelöscht.`)) return;
+    if (!window.confirm(`${current.display_name} vergessen? Alles, was unter diesem Namen gespeichert ist – Punkte, Bestenlisten, Songwünsche, Zählungen in den Streams –, wird gelöscht.`)) return;
     if (!(await apiPost('/reward-stats/forget', { user_name: current.user_name }))) { toast.error('Nicht gelöscht'); return; }
     toast.success(`${current.display_name} vergessen`); onClose();
   };

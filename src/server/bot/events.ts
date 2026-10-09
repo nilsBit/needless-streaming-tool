@@ -5,6 +5,7 @@ import { sayInParts } from './chat-message';
 import { botHelix, raidShoutoutEnabled, shoutoutText } from './shoutout';
 import { reminder } from './index';
 import { onBits, onChatMessage, onGift, onRaid, onSub } from '../points/earn';
+import { noteChat } from '../stream-report/log';
 
 /** A raid's crowd arrives a moment after the notice; the shoutout waits for them. */
 const RAID_SHOUTOUT_DELAY_MS = 4000;
@@ -55,7 +56,10 @@ export function registerEvents(client: Client) {
     if (self) return;
     feedChatMessage(tags, message);
     reminder.noteChat();
-    if (tags.username) onChatMessage(tags.username, tags['display-name']);
+    if (tags.username) {
+      onChatMessage(tags.username, tags['display-name']);
+      noteChat(tags.username, tags['display-name'], message);
+    }
   });
   client.on('messagedeleted', (_channel, _username, _message, userstate) => {
     const id = userstate['target-msg-id'];

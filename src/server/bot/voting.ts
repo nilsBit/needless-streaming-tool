@@ -1,4 +1,5 @@
 import { broadcast } from '../websocket/index';
+import { noteActivity } from '../stream-report/log';
 
 interface Vote {
   options: string[];
@@ -63,6 +64,7 @@ export function startVote(
 
   // Broadcast poll start to overlays
   broadcastPoll();
+  noteActivity('poll', title);
 
   return true;
 }
@@ -88,6 +90,7 @@ export function endVote(): { winner: string; counts: Record<string, number> } | 
   const result = { winner, counts, title: activeVote.title, designId: activeVote.designId, total: activeVote.votes.size };
 
   broadcast('vote-result', result);
+  noteActivity('poll', null, result.total);
   broadcast('poll-close', {});
 
   activeVote = null;
@@ -98,6 +101,7 @@ export function cancelVote(): void {
   if (!activeVote) return;
   if (activeVote.timer) clearTimeout(activeVote.timer);
   activeVote = null;
+  noteActivity('poll', null);
   // Called off: the overlay leaves without naming a winner.
   broadcast('poll-close', { cancelled: true });
 }
