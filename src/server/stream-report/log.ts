@@ -65,8 +65,11 @@ function resume(row: StreamRef, now: number): void {
   }
 }
 
-function noteGap(from: number, to: number): void {
-  if (!current || to - from < MIN_GAP_MS) return;
+function noteGap(lost: number, to: number): void {
+  if (!current) return;
+  // A connection lost before the stream began only counts from its start.
+  const from = Math.max(lost, current.startMs);
+  if (to - from < MIN_GAP_MS) return;
   getDb().prepare("INSERT INTO stream_events (stream_id, at, kind, value) VALUES (?, ?, 'gap', ?)")
     .run(current.id, secondOf(from), Math.round((to - from) / 1000));
 }
