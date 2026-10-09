@@ -55,6 +55,24 @@ router.post('/', async (req, res) => {
   res.status(201).json(clip);
 });
 
+// The tags a Stream Deck key can set on its moment — read only since the
+// board went; custom tags made before then stay in the list.
+const PRESET_TAGS = [
+  { tag: 'highlight', emoji: '⭐', preset: true },
+  { tag: 'fail', emoji: '💀', preset: true },
+  { tag: 'funny', emoji: '😂', preset: true },
+  { tag: 'tutorial', emoji: '📚', preset: true },
+  { tag: 'issue', emoji: '⚠️', preset: true },
+];
+
+export const clipTagsRouter = Router();
+clipTagsRouter.get('/', (_req, res) => {
+  const row = getDb().prepare('SELECT value FROM settings WHERE key = ?').get('custom_clip_tags') as { value: string } | undefined;
+  let custom: string[] = [];
+  try { const parsed = JSON.parse(row?.value ?? '[]'); if (Array.isArray(parsed)) custom = parsed.filter((t): t is string => typeof t === 'string'); } catch { /* none */ }
+  res.json([...PRESET_TAGS, ...custom.filter((t) => !PRESET_TAGS.some((p) => p.tag === t)).map((tag) => ({ tag, emoji: '🏷️', preset: false }))]);
+});
+
 router.delete('/:id', (req, res) => {
   const id = Number(req.params.id);
   getDb().prepare('DELETE FROM clips WHERE id = ?').run(id);

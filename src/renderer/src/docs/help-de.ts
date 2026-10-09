@@ -430,6 +430,7 @@ Auth-Header: Authorization: Bearer <token>
 
 **Clips:**
 - GET /api/clips — POST /api/clips (Moment merken: tag, note) — DELETE /api/clips/:id
+- GET /api/clip-tags — die Schlagworte für die Stream-Deck-Taste
 
 **Milestones:**
 - GET /api/milestones — POST /api/milestones — PATCH /api/milestones/:id — DELETE /api/milestones/:id

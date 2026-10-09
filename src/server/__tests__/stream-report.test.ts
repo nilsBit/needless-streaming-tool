@@ -154,6 +154,12 @@ describe('moments', () => {
     expect((await request(app).get('/api/clips').set(auth()).expect(200)).body).toEqual([]);
   });
 
+  it('still names the tags a Stream Deck key can choose', async () => {
+    const tags = (await request(app).get('/api/clip-tags').set(auth()).expect(200)).body as Array<{ tag: string }>;
+    expect(tags.map((t) => t.tag)).toEqual(['highlight', 'fail', 'funny', 'tutorial', 'issue']);
+    await request(app).post('/api/clip-tags').set(auth()).send({ tag: 'neu' }).expect(404);
+  });
+
   it('refuses a moment without a tag, and the content board is gone', async () => {
     await request(app).post('/api/clips').set(auth()).send({ note: 'x' }).expect(400);
     await request(app).post('/api/clips').set(auth()).send({ tag: 'highlight', note: { evil: true } }).expect(400);

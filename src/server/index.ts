@@ -16,7 +16,7 @@ import actionsRouter, { currentSong, rouletteTitle } from './api/actions';
 import authRouter from './api/auth';
 import votingRouter from './api/voting';
 import progressRouter from './api/progress';
-import clipsRouter from './api/clips';
+import clipsRouter, { clipTagsRouter } from './api/clips';
 import setupRouter from './api/setup';
 import { allowedOrigin } from './origins';
 import { pruneViewerData } from './retention';
@@ -166,6 +166,8 @@ export function createApp(): express.Express {
   app.use('/api/voting', votingRouter);
   app.use('/api/progress', progressRouter);
   app.use('/api/clips', clipsRouter);
+  // Read by the Stream Deck key "Moment merken" for its tag choice.
+  app.use('/api/clip-tags', clipTagsRouter);
   app.use('/api/milestones', milestonesRouter);
   app.use('/api/reward-stats', rewardStatsRouter);
   app.use('/api/leaderboards', leaderboardsRouter);
