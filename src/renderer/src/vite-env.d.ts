@@ -14,6 +14,8 @@ interface UpdateInfo {
 interface ElectronAPI {
   selectSyncFolder: () => Promise<string | null>;
   onUpdateAvailable: (callback: (data: UpdateInfo) => void) => void;
+  onUpdateDownloaded?: (callback: (data: { version: string }) => void) => void;
+  installUpdate?: () => Promise<void>;
 }
 
 interface Window {

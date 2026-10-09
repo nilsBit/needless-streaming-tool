@@ -28,6 +28,7 @@
     "@coooookies/windows-smtc-monitor": "^1.0.12",
     "@types/tmi.js": "^1.8.6",
     "better-sqlite3": "^13.0.3",
+    "electron-updater": "^6.8.9",
     "express": "^4.21.0",
     "obs-websocket-js": "^5.0.8",
     "tmi.js": "^1.8.5",
@@ -90,7 +91,8 @@
       "oneClick": true,
       "allowToChangeInstallationDirectory": false,
       "createDesktopShortcut": true,
-      "shortcutName": "Needless Streaming Tool"
+      "shortcutName": "Needless Streaming Tool",
+      "artifactName": "Needless-Streaming-Tool-Setup-${version}.${ext}"
     },
     "asar": true,
     "electronFuses": {
@@ -105,6 +107,13 @@
     "asarUnpack": [
       "node_modules/better-sqlite3/**",
       "node_modules/@coooookies/**"
+    ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "nilsBit",
+        "repo": "needless-streaming-tool"
+      }
     ]
   },
   "devDependencies": {

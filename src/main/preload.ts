@@ -6,4 +6,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     // The check runs once per start; React's dev double-mount must not add a second listener.
     ipcRenderer.once('update-available', (_event, data) => callback(data));
   },
+  onUpdateDownloaded: (callback: (data: { version: string }) => void) => {
+    ipcRenderer.once('update-downloaded', (_event, data) => callback(data));
+  },
+  installUpdate: () => ipcRenderer.invoke('install-update'),
 });

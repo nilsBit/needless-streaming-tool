@@ -21,9 +21,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: |
-          npm ci
-          cd streamdeck-plugin && npm ci
+        run: npm ci
 
       # Unsigned for now (security review 2026-10-06, M9): macOS and Windows warn on first start
       # and nobody can verify a download. Signing needs an Apple Developer ID (CSC_LINK,
@@ -32,7 +30,7 @@ jobs:
       # secrets; then drop CSC_IDENTITY_AUTO_DISCOVERY. The Electron fuses in package.json apply
       # regardless.
       - name: Build app
-        run: npm run build:plugin && npx tsc -p tsconfig.node.json && npx vite build && npx electron-builder --publish never
+        run: npx tsc -p tsconfig.node.json && npx vite build && npx electron-builder --publish never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
 

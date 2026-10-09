@@ -21,6 +21,16 @@ export default function App() {
       });
     };
     api.onUpdateAvailable(handler);
+    // Windows: the update is already downloaded and installs on quit anyway.
+    api.onUpdateDownloaded?.((data) => {
+      toast.errorAction({
+        message: `Update v${data.version} ist bereit`,
+        action: {
+          label: 'Jetzt neu starten',
+          onClick: () => { void api.installUpdate?.(); },
+        },
+      });
+    });
   }, []);
 
   return <FeaturesProvider><Shell /></FeaturesProvider>;

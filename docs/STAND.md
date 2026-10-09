@@ -774,6 +774,30 @@ Auf diesem Rechner liegen die Projekte unter `D:\dev\stream-toolkit` und
 - Needless Streaming Tool: *Projekt → Welt* → Quelle Worldbuilder,
   „Worldbuilder folgen“ ist an.
 
+## Neue Version veröffentlichen (Auto-Update)
+
+Seit dem 9. Oktober 2026 aktualisiert sich das installierte Tool unter Windows
+selbst (`src/main/auto-update.ts`, `electron-updater`): Beim Start fragt es das
+neueste GitHub-Release ab, lädt den Installer im Hintergrund und installiert ihn
+beim Beenden — oder sofort über „Jetzt neu starten“ im Hinweis. Auf dem Mac
+(unsigniert, kann sich nicht selbst ersetzen) und im Dev-Modus bleibt es beim
+Hinweis mit Link zur Release-Seite.
+
+Eine neue Version rausgeben:
+
+1. `version` in `package.json` hochzählen (z. B. `1.0.1`), committen, pushen.
+2. Tag setzen und pushen: `git tag v1.0.1 && git push origin v1.0.1`.
+3. Die Action *Build & Release* (`.github/workflows/release.yml`) baut Windows
+   und Mac und legt das Release mit `latest.yml` an. Kostet nichts — das Repo
+   ist öffentlich.
+
+Die Versionsnummer muss steigen, sonst sieht niemand das Update. Wer eine
+Fassung **ohne** Updater hat (alles vor 1.0.1), muss die nächste einmal von Hand
+installieren. Die Datenbank liegt im Benutzerordner, ein Update lässt sie in
+Ruhe. Der Dateiname ist bewusst ohne Leerzeichen
+(`Needless-Streaming-Tool-Setup-<version>.exe`), damit er auf GitHub derselbe
+bleibt, den `latest.yml` nennt.
+
 ## Für Claude in einer neuen Session
 
 - **Zuerst die offenen Figma-Entwürfe:** `design/drafts/*/*/status.json` mit
