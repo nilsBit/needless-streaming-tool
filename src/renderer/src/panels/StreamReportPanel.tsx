@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useApi } from '../hooks/useApi';
+import { useWebSocket } from '../hooks/useWebSocket';
+import { useNavigate, type NavTarget } from '../NavigationContext';
 
 // "Nach dem Stream" (canvas "A überarbeitet · mehr als Twitch", 09.10.): one
 // stream at a time — the numbers next to the five streams before, the parts
@@ -31,12 +33,15 @@ export default function StreamReportPanel() {
   const [picked, setPicked] = useState<number | null>(null);
   if (loading && !streams) return <div className="panel"><p className="empty">Laden …</p></div>;
   if (!streams || streams.length === 0) {
-    // No stream yet: a note, and the page as it will look, greyed out.
+    // No stream yet: a note with the one next step, and the page as it will look, greyed out.
     return (
       <div className="panel report">
         <section className="report-empty">
-          <strong>Ab deinem nächsten Stream steht hier die Auswertung</strong>
-          <span>Das Tool schreibt mit, solange du live bist: was lief, wie viel im Chat los war, wer neu dazukam. Danach füllt sich diese Seite – so wie unten.</span>
+          <div className="report-empty-text">
+            <strong>Ab deinem nächsten Stream steht hier die Auswertung</strong>
+            <span>Das Tool schreibt mit, solange du live bist: was lief, wie viel im Chat los war, wer neu dazukam. Danach füllt sich diese Seite – so wie unten.</span>
+          </div>
+          <NextStep />
         </section>
         <div className="report-ghost" aria-hidden="true">
           <section className="report-kpis">
@@ -65,6 +70,29 @@ export default function StreamReportPanel() {
   }
   const id = picked ?? streams[0].id;
   return <ReportView key={id} id={id} streams={streams} onPick={setPicked} />;
+}
+
+/** What to do before the first report: connect Twitch, then OBS, then go live. */
+function NextStep() {
+  const go = useNavigate();
+  const { data: bot, refetch: refetchBot } = useApi<{ connected: boolean }>('/settings/bot-status');
+  const { data: obs, refetch: refetchObs } = useApi<{ connected: boolean }>('/obs/status');
+  useWebSocket((event) => {
+    if (event === 'bot-status') refetchBot();
+    if (event === 'obs-status') refetchObs();
+  });
+  if (!bot || !obs) return null;
+  const step: { label: string; why: string | null; to: NavTarget } = !bot.connected
+    ? { label: 'Twitch verbinden', why: null, to: { area: 'settings', subTab: 'verbindungen' } }
+    : !obs.connected
+      ? { label: 'OBS verbinden', why: 'Damit die Teile im Ablauf deine Szenennamen tragen. Geht auch ohne.', to: { area: 'settings', subTab: 'verbindungen' } }
+      : { label: 'Zu „Im Stream“', why: 'Alles steht. Geh live – danach steht hier dein Stream.', to: { area: 'stream' } };
+  return (
+    <div className="report-empty-next">
+      <button type="button" className="card-primary" onClick={() => go(step.to)}>{step.label}</button>
+      {step.why && <small>{step.why}</small>}
+    </div>
+  );
 }
 
 function ReportView({ id, streams, onPick }: { id: number; streams: StreamItem[]; onPick: (id: number) => void }) {
