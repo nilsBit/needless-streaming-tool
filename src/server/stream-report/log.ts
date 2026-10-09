@@ -21,23 +21,65 @@ function toSecond(iso: string): string | null {
   return Number.isFinite(ms) ? new Date(Math.floor(ms / 1000) * 1000).toISOString() : null;
 }
 
+/** A new Twitch start this soon after the last end is the same stream, after the connection dropped. */
+export const RESUME_WITHIN_MS = 15 * 60_000;
+/** A break in the connection shorter than this is not worth a part in the timeline. */
+export const MIN_GAP_MS = 60_000;
+
+interface StreamRef { id: number; started_at: string; ended_at: string | null; last_seen_at?: string | null }
+
 /** The stream went live (or was found live after a restart of the tool). */
 export function streamStarted(startedAt: string | undefined, now: number = Date.now()): void {
   const start = toSecond(startedAt ?? '');
   if (!start) return;
   const db = getDb();
-  const row = db.prepare('SELECT id FROM streams WHERE started_at = ?').get(start) as { id: number } | undefined;
-  if (row) {
-    if (current?.id !== row.id) lastActivity = {};
-    current = { id: row.id, startMs: Date.parse(start) };
-    db.prepare('UPDATE streams SET ended_at = NULL WHERE id = ?').run(row.id);
-    return;
+  // The same Twitch start — or one already folded into an earlier stream.
+  const known = (db.prepare('SELECT id, started_at, ended_at FROM streams WHERE started_at = ?').get(start)
+    ?? db.prepare("SELECT s.id, s.started_at, s.ended_at FROM stream_events e JOIN streams s ON s.id = e.stream_id WHERE e.kind = 'resume' AND e.name = ?").get(start)) as StreamRef | undefined;
+  if (known) { resume(known, now); return; }
+  // Twitch began a new stream soon after the last one ended: the connection
+  // dropped for a while. It stays one stream, with the gap in its timeline.
+  const last = db.prepare('SELECT id, started_at, ended_at, last_seen_at FROM streams ORDER BY started_at DESC LIMIT 1').get() as StreamRef | undefined;
+  if (last) {
+    const lastEnd = Date.parse(last.ended_at ?? last.last_seen_at ?? last.started_at);
+    if (Date.parse(start) > Date.parse(last.started_at) && Date.parse(start) - lastEnd <= RESUME_WITHIN_MS) {
+      resume(last, now);
+      addEvent('resume', start, null, null, now);
+      return;
+    }
   }
   // An offline that never came: the earlier stream ended when it was last seen.
   db.prepare('UPDATE streams SET ended_at = COALESCE(last_seen_at, started_at) WHERE ended_at IS NULL').run();
   const id = Number(db.prepare('INSERT INTO streams (started_at, last_seen_at) VALUES (?, ?)').run(start, new Date(now).toISOString()).lastInsertRowid);
   current = { id, startMs: Date.parse(start) };
   lastActivity = {};
+}
+
+/** Picks a stream up again; the time it was off the air becomes a gap. */
+function resume(row: StreamRef, now: number): void {
+  if (current?.id !== row.id) lastActivity = {};
+  current = { id: row.id, startMs: Date.parse(row.started_at) };
+  if (row.ended_at) {
+    noteGap(Date.parse(row.ended_at), now);
+    getDb().prepare('UPDATE streams SET ended_at = NULL WHERE id = ?').run(row.id);
+  }
+}
+
+function noteGap(from: number, to: number): void {
+  if (!current || to - from < MIN_GAP_MS) return;
+  getDb().prepare("INSERT INTO stream_events (stream_id, at, kind, value) VALUES (?, ?, 'gap', ?)")
+    .run(current.id, secondOf(from), Math.round((to - from) / 1000));
+}
+
+/**
+ * The chat connection went down or came back. While it was down nothing
+ * reached the tool — the timeline shows that stretch as a gap.
+ */
+let lostAt: number | null = null;
+export function noteConnection(up: boolean, now: number = Date.now()): void {
+  if (!up) { if (lostAt === null) lostAt = now; return; }
+  if (lostAt !== null) noteGap(lostAt, now);
+  lostAt = null;
 }
 
 export function streamEnded(now: number = Date.now()): void {
@@ -122,5 +164,6 @@ export function noteActivity(kind: ActivityKind, name: string | null, value: num
 /** For tests: forget which stream is running. */
 export function resetStreamLog(): void {
   current = null;
+  lostAt = null;
   lastActivity = {};
 }

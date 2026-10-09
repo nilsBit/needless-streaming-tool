@@ -3895,6 +3895,8 @@ button.character-active { width: 100%; color: var(--text); text-align: left; cur
 .report-parts { display: flex; flex-direction: column; gap: 6px; }
 .report-part { display: grid; grid-template-columns: 92px minmax(0, 2fr) minmax(0, 1.5fr) 62px 62px 62px; gap: 12px; align-items: center; padding: 10px 14px; border: 1px solid var(--border-subtle); border-radius: 10px; background: var(--bg-body); }
 .report-part.busiest { border-color: var(--accent); }
+.report-part.gap { border-style: dashed; background: none; color: var(--muted); }
+.report-part.gap .report-rate { justify-content: flex-end; }
 .report-part-head { padding-top: 0; padding-bottom: 0; border: 0; background: none; color: var(--muted); font-size: 12px; }
 .report-time, .report-what { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .report-time small, .report-what small { color: var(--muted); font-size: 12px; }

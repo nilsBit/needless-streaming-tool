@@ -10,7 +10,7 @@ import { useNavigate } from '../NavigationContext';
 
 interface StreamItem { id: number; started_at: string; minutes: number; live: boolean }
 interface Kpi { key: string; label: string; value: number | null; mean: number | null }
-interface Part { from: number; to: number; minutes: number; label: string; rate: number; chatters: number; follows: number; moments: number; note: string }
+interface Part { from: number; to: number; minutes: number; label: string; kind: string; rate: number; chatters: number; follows: number; moments: number; note: string }
 interface Insight { kind: string; big: string; text: string; tone: 'busy' | 'join' | 'follow' | 'quiet' }
 interface Report {
   id: number; started_at: string; minutes: number; live: boolean;
@@ -101,7 +101,7 @@ function ReportView({ id, streams, onPick }: { id: number; streams: StreamItem[]
   if (!r) return <div className="panel"><p className="empty">Laden …</p></div>;
 
   const maxRate = Math.max(1, ...r.parts.map((p) => p.rate));
-  const busiest = r.parts.reduce<Part | null>((a, p) => (!a || p.rate > a.rate ? p : a), null);
+  const busiest = r.parts.filter((p) => p.kind !== 'gap').reduce<Part | null>((a, p) => (!a || p.rate > a.rate ? p : a), null);
   const isLatest = streams[0].id === r.id;
 
   return (
@@ -143,16 +143,18 @@ function ReportView({ id, streams, onPick }: { id: number; streams: StreamItem[]
             <span role="columnheader">Chatter</span><span role="columnheader">Follows</span><span role="columnheader">Momente</span>
           </div>
           {r.parts.map((p) => (
-            <div key={p.from} className={`report-part${p === busiest && r.parts.length > 1 ? ' busiest' : ''}`} role="row">
+            <div key={p.from} className={`report-part${p === busiest && r.parts.length > 1 ? ' busiest' : ''}${p.kind === 'gap' ? ' gap' : ''}`} role="row">
               <span role="cell" className="report-time"><strong>{clock(p.from)}–{clock(p.to)}</strong><small>{p.minutes} min</small></span>
               <span role="cell" className="report-what"><strong>{p.label}</strong>{p.note && <small>{p.note}</small>}</span>
               <span role="cell" className="report-rate">
-                <span className="report-bar"><span className={p.rate > r.average_rate ? 'above' : ''} style={{ width: `${Math.round((p.rate / maxRate) * 100)}%` }} /></span>
-                <strong>{comma(p.rate)}</strong>
+                {p.kind === 'gap' ? <strong>–</strong> : <>
+                  <span className="report-bar"><span className={p.rate > r.average_rate ? 'above' : ''} style={{ width: `${Math.round((p.rate / maxRate) * 100)}%` }} /></span>
+                  <strong>{comma(p.rate)}</strong>
+                </>}
               </span>
-              <span role="cell" className="report-count"><small>Chatter</small>{p.chatters}</span>
-              <span role="cell" className="report-count"><small>Follows</small>{p.follows}</span>
-              <span role="cell" className="report-count"><small>Momente</small>{p.moments}</span>
+              <span role="cell" className="report-count"><small>Chatter</small>{p.kind === 'gap' ? '–' : p.chatters}</span>
+              <span role="cell" className="report-count"><small>Follows</small>{p.kind === 'gap' ? '–' : p.follows}</span>
+              <span role="cell" className="report-count"><small>Momente</small>{p.kind === 'gap' ? '–' : p.moments}</span>
             </div>
           ))}
         </div>

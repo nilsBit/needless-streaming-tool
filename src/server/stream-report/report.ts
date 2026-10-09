@@ -25,7 +25,7 @@ interface ChatRow { minute: number; login: string; name: string | null; messages
 export interface StreamListItem { id: number; started_at: string; minutes: number; live: boolean }
 export interface Kpi { key: string; label: string; value: number | null; mean: number | null }
 export interface Part {
-  from: number; to: number; minutes: number; label: string; kind: 'poll' | 'wheel' | 'goal' | 'scene' | 'none';
+  from: number; to: number; minutes: number; label: string; kind: 'gap' | 'poll' | 'wheel' | 'goal' | 'scene' | 'none';
   rate: number; chatters: number; follows: number; moments: number; note: string;
 }
 export interface Insight { kind: string; big: string; text: string; tone: 'busy' | 'join' | 'follow' | 'quiet' }
@@ -78,19 +78,24 @@ const KPI_LABELS: Array<[string, string]> = [
   ['chatters', 'Aktive Chatter'], ['messages', 'Nachrichten'], ['rewards', 'Belohnungen eingelöst'],
 ];
 
-/** Splits the stream by what ran. Poll beats wheel beats goal beats scene. */
+/** Splits the stream by what ran. A gap beats poll beats wheel beats goal beats scene. */
 function partsOf(events: EventRow[], length: number): Array<{ from: number; to: number; label: string; kind: Part['kind']; poll?: string }> {
-  const state: { scene: string | null; goal: string | null; poll: string | null; wheelUntil: number } = { scene: null, goal: null, poll: null, wheelUntil: -1 };
+  const state: { scene: string | null; goal: string | null; poll: string | null; wheelUntil: number; gapUntil: number } = { scene: null, goal: null, poll: null, wheelUntil: -1, gapUntil: -1 };
   const label = (t: number): { label: string; kind: Part['kind']; poll?: string } => {
+    if (t < state.gapUntil) return { label: 'Verbindung weg', kind: 'gap' };
     if (state.poll) return { label: `Abstimmung „${state.poll}“`, kind: 'poll', poll: state.poll };
     if (t < state.wheelUntil) return { label: 'Glücksrad', kind: 'wheel' };
     if (state.goal) return { label: `Ziel: ${state.goal}`, kind: 'goal' };
     if (state.scene) return { label: `Szene „${state.scene}“`, kind: 'scene' };
     return { label: 'Stream', kind: 'none' };
   };
-  const activity = events.filter((e) => ['scene', 'goal', 'poll', 'wheel'].includes(e.kind));
+  const activity = events.filter((e) => ['scene', 'goal', 'poll', 'wheel', 'gap'].includes(e.kind));
   const cuts = new Set<number>([0]);
-  for (const e of activity) { cuts.add(Math.min(e.at, length)); if (e.kind === 'wheel') cuts.add(Math.min(e.at + WHEEL_SECONDS, length)); }
+  for (const e of activity) {
+    cuts.add(Math.min(e.at, length));
+    if (e.kind === 'wheel') cuts.add(Math.min(e.at + WHEEL_SECONDS, length));
+    if (e.kind === 'gap') cuts.add(Math.min(e.at + (e.value ?? 0), length));
+  }
   const times = [...cuts].filter((t) => t < length).sort((a, b) => a - b);
   const raw: Array<{ from: number; to: number; label: string; kind: Part['kind']; poll?: string }> = [];
   let i = 0;
@@ -101,6 +106,7 @@ function partsOf(events: EventRow[], length: number): Array<{ from: number; to: 
       if (e.kind === 'goal') state.goal = e.name;
       if (e.kind === 'poll') state.poll = e.name;
       if (e.kind === 'wheel') state.wheelUntil = e.at + WHEEL_SECONDS;
+      if (e.kind === 'gap') state.gapUntil = Math.max(state.gapUntil, e.at + (e.value ?? 0));
     }
     raw.push({ from: t, to: times[k + 1] ?? length, ...label(t) });
   });
@@ -109,18 +115,20 @@ function partsOf(events: EventRow[], length: number): Array<{ from: number; to: 
     if (last && last.label === p.label) last.to = p.to; else out.push({ ...p });
     return out;
   }, []);
-  // Short parts fold into a neighbour — a poll stays, however short it was.
-  const isShort = (q: { from: number; to: number; kind: Part['kind'] }) => q.kind !== 'poll' && q.to - q.from < MIN_PART_SECONDS;
+  // Short parts fold into a neighbour — a poll or a gap stays, however short, and takes nothing in.
+  const keeps = (kind: Part['kind']) => kind === 'poll' || kind === 'gap';
+  const stuck = new WeakSet<object>();
+  const isShort = (q: { from: number; to: number; kind: Part['kind'] }) => !stuck.has(q) && !keeps(q.kind) && q.to - q.from < MIN_PART_SECONDS;
   let parts = merge(raw);
-  let short = parts.findIndex(isShort);
-  while (short !== -1 && parts.length > 1) {
+  for (let short = parts.findIndex(isShort); short !== -1; short = parts.findIndex(isShort)) {
     const p = parts[short];
     const prev = parts[short - 1];
     const next = parts[short + 1];
-    if (prev && (prev.kind !== 'poll' || !next)) prev.to = p.to; else next.from = p.from;
+    if (prev && !keeps(prev.kind)) prev.to = p.to;
+    else if (next && !keeps(next.kind)) next.from = p.from;
+    else { stuck.add(p); continue; } // between a poll and a gap: it stays
     parts.splice(short, 1);
     parts = merge(parts);
-    short = parts.findIndex(isShort);
   }
   return parts;
 }
@@ -143,12 +151,15 @@ export function streamReport(id: number, now: number = Date.now()): StreamReport
     return { key, label, value: mine[key], mean: values.length ? Math.round(values.reduce((a, b) => a + b, 0) / values.length) : null };
   });
 
-  const minutes = Math.max(1, length / 60);
+  const timeline = partsOf(events, Math.max(length, 1));
+  // Minutes without a connection count for nothing: the chat in them never arrived.
+  const offAir = timeline.filter((p) => p.kind === 'gap').reduce((a, p) => a + p.to - p.from, 0);
+  const minutes = Math.max(1, (length - offAir) / 60);
   const messages = mine.messages ?? 0;
   const averageRate = round1(messages / minutes);
 
   // The timeline.
-  const parts: Part[] = partsOf(events, Math.max(length, 1)).map((p) => {
+  const parts: Part[] = timeline.map((p) => {
     const inside = (at: number) => at >= p.from && at < p.to;
     const lines = chat.filter((c) => inside(c.minute * 60));
     const mins = Math.max(1, (p.to - p.from) / 60);
@@ -156,7 +167,8 @@ export function streamReport(id: number, now: number = Date.now()): StreamReport
     const moments = inEvents.filter((e) => e.kind === 'moment');
     const chatters = new Set(lines.map((c) => c.login)).size;
     const notes: string[] = [];
-    if (p.kind === 'poll') {
+    if (p.kind === 'gap') notes.push('Keine Verbindung zu Twitch – was hier passiert ist, fehlt.');
+    else if (p.kind === 'poll') {
       const close = events.find((e) => e.kind === 'poll' && e.name === null && e.at >= p.from && e.at <= p.to + 1 && e.value !== null);
       if (close) notes.push(`${close.value} von ${chatters} Chattern haben abgestimmt.`);
     } else if (p.kind === 'wheel') {
@@ -178,8 +190,9 @@ export function streamReport(id: number, now: number = Date.now()): StreamReport
   // What stood out — only where there is something to compare.
   const insights: Insight[] = [];
   let busiest: StreamReport['busiest'] = null;
-  if (parts.length >= 2 && averageRate > 0) {
-    const best = parts.reduce((a, b) => (b.rate > a.rate ? b : a));
+  const live = parts.filter((p) => p.kind !== 'gap');
+  if (live.length >= 2 && averageRate > 0) {
+    const best = live.reduce((a, b) => (b.rate > a.rate ? b : a));
     const ratio = round1(best.rate / averageRate);
     if (ratio >= 1.3) {
       busiest = { label: best.label, ratio };
@@ -200,8 +213,8 @@ export function streamReport(id: number, now: number = Date.now()): StreamReport
     const during = joinParts.reduce((a, p) => a + p.follows, 0);
     insights.push({ kind: 'Follows', tone: 'follow', big: `${during} von ${follows}`, text: 'neuen Followern kamen, während Glücksrad oder Abstimmung lief.' });
   }
-  if (parts.length >= 2) {
-    const quiet = parts.reduce((a, b) => (b.rate < a.rate || (b.rate === a.rate && b.minutes > a.minutes) ? b : a));
+  if (live.length >= 2) {
+    const quiet = live.reduce((a, b) => (b.rate < a.rate || (b.rate === a.rate && b.minutes > a.minutes) ? b : a));
     insights.push({ kind: 'Ruhigste Phase', tone: 'quiet', big: `${String(quiet.rate).replace('.', ',')}/min`, text: `${quiet.label}, ${clock(quiet.from)}\u2060–\u2060${clock(quiet.to)}.` });
   }
 

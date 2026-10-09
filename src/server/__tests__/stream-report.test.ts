@@ -4,7 +4,7 @@ import type { Express } from 'express';
 import { initDatabase } from '../db/index';
 import { generateApiToken } from '../auth-token';
 import { createApp } from '../index';
-import { noteActivity, noteChat, noteFollow, noteMoment, noteReward, noteViewers, resetStreamLog, streamEnded, streamStarted } from '../stream-report/log';
+import { noteActivity, noteChat, noteConnection, noteFollow, noteMoment, noteReward, noteViewers, resetStreamLog, streamEnded, streamStarted } from '../stream-report/log';
 
 /**
  * Nach dem Stream (2026-10-09): what the tool writes down while live, and the
@@ -165,5 +165,64 @@ describe('moments', () => {
     await request(app).post('/api/clips').set(auth()).send({ tag: 'highlight', note: { evil: true } }).expect(400);
     await request(app).patch('/api/clips/1').set(auth()).send({ status: 'published' }).expect(404);
     await request(app).get('/api/clips/export?session_date=today').set(auth()).expect(404);
+  });
+});
+
+describe('stream report when the connection drops', () => {
+  let app: Express;
+  let token: string;
+  const auth = () => ({ Authorization: `Bearer ${token}` });
+  const MIN = 60_000;
+  const t0 = Date.parse('2026-10-10T18:00:00Z');
+  const list = async () => (await request(app).get('/api/streams').set(auth()).expect(200)).body as Array<{ id: number; minutes: number }>;
+  const report = async (id: number) => (await request(app).get(`/api/streams/${id}`).set(auth()).expect(200)).body;
+
+  beforeAll(() => {
+    initDatabase(':memory:');
+    token = generateApiToken();
+    app = createApp();
+    resetStreamLog();
+  });
+
+  it('keeps one stream when Twitch starts anew within 15 minutes, with the break as a gap', async () => {
+    streamStarted('2026-10-10T18:00:00Z', t0);
+    for (let m = 0; m < 30; m++) noteChat('mila', 'Mila', 'hi', t0 + m * MIN);
+    streamEnded(t0 + 30 * MIN);
+    // Back after ten minutes: Twitch counts a new stream.
+    streamStarted('2026-10-10T18:40:00Z', t0 + 40 * MIN);
+    for (let m = 40; m < 60; m++) noteChat('mila', 'Mila', 'wieder', t0 + m * MIN);
+    // The tool asks Twitch again later and hears the new start once more.
+    streamStarted('2026-10-10T18:40:00Z', t0 + 45 * MIN);
+    streamEnded(t0 + 60 * MIN);
+
+    const streams = await list();
+    expect(streams).toHaveLength(1);
+    expect(streams[0].minutes).toBe(60);
+    const r = await report(streams[0].id);
+    const gap = r.parts.find((p: { kind: string }) => p.kind === 'gap');
+    expect(gap).toMatchObject({ from: 30 * 60, to: 40 * 60, label: 'Verbindung weg' });
+    // 50 messages in the 50 minutes that were on air.
+    expect(r.average_rate).toBe(1);
+    expect(r.insights.find((i: { tone: string }) => i.tone === 'quiet')?.text ?? '').not.toContain('Verbindung');
+  });
+
+  it('starts a new stream when the break was longer', async () => {
+    streamStarted('2026-10-10T20:00:00Z', t0 + 120 * MIN);
+    streamEnded(t0 + 150 * MIN);
+    expect(await list()).toHaveLength(2);
+  });
+
+  it('marks a lost chat connection as a gap, a short one not', async () => {
+    const t1 = Date.parse('2026-10-11T18:00:00Z');
+    streamStarted('2026-10-11T18:00:00Z', t1);
+    noteConnection(false, t1 + 10 * MIN);
+    noteConnection(true, t1 + 10 * MIN + 30_000);
+    noteConnection(false, t1 + 20 * MIN);
+    noteConnection(true, t1 + 25 * MIN);
+    streamEnded(t1 + 40 * MIN);
+    const [latest] = await list();
+    const gaps = (await report(latest.id)).parts.filter((p: { kind: string }) => p.kind === 'gap');
+    expect(gaps).toHaveLength(1);
+    expect(gaps[0]).toMatchObject({ from: 20 * 60, to: 25 * 60 });
   });
 });

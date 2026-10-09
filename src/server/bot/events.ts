@@ -5,7 +5,7 @@ import { sayInParts } from './chat-message';
 import { botHelix, raidShoutoutEnabled, shoutoutText } from './shoutout';
 import { reminder } from './index';
 import { onBits, onChatMessage, onGift, onRaid, onSub } from '../points/earn';
-import { noteChat } from '../stream-report/log';
+import { noteChat, noteConnection } from '../stream-report/log';
 
 /** A raid's crowd arrives a moment after the notice; the shoutout waits for them. */
 const RAID_SHOUTOUT_DELAY_MS = 4000;
@@ -68,4 +68,8 @@ export function registerEvents(client: Client) {
   client.on('timeout', (_channel, username) => removeChatUser(username));
   client.on('ban', (_channel, username) => removeChatUser(username));
   client.on('clearchat', () => clearChatFeed(true));
+
+  // Nach dem Stream: while chat is cut off, nothing is counted — a gap in the timeline.
+  client.on('disconnected', () => noteConnection(false));
+  client.on('connected', () => noteConnection(true));
 }

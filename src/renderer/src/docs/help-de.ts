@@ -101,6 +101,8 @@ Auf „Im Stream“ steht an jeder Karte, ob ihr Overlay in der laufenden OBS-Sz
 
 **Moment merken** (Im Stream, Stream Deck oder Tastenkürzel) setzt eine Marke in den Ablauf. Die Hype-Erkennung setzt ihre eigenen.
 
+**Verbindung weg:** Verliert der Rechner im Stream kurz das Internet, steht im Ablauf ein gestrichelter Teil „Verbindung weg“. Was in der Zeit im Chat passiert ist, kommt nicht nach – diese Minuten zählen deshalb bei Nachrichten pro Minute und der ruhigsten Phase nicht mit. Beginnt Twitch danach einen neuen Stream, keine 15 Minuten nach dem Ende des alten, bleibt es eine Auswertung.
+
 Läuft der Stream noch, füllt sich die Seite einmal pro Minute. Oben rechts wählst du einen früheren Stream. Ein Stream bleibt ein Jahr.`,
   },
   {
