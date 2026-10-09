@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useApi } from '../hooks/useApi';
 import { useWebSocket } from '../hooks/useWebSocket';
-import { useNavigate, type NavTarget } from '../NavigationContext';
+import { useNavigate } from '../NavigationContext';
 
 // "Nach dem Stream" (canvas "A überarbeitet · mehr als Twitch", 09.10.): one
 // stream at a time — the numbers next to the five streams before, the parts
@@ -72,7 +72,7 @@ export default function StreamReportPanel() {
   return <ReportView key={id} id={id} streams={streams} onPick={setPicked} />;
 }
 
-/** What to do before the first report: connect Twitch, then OBS, then go live. */
+/** What is still missing before the first report: Twitch, then OBS. */
 function NextStep() {
   const go = useNavigate();
   const { data: bot, refetch: refetchBot } = useApi<{ connected: boolean }>('/settings/bot-status');
@@ -82,13 +82,11 @@ function NextStep() {
     if (event === 'obs-status') refetchObs();
   });
   if (!bot || !obs) return null;
-  const step: { label: string; to: NavTarget } = !bot.connected
-    ? { label: 'Twitch verbinden', to: { area: 'settings', subTab: 'verbindungen' } }
-    : !obs.connected
-      ? { label: 'OBS verbinden', to: { area: 'settings', subTab: 'verbindungen' } }
-      : { label: 'Zu „Im Stream“', to: { area: 'stream' } };
+  // All connected: nothing to do here — going live happens in OBS and on Twitch.
+  if (bot.connected && obs.connected) return null;
+  const label = bot.connected ? 'OBS verbinden' : 'Twitch verbinden';
   return (
-    <button type="button" className="card-primary report-empty-next" onClick={() => go(step.to)}>{step.label}</button>
+    <button type="button" className="card-primary report-empty-next" onClick={() => go({ area: 'settings', subTab: 'verbindungen' })}>{label}</button>
   );
 }
 
