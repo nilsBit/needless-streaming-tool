@@ -1,6 +1,6 @@
 {
   "name": "needless-streaming-tool",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Needless Streaming Tool — Stream Management App",
   "author": "nilsBit",
   "main": "dist/main/main.js",
