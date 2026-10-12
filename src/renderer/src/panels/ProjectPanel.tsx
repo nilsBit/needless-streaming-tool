@@ -252,6 +252,29 @@ function NumberField({ label, value, onChange, width }: { label: string; value: 
   );
 }
 
+/**
+ * How much one press of the card's button counts, for "Zahl mit Ziel". The
+ * button is shown as it will read, and a step bigger than the whole goal is
+ * pointed out (12.10.: "pro Klick" alone did not say which click).
+ */
+function StepByField({ value, onChange, unit, total }: { value: string; onChange: (v: string) => void; unit: string; total: string }) {
+  const by = whole(value);
+  const goal = whole(total);
+  return (
+    <div className="project-stepby">
+      <NumberField label="Wie viel zählt ein Klick?" value={value} onChange={onChange} width={260} />
+      {by !== null && by > 0 && (
+        <span className="dialog-hint">
+          Dein Knopf auf der Karte: <strong>{`+${number.format(by)} ${unit.trim()}`.trim()}</strong> – das Tastenkürzel „Projekt weiter“ zählt genauso.
+        </span>
+      )}
+      {by !== null && goal !== null && goal > 0 && by > goal && (
+        <span className="dialog-hint project-stepby-warn" role="alert">Ein Klick ist mehr als das ganze Ziel ({number.format(goal)}). Für kleine Ziele passt eher 1 – oder die Art „Zähler“.</span>
+      )}
+    </div>
+  );
+}
+
 /** The guided way to a new project: name, kind, stand, preview. */
 function CreateProject({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
   const { toast } = useToast();
@@ -347,7 +370,7 @@ function CreateProject({ onClose, onCreated }: { onClose: () => void; onCreated:
               </div>
               {kind === 'goal' && (
                 <>
-                  <NumberField label="Wie viel kommt pro Klick dazu?" value={stepBy} onChange={setStepBy} width={260} />
+                  <StepByField value={stepBy} onChange={setStepBy} unit={unit} total={total} />
                   <label className="card-check"><input type="checkbox" checked={weekly} onChange={(e) => setWeekly(e.target.checked)} /> Beginnt jeden Montag neu</label>
                 </>
               )}
@@ -461,7 +484,7 @@ function EditProject({ project, onClose, onSaved, onFinish, onDeleted }: {
           </div>
           {project.kind === 'goal' && (
             <>
-              <NumberField label="Wie viel kommt pro Klick dazu?" value={stepBy} onChange={setStepBy} width={260} />
+              <StepByField value={stepBy} onChange={setStepBy} unit={unit} total={total} />
               <label className="card-check"><input type="checkbox" checked={weekly} onChange={(e) => setWeekly(e.target.checked)} /> Beginnt jeden Montag neu</label>
             </>
           )}
