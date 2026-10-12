@@ -96,7 +96,7 @@ Oben unter **Heute dabei** tippst du an, welche Karten du heute brauchst. Die an
 - **Zähler** – etwa 12 von 30 Figuren. Jeder Klick zählt eins dazu.
 - **Zahl mit Ziel** – etwa 6.200 von 10.000 Wörtern. Ein Klick zählt so viel dazu, wie du einstellst (z. B. 500). Mit „Beginnt jeden Montag neu“ ist es ein Wochenziel.
 
-**Im Stream:** Oben steht unter „Gerade dran“ das Projekt, an dem du arbeitest, mit einem Knopf zum Weiterschalten („Weiter zu „Farbe““, „+1“, „+500 Wörter“). Direkt danach kannst du es rückgängig machen. Auf dem Stream Deck oder per Tastenkürzel heißt das „Projekt weiter“ (Standard: Cmd/Strg+Alt+P).
+**Im Stream:** Oben steht unter „Gerade dran“ das Projekt, an dem du arbeitest, mit einem Knopf zum Weiterschalten („Weiter zu „Farbe““, „+1“). Direkt danach kannst du es rückgängig machen. Auf dem Stream Deck oder per Tastenkürzel heißt das „Projekt weiter“ (Standard: Cmd/Strg+Alt+P). Bei „Zahl mit Ziel“ gibt es keinen festen Schritt: Du trägst den Stand ein, z. B. 1.873 Wörter, und „Projekt weiter“ tut dort nichts.
 
 **Mehrere Projekte:** Darunter stehen unter „Auch offen“ die zwei, an denen du zuletzt gearbeitet hast; „Alle … offenen Projekte“ zeigt den Rest. „Weitermachen“ wechselt – jedes Projekt behält seinen Stand, abschließen musst du dafür nichts. Ein Stream zählt für jedes Projekt, an dem du in ihm gearbeitet hast.
 
@@ -434,7 +434,8 @@ Auth-Header: Authorization: Bearer <token>
 - GET /api/projects — { current, open }
 - POST /api/projects — PATCH /api/projects/:id — DELETE /api/projects/:id
 - POST /api/projects/:id/current — dieses Projekt ist jetzt dran
-- POST /api/projects/current/forward — POST /api/projects/current/back — weiter oder einen zurück (Stream Deck: „Projekt weiter“)
+- POST /api/projects/current/forward — POST /api/projects/current/back — weiter oder einen zurück (Stream Deck: „Projekt weiter“; bei „Zahl mit Ziel“ ohne Wirkung)
+- POST /api/projects/current/stand — { position } — Stand bei „Zahl mit Ziel“ eintragen
 - POST /api/projects/:id/finish — abschließen
 
 **Abstimmungen:**

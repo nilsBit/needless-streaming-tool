@@ -1286,6 +1286,8 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .project-step-fields .card-row { align-items: center; }
 .project-step-fields input { flex: 1; min-width: 0; }
 .project-step-number { flex: 0 0 24px; color: var(--muted); text-align: right; }
+.project-stand { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; }
+.project-stand .project-field { flex: 1 1 160px; }
 .project-fields { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
 .project-field { display: flex; flex-direction: column; gap: 6px; color: var(--text-secondary); font-size: 13px; }
 .project-field input { min-height: 44px; box-sizing: border-box; padding: 0 12px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font: inherit; font-size: 14px; }

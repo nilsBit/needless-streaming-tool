@@ -26,7 +26,7 @@ const PRESETS: Array<{ label: string; steps: string[] }> = [
 const KINDS: Array<{ value: ProjectKind; title: string; text: string; icon: string }> = [
   { value: 'steps', title: 'Schritte', text: 'Skizze → Farbe → fertig. Du schaltest von Schritt zu Schritt.', icon: 'M5 12h4M15 12h4M9 12a3 3 0 106 0 3 3 0 00-6 0' },
   { value: 'count', title: 'Zähler', text: '12 von 30 Figuren. Jeder Klick zählt eins dazu.', icon: 'M5 7h14M5 12h14M5 17h9' },
-  { value: 'goal', title: 'Zahl mit Ziel', text: '6.200 von 10.000 Wörtern. Du zählst in Sprüngen hoch.', icon: 'M4 18l5-6 4 3 7-9' },
+  { value: 'goal', title: 'Zahl mit Ziel', text: '6.200 von 10.000 Wörtern. Du trägst den Stand ein, wie er in deinem Programm steht.', icon: 'M4 18l5-6 4 3 7-9' },
 ];
 
 function dateWord(iso: string): string {
@@ -62,7 +62,6 @@ function forwardLabel(p: Project): string {
   if (p.kind === 'steps') {
     return p.position === p.steps.length - 1 ? `„${p.step}“ fertig` : `Weiter zu „${p.steps[p.position + 1]}“`;
   }
-  if (p.kind === 'goal') return `+${number.format(p.step_by)} ${p.unit ?? ''}`.trim();
   return '+1';
 }
 
@@ -164,7 +163,8 @@ export default function ProjectPanel() {
             </div>
           )}
           <div className="card-row card-wrap">
-            {!current.finished && <button type="button" className="card-primary" onClick={forward}>{forwardLabel(current)}</button>}
+            {!current.finished && current.kind === 'goal' && <StandField key={`${current.id}-${current.position}`} project={current} onSaved={refetch} />}
+            {!current.finished && current.kind !== 'goal' && <button type="button" className="card-primary" onClick={forward}>{forwardLabel(current)}</button>}
             {current.finished && <button type="button" className="card-primary" onClick={() => finish(current)}>Projekt abschließen</button>}
             {undoFor === current.id && current.position > 0 && <button type="button" className="card-secondary" onClick={back}>Rückgängig</button>}
             <span className="card-grow" />
@@ -252,6 +252,28 @@ function NumberField({ label, value, onChange, width }: { label: string; value: 
   );
 }
 
+/** "Zahl mit Ziel" on the card: the stand is typed in, as the writing program shows it. */
+function StandField({ project, onSaved }: { project: Project; onSaved: () => void }) {
+  const { toast } = useToast();
+  const [value, setValue] = useState(String(project.position));
+  const n = whole(value);
+  const save = async () => {
+    if (n === null) return;
+    const { ok, data } = await send('/projects/current/stand', 'POST', { position: n });
+    if (!ok) { toast.error((data as { message?: string } | null)?.message || 'Nicht eingetragen'); return; }
+    onSaved();
+  };
+  return (
+    <form className="project-stand" onSubmit={(e) => { e.preventDefault(); void save(); }}>
+      <label className="project-field">
+        <span>Stand jetzt{project.unit ? ` (${project.unit})` : ''}</span>
+        <input type="text" inputMode="numeric" value={value} onChange={(e) => setValue(e.target.value)} />
+      </label>
+      <button type="submit" className="card-primary" disabled={n === null || n === project.position}>Eintragen</button>
+    </form>
+  );
+}
+
 /** The guided way to a new project: name, kind, stand, preview. */
 function CreateProject({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
   const { toast } = useToast();
@@ -261,14 +283,12 @@ function CreateProject({ onClose, onCreated }: { onClose: () => void; onCreated:
   const [unit, setUnit] = useState('');
   const [total, setTotal] = useState('');
   const [start, setStart] = useState('0');
-  const [stepBy, setStepBy] = useState('500');
   const [weekly, setWeekly] = useState(false);
   const [made, setMade] = useState('');
 
   const cleanSteps = steps.map((s) => s.trim()).filter(Boolean);
   const totalN = whole(total);
   const startN = whole(start);
-  const stepByN = whole(stepBy);
   const kindTitle = KINDS.find((k) => k.value === kind)?.title ?? 'Stand';
 
   const standMissing = kind === 'steps'
@@ -276,8 +296,7 @@ function CreateProject({ onClose, onCreated }: { onClose: () => void; onCreated:
     : !unit.trim() ? (kind === 'goal' ? 'Trag eine Einheit ein.' : 'Trag ein, was gezählt wird.')
       : totalN === null || totalN < 1 ? 'Das Ziel ist eine Zahl über 0.'
         : startN === null ? 'Der Stand ist eine Zahl ab 0.'
-          : !weekly && startN > totalN ? 'Der Stand ist größer als das Ziel.'
-            : kind === 'goal' && (stepByN === null || stepByN < 1) ? 'Pro Klick kommt eine Zahl über 0 dazu.' : '';
+          : !weekly && startN > totalN ? 'Der Stand ist größer als das Ziel.' : '';
 
   // The preview, worded like the server words it.
   const previewName = name.trim() || 'Dein Projekt';
@@ -289,7 +308,7 @@ function CreateProject({ onClose, onCreated }: { onClose: () => void; onCreated:
   const create = async (): Promise<boolean> => {
     const body = kind === 'steps'
       ? { name: name.trim(), kind, steps: cleanSteps }
-      : { name: name.trim(), kind, unit: unit.trim(), total: totalN, position: startN, ...(kind === 'goal' ? { step_by: stepByN, weekly } : {}) };
+      : { name: name.trim(), kind, unit: unit.trim(), total: totalN, position: startN, ...(kind === 'goal' ? { weekly } : {}) };
     const { ok, data } = await send('/projects', 'POST', body);
     if (!ok) { toast.error((data as { message?: string } | null)?.message || 'Nicht angelegt'); return false; }
     setMade((data as Project).name);
@@ -347,7 +366,7 @@ function CreateProject({ onClose, onCreated }: { onClose: () => void; onCreated:
               </div>
               {kind === 'goal' && (
                 <>
-                  <NumberField label="Wie viel kommt pro Klick dazu?" value={stepBy} onChange={setStepBy} width={260} />
+                  <span className="dialog-hint">Den Stand trägst du später auf der Karte ein, so wie er in deinem Programm steht.</span>
                   <label className="card-check"><input type="checkbox" checked={weekly} onChange={(e) => setWeekly(e.target.checked)} /> Beginnt jeden Montag neu</label>
                 </>
               )}
@@ -392,7 +411,6 @@ function EditProject({ project, onClose, onSaved, onFinish, onDeleted }: {
   const [position, setPosition] = useState(String(project.position));
   const [unit, setUnit] = useState(project.unit ?? '');
   const [total, setTotal] = useState(String(project.total ?? ''));
-  const [stepBy, setStepBy] = useState(String(project.step_by));
   const [weekly, setWeekly] = useState(project.weekly);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -402,7 +420,7 @@ function EditProject({ project, onClose, onSaved, onFinish, onDeleted }: {
   const save = async () => {
     const body = project.kind === 'steps'
       ? { name: name.trim(), steps: cleanSteps, position: stepAt }
-      : { name: name.trim(), unit: unit.trim(), total: whole(total), position: whole(position), ...(project.kind === 'goal' ? { step_by: whole(stepBy), weekly } : {}) };
+      : { name: name.trim(), unit: unit.trim(), total: whole(total), position: whole(position), ...(project.kind === 'goal' ? { weekly } : {}) };
     const { ok, data } = await send(`/projects/${project.id}`, 'PATCH', body);
     if (!ok) { toast.error((data as { message?: string } | null)?.message || 'Nicht gespeichert'); return; }
     onSaved();
@@ -461,7 +479,6 @@ function EditProject({ project, onClose, onSaved, onFinish, onDeleted }: {
           </div>
           {project.kind === 'goal' && (
             <>
-              <NumberField label="Wie viel kommt pro Klick dazu?" value={stepBy} onChange={setStepBy} width={260} />
               <label className="card-check"><input type="checkbox" checked={weekly} onChange={(e) => setWeekly(e.target.checked)} /> Beginnt jeden Montag neu</label>
             </>
           )}

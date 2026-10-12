@@ -1,6 +1,6 @@
 import { Router, type Response } from 'express';
 import {
-  createProject, deleteProject, finishProject, finishedLine, makeCurrent, moveCurrent, projectsState, updateProject,
+  createProject, deleteProject, finishProject, finishedLine, makeCurrent, moveCurrent, projectsState, setCurrentStand, updateProject,
   type ProjectRefusal,
 } from '../projects';
 import type { Project } from '../../shared/types';
@@ -34,6 +34,10 @@ router.post('/current/forward', (_req, res) => {
 
 router.post('/current/back', (_req, res) => {
   send(res, moveCurrent(-1));
+});
+
+router.post('/current/stand', (req, res) => {
+  send(res, setCurrentStand((req.body as { position?: unknown } | undefined)?.position));
 });
 
 router.patch('/:id', (req, res) => {

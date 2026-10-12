@@ -292,14 +292,31 @@ export function makeCurrent(id: number): Project | ProjectRefusal {
   return toView(rowOf(id)!);
 }
 
-/** One step, one piece or one jump on the current project; back undoes one. */
+/**
+ * One step or one piece on the current project; back undoes one. A goal has
+ * no fixed step — its stand is typed in (setCurrentStand), so the key
+ * "Projekt weiter" does nothing there (12.10.).
+ */
 export function moveCurrent(direction: 1 | -1): Project | ProjectRefusal {
   const row = currentRow();
   if (!row) return { status: 409, message: 'Gerade ist kein Projekt dran.' };
+  if (row.kind === 'goal') return { status: 409, message: 'Bei „Zahl mit Ziel“ trägst du den Stand ein.' };
   const steps = stepsOf(row);
-  const by = row.kind === 'goal' ? row.step_by : 1;
   const max = maxPosition(row.kind, steps, row.total, !!row.weekly);
-  const position = Math.max(0, Math.min(max, row.position + direction * by));
+  const position = Math.max(0, Math.min(max, row.position + direction));
+  return setPosition(row, position);
+}
+
+/** The stand of the current goal, as read off the writing program: "1.873 Wörter". */
+export function setCurrentStand(value: unknown): Project | ProjectRefusal {
+  const row = currentRow();
+  if (!row) return { status: 409, message: 'Gerade ist kein Projekt dran.' };
+  if (row.kind !== 'goal') return { status: 409, message: 'Nur bei „Zahl mit Ziel“ trägst du den Stand ein.' };
+  if (!isWhole(value, 0, MAX_NUMBER)) return { status: 400, message: 'Der Stand ist eine ganze Zahl ab 0.' };
+  return setPosition(row, Math.min(value, maxPosition(row.kind, [], row.total, !!row.weekly)));
+}
+
+function setPosition(row: Row, position: number): Project {
   getDb().prepare('UPDATE projects SET position = ?, last_worked_at = ? WHERE id = ?').run(position, new Date().toISOString(), row.id);
   countStream(row.id);
   announce();

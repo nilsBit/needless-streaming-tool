@@ -119,12 +119,16 @@ describe('projects', () => {
     await request(app).post('/api/projects/current/forward').set(auth()).expect(409);
   });
 
-  it('keeps counting past a weekly goal', async () => {
-    const res = await create({ name: 'Roman', kind: 'goal', unit: 'Wörter', total: 1000, position: 900, step_by: 500, weekly: true }).expect(201);
+  it('takes the stand of a goal as typed in, and keeps counting past a weekly goal', async () => {
+    const res = await create({ name: 'Roman', kind: 'goal', unit: 'Wörter', total: 1000, position: 900, weekly: true }).expect(201);
     expect(res.body.stand).toBe('900 von 1.000 Wörter diese Woche');
-    const on = await request(app).post('/api/projects/current/forward').set(auth()).expect(200);
+    // A goal has no fixed step: "Projekt weiter" does nothing there.
+    await request(app).post('/api/projects/current/forward').set(auth()).expect(409);
+    const on = await request(app).post('/api/projects/current/stand').set(auth()).send({ position: 1400 }).expect(200);
     expect(on.body).toMatchObject({ position: 1400, pct: 100, finished: false });
     expect((await request(app).get('/public/project').expect(200)).body.current.stand).toBe('1.400 von 1.000 Wörter diese Woche');
+    await request(app).post('/api/projects/current/stand').set(auth()).send({ position: -1 }).expect(400);
+    await request(app).post('/api/projects/current/stand').set(auth()).send({ position: '12' }).expect(400);
   });
 
   it('edits name, steps and stand, but not the kind', async () => {
