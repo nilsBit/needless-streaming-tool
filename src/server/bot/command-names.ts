@@ -1,4 +1,5 @@
 import { getDb } from '../db/index';
+import { worldbuilderInstalled } from '../features';
 
 /**
  * The built-in chat commands: internal key → the trigger a viewer types.
@@ -77,7 +78,7 @@ export function triggerExists(trigger: string): boolean {
   const db = getDb();
   return Boolean(
     db.prepare('SELECT 1 FROM text_commands WHERE trigger = ?').get(trigger) ||
-    db.prepare('SELECT 1 FROM lookup_commands WHERE trigger = ?').get(trigger),
+    (worldbuilderInstalled() && db.prepare('SELECT 1 FROM lookup_commands WHERE trigger = ?').get(trigger)),
   );
 }
 
@@ -202,6 +203,8 @@ export function checkTrigger(trigger: string, except?: { table: ConfiguredTable;
     ['lookup_commands', 'ein Nachschlage-Command'],
   ];
   for (const [table, owner] of owners) {
+    // Without the Worldbuilder the lookups are silent and unseen: their names are free.
+    if (table === 'lookup_commands' && !worldbuilderInstalled()) continue;
     const ownId = except?.table === table ? except.id : null;
     if (getDb().prepare(`SELECT 1 FROM ${table} WHERE trigger = ? AND id IS NOT ?`).get(trigger, ownId)) {
       return { status: 409, error: 'trigger_taken', message: `${trigger} ist schon ${owner}.` };

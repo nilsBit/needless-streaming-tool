@@ -3,6 +3,7 @@ import { apiFetch, apiGet, apiPost } from '../../../hooks/useApi';
 import { useToast } from '../../../contexts/ToastContext';
 import QuestPath, { ChoiceCards, PathDone } from '../QuestPath';
 import { useQuests } from '../useQuests';
+import { useFeatures } from '../../../contexts/FeaturesContext';
 
 // Creating a chat command as a Quest-Pfad (spec 2026-10-08-quests-design):
 // Art · Name · Antwort (or the Art in the world) · Vorschau · Geschafft.
@@ -39,6 +40,7 @@ interface Props {
 export default function CommandQuestPath({ initialTrigger, taken, onClose, onCreated }: Props) {
   const { toast } = useToast();
   const { quests } = useQuests();
+  const { worldbuilder } = useFeatures();
   const [arten, setArten] = useState<string[] | null>(null);
   const [kind, setKind] = useState<Kind>('text');
   const used = new Set(taken.map((t) => t.toLowerCase()));
@@ -84,12 +86,13 @@ export default function CommandQuestPath({ initialTrigger, taken, onClose, onCre
     <QuestPath
       title="Neuer Befehl"
       sentence="Etwas, das der Chat tippt und der Bot beantwortet."
-      startAt={initialTrigger ? 1 : 0}
+      startAt={initialTrigger && worldbuilder ? 1 : 0}
       finishLabel="Anlegen"
       onFinish={create}
       onClose={onClose}
       steps={[
-        {
+        // Looking things up needs the Worldbuilder; everyone else only writes texts.
+        ...(worldbuilder ? [{
           label: 'Art',
           ready: kind === 'text' || lookupReady,
           content: (
@@ -106,7 +109,7 @@ export default function CommandQuestPath({ initialTrigger, taken, onClose, onCre
               />
             </>
           ),
-        },
+        }] : []),
         {
           label: 'Name',
           ready: name.length > 1 && !used.has(name),

@@ -27,8 +27,20 @@ describe('the command list', () => {
     initDatabase(':memory:');
     token = generateApiToken();
     app = createApp();
+    // The starter lookups (!figur …) only exist where the Worldbuilder is set up.
+    await request(app).post('/api/characters/source').set(auth()).send({ source: 'worldbuilder' }).expect(200);
     await request(app).post('/api/text-commands').set(auth())
       .send({ trigger: '!story', response: 'Wir schreiben eine Welt. Jede Woche ein Stück mehr.' }).expect(201);
+  });
+
+  it('leaves out the lookups where no Worldbuilder is set up', async () => {
+    await request(app).post('/api/characters/source').set(auth()).send({ source: 'notion' }).expect(200);
+    expect(await find('!figur')).toBeUndefined();
+    expect(await chat('!befehle alle')).not.toContain('Aus der Welt');
+    expect(await chat('!figur Mila')).toBe('');
+    // Its name is free for an own text.
+    await request(app).post('/api/text-commands').set(auth()).send({ trigger: '!ort', response: 'Mein Atelier.' }).expect(201);
+    expect(await chat('!ort')).toBe('Mein Atelier.');
   });
 
   const auth = () => ({ Authorization: `Bearer ${token}` });

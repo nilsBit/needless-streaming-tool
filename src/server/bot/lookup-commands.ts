@@ -5,6 +5,7 @@ import { isWorldbuilderAvailable, loadEntriesFromWorld, toEntry, type EntryDetai
 import { CHAT_MESSAGE_LIMIT, type ChatAnswer } from './chat-message';
 import { checkCooldown, checkTrigger, triggerOf, type Refusal } from './command-names';
 import { passCooldown } from './cooldown';
+import { worldbuilderInstalled } from '../features';
 
 /**
  * Lookup Commands: chat commands that find an entry of one Worldbuilder Art by
@@ -55,6 +56,8 @@ export function checkLookupCommand(
  * questions, asking for Mila twice is spam.
  */
 export async function answerLookupCommand(message: string, privileged: boolean, viewer?: string): Promise<ChatAnswer | null> {
+  // Without the Worldbuilder there is nothing to look up: the triggers stay silent.
+  if (!worldbuilderInstalled()) return null;
   const command = getDb().prepare('SELECT * FROM lookup_commands WHERE trigger = ?').get(triggerOf(message)) as
     | LookupCommand
     | undefined;

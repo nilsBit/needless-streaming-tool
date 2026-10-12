@@ -128,8 +128,8 @@ Läuft der Stream noch, füllt sich die Seite einmal pro Minute. Oben rechts wä
 | !so <Name> | Nur Mods: empfiehlt einen Kanal mit seiner letzten Kategorie. Nach einem Raid schreibt der Bot das selbst (Chat & Bot → Von selbst → Shoutout nach einem Raid) |
 | !challenge | Zeigt aktuelle Challenge |
 | !figur | Zeigt die Figur, die gerade im Overlay ist |
-| !figur <Name> | Schlägt eine Figur in der Welt nach |
-| !ort / !gilde / !begriff <Name> | Schlagen Orte, Gilden und Begriffe nach (einstellbar) |
+| !figur <Name> | Schlägt eine Figur in der Welt nach (nur mit Worldbuilder) |
+| !ort / !gilde / !begriff <Name> | Schlagen Orte, Gilden und Begriffe nach (einstellbar, nur mit Worldbuilder) |
 | !song | Zeigt aktuellen Song |
 | !sr <URL> | Wünscht einen Song (YouTube oder Spotify) |
 | !queue | Zeigt die nächsten Song-Wünsche |
@@ -174,7 +174,7 @@ Alle Befehle lassen sich unter Chat & Bot → Von selbst umbenennen. Antworten, 
 **Übersicht für Zuschauer:** Unten im Panel steht jeder Befehl mit einem Satz. Lässt du das Feld leer, schreibt das Tool den Satz selbst — bei eigenen Texten der erste Satz der Antwort, beim Nachschlagen die Art, bei eingebauten ein fester Text; er steht blass im Feld. **Für Twitch-Panel kopieren** legt die ganze Liste als Text in die Zwischenablage, den du auf Twitch unter *Kanal bearbeiten → Panels* einfügst. Nach Änderungen musst du ihn dort neu einfügen.
 - Eigene Texte und Nachschlage-Commands sind im Backup enthalten.
 
-**Aus der Welt nachschlagen:** Nachschlage-Commands suchen live in deiner Worldbuilder-Welt. Zuschauer schreiben z. B. !figur Mila oder !ort Saldor und bekommen Titel, Rolle und Kurzbeschreibung (oder den Text) in einer Chat-Nachricht.
+**Aus der Welt nachschlagen:** Nachschlage-Commands suchen live in deiner Worldbuilder-Welt. Es gibt sie nur auf einem Rechner, auf dem der Worldbuilder eingerichtet ist – sonst bleiben sie stumm und fehlen in !befehle und im Panel. Zuschauer schreiben z. B. !figur Mila oder !ort Saldor und bekommen Titel, Rolle und Kurzbeschreibung (oder den Text) in einer Chat-Nachricht.
 - **Voreingestellt:** !figur → Figur, !ort → Ort, !gilde → Fraktion, !begriff → Konzept. Heißt eine Art in deiner Welt anders (z. B. „Region“ statt „Ort“), wählst du sie im Panel aus. Ein ⚠️ markiert Arten, die es in der offenen Welt nicht gibt.
 - **Eigene dazu:** unten im Abschnitt einen Befehl und eine Art wählen, z. B. !fähigkeit → Fähigkeit.
 - **Suche:** in Titel und Zweitnamen, ohne auf Groß-/Kleinschreibung oder Akzente zu achten. Ein Teil des Namens reicht („silberzunge“). Ein genauer Treffer schlägt Namen, die ihn nur enthalten.

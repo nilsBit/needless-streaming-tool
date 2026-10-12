@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { isSecretSetting } from '../secret-settings';
+import { worldbuilderInstalled } from '../features';
 import { getBotConfig, saveBotConfig } from '../bot/config';
 import { connectBot, disconnectBot, getBotStatus } from '../bot/index';
 import { getCommandNames, normalizeTrigger } from '../bot/command-names';
@@ -243,7 +244,7 @@ router.post('/commands', (req, res) => {
   for (const trigger of Object.values(cleaned)) {
     const taken =
       db.prepare('SELECT 1 FROM text_commands WHERE trigger = ?').get(trigger) ||
-      db.prepare('SELECT 1 FROM lookup_commands WHERE trigger = ?').get(trigger);
+      (worldbuilderInstalled() && db.prepare('SELECT 1 FROM lookup_commands WHERE trigger = ?').get(trigger));
     if (taken) {
       res.status(409).json({ error: 'trigger_taken', message: `${trigger} ist schon ein Erklär-Command.` });
       return;

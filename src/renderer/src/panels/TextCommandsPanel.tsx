@@ -6,6 +6,7 @@ import Dialog from '../components/ux/Dialog';
 import CommandQuestPath from '../components/quests/paths/CommandQuestPath';
 import { useQuestPath } from '../components/quests/questStart';
 import SearchField, { matchesSearch } from '../components/ux/SearchField';
+import { useFeatures } from '../contexts/FeaturesContext';
 
 // "Befehle" under Chat & Bot: one list for everything the streamer maintains —
 // own texts (!story) and lookups into the world (!figur) — grouped, with a
@@ -88,6 +89,7 @@ async function write(method: 'POST' | 'PATCH', endpoint: string, body: unknown):
 
 export default function TextCommandsPanel() {
   const { toast } = useToast();
+  const { worldbuilder } = useFeatures();
   const { data: texts, loading, refetch: refetchTexts } = useApi<TextCommand[]>('/text-commands');
   const { data: lookups, refetch: refetchLookups } = useApi<LookupCommand[]>('/lookup-commands');
   const { data: list, refetch: refetchList } = useApi<CommandList>('/commands');
@@ -123,8 +125,8 @@ export default function TextCommandsPanel() {
       const i = info.get(`lookup:${l.id}`);
       return { kind: 'lookup', id: l.id, trigger: l.trigger, enabled: l.enabled, cooldown: l.cooldown_seconds, sentence: i?.description ?? '', stored: i?.stored ?? false, aliases: i?.aliases ?? [], featured: featured.has(l.trigger), response: '', art: l.art, chars: 0 };
     });
-    return [...textRows, ...lookupRows];
-  }, [texts, lookups, list]);
+    return [...textRows, ...(worldbuilder ? lookupRows : [])];
+  }, [texts, lookups, list, worldbuilder]);
 
   const onCount = rows.filter((r) => r.enabled).length;
   const offCount = rows.length - onCount;
@@ -324,7 +326,7 @@ export default function TextCommandsPanel() {
             <button type="button" className="card-primary" onClick={save} disabled={!draft.trigger.trim() || (draft.kind === 'text' ? !draft.response.trim() : !draft.art)}>Speichern</button>
           </>}
         >
-          {draft.id === null && (
+          {draft.id === null && worldbuilder && (
             <div className="card-row">
               <button type="button" className={`card-secondary ${draft.kind === 'text' ? 'active' : ''}`} onClick={() => setDraft({ ...draft, kind: 'text' })}>Eigener Text</button>
               <button type="button" className={`card-secondary ${draft.kind === 'lookup' ? 'active' : ''}`} onClick={() => setDraft({ ...draft, kind: 'lookup', art: draft.art || arten?.[0] || '' })}>Aus der Welt nachschlagen</button>

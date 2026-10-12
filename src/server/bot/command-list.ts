@@ -1,6 +1,6 @@
 import { getDb } from '../db/index';
 import { aliasesOf, DEFAULT_COMMANDS, getAliases, getCommandNames, VIEWER_COMMAND_KEYS } from './command-names';
-import { commandEnabled } from '../features';
+import { commandEnabled, worldbuilderInstalled } from '../features';
 import { privacyPanelBlock } from '../privacy-text';
 
 /**
@@ -158,7 +158,7 @@ export function commandList(): CommandInfo[] {
       description: row.description?.trim() || derivedDescription({ group: 'text', trigger: row.trigger, response: row.response }),
     });
   }
-  for (const row of lookups) {
+  for (const row of worldbuilderInstalled() ? lookups : []) {
     list.push({
       trigger: row.trigger, group: 'lookup', id: String(row.id), stored: Boolean(row.description?.trim()),
       aliases: aliasesOf(row.trigger, aliases),
