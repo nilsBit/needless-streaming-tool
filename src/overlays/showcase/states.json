@@ -86,21 +86,16 @@
       }
     },
     "progress": {
-      "size": { "width": 420, "height": 600 },
+      "size": {"width": 420, "height": 160},
       "actions": [
-        { "label": "Todo abhaken", "public": { "/public/progress": { "project_name": "Kapitel 3: Die Unterstadt", "items": [{ "id": 1, "title": "Karte der Unterstadt", "status": "in_progress", "sort_order": 0, "time_spent": 2700, "todos": [{ "id": 11, "title": "Kanäle einzeichnen", "done": 1, "sort_order": 0, "parent_id": 1}, { "id": 12, "title": "Märkte benennen", "done": 1, "sort_order": 1, "parent_id": 1}]}, { "id": 2, "title": "Die Goldene Hand ausarbeiten", "status": "pending", "sort_order": 1, "time_spent": 0, "todos": []}, { "id": 3, "title": "Aldrics Herkunft", "status": "done", "sort_order": 2, "time_spent": 3600, "todos": []}]}}, "events": [{ "event": "progress-update", "data": {}}]}
+        { "label": "Weiter zu Details", "events": [{ "event": "project-update", "data": {"current": {"id": 1, "name": "Drache für Mia", "kind": "steps", "steps": ["Skizze", "Linework", "Farbe", "Details"], "position": 3, "total": null, "unit": null, "step_by": 1, "weekly": false, "streams": 4, "live": true, "created_at": "2026-09-29T18:00:00Z", "last_worked_at": "2026-10-12T18:00:00Z", "finished_at": null, "step": "Details", "stand": "Details · Schritt 4 von 4", "pct": 75, "finished": false}} }]},
+        { "label": "Projekt abschließen", "events": [{ "event": "project-finished", "data": { "name": "Drache für Mia", "streams": 4 }}]}
       ],
       "states": {
-        "in-progress": {
-          "public": { "/public/progress": { "project_name": "Kapitel 3: Die Unterstadt", "items": [
-            { "id": 1, "title": "Karte der Unterstadt", "status": "in_progress", "sort_order": 0, "time_spent": 2700, "todos": [{ "id": 11, "title": "Kanäle einzeichnen", "done": 1, "sort_order": 0, "parent_id": 1 }, { "id": 12, "title": "Märkte benennen", "done": 0, "sort_order": 1, "parent_id": 1 }] },
-            { "id": 2, "title": "Die Goldene Hand ausarbeiten", "status": "pending", "sort_order": 1, "time_spent": 0, "todos": [] },
-            { "id": 3, "title": "Aldrics Herkunft", "status": "done", "sort_order": 2, "time_spent": 3600, "todos": [] }
-          ] } },
-          "events": [{ "afterMs": 0, "event": "stream-state", "data": { "timer_seconds": 5400, "timer_running": true } }],
-          "freezeAfterMs": 1000
-        },
-        "empty": { "public": { "/public/progress": { "project_name": null, "items": [] } }, "freezeAfterMs": 1000 }
+        "steps": { "public": { "/public/project": {"current": {"id": 1, "name": "Drache für Mia", "kind": "steps", "steps": ["Skizze", "Linework", "Farbe", "Details"], "position": 2, "total": null, "unit": null, "step_by": 1, "weekly": false, "streams": 4, "live": true, "created_at": "2026-09-29T18:00:00Z", "last_worked_at": "2026-10-12T18:00:00Z", "finished_at": null, "step": "Farbe", "stand": "Farbe · Schritt 3 von 4", "pct": 50, "finished": false}} }, "freezeAfterMs": 1000 },
+        "count": { "public": { "/public/project": {"current": {"id": 1, "name": "Zwergenarmee", "kind": "count", "steps": [], "position": 12, "total": 30, "unit": "Figuren", "step_by": 1, "weekly": false, "streams": 9, "live": true, "created_at": "2026-09-29T18:00:00Z", "last_worked_at": "2026-10-12T18:00:00Z", "finished_at": null, "step": null, "stand": "12 von 30 Figuren", "pct": 40, "finished": false}} }, "freezeAfterMs": 1000 },
+        "done": { "public": { "/public/project": {"current": {"id": 1, "name": "Drache für Mia", "kind": "steps", "steps": ["Skizze", "Linework", "Farbe", "Details"], "position": 2, "total": null, "unit": null, "step_by": 1, "weekly": false, "streams": 4, "live": true, "created_at": "2026-09-29T18:00:00Z", "last_worked_at": "2026-10-12T18:00:00Z", "finished_at": null, "step": "Farbe", "stand": "Farbe · Schritt 3 von 4", "pct": 50, "finished": false}} }, "events": [{ "afterMs": 300, "event": "project-finished", "data": { "name": "Drache für Mia", "streams": 4 }}], "freezeAfterMs": 1000 },
+        "empty": { "public": { "/public/project": { "current": null } }, "freezeAfterMs": 1000 }
       }
     },
     "reward-leaderboard": {
@@ -158,21 +153,6 @@
       ],
       "states": {
         "playing": { "public": { "/public/song": { "song": { "title": "Ashes of the Old City", "artist": "Lorewalker", "source": "spotify", "artworkUrl": "/overlay/showcase/cover.svg" } } }, "freezeAfterMs": 1000 }
-      }
-    },
-    "todos": {
-      "size": { "width": 420, "height": 600 },
-      "actions": [
-        { "label": "Punkt abhaken", "public": { "/public/progress": { "project_name": "Kapitel 3: Die Unterstadt", "items": [{ "id": 1, "title": "Karte der Unterstadt", "status": "in_progress", "sort_order": 0, "time_spent": 2700, "todos": [{ "id": 11, "title": "Kanäle einzeichnen", "done": 1, "sort_order": 0, "parent_id": 1}, { "id": 12, "title": "Märkte benennen", "done": 1, "sort_order": 1, "parent_id": 1}, { "id": 13, "title": "Stadttore setzen", "done": 0, "sort_order": 2, "parent_id": 1}]}]}}, "events": [{ "event": "progress-update", "data": {}}]}
-      ],
-      "states": {
-        "open-todos": {
-          "public": { "/public/progress": { "project_name": "Kapitel 3: Die Unterstadt", "items": [
-            { "id": 1, "title": "Karte der Unterstadt", "status": "in_progress", "sort_order": 0, "time_spent": 2700, "todos": [{ "id": 11, "title": "Kanäle einzeichnen", "done": 1, "sort_order": 0, "parent_id": 1 }, { "id": 12, "title": "Märkte benennen", "done": 0, "sort_order": 1, "parent_id": 1 }, { "id": 13, "title": "Stadttore setzen", "done": 0, "sort_order": 2, "parent_id": 1 }] }
-          ] } },
-          "freezeAfterMs": 1000
-        },
-        "empty": { "public": { "/public/progress": { "project_name": null, "items": [] } }, "freezeAfterMs": 1000 }
       }
     }
   }

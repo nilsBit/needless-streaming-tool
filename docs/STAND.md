@@ -159,6 +159,24 @@ braucht den Bot.
 
 ## Wo wir stehen geblieben sind
 
+**Hier aufgehört (12.10., auf dem Mac)**
+
+- **Aus „Fortschritt“ wird „Projekt“** (Leinwand-Bögen „Weg A – Projekt anlegen und
+  wechseln“). Mehrere offene Projekte, eins ist dran; Art Schritte, Zähler oder Zahl mit Ziel
+  (auch wöchentlich). Jedes zählt die Streams, an denen gearbeitet wurde. Schema **v35**
+  (`projects`, Setting `current_project_id`), `src/server/projects.ts`, `/api/projects`,
+  `/public/project`, Overlay `progress` neu, `!projekt` (Alias `!progress`), Taste „Projekt
+  weiter“ (Cmd/Strg+Alt+P). Weg sind Aufgabenbrett, Todos-Overlay, `!todo`, GitHub-Import und
+  die Meilenstein-Verknüpfung; alte Punkte werden einmalig zu einem Schritte-Projekt (Setting
+  `projects_migrated`). In der App noch nicht von Nils durchgeklickt.
+- **Als Nächstes: Aufräumen.** Nils findet die App inzwischen zu unübersichtlich (bei ihm sind
+  alle 19 Funktionen an). Auf der Leinwand liegt der Bogen „Aufräumen – was brauchst du
+  wirklich?“ mit allen 30 Bereichen; Nils markiert Brauche ich / Selten / Weg und schickt die
+  Zahlen. Danach ein Vorschlag für die aufgeräumte App auf der Leinwand, erst dann bauen.
+  Neue Funktionen (Fokus-Timer, Abstimmungs-Vorlagen) warten bis dahin.
+- Nebenbei gefunden, nicht behoben: Die drei Meilenstein-Tastenkürzel schicken
+  `POST /api/milestones` ohne Titel und bekommen 400.
+
 **Hier aufgehört (09.10., auf dem Mac)**
 
 - **Nach dem Stream ist eine Auswertung** (Leinwand-Bogen „A überarbeitet · mehr als Twitch“).

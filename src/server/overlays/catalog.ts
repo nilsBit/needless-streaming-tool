@@ -30,7 +30,7 @@ export type OverlaySetup = 'settings' | 'live' | 'none';
 
 const SETUP: Record<string, OverlaySetup> = {
   alerts: 'settings', milestone: 'settings', 'reward-leaderboard': 'settings', 'reward-rankchange': 'settings',
-  challenge: 'live', roulette: 'live', poll: 'live', progress: 'live', todos: 'live', song: 'live', character: 'live',
+  challenge: 'live', roulette: 'live', poll: 'live', progress: 'live', song: 'live', character: 'live',
 };
 
 export function overlaySetup(name: string): OverlaySetup {
@@ -73,8 +73,7 @@ const META: Record<string, { label: string; sentence: string; group: CatalogGrou
   song: { label: 'Musik', sentence: 'Der Song, der gerade läuft, mit Cover – nur dieser eine Titel.', group: 'always', preview: 'playing' },
   roulette: { label: 'Glücksrad', sentence: 'Dreht über deine gesammelten Themen.', group: 'join', preview: 'winner' },
   poll: { label: 'Abstimmung', sentence: 'Vorschläge, Balken und am Ende das Ergebnis.', group: 'join', preview: 'open' },
-  progress: { label: 'Fortschritt', sentence: 'Deine Schritte für heute mit Balken.', group: 'today', preview: 'in-progress' },
-  todos: { label: 'Aufgaben', sentence: 'Deine Liste zum Abhaken.', group: 'today', preview: 'open-todos' },
+  progress: { label: 'Projekt', sentence: 'Woran du gerade arbeitest, wie weit es ist und der wievielte Stream daran.', group: 'today', preview: 'steps' },
   challenge: { label: 'Ziel für heute', sentence: 'Dein Ziel mit laufender Uhr.', group: 'today', preview: 'running' },
   milestone: { label: 'Meilenstein', sentence: 'Feiert einen abgehakten Meilenstein groß, über allem anderen.', group: 'today', preview: 'major' },
   'reward-leaderboard': { label: 'Bestenliste', sentence: 'Blendet bei jeder Einlösung die Top 3 der betroffenen Liste ein – eine Adresse für alle Listen.', group: 'rewards', preview: 'top-three' },

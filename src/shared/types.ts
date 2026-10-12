@@ -116,15 +116,42 @@ export interface TwitchConfigResponse {
   has_token?: boolean;
 }
 
-export interface ProjectItem {
+export type ProjectKind = 'steps' | 'count' | 'goal';
+
+/** Projekt (2026-10-12): what the stream works on, over many streams. */
+export interface Project {
   id: number;
-  title: string;
-  status: 'pending' | 'in_progress' | 'done';
-  sort_order: number;
-  time_spent: number;
-  external_id: string | null;
-  todos?: Todo[];
+  name: string;
+  kind: ProjectKind;
+  /** Kind steps: the steps in order. */
+  steps: string[];
+  /** Steps: the index of the step being worked on (= steps.length when all are done). Else the number reached. */
+  position: number;
+  total: number | null;
+  unit: string | null;
+  /** Goal: how much one click adds. */
+  step_by: number;
+  /** Goal: begins anew each Monday. */
+  weekly: boolean;
+  /** Streams it was worked on, the one on air included. */
+  streams: number;
+  /** The stream on air counts for it. */
+  live: boolean;
   created_at: string;
+  last_worked_at: string;
+  finished_at: string | null;
+  /** Steps: the step being worked on. */
+  step: string | null;
+  /** "Farbe · Schritt 3 von 4", "12 von 30 Figuren". */
+  stand: string;
+  pct: number;
+  finished: boolean;
+}
+
+export interface ProjectsState {
+  current: Project | null;
+  /** The other open projects, last worked on first. */
+  open: Project[];
 }
 
 export interface Clip {
@@ -204,6 +231,7 @@ export interface HotkeyConfig {
   milestone_minor: string;
   milestone_major: string;
   milestone_epic: string;
+  project_forward: string;
 }
 
 export const DEFAULT_HOTKEYS: HotkeyConfig = {
@@ -216,6 +244,7 @@ export const DEFAULT_HOTKEYS: HotkeyConfig = {
   milestone_minor: 'CommandOrControl+Shift+1',
   milestone_major: 'CommandOrControl+Shift+2',
   milestone_epic: 'CommandOrControl+Shift+3',
+  project_forward: 'CommandOrControl+Alt+P',
 };
 
 // Valid status values for validation
@@ -223,7 +252,6 @@ export const VALID_ISSUE_STATUS = ['open', 'fixed', 'wontfix'] as const;
 export const VALID_REWARD_STATUS = ['pending', 'done'] as const;
 export const VALID_DESIGN_STATUS = ['active', 'completed'] as const;
 export const VALID_CHALLENGE_STATUS = ['idle', 'in_progress', 'done', 'failed'] as const;
-export const VALID_PROJECT_ITEM_STATUS = ['pending', 'in_progress', 'done'] as const;
 export const VALID_MILESTONE_LEVEL = ['minor', 'major', 'epic'] as const;
 export const VALID_MILESTONE_STATUS = ['pending', 'completed'] as const;
 

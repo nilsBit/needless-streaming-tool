@@ -32,8 +32,7 @@ export interface CommandInfo {
 /** Built-ins a viewer can use. `!scene` (mods) and `!design` (a poll) stay out, as in `!befehle`. */
 const BUILTIN_DESCRIPTIONS: Record<string, string> = {
   challenge: 'Sagt, welche Challenge gerade läuft und wie sie steht.',
-  progress: 'Zeigt, wie weit das heutige Projekt gekommen ist.',
-  todo: 'Nennt die nächste offene Aufgabe.',
+  progress: 'Sagt, woran gerade gearbeitet wird, wie weit es ist und seit wie vielen Streams.',
   issues: 'Zählt die offenen Themen fürs Glücksrad.',
   song: 'Sagt, welcher Song gerade läuft.',
   sr: 'Wünscht sich einen Song: !sr <Link oder Titel>.',
@@ -55,8 +54,7 @@ const BUILTIN_DESCRIPTIONS: Record<string, string> = {
  */
 const BUILTIN_LABELS: Record<string, string> = {
   challenge: 'Ziel für heute',
-  progress: 'Fortschritt',
-  todo: 'Nächste Aufgabe',
+  progress: 'Projekt',
   issues: 'Themen fürs Glücksrad',
   song: 'Aktueller Song',
   sr: 'Songwunsch',

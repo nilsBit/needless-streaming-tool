@@ -3,7 +3,7 @@
 export const HELP_SECTIONS_DE = [
   {
     title: 'Erste Schritte',
-    content: `Das Stream Toolkit ist deine Zentrale für Streaming. Hier steuerst du alles — Overlays, Challenges, Clips, Aufgaben, Milestones und mehr.
+    content: `Das Stream Toolkit ist deine Zentrale für Streaming. Hier steuerst du alles — Overlays, Ziele, Projekte, Clips, Milestones und mehr.
 
 Links stehen die Bereiche nach Situation: **Im Stream** (alles, was du live auslöst), **Chat & Bot**, **Overlays & Alerts**, **Nach dem Stream**, darunter **Einstellungen** und **Hilfe**. Unten in der Leiste siehst du immer, ob Twitch, OBS und der Worldbuilder verbunden sind. Fehlt vor dem Stream etwas, steht es oben auf „Im Stream“ in einem Balken – mit dem, was es im Stream bedeutet, und einem Knopf, der dich hinbringt. Alle Verbindungen richtest du unter **Einstellungen → Verbindungen** ein — Twitch, OBS, Notion, Discord; den API-Token für externe Werkzeuge findest du unter **Einstellungen → Daten**.
 
@@ -47,7 +47,7 @@ Links stehen die Bereiche nach Situation: **Im Stream** (alles, was du live ausl
 |--------|-------|
 | Live → Challenge | Im Stream → Ziel für heute |
 | Live → Glücksrad, Abstimmungen, Now Playing | Im Stream → Glücksrad, Abstimmung, Musik |
-| Projekt → Progress Tracker | Im Stream → Fortschritt |
+| Projekt → Progress Tracker | Im Stream → Projekt |
 | Projekt → Welt | Im Stream → Eintrag aus der Welt |
 | Projekt → Erklär-Commands | Chat & Bot → Befehle |
 | Settings → Features → Chat Commands | Chat & Bot → Von selbst |
@@ -84,6 +84,27 @@ Auf „Im Stream“ steht an jeder Karte, ob ihr Overlay in der laufenden OBS-Sz
 - **Twitch:** der Bot liest und schreibt in deinem Kanal; Einlösungen kommen von Twitch. Die Anmeldung läuft über die App-Registrierung des Tool-Autors.
 
 **Was Zuschauer erfahren:** \`!datenschutz\` antwortet im Chat mit einem Satz, der genau das sagt – Daten, Fristen, Löschen auf Wunsch. Derselbe Satz steht im Text fürs Kanal-Panel (Chat & Bot → Befehle → Panel-Text). Ein Twitch-Login ist ein Pseudonym, aber personenbezogen; wer öffentlich streamt, ist für sein Tool verantwortlich und sagt den Zuschauern am besten, was es tut.`,
+  },
+  {
+    title: 'Projekt',
+    content: `Unter **Im Stream → Projekt** steht, woran du über mehrere Streams arbeitest – ein Bild, eine Armee Figuren, ein Roman. Overlay und \`!projekt\` zeigen es dem Chat, und das Tool zählt mit, im wievielten Stream du daran sitzt.
+
+**Anlegen:** „Projekt anlegen“ führt in vier Schritten hin: Name, wie du den Stand misst, der Stand selbst, Vorschau. Drei Arten gibt es:
+- **Schritte** – etwa Skizze → Linework → Farbe → Details. Vorlagen für Malen, Bemalen, Basteln und Schreiben; die Schritte legst du selbst fest.
+- **Zähler** – etwa 12 von 30 Figuren. Jeder Klick zählt eins dazu.
+- **Zahl mit Ziel** – etwa 6.200 von 10.000 Wörtern. Ein Klick zählt so viel dazu, wie du einstellst (z. B. 500). Mit „Beginnt jeden Montag neu“ ist es ein Wochenziel.
+
+**Im Stream:** Oben steht unter „Gerade dran“ das Projekt, an dem du arbeitest, mit einem Knopf zum Weiterschalten („Weiter zu „Farbe““, „+1“, „+500 Wörter“). Direkt danach kannst du es rückgängig machen. Auf dem Stream Deck oder per Tastenkürzel heißt das „Projekt weiter“ (Standard: Cmd/Strg+Alt+P).
+
+**Mehrere Projekte:** Darunter stehen unter „Auch offen“ die zwei, an denen du zuletzt gearbeitet hast; „Alle … offenen Projekte“ zeigt den Rest. „Weitermachen“ wechselt – jedes Projekt behält seinen Stand, abschließen musst du dafür nichts. Ein Stream zählt für jedes Projekt, an dem du in ihm gearbeitet hast.
+
+**Fertig:** Ist der letzte Schritt geschafft oder das Ziel erreicht, steht dort „Projekt abschließen“. Das Overlay zeigt kurz „Fertig!“, der Bot sagt es im Chat, und das Projekt verschwindet aus der Liste – gelöscht wird nichts. Ein Wochenziel schließt du unter „Bearbeiten“ ab.
+
+**Bearbeiten:** Name, Schritte, Ziel und Stand ändern, abschließen oder löschen. Die Art bleibt, wie du sie angelegt hast.
+
+**Im Chat:** \`!projekt\` (auch \`!progress\`) antwortet etwa mit „Gerade dran: Drache für Mia – Farbe (Schritt 3 von 4). Der 4. Stream an diesem Projekt.“
+
+Bis Oktober 2026 hieß das „Fortschritt“, mit Aufgabenbrett, Meilenstein-Verknüpfung und GitHub-Import. Die Punkte des alten Bretts sind die Schritte eines Projekts geworden.`,
   },
   {
     title: 'Nach dem Stream',
@@ -135,8 +156,7 @@ Läuft der Stream noch, füllt sich die Seite einmal pro Minute. Oben rechts wä
 | !queue | Zeigt die nächsten Song-Wünsche |
 | !hype | Löst einen Hype Moment aus |
 | !themen (auch !issues) | Zeigt offene Einträge |
-| !todo | Zeigt offene Aufgaben |
-| !progress | Zeigt Projekt-Fortschritt |
+| !projekt (auch !progress) | Woran gerade gearbeitet wird, wie weit es ist und der wievielte Stream daran |
 | !stats [name] | Zeigt eingelöste Rewards |
 | !vote <option> | Stimme bei Abstimmung ab |
 | !design start/end/status | Chat-Abstimmung |
@@ -157,7 +177,7 @@ Alle Befehle lassen sich unter Chat & Bot → Von selbst umbenennen. Antworten, 
     content: `Erklär-Commands sind Chat-Befehle, deren Antwort du selbst schreibst — für alles, was du sonst in jedem Stream neu erklärst: Woran arbeitest du gerade? Was passiert hier? Wann bist du live?
 
 **Anlegen:** Chat & Bot → Befehle → „+ Neuer Befehl“. Im Dialog stehen Name, Antwort, der Satz für Zuschauer, Zweitnamen und die Pause beisammen; der Stern an einer Zeile nennt den Befehl in „!befehle“ vorn. Unter „Ausprobieren“ siehst du die Antwort, ohne live zu sein.
-- **Befehl:** ein Wort, z. B. !projekt. Das ! kannst du weglassen.
+- **Befehl:** ein Wort, z. B. !zeitplan. Das ! kannst du weglassen.
 - **Text:** was der Chat lesen soll. Darunter siehst du, in wie viele Chat-Nachrichten er aufgeteilt wird — höchstens 3.
 - **Cooldown:** so viele Sekunden antwortet der Befehl nach einer Antwort nicht noch einmal. Mods und du selbst sind davon ausgenommen und starten ihn auch nicht.
 
@@ -168,7 +188,7 @@ Alle Befehle lassen sich unter Chat & Bot → Von selbst umbenennen. Antworten, 
 - Ausgeschaltete Befehle antworten nicht und stehen nicht in !befehle.
 - !befehle nennt nur die wichtigsten Befehle — welche, wählst du in der Übersicht mit ★ (bis zu sechs). „!befehle alle“ listet jeden, „!befehle welt“, „!befehle texte“ und „!befehle stream“ je eine Gruppe. Mit einem Namen dahinter (!befehle figur) kommt der eine Satz zu diesem Befehl.
 - **Zweitnamen:** In der Übersicht kannst du einem Befehl weitere Namen geben (!socials für !links); sie antworten wie der Befehl selbst und stehen in Listen dahinter („auch !socials“). !issues ist so ein fester Zweitname von !themen.
-- **Schlaue Cooldowns:** Jeder Cooldown gilt für einen ruhigen Chat. Ab 20 Nachrichten pro Minute halbiert er sich, ab 60 ist es ein Viertel — in einem vollen Chat ist die Antwort schnell weggescrollt. Wer die Antwort gerade bekommen hat, bekommt sie frühestens nach dem Vierfachen (mindestens einer Minute) wieder; andere nach dem normalen Cooldown. Die eingebauten Befehle, die nur etwas sagen (!song, !uptime, !progress …), teilen sich einen Cooldown (Chat & Bot → Von selbst → Pause zwischen Antworten, Standard 15 s). !vote, !sr und !hype haben keinen. Mods und du warten nie.
+- **Schlaue Cooldowns:** Jeder Cooldown gilt für einen ruhigen Chat. Ab 20 Nachrichten pro Minute halbiert er sich, ab 60 ist es ein Viertel — in einem vollen Chat ist die Antwort schnell weggescrollt. Wer die Antwort gerade bekommen hat, bekommt sie frühestens nach dem Vierfachen (mindestens einer Minute) wieder; andere nach dem normalen Cooldown. Die eingebauten Befehle, die nur etwas sagen (!song, !uptime, !projekt …), teilen sich einen Cooldown (Chat & Bot → Von selbst → Pause zwischen Antworten, Standard 15 s). !vote, !sr und !hype haben keinen. Mods und du warten nie.
 - **Erinnerung:** Unter Chat & Bot → Von selbst → Erinnerung sagt der Bot alle paar Minuten einen Satz von selbst („Neu hier? !befehle zeigt, was du im Chat fragen kannst.“) — aber nur, wenn seit dem letzten Mal jemand im Chat geschrieben hat.
 
 **Übersicht für Zuschauer:** Unten im Panel steht jeder Befehl mit einem Satz. Lässt du das Feld leer, schreibt das Tool den Satz selbst — bei eigenen Texten der erste Satz der Antwort, beim Nachschlagen die Art, bei eingebauten ein fester Text; er steht blass im Feld. **Für Twitch-Panel kopieren** legt die ganze Liste als Text in die Zwischenablage, den du auf Twitch unter *Kanal bearbeiten → Panels* einfügst. Nach Änderungen musst du ihn dort neu einfügen.
@@ -312,7 +332,7 @@ Alle Zahlen und den Namen der Währung stellst du unter **Verdienen → Einstell
 **Die Werkstatt:** Unter Overlays & Alerts ist jedes Overlay eine Karte, sortiert nach Immer da, Mitmachen, Heute im Stream, Bestenlisten und Meldungen. Oben steht, wie viele **einsatzbereit** sind. Ein Overlay wird in drei Schritten einsatzbereit – **Einstellungen**, **In OBS**, **Testen** – und bringt dann **+20 EP** für deine Stufe. Die Striche auf der Karte zeigen, wie weit es ist („1 von 3“, grün mit „★ Einsatzbereit“, sobald alles erledigt ist). Wartet ein Entwurf aus Figma, trägt die Karte ein lila Schildchen.
 
 Ein Klick auf eine Karte öffnet ihre Werkstatt: links die Vorschau, rechts die drei Schritte. Die Schritte sind zugleich die Reiter – ein Klick öffnet einen; erledigte sind grün, eine Zeile darunter sagt, was als Nächstes zu tun ist.
-- **Einstellungen:** was drinsteht – bei den Alerts Text und Ton je Anlass, beim Meilenstein deine Meilensteine, bei Bestenliste und Rangwechsel deine Listen. „Weiter: In OBS“ hakt den Schritt ab. Bei Live-Overlays (Glücksrad, Ziel, Fortschritt, Aufgaben, Abstimmung, Musik, Eintragskarte) heißt er **Live** und ist von Anfang an erledigt: Was sie zeigen, steuerst du unter „Im Stream“ – „Zu „Im Stream““ bringt dich zu ihrer Karte. Beim Chat und bei Start-, Pausen- und Endbild gibt es nichts einzustellen.
+- **Einstellungen:** was drinsteht – bei den Alerts Text und Ton je Anlass, beim Meilenstein deine Meilensteine, bei Bestenliste und Rangwechsel deine Listen. „Weiter: In OBS“ hakt den Schritt ab. Bei Live-Overlays (Glücksrad, Ziel, Projekt, Abstimmung, Musik, Eintragskarte) heißt er **Live** und ist von Anfang an erledigt: Was sie zeigen, steuerst du unter „Im Stream“ – „Zu „Im Stream““ bringt dich zu ihrer Karte. Beim Chat und bei Start-, Pausen- und Endbild gibt es nichts einzustellen.
 - **In OBS:** Szene wählen, **In OBS anlegen** – das Tool legt die Browserquelle in der richtigen Größe selbst an. Start-, Pausen- und Endbild bekommen eigene Szenen („start“, „brb“, „end“). Darunter steht die Adresse, falls du sie lieber selbst anlegst. Erledigt ist der Schritt, sobald das Overlay in einer Szene liegt – das Tool sieht es in OBS.
 - **Testen:** **Im Stream testen** zeigt das Overlay einmal im Stream – auch deine Zuschauer sehen den Test. Wo es keinen Test gibt, schaust du in OBS nach und klickst **Sieht gut aus**.
 - **Aussehen** steht abgesetzt daneben, ist freiwillig und zählt nicht zu den drei Schritten: **Wie alle** oder **Eigener Stil** mit eigenen Farben und Grundgröße.
@@ -325,7 +345,7 @@ Ein Klick auf eine Karte öffnet ihre Werkstatt: links die Vorschau, rechts die 
 **Eingebaute Overlays:**
 | Overlay | URL | Beschreibung |
 |---------|-----|-------------|
-| Progress | /overlay/progress/index.html | Projekt-Fortschritt |
+| Projekt | /overlay/progress/index.html | Woran gerade gearbeitet wird, der Stand und der wievielte Stream; „Fertig!“ beim Abschließen |
 | Milestone | /overlay/milestone/index.html | Achievement-Benachrichtigungen |
 | Alerts | /overlay/alerts/index.html | Follower, Abos, Geschenk-Abos, Raids, Bits, Kanalpunkte |
 | Song | /overlay/song/index.html | Aktueller Song |
@@ -335,7 +355,6 @@ Ein Klick auf eine Karte öffnet ihre Werkstatt: links die Vorschau, rechts die 
 | Ende | /overlay/end/index.html | Füllt den ganzen Stream zum Schluss: „Bis zum nächsten Mal.“, der zuletzt aufgeschlagene Eintrag und der Hinweis auf !discord |
 | Reward Leaderboard | /overlay/reward-leaderboard/index.html | Wer die meisten Rewards eingelöst hat |
 | Reward Rank Change | /overlay/reward-rankchange/index.html | Einblendung, wenn sich die Rangliste ändert |
-| Todos | /overlay/todos/index.html | Todo-Liste |
 | Poll | /overlay/poll/index.html | Abstimmungen |
 | Roulette | /overlay/roulette/index.html | Glücksrad |
 | Challenge | /overlay/challenge/index.html | Challenge-Status |
@@ -377,7 +396,7 @@ Auth-Header: Authorization: Bearer <token>
 **Public Endpoints (ohne Auth):**
 - GET /public/stream-state
 - GET /public/issues
-- GET /public/progress — Projekt, Items und ihre Todos
+- GET /public/project — das Projekt, an dem gerade gearbeitet wird
 - GET /public/chat — die letzten Chat-Nachrichten
 - GET /public/reward-stats/top — Rangliste (?type=all&limit=3)
 - GET /public/overlay-config — Farben und Schriften
@@ -409,11 +428,12 @@ Auth-Header: Authorization: Bearer <token>
 **Issues:**
 - GET /api/issues — POST /api/issues — PATCH /api/issues/:id — DELETE /api/issues/:id
 
-**Progress & Todos:**
-- GET /api/progress — PATCH /api/progress/project — GET /api/progress/export
-- POST /api/progress/items — PATCH /api/progress/items/:id — DELETE /api/progress/items/:id
-- POST /api/progress/items/:id/todos — PATCH /api/progress/todos/:id — DELETE /api/progress/todos/:id
-- GET /api/progress/github — POST /api/progress/github — POST /api/progress/import/github
+**Projekt:**
+- GET /api/projects — { current, open }
+- POST /api/projects — PATCH /api/projects/:id — DELETE /api/projects/:id
+- POST /api/projects/:id/current — dieses Projekt ist jetzt dran
+- POST /api/projects/current/forward — POST /api/projects/current/back — weiter oder einen zurück (Stream Deck: „Projekt weiter“)
+- POST /api/projects/:id/finish — abschließen
 
 **Abstimmungen:**
 - GET /api/designs — POST /api/designs — PATCH /api/designs/:id — DELETE /api/designs/:id
@@ -486,8 +506,9 @@ Alle Events werden als JSON gesendet: { "event": "name", "data": { ... } }
 - character-changed — dieselbe Karte im alten Figuren-Format (Stream Deck)
 - follow-changed — Worldbuilder folgen an/aus, festgepinnt oder nicht, Wartezeit
 
-**Progress & Todos:**
-- progress-update — Projekt-Fortschritt oder Todos geändert
+**Projekt:**
+- project-update — { current }: weitergeschaltet, gewechselt, geändert
+- project-finished — { name, streams }: abgeschlossen
 
 **Milestones:**
 - milestone-trigger / milestone-created / milestone-updated / milestone-deleted

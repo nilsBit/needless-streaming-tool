@@ -61,12 +61,12 @@ _Avoid_: Roulette. The `roulette` identifier is frozen in the API route, the Web
 
 ### Project tracking
 
-**Project Item**:
-A unit of work on the story being built on stream — a chapter, a character to flesh out, a region to map — with a status of `pending`, `in_progress`, or `done` and an accumulated `time_spent`. Shown to viewers as the Progress Tracker.
-_Avoid_: Task, feature. "Story" is ambiguous here and means the narrative, never a unit of work.
+**Project**:
+What the stream works on over many streams — a picture, an army of miniatures, a novel. Its stand is measured one of three ways (`kind`): **steps** (Skizze → Farbe → fertig), a **count** (12 of 30 figures) or a **goal** (6,200 of 10,000 words, optionally weekly). Several can be open; one is **current**, and the card, the overlay and `!projekt` speak of that one. Each counts the **streams** it was worked on. Finishing one takes it off the list without deleting it. Shown to viewers as "Projekt"; the panel key, the feature key (`fortschritt`), the overlay folder and the built-in key stay `progress`.
+_Avoid_: Task, feature, Progress Tracker. "Story" is ambiguous here and means the narrative, never a unit of work.
 
-**Todo**:
-A subtask belonging to exactly one Project Item via `parent_id`, optionally linked to a Milestone. A Todo never stands alone — orphans are deleted.
+**Project Item**, **Todo** (until 2026-10-12):
+The board "Fortschritt" had points with subtasks. Their tables stay for old data and backups; the points became the steps of one Project.
 
 **Milestone**:
 A celebrated achievement on the story — a finished chapter, a closed arc — graded `minor`, `major`, or `epic`. Completing one triggers an overlay celebration sized to its grade.

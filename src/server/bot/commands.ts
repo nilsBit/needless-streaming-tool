@@ -17,7 +17,7 @@ import { adjustReply } from '../points/chat';
 import { parseRedeem, redeem } from '../points/redeem';
 
 /** Built-ins that answer through answerChatMessage, which applies the info cooldown itself. */
-const ANSWERED_IN_CHAT_ANSWERS: ReadonlySet<string> = new Set(['commands', 'uptime', 'privacy', 'points', 'rewards_list']);
+const ANSWERED_IN_CHAT_ANSWERS: ReadonlySet<string> = new Set(['commands', 'uptime', 'privacy', 'points', 'rewards_list', 'progress']);
 
 /** Broadcaster and mods — the people allowed to steer the stream from chat. */
 function isPrivileged(tags: { mod?: boolean; badges?: { broadcaster?: string } | null }): boolean {
@@ -134,32 +134,6 @@ export function registerCommands(client: Client) {
         } else {
           say('🎨 Befehle: !design start <sekunden> <opt1> <opt2> ... | !design end | !design status');
         }
-        break;
-      }
-
-      case 'todo': {
-        const activeItem = getDb().prepare('SELECT * FROM project_items WHERE status = ?').get('in_progress') as { id: number; title: string } | undefined;
-        if (!activeItem) {
-          say('📋 Kein aktives Feature.');
-          break;
-        }
-        const todos = getDb().prepare('SELECT * FROM todos WHERE parent_id = ? AND done = 0 ORDER BY sort_order ASC').all(activeItem.id) as Array<{ title: string }>;
-        if (todos.length === 0) {
-          say(`📋 ${activeItem.title} — Alle Aufgaben erledigt! 🎉`);
-        } else {
-          const list = todos.map((td, i) => `${i + 1}. ${td.title}`).join(' | ');
-          say(`📋 ${activeItem.title}: ${list}`);
-        }
-        break;
-      }
-
-      case 'progress': {
-        const state = getDb().prepare('SELECT project_name FROM stream_state WHERE id = 1').get() as { project_name: string | null };
-        const items = getDb().prepare('SELECT * FROM project_items').all() as Array<{ status: string }>;
-        const done = items.filter((i) => i.status === 'done').length;
-        const total = items.length;
-        const name = state?.project_name || 'Kein Projekt';
-        say(`📊 ${name} — ${done}/${total} Features fertig`);
         break;
       }
 

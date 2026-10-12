@@ -6,9 +6,11 @@ import { PANEL_KEYS } from '../panelKeys';
 // The one renderer test, agreed in the navigation spec: navigation.ts is pure
 // data, and the point of the rebuild is that everything has exactly one place.
 
+// "Projekt" was an area once; since 2026-10-12 it names the card on "Im Stream"
+// that was "Fortschritt", so it is a name again and no longer an old one.
 const OLD_NAMES = [
   'Settings', 'Progress Tracker', 'Clip Moments', 'Reward Stats', 'Now Playing',
-  'Challenge', 'Milestones', 'OBS Scenes', 'Live', 'Produktion', 'Projekt',
+  'Challenge', 'Milestones', 'OBS Scenes', 'Live', 'Produktion',
   'Features', 'App', 'Daten & API', 'Erklär-Commands', 'Chat Commands', 'Start',
 ];
 

@@ -3,8 +3,8 @@
 Electron Desktop App for Twitch streaming. Manages overlays, chat commands, stream data, and tooling for the "Needless Streaming Tool" (NST) stream brand.
 
 The streams are about **world-building** — writing a story on air, developing its
-characters, places and lore. The app itself stays generic: Issues, Project Items
-and Todos hold whatever the current stream is about. See `CONTEXT.md` for the
+characters, places and lore. The app itself stays generic: Issues and Projects hold
+whatever the current stream is about. See `CONTEXT.md` for the
 vocabulary.
 
 ## Tech Stack

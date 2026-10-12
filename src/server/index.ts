@@ -15,7 +15,8 @@ import { ALERT_SOUND_DIR } from './bot/alerts';
 import actionsRouter, { currentSong, rouletteTitle } from './api/actions';
 import authRouter from './api/auth';
 import votingRouter from './api/voting';
-import progressRouter from './api/progress';
+import projectsRouter from './api/projects';
+import { publicProject } from './projects';
 import clipsRouter, { clipTagsRouter } from './api/clips';
 import setupRouter from './api/setup';
 import { allowedOrigin } from './origins';
@@ -164,7 +165,7 @@ export function createApp(): express.Express {
   app.use('/api/actions', actionsRouter);
   app.use('/api/auth', authRouter);
   app.use('/api/voting', votingRouter);
-  app.use('/api/progress', progressRouter);
+  app.use('/api/projects', projectsRouter);
   app.use('/api/clips', clipsRouter);
   // Read by the Stream Deck key "Moment merken" for its tag choice.
   app.use('/api/clip-tags', clipTagsRouter);
@@ -226,13 +227,9 @@ export function createApp(): express.Express {
     res.json(recentChat());
   });
 
-  app.get('/public/progress', (_req, res) => {
-    const state = getDb().prepare('SELECT project_name FROM stream_state WHERE id = 1').get() as { project_name: string | null };
-    const items = getDb().prepare('SELECT * FROM project_items ORDER BY sort_order ASC').all() as Array<Record<string, unknown>>;
-    for (const item of items) {
-      item.todos = getDb().prepare('SELECT * FROM todos WHERE parent_id = ? ORDER BY done ASC, sort_order ASC, created_at ASC').all(item.id as number);
-    }
-    res.json({ project_name: state?.project_name || null, items });
+  // The project overlay: only the project being worked on.
+  app.get('/public/project', (_req, res) => {
+    res.json(publicProject());
   });
 
   // The vote that is running, for an overlay that loads in the middle of it.

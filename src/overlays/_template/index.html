@@ -25,7 +25,8 @@
     VERFÜGBARE WEBSOCKET-EVENTS (jeweils { event, data }):
     - stream-state                                Stream-Status oder Challenge geändert
     - issue-created / issue-updated / issue-deleted   Lose Enden
-    - progress-update                             Projekt-Fortschritt oder Todos geändert
+    - project-update                              Projekt weitergeschaltet oder gewechselt
+    - project-finished                            Projekt abgeschlossen
     - milestone-trigger                           Achievement ausgelöst
     - milestone-created / milestone-updated / milestone-deleted
     - entry-changed                               Eintragskarte geändert (oder null)
@@ -48,7 +49,7 @@
     VERFÜGBARE PUBLIC API ENDPOINTS (kein Token nötig):
     - GET /public/stream-state      → { challenge_title, challenge_status, ... }
     - GET /public/issues            → [ { id, title, status, ... }, ... ]
-    - GET /public/progress          → { project_name, items: [ { ..., todos: [...] } ] }
+    - GET /public/project           → { current } — das Projekt, an dem gerade gearbeitet wird
     - GET /public/chat              → die letzten Chat-Nachrichten
     - GET /public/reward-stats/top  → Rangliste (?type=all&limit=3)
     - GET /public/entry             → { card } — die Eintragskarte

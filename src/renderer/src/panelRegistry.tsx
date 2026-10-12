@@ -3,7 +3,7 @@ import type { PanelKey } from './panelKeys';
 import ChallengePanel from './panels/ChallengePanel';
 import IssuesPanel from './panels/IssuesPanel';
 import DesignsPanel from './panels/DesignsPanel';
-import ProgressPanel from './panels/ProgressPanel';
+import ProjectPanel from './panels/ProjectPanel';
 import SongPanel from './panels/SongPanel';
 import WorldPanel from './panels/WorldPanel';
 import TextCommandsPanel from './panels/TextCommandsPanel';
@@ -28,7 +28,7 @@ export const PANEL_REGISTRY: Record<PanelKey, React.ComponentType> = {
   challenge: ChallengePanel,
   issues: IssuesPanel,
   designs: DesignsPanel,
-  progress: ProgressPanel,
+  progress: ProjectPanel,
   song: SongPanel,
   world: WorldPanel,
   textcommands: TextCommandsPanel,

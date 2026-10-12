@@ -8,7 +8,7 @@ const router = Router();
 router.use(express.json({ limit: '50mb' }));
 
 const TABLES = [
-  'issues', 'clips', 'designs', 'milestones', 'project_items',
+  'issues', 'clips', 'designs', 'milestones', 'project_items', 'projects',
   'rewards', 'settings', 'stream_state', 'text_commands', 'lookup_commands', 'hidden_entry_fields', 'todos',
 ];
 

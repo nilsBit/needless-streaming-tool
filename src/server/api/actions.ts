@@ -7,6 +7,7 @@ import { sampleAlert } from '../bot/alerts';
 import { getAutoDetectSetting, setAutoDetectSetting, isSMTCSupported, isSMTCRunning } from '../integrations/smtc';
 import { activeCard, type EntryCard } from './active-entry';
 import { noteActivity } from '../stream-report/log';
+import { publicProject } from '../projects';
 
 const router = Router();
 
@@ -252,10 +253,14 @@ function getTestEvents(name: string): { event: string; data: unknown }[] {
     }];
   }
 
-  // Both overlays reload /public/progress on this event — the one the server
-  // really sends. The old names (todo-created, progress-updated) do not exist.
-  if (base === 'todos' || base === 'progress') {
-    return [{ event: 'progress-update', data: {} }];
+  // A made-up project for a moment; then the real one (or none) again.
+  if (base === 'progress') {
+    setTimeout(() => broadcast('project-update', publicProject()), 8000);
+    return [{ event: 'project-update', data: { current: {
+      id: 0, name: 'Testprojekt', kind: 'steps', steps: ['Skizze', 'Linework', 'Farbe', 'Details'], position: 2,
+      total: null, unit: null, step_by: 1, weekly: false, streams: 3, live: true, created_at: '', last_worked_at: '',
+      finished_at: null, step: 'Farbe', stand: 'Farbe · Schritt 3 von 4', pct: 50, finished: false,
+    } } }];
   }
 
   // Three lines as if from chat; taken back after a while like a moderator would.

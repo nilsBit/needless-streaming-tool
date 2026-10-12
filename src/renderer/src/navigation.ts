@@ -36,7 +36,7 @@ export const PANEL_LABELS: Record<PanelKey, string> = {
   challenge: 'Ziel für heute',
   issues: 'Glücksrad',
   designs: 'Abstimmung',
-  progress: 'Fortschritt',
+  progress: 'Projekt',
   song: 'Musik',
   world: 'Eintrag aus der Welt',
   textcommands: 'Befehle',
@@ -59,7 +59,7 @@ export const AREAS: readonly Area[] = [
     key: 'stream',
     label: 'Im Stream',
     sentence: 'Alles, was du auslöst, während du live bist.',
-    keywords: ['Ziel für heute', 'Glücksrad', 'Abstimmung', 'Fortschritt', 'Musik', 'Eintrag aus der Welt'],
+    keywords: ['Ziel für heute', 'Glücksrad', 'Abstimmung', 'Projekt', 'Fortschritt', 'Musik', 'Eintrag aus der Welt'],
     group: 'main',
     subTabs: [
       {
@@ -80,7 +80,7 @@ export const AREAS: readonly Area[] = [
       {
         key: 'befehle',
         label: 'Befehle',
-        sentence: 'Eigene Befehle wie !projekt – eine Liste, was der Chat tippt und der Bot antwortet. Die eingebauten Befehle stehen unter „Von selbst“.',
+        sentence: 'Eigene Befehle wie !zeitplan – eine Liste, was der Chat tippt und der Bot antwortet. Die eingebauten Befehle stehen unter „Von selbst“.',
         panels: ['textcommands'],
       },
       {

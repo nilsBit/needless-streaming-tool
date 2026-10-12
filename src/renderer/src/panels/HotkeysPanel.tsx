@@ -23,6 +23,7 @@ export default function HotkeysPanel() {
     milestone_minor: 'Kleinen Meilenstein abhaken',
     milestone_major: 'Großen Meilenstein abhaken',
     milestone_epic: 'Epischen Meilenstein abhaken',
+    project_forward: 'Projekt weiter',
   };
 
   useEffect(() => {

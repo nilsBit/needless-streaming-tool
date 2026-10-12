@@ -51,7 +51,7 @@ export const FEATURE_GROUPS: readonly FeatureGroup[] = [
 ];
 
 export const FEATURES: readonly Feature[] = [
-  { key: 'befehle', group: 'chat', label: 'Erklär-Befehle', sentence: 'Der Chat fragt !projekt oder !zeitplan, der Bot antwortet mit deinem Text.', needs: ['twitch'], overlays: [], commands: [], panels: [], hotkeys: [], readiness: ['commands'] },
+  { key: 'befehle', group: 'chat', label: 'Erklär-Befehle', sentence: 'Der Chat fragt !zeitplan oder !setup, der Bot antwortet mit deinem Text.', needs: ['twitch'], overlays: [], commands: [], panels: [], hotkeys: [], readiness: ['commands'] },
   { key: 'musik', group: 'chat', label: 'Musikwünsche', sentence: 'Zuschauer wünschen sich Songs mit !sr und sehen die Reihe mit !queue.', needs: ['twitch'], overlays: [], commands: ['sr', 'queue'], panels: ['song'], hotkeys: [], readiness: [] },
   { key: 'rad', group: 'chat', label: 'Glücksrad', sentence: 'Du sammelst Themen, das Rad entscheidet. Der Chat sieht sie mit !themen.', needs: ['twitch', 'obs'], overlays: ['roulette'], commands: ['issues'], panels: ['issues'], hotkeys: ['roulette'], readiness: [] },
   { key: 'vote', group: 'chat', label: 'Abstimmung', sentence: 'Du sammelst Vorschläge, der Chat stimmt mit !vote ab.', needs: ['twitch', 'obs'], overlays: ['poll'], commands: ['vote', 'design'], panels: ['designs'], hotkeys: [], readiness: [] },
@@ -61,7 +61,7 @@ export const FEATURES: readonly Feature[] = [
   { key: 'chat', group: 'overlays', label: 'Chat im Stream', sentence: 'Die letzten Nachrichten, ohne Befehle und Bot-Antworten.', needs: ['twitch', 'obs'], overlays: ['chat'], commands: [], panels: [], hotkeys: [], readiness: [] },
   { key: 'song', group: 'overlays', label: 'Musik mit Cover', sentence: 'Der Titel, der gerade läuft, mit Bild.', needs: ['obs'], overlays: ['song'], commands: ['song'], panels: ['song'], hotkeys: [], readiness: [] },
   { key: 'ziel', group: 'overlays', label: 'Ziel für heute', sentence: 'Ein Satz, dazu läuft eine Uhr.', needs: ['obs'], overlays: ['challenge'], commands: ['challenge'], panels: ['challenge'], hotkeys: ['challenge_toggle', 'timer_toggle', 'challenge_done', 'challenge_failed'], readiness: [] },
-  { key: 'fortschritt', group: 'overlays', label: 'Aufgaben und Fortschritt', sentence: 'Woran du heute arbeitest, mit Balken und Liste zum Abhaken.', needs: ['obs'], overlays: ['progress', 'todos'], commands: ['todo', 'progress'], panels: ['progress'], hotkeys: [], readiness: [] },
+  { key: 'fortschritt', group: 'overlays', label: 'Projekt', sentence: 'Woran du über mehrere Streams arbeitest und wie weit es ist – im Overlay und mit !projekt.', needs: ['obs'], overlays: ['progress'], commands: ['progress'], panels: ['progress'], hotkeys: ['project_forward'], readiness: [] },
   { key: 'alerts', group: 'overlays', label: 'Alerts', sentence: 'Tafel mit Ton bei Follow, Abo, Geschenk, Raid und Bits.', needs: ['twitch', 'obs'], overlays: ['alerts'], commands: [], panels: [], hotkeys: [], readiness: ['alertSounds'] },
 
   { key: 'bestenliste', group: 'rewards', label: 'Bestenlisten', sentence: 'Wer eine Belohnung am öftesten einlöst – je Liste eine Belohnung. Als Overlay, mit Rangwechsel-Meldung und !stats.', needs: ['twitch', 'obs'], overlays: ['reward-leaderboard', 'reward-rankchange'], commands: ['rewardstats'], panels: [], hotkeys: [], readiness: [] },

@@ -90,7 +90,7 @@ describe('setup and features', () => {
     const byName = Object.fromEntries(res.body.map((e: { name: string; feature: string | null }) => [e.name, e.feature]));
     expect(byName.chat).toBe('chat');
     expect(byName.roulette).toBe('rad');
-    expect(byName.todos).toBe('fortschritt');
+    expect(byName.progress).toBe('fortschritt');
     expect(byName['reward-rankchange']).toBe('bestenliste');
     expect(byName.character).toBe('welt');
     expect(byName.start).toBe('bilder');

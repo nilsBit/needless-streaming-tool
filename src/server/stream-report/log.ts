@@ -28,8 +28,21 @@ export const MIN_GAP_MS = 60_000;
 
 interface StreamRef { id: number; started_at: string; ended_at: string | null; last_seen_at?: string | null }
 
+type StartListener = () => void;
+const startListeners: StartListener[] = [];
+
+/** Called each time a stream goes live or is picked up again — the project counts it. */
+export function onStreamStart(listener: StartListener): void {
+  startListeners.push(listener);
+}
+
 /** The stream went live (or was found live after a restart of the tool). */
 export function streamStarted(startedAt: string | undefined, now: number = Date.now()): void {
+  beginStream(startedAt, now);
+  if (current) for (const listener of startListeners) listener();
+}
+
+function beginStream(startedAt: string | undefined, now: number): void {
   const start = toSecond(startedAt ?? '');
   if (!start) return;
   const db = getDb();

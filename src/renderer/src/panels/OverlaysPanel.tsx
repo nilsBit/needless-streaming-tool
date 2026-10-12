@@ -56,12 +56,12 @@ const GROUP_LABELS: Record<Group, string> = {
 };
 const GROUP_ORDER: Group[] = ['always', 'join', 'today', 'rewards', 'screens', 'alerts', 'custom'];
 const ICONS: Record<string, string> = {
-  character: '📖', chat: '💬', song: '🎵', roulette: '🎡', poll: '🗳️', progress: '📈', todos: '✅', challenge: '🎯',
+  character: '📖', chat: '💬', song: '🎵', roulette: '🎡', poll: '🗳️', progress: '📈', challenge: '🎯',
   milestone: '🎉', 'reward-leaderboard': '🏆', 'reward-rankchange': '⬆️', start: '🌅', pause: '☕', end: '🌙', alerts: '🔔',
 };
 const SCREENS = new Set(['start', 'pause', 'end']);
 // Overlays a test event exists for (POST /api/actions/overlay-test/<name>).
-const TESTABLE = new Set(['alerts', 'song', 'poll', 'milestone', 'roulette', 'challenge', 'todos', 'progress', 'reward-leaderboard', 'reward-rankchange', 'character', 'chat']);
+const TESTABLE = new Set(['alerts', 'song', 'poll', 'milestone', 'roulette', 'challenge', 'progress', 'reward-leaderboard', 'reward-rankchange', 'character', 'chat']);
 // The overlays "Stil für alle" shows side by side, the first three there are.
 const STYLE_PREVIEWS = ['chat', 'reward-leaderboard', 'alerts', 'song', 'challenge', 'progress', 'roulette'];
 
@@ -70,8 +70,7 @@ const LIVE: Record<string, { what: string; card: string }> = {
   challenge: { what: 'das Ziel eintragen und die Uhr starten', card: 'challenge' },
   roulette: { what: 'Themen sammeln und das Rad drehen', card: 'issues' },
   poll: { what: 'Vorschläge sammeln und die Abstimmung starten', card: 'designs' },
-  progress: { what: 'Schritte eintragen und abhaken', card: 'progress' },
-  todos: { what: 'Aufgaben eintragen und abhaken', card: 'progress' },
+  progress: { what: 'das Projekt anlegen und weiterschalten', card: 'progress' },
   song: { what: 'sehen, was läuft, und Wünsche annehmen', card: 'song' },
   character: { what: 'den Eintrag wählen oder festhalten', card: 'world' },
 };

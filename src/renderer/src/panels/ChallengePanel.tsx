@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApi, apiPatch } from '../hooks/useApi';
 import { useWebSocket } from '../hooks/useWebSocket';
-import { StreamState, ProjectItem } from '../../../shared/types';
+import { StreamState } from '../../../shared/types';
 import { useToast } from '../contexts/ToastContext';
 
 // "Ziel für heute" on "Im Stream": a sentence and a running clock. Idle: one
@@ -9,7 +9,6 @@ import { useToast } from '../contexts/ToastContext';
 export default function ChallengePanel() {
   const { toast } = useToast();
   const { data: initialState, loading, refetch } = useApi<StreamState>('/stream-state');
-  const { data: progressData } = useApi<{ items: ProjectItem[] }>('/progress');
   const [liveState, setLiveState] = useState<StreamState | null>(null);
   const [title, setTitle] = useState('');
   const [isEditing, setIsEditing] = useState(false);
@@ -73,9 +72,6 @@ export default function ChallengePanel() {
   const isActive = !!state?.challenge_title && state.challenge_status !== 'idle';
   const statusLabel = state?.challenge_status === 'in_progress' ? 'läuft' : state?.challenge_status === 'done' ? 'geschafft' : state?.challenge_status === 'failed' ? 'nicht geschafft' : '';
   const statusTone = state?.challenge_status === 'done' ? 'ok' : state?.challenge_status === 'failed' ? 'bad' : 'live';
-  const isLinkedToProgress = isActive && progressData?.items?.some(
-    (item) => item.status === 'in_progress' && item.title === state?.challenge_title,
-  );
 
   if (!isActive) {
     return (
@@ -114,7 +110,6 @@ export default function ChallengePanel() {
         <button type="button" className="card-secondary" onClick={() => finishChallenge('failed')}>Nicht geschafft</button>
       </div>
       <div className="card-status">
-        {isLinkedToProgress && <span>Hängt am aktiven Punkt unter „Fortschritt“.</span>}
         <button type="button" className="card-link" onClick={cancelChallenge}>Abbrechen</button>
       </div>
     </div>

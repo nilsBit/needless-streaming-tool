@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useApi, apiPost, apiFetch } from '../../hooks/useApi';
 import { useWebSocket } from '../../hooks/useWebSocket';
 import { useToast } from '../../contexts/ToastContext';
@@ -10,7 +10,7 @@ import type { ConnectionKey } from '../../../../shared/features';
 // The connections as cards — one building block for Einstellungen →
 // Verbindungen (every card) and the setup's step "Verbinden" (`only` the
 // ones the chosen features need). Twitch, OBS, Worldbuilder and Discord belong
-// to features; Notion and GitHub are settings only.
+// to features; Notion is a setting only.
 
 interface Props {
   /** The setup passes what its choice needs; the settings show everything. */
@@ -53,7 +53,6 @@ export default function ConnectionCards({ only }: Props) {
   const { data: obsConfig, refetch: refetchObs } = useApi<{ configured: boolean; host?: string; port?: number; has_password?: boolean }>('/obs/config');
   const { data: obsStatus, refetch: refetchObsStatus } = useApi<{ connected: boolean }>('/obs/status');
   const { data: notionInfo, refetch: refetchNotion } = useApi<{ configured: boolean; preview: string | null }>('/settings/notion');
-  const { data: githubInfo, refetch: refetchGithub } = useApi<{ configured: boolean; preview: string | null; repo: string | null }>('/progress/github');
   const { data: discordLive, refetch: refetchDiscordLive } = useApi<{ configured: boolean; message: string }>('/settings/discord-live');
   const { data: world, refetch: refetchWorld } = useApi<SourceInfo>('/characters/source');
 
@@ -64,13 +63,9 @@ export default function ConnectionCards({ only }: Props) {
   const [obsPort, setObsPort] = useState('4455');
   const [obsPassword, setObsPassword] = useState('');
   const [notionToken, setNotionToken] = useState('');
-  const [githubToken, setGithubToken] = useState('');
-  const [githubRepo, setGithubRepo] = useState('');
-  const [importing, setImporting] = useState(false);
   const [discordWebhook, setDiscordWebhook] = useState('');
   const [discordMessage, setDiscordMessage] = useState<string | null>(null);
 
-  useEffect(() => { if (githubInfo?.repo && !githubRepo) setGithubRepo(githubInfo.repo); }, [githubInfo, githubRepo]);
   useWebSocket((event) => {
     if (event === 'bot-status') refetchBot();
     if (event === 'obs-status') refetchObsStatus();
@@ -96,25 +91,6 @@ export default function ConnectionCards({ only }: Props) {
     const result = await apiPost('/settings/notion', { token: notionToken.trim() });
     if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
     setNotionToken(''); setExpanded(null); refetchNotion();
-  };
-
-  const saveGithubToken = async () => {
-    const result = await apiPost('/progress/github', { token: githubToken.trim() });
-    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
-    setGithubToken(''); refetchGithub();
-  };
-
-  const importGithub = async () => {
-    const parts = githubRepo.trim().split('/');
-    if (parts.length !== 2) { toast.error('Format: owner/repo'); return; }
-    setImporting(true);
-    try {
-      const res = await apiFetch('/progress/import/github', { method: 'POST', body: JSON.stringify({ owner: parts[0], repo: parts[1] }) });
-      const data = await res.json();
-      if (res.ok) toast.success(`${data.imported} importiert, ${data.skipped} übersprungen`);
-      else toast.error(data.error || 'Aktion fehlgeschlagen');
-    } catch { toast.error('Aktion fehlgeschlagen'); }
-    setImporting(false);
   };
 
   const saveDiscordLive = async () => {
@@ -231,33 +207,6 @@ export default function ConnectionCards({ only }: Props) {
             <textarea rows={3} aria-label="Text der Meldung" placeholder="Text — {channel} wird zum Twitch-Kanal" value={discordMessage ?? discordLive?.message ?? ''} onChange={(e) => setDiscordMessage(e.target.value)} />
             <button type="button" className="s-card-action primary" onClick={saveDiscordLive}>Speichern</button>
             {discordLive?.configured && <button type="button" className="s-card-action danger" onClick={removeDiscordLive}>Webhook entfernen</button>}
-          </div>
-        </Card>
-      )}
-
-      {settingsOnly && (
-        <Card
-          id="github" title="GitHub" expanded={expanded === 'github'}
-          status={githubInfo?.configured ? `Token: ${githubInfo.preview}` : 'Nicht verbunden'}
-          statusColor={githubInfo?.configured ? OK : OFF}
-          action={githubInfo?.configured ? 'Token ändern' : 'Einrichten'}
-          actionColor={githubInfo?.configured ? 'ghost' : 'primary'}
-          onAction={() => toggle('github')}
-        >
-          <div className="s-card-inputs">
-            {!githubInfo?.configured && (
-              <>
-                <input type="password" placeholder="GitHub Personal Access Token (ghp_...)" value={githubToken} onChange={(e) => setGithubToken(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && saveGithubToken()} />
-                <button type="button" className="s-card-action primary" onClick={saveGithubToken}>Speichern</button>
-              </>
-            )}
-            {githubInfo?.configured && (
-              <>
-                <input type="text" placeholder="owner/repo" value={githubRepo} onChange={(e) => setGithubRepo(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && importGithub()} />
-                <button type="button" className="s-card-action primary" onClick={importGithub} disabled={importing || !githubRepo.trim()}>{importing ? 'Importiert …' : 'Importieren'}</button>
-                <button type="button" className="s-card-action ghost" onClick={async () => { await apiPost('/progress/github', { token: '' }); refetchGithub(); }}>Token ändern</button>
-              </>
-            )}
           </div>
         </Card>
       )}

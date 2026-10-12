@@ -136,6 +136,12 @@ export async function registerHotkeys(config?: Partial<HotkeyConfig>) {
     console.log(`[Hotkey] ${hotkeys.milestone_epic} — Milestone Epic`);
   });
 
+  // Projekt weiter: the next step, piece or jump on the current project
+  register(hotkeys.project_forward, () => {
+    apiCall('POST', '/api/projects/current/forward', {});
+    console.log(`[Hotkey] ${hotkeys.project_forward} — Projekt weiter`);
+  });
+
   console.log('[Hotkeys] Registered all global shortcuts');
 }
 

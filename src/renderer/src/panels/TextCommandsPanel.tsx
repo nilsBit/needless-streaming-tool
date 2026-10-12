@@ -69,7 +69,6 @@ interface Draft {
 const MAX_CHARS = 500;
 const PAUSES = [0, 5, 10, 15, 20, 30, 45, 60, 120, 300];
 const SUGGESTIONS = [
-  { trigger: '!projekt', hint: 'Woran arbeitest du gerade?' },
   { trigger: '!stream', hint: 'Was passiert hier eigentlich?' },
   { trigger: '!zeitplan', hint: 'Wann wird gestreamt?' },
   { trigger: '!setup', hint: 'Womit arbeitest du?' },
@@ -335,7 +334,7 @@ export default function TextCommandsPanel() {
           <div className="dialog-grid">
             <div className="dialog-field">
               <label htmlFor="cmd-name">Name – das tippt der Chat</label>
-              <input id="cmd-name" type="text" placeholder="!projekt" value={draft.trigger} onChange={(e) => setDraft({ ...draft, trigger: e.target.value })} autoFocus={draft.id === null} />
+              <input id="cmd-name" type="text" placeholder="!zeitplan" value={draft.trigger} onChange={(e) => setDraft({ ...draft, trigger: e.target.value })} autoFocus={draft.id === null} />
             </div>
             <div className="dialog-field">
               <label htmlFor="cmd-pause">Pause – so lange antwortet er in einem ruhigen Chat nicht noch einmal</label>

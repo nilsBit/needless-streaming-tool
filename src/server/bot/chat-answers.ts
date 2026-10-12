@@ -6,6 +6,7 @@ import { builtinCooldownSeconds, INFO_BUILTINS, passCooldown } from './cooldown'
 import { answerLookupCommand } from './lookup-commands';
 import { answerTextCommand } from './text-commands';
 import { privacySentence } from '../privacy-text';
+import { projectAnswer } from '../projects';
 import { pointsReply, rewardsListReply } from '../points/chat';
 
 /**
@@ -45,6 +46,7 @@ export async function answerChatMessage(message: string, privileged: boolean, vi
   if (builtin === 'privacy') return { replies: [privacySentence()] };
   if (builtin === 'points') return { replies: [pointsReply(asTyped, viewer)] };
   if (builtin === 'rewards_list') return { replies: [rewardsListReply()] };
+  if (builtin === 'progress') return { replies: [projectAnswer()] };
   if (builtin !== null) return { replies: null, reason: 'builtin' };
 
   return (

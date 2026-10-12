@@ -1,395 +1,125 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<title>NFS Progress - OBS Overlay</title>
-<link rel="stylesheet" href="/overlay/lexikon.css">
-<style>
-  .container {
-    width: 100%;
-    height: 100vh;
-    padding: 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  /* Header */
-  .header { margin-bottom: 4px; }
-  .header h1 { font-size: 1rem; }
-  .header-sub {
-    font-family: var(--font-body);
-    font-style: italic;
-    font-size: 0.8rem;
-    color: var(--lex-faint);
-    margin-top: 2px;
-  }
-
-  /* Project name */
-  .project-name {
-    font-family: var(--font-display);
-    font-size: 1.133rem;
-    color: var(--color-primary);
-    padding: 2px 4px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  /* Progress bar */
-  .progress-box { padding: 8px 14px; }
-
-  .progress-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 8px;
-  }
-
-  .progress-label {
-    font-family: var(--font-display);
-    font-size: 0.867rem;
-    color: var(--color-secondary);
-    letter-spacing: 0;
-    font-style: italic;
-  }
-
-  .progress-count {
-    font-family: var(--font-display);
-    font-size: 1.133rem;
-    color: var(--color-primary);
-  }
-
-  .bar-outer {
-    height: 6px;
-    background: var(--lex-rule);
-    border-radius: 3px;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .bar-fill {
-    height: 100%;
-    background: var(--art);
-    transition: width 0.5s ease;
-  }
-
-  .bar-tick {
-    position: absolute;
-    top: 0; bottom: 0;
-    width: 1px;
-    background: var(--lex-frame-inner);
-  }
-
-  .bar-pct {
-    text-align: right;
-    font-family: var(--font-display);
-    font-size: 0.867rem;
-    color: var(--color-secondary);
-    margin-top: 2px;
-  }
-
-  /* Item list */
-  .item-list {
-    padding: 6px 14px;
-    flex: 1;
-    overflow-y: auto;
-    min-height: 0;
-  }
-
-  .item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 0;
-    border-bottom: 1px solid var(--lex-rule);
-    animation: slideIn 0.3s ease-out forwards;
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-
-  .item:last-child { border-bottom: none; }
-
-  .checkbox {
-    width: 18px;
-    height: 18px;
-    min-width: 18px;
-    border: 1px solid var(--lex-frame);
-    border-radius: 2px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--art);
-    transition: all 0.2s ease;
-  }
-
-  .checkbox.done { border-color: var(--art); }
-  .checkbox.in-progress { border-color: var(--color-secondary); }
-
-  .item-text {
-    flex: 1;
-    /* Without this a flex item refuses to shrink below its text, and a long
-       title pushes the whole row past the browser source's width. */
-    min-width: 0;
-    font-size: 1rem;
-    color: var(--color-text);
-    line-height: 1.4;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  /* The strike takes the text colour — a rule-coloured one at 15% is invisible. */
-  .item-text.done {
-    color: var(--lex-faint);
-    text-decoration: line-through;
-  }
-
-  .item-text.in-progress { color: var(--color-primary); }
-
-  .item-time {
-    font-family: var(--font-body);
-    font-style: italic;
-    font-size: 0.8rem;
-    color: var(--lex-faint);
-    margin-left: auto;
-    padding-right: 4px;
-  }
-  .item-time.active { color: var(--color-secondary); }
-
-  /* Footer */
-  .footer {
-    display: flex;
-    justify-content: space-between;
-    padding: 0 4px;
-    font: italic 0.8rem var(--font-body);
-    color: var(--lex-faint);
-  }
-
-  .empty-msg {
-    text-align: center;
-    padding: 12px 0;
-    font-family: var(--font-body);
-    font-style: italic;
-    font-size: 0.933rem;
-    color: var(--lex-faint);
-  }
-
-  @keyframes slideIn {
-    0% { opacity: 0; transform: translateX(-20px); }
-    100% { opacity: 1; transform: translateX(0); }
-  }
-
-  ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--lex-frame); border-radius: 3px; }
-</style>
+  <meta charset="UTF-8">
+  <title>Projekt – OBS Overlay</title>
+  <link rel="stylesheet" href="/overlay/lexikon.css">
+  <style>
+    /* Projekt (2026-10-12): the project being worked on, how far it is, and
+       the how-manyth stream on it. Hidden while no project is current. */
+    .card {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      padding: 12px 16px;
+    }
+    .card.visible { display: flex; }
+    .name {
+      font-size: 1.2rem;
+      overflow-wrap: anywhere;
+    }
+    .bar-outer {
+      height: 6px;
+      background: var(--lex-rule);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      width: 0;
+      background: var(--art);
+      transition: width 0.5s ease;
+    }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .stand {
+      font-size: 0.933rem;
+      color: var(--color-text);
+    }
+    .streams {
+      font: italic 0.8rem var(--font-body);
+      color: var(--lex-faint);
+    }
+    .done-kicker {
+      font-family: var(--font-display);
+      font-size: 1.133rem;
+      color: var(--art);
+    }
+    .card.done .bar-outer, .card.done .row { display: none; }
+  </style>
 </head>
 <body>
-
-<div class="container lex">
-  <!-- Header -->
-  <div class="header lex-schlank">
-    <h1 class="lex-kicker">Progress</h1>
-    <div class="header-sub">Feature Tracker</div>
-  </div>
-
-  <!-- Project Name -->
-  <div class="project-name lex-title" id="projectName">&mdash;</div>
-
-  <!-- Progress Bar -->
-  <div class="progress-box lex-schlank">
-    <div class="progress-top">
-      <span class="progress-label">Fortschritt</span>
-      <span class="progress-count" id="progressCount">0/0</span>
+  <div class="card lex lex-schlank" id="card">
+    <span class="done-kicker" id="kicker" hidden>Fertig!</span>
+    <span class="name lex-title" id="name"></span>
+    <div class="bar-outer"><div class="bar-fill" id="bar"></div></div>
+    <div class="row">
+      <span class="stand" id="stand"></span>
+      <span class="streams" id="streams"></span>
     </div>
-    <div class="bar-outer">
-      <div class="bar-fill" id="barFill" style="width:0%"></div>
-      <div class="bar-tick" style="left:10%"></div>
-      <div class="bar-tick" style="left:20%"></div>
-      <div class="bar-tick" style="left:30%"></div>
-      <div class="bar-tick" style="left:40%"></div>
-      <div class="bar-tick" style="left:50%"></div>
-      <div class="bar-tick" style="left:60%"></div>
-      <div class="bar-tick" style="left:70%"></div>
-      <div class="bar-tick" style="left:80%"></div>
-      <div class="bar-tick" style="left:90%"></div>
-    </div>
-    <div class="bar-pct" id="barPct">0%</div>
   </div>
+  <script src="/overlay/boot.js" data-overlay="progress"></script>
+  <script>
+    var card = document.getElementById('card');
+    var kicker = document.getElementById('kicker');
+    var nameEl = document.getElementById('name');
+    var bar = document.getElementById('bar');
+    var standEl = document.getElementById('stand');
+    var streamsEl = document.getElementById('streams');
+    // While "Fertig!" shows, a plain update (no project now) must not hide it.
+    var celebrateUntil = 0;
+    var DONE_MS = 8000;
 
-  <!-- Item List -->
-  <div class="item-list lex-schlank" id="itemList">
-    <div class="empty-msg">Lade Features …</div>
-  </div>
-
-  <!-- Footer -->
-  <div class="footer">
-    <span id="openCount">0 offen</span>
-    <span>NFS Progress</span>
-  </div>
-</div>
-
-<script src="/overlay/boot.js" data-overlay="progress"></script>
-<script>
-let items = [];
-let projectName = '—';
-let liveTimerSeconds = 0;
-
-async function fetchProgress() {
-  try {
-    const res = await fetch(`${window.__overlayOrigin}/public/progress`);
-    const data = await res.json();
-    projectName = data.project_name || '—';
-    items = data.items || [];
-    render();
-  } catch (err) {
-    console.error('[Progress] Fetch failed:', err);
-  }
-}
-
-function render() {
-  const total = items.length;
-  const doneCount = items.filter(i => i.status === 'done').length;
-  const inProgressCount = items.filter(i => i.status === 'in_progress').length;
-  const openCount = total - doneCount;
-  const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
-
-  document.getElementById('projectName').textContent = projectName;
-  document.getElementById('progressCount').textContent = doneCount + '/' + total;
-  document.getElementById('barFill').style.width = pct + '%';
-  document.getElementById('barPct').textContent = pct + '%';
-  document.getElementById('openCount').textContent = openCount + ' offen';
-
-  const list = document.getElementById('itemList');
-
-  if (total === 0) {
-    list.innerHTML = '<div class="empty-msg">Keine Features vorhanden</div>';
-    return;
-  }
-
-  // Sort: in_progress first, then pending, then done
-  const sorted = [...items].sort((a, b) => {
-    const order = { in_progress: 0, pending: 1, done: 2 };
-    const ao = order[a.status] ?? 1;
-    const bo = order[b.status] ?? 1;
-    if (ao !== bo) return ao - bo;
-    return (a.sort_order || 0) - (b.sort_order || 0);
-  });
-
-  let html = '';
-  sorted.forEach((item, i) => {
-    const isDone = item.status === 'done';
-    const isInProgress = item.status === 'in_progress';
-
-    let checkClass = 'checkbox';
-    if (isDone) checkClass += ' done';
-    else if (isInProgress) checkClass += ' in-progress';
-
-    let textClass = 'item-text';
-    if (isDone) textClass += ' done';
-    else if (isInProgress) textClass += ' in-progress';
-
-    let checkmark = '';
-    if (isDone) {
-      checkmark = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
-    } else if (isInProgress) {
-      checkmark = '<span style="font-size:0.667rem">▶</span>';
+    function show(project) {
+      if (Date.now() < celebrateUntil) return;
+      card.classList.remove('done');
+      kicker.hidden = true;
+      if (!project) { card.classList.remove('visible'); return; }
+      card.classList.add('visible');
+      nameEl.textContent = project.name;
+      bar.style.width = (project.pct || 0) + '%';
+      standEl.textContent = project.stand;
+      streamsEl.textContent = project.live
+        ? project.streams + '. Stream'
+        : project.streams > 0 ? project.streams + (project.streams === 1 ? ' Stream' : ' Streams') : '';
     }
 
-    var timeSpent = item.time_spent || 0;
-    if (isInProgress) timeSpent += liveTimerSeconds;
-    var timeStr = timeSpent > 0 ? formatTime(timeSpent) : '';
+    function celebrate(data) {
+      celebrateUntil = Date.now() + DONE_MS;
+      card.classList.add('visible', 'done');
+      kicker.hidden = false;
+      nameEl.textContent = data.name || '';
+      setTimeout(function () { celebrateUntil = 0; load(); }, DONE_MS);
+    }
 
-    // A running item always gets its time span, so the second-by-second tick
-    // only has to change its text (updateLiveTimes), never rebuild the list.
-    html += '<div class="item" style="animation-delay:' + (i * 0.06) + 's">'
-      + '<div class="' + checkClass + '">' + checkmark + '</div>'
-      + '<span class="' + textClass + '">' + escapeHtml(item.title) + '</span>'
-      + (isInProgress
-        ? '<span class="item-time active" data-base="' + (item.time_spent || 0) + '">' + timeStr + '</span>'
-        : (timeStr ? '<span class="item-time">' + timeStr + '</span>' : ''))
-      + '</div>';
-  });
+    function load() {
+      fetch(`${window.__overlayOrigin}/public/project`)
+        .then(function (r) { return r.json(); })
+        .then(function (data) { show(data.current); })
+        .catch(function () {});
+    }
 
-  list.innerHTML = html;
-}
-
-/**
- * The timer ticks once a second. Rebuilding the list each time replayed every
- * row's slide-in — a flicker on stream and a constant repaint in OBS (08.10.).
- * Only the running items' time changes now.
- */
-function updateLiveTimes() {
-  document.querySelectorAll('.item-time[data-base]').forEach(function (el) {
-    var total = Number(el.getAttribute('data-base')) + liveTimerSeconds;
-    var text = total > 0 ? formatTime(total) : '';
-    if (el.textContent !== text) el.textContent = text;
-  });
-}
-
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
-}
-
-function formatTime(seconds) {
-  if (seconds < 60) return '< 1m';
-  var h = Math.floor(seconds / 3600);
-  var m = Math.floor((seconds % 3600) / 60);
-  return h > 0 ? h + 'h ' + m + 'm' : m + 'm';
-}
-
-let wsConnected = false;
-let fallbackInterval = null;
-
-function startFallbackPolling() {
-  if (fallbackInterval) return;
-  fallbackInterval = setInterval(fetchProgress, 10000);
-}
-
-function stopFallbackPolling() {
-  if (fallbackInterval) {
-    clearInterval(fallbackInterval);
-    fallbackInterval = null;
-  }
-}
-
-function connectWS() {
-  const ws = new WebSocket(`${window.__overlayWs}?overlay=1`);
-
-  ws.onopen = () => {
-    console.log('[Progress] WebSocket connected');
-    wsConnected = true;
-    stopFallbackPolling();
-    fetchProgress();
-  };
-
-  ws.onmessage = (e) => {
-    try {
-      const msg = JSON.parse(e.data);
-      if (msg.event && msg.event.startsWith('progress-')) fetchProgress();
-      if (msg.event === 'stream-state' && msg.data) {
-        liveTimerSeconds = msg.data.timer_seconds || 0;
-        updateLiveTimes();
-      }
-      if (msg.event === 'overlay-config' && window.__applyOverlayConfig) window.__applyOverlayConfig(msg.data);
-    } catch {}
-  };
-
-  ws.onclose = () => {
-    console.log('[Progress] WebSocket closed, reconnecting...');
-    wsConnected = false;
-    startFallbackPolling();
-    setTimeout(connectWS, 2000);
-  };
-
-  ws.onerror = () => ws.close();
-}
-
-connectWS();
-startFallbackPolling();
-</script>
+    var ws;
+    function connectWS() {
+      ws = new WebSocket(`${window.__overlayWs}?overlay=1`);
+      ws.onopen = load;
+      ws.onmessage = function (msg) {
+        try {
+          var parsed = JSON.parse(msg.data);
+          if (parsed.event === 'project-update' && parsed.data) show(parsed.data.current);
+          if (parsed.event === 'project-finished' && parsed.data) celebrate(parsed.data);
+          if (parsed.event === 'overlay-config' && window.__applyOverlayConfig) window.__applyOverlayConfig(parsed.data);
+        } catch (e) {}
+      };
+      ws.onclose = function () { setTimeout(connectWS, 2000); };
+      ws.onerror = function () { ws.close(); };
+    }
+    connectWS();
+  </script>
 </body>
 </html>

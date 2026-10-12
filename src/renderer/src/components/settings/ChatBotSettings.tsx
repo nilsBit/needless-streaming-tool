@@ -123,7 +123,7 @@ export default function ChatBotSettings() {
             <div>
               <div className="s-card-title">Pause zwischen Antworten</div>
               <div className="s-card-status" style={{ color: '#888' }}>
-                Für die eingebauten Befehle, die nur etwas sagen (!song, !uptime, !progress, !todo, !themen, !queue, !stats, !punkte, !belohnungen, !challenge, !datenschutz, !befehle).
+                Für die eingebauten Befehle, die nur etwas sagen (!song, !uptime, !projekt, !themen, !queue, !stats, !punkte, !belohnungen, !challenge, !datenschutz, !befehle).
                 Die Pause gilt für einen ruhigen Chat: ab 20 Nachrichten pro Minute halbiert sie sich, ab 60 ist es ein Viertel.
                 Wer die Antwort gerade bekommen hat, bekommt sie frühestens nach dem Vierfachen wieder; Mods und du warten nie.
               </div>

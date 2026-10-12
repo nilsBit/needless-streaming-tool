@@ -36,6 +36,8 @@ export function initDatabase(dbPath?: string): Database.Database {
     runMigrations(currentVersion, SCHEMA_VERSION);
   }
 
+  migrateToProjects();
+
   // Whatever the overlay test button left behind when it was interrupted.
   db.prepare('DELETE FROM song_requests WHERE is_test = 1').run();
 
@@ -402,6 +404,11 @@ function runMigrations(from: number, to: number) {
     console.log('[DB] Migrated: streams for Nach dem Stream');
   }
 
+  if (from < 35) {
+    // projects comes with the schema; its data from migrateToProjects().
+    console.log('[DB] Migrated: projects for Projekt');
+  }
+
   // Safety check: ensure experiment_* columns were renamed to challenge_*
   // (can be missed if DB was copied from an older version after migration ran)
   try {
@@ -413,6 +420,46 @@ function runMigrations(from: number, to: number) {
 
   db.prepare('INSERT OR REPLACE INTO schema_version (version) VALUES (?)').run(to);
   console.log(`[DB] Migrated from v${from} to v${to}`);
+}
+
+/**
+ * "Fortschritt" became "Projekt" (2026-10-12). Runs once, marked by a setting
+ * rather than the schema version: a dev server that restarted between two
+ * saves had already counted v35 without it.
+ */
+function migrateToProjects(): void {
+  if (db.prepare("SELECT 1 FROM settings WHERE key = 'projects_migrated'").get()) return;
+  // The board's points become the steps of one project, in the order they
+  // were worked: done first.
+  const items = db.prepare("SELECT title, status FROM project_items ORDER BY CASE status WHEN 'done' THEN 0 WHEN 'in_progress' THEN 1 ELSE 2 END, sort_order, id").all() as Array<{ title: string; status: string }>;
+  const state = db.prepare('SELECT project_name FROM stream_state WHERE id = 1').get() as { project_name: string | null } | undefined;
+  const hasProject = (db.prepare('SELECT COUNT(*) AS n FROM projects').get() as { n: number }).n > 0;
+  if (items.length > 0 && !hasProject) {
+    const now = new Date().toISOString();
+    const id = db.prepare('INSERT INTO projects (name, kind, steps, position, created_at, last_worked_at) VALUES (?, ?, ?, ?, ?, ?)').run(
+      (state?.project_name || 'Mein Projekt').slice(0, 80),
+      'steps',
+      JSON.stringify(items.map((i) => i.title.slice(0, 60))),
+      items.filter((i) => i.status === 'done').length,
+      now,
+      now,
+    ).lastInsertRowid;
+    db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('current_project_id', String(id));
+  }
+  // !projekt is now built in. Where a command of the streamer's own already
+  // answers to it, the built-in keeps its old name, so theirs still answers.
+  const taken = db.prepare("SELECT 1 FROM text_commands WHERE trigger = '!projekt' UNION SELECT 1 FROM lookup_commands WHERE trigger = '!projekt'").get();
+  if (taken) {
+    const row = db.prepare("SELECT value FROM settings WHERE key = 'custom_commands'").get() as { value: string } | undefined;
+    let custom: Record<string, string> = {};
+    try { custom = row?.value ? JSON.parse(row.value) : {}; } catch {}
+    if (!custom.progress) {
+      custom.progress = '!progress';
+      db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('custom_commands', JSON.stringify(custom));
+    }
+  }
+  console.log('[DB] Migrated: Fortschritt became Projekt');
+  db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('projects_migrated', '1')").run();
 }
 
 export function getDb(): Database.Database {

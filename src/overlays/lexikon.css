@@ -101,7 +101,7 @@ html, body {
   font: 700 1.733rem var(--font-display);
 }
 
-/* ---- Weight: slim. A flat panel, tighter. Song, todos, progress, chat. ---- */
+/* ---- Weight: slim. A flat panel, tighter. Song, project, chat. ---- */
 .lex-schlank {
   padding: 12px 16px;
   background: color-mix(in srgb, var(--color-bg) calc(var(--color-bg-opacity) * 100%), transparent);

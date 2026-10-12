@@ -1,4 +1,4 @@
-export const SCHEMA_VERSION = 34;
+export const SCHEMA_VERSION = 35;
 
 export const SCHEMA = `
 CREATE TABLE IF NOT EXISTS schema_version (
@@ -237,6 +237,28 @@ CREATE TABLE IF NOT EXISTS stream_chat (
   name      TEXT,
   messages  INTEGER NOT NULL DEFAULT 0,
   PRIMARY KEY (stream_id, minute, login)
+);
+
+-- Projekt (2026-10-12): what a creative stream works on over many streams.
+-- kind steps: \`steps\` is a JSON list and \`position\` the index of the step
+-- being worked on (= its length when all are done); count and goal: \`position\`
+-- is the number reached. One project is current (setting current_project_id).
+CREATE TABLE IF NOT EXISTS projects (
+  id             INTEGER PRIMARY KEY AUTOINCREMENT,
+  name           TEXT NOT NULL,
+  kind           TEXT NOT NULL CHECK (kind IN ('steps', 'count', 'goal')),
+  steps          TEXT,
+  position       INTEGER NOT NULL DEFAULT 0,
+  total          INTEGER,
+  unit           TEXT,
+  step_by        INTEGER NOT NULL DEFAULT 1,
+  weekly         INTEGER NOT NULL DEFAULT 0,
+  week           TEXT,
+  streams        INTEGER NOT NULL DEFAULT 0,
+  last_stream_id INTEGER,
+  created_at     TEXT NOT NULL,
+  last_worked_at TEXT NOT NULL,
+  finished_at    TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_stream_events_stream ON stream_events(stream_id, at);

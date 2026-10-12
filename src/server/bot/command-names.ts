@@ -17,8 +17,8 @@ export const DEFAULT_COMMANDS: Record<string, string> = {
   hype: '!hype',
   uptime: '!uptime',
   design: '!design',
-  todo: '!todo',
-  progress: '!progress',
+  // Was !progress until "Fortschritt" became "Projekt" (2026-10-12).
+  progress: '!projekt',
   scene: '!scene',
   vote: '!vote',
   sr: '!sr',
@@ -44,6 +44,8 @@ export const COMMAND_ALIASES: Record<string, readonly string[]> = {
   issues: ['!issues'],
   // For a keyboard without umlauts.
   redeem: ['!einloesen'],
+  // The project's name before 2026-10-12.
+  progress: ['!progress'],
 };
 
 const ALIASES_KEY = 'command_aliases';
@@ -116,7 +118,6 @@ export function saveAliases(input: unknown): Refusal | null {
 export const VIEWER_COMMAND_KEYS = [
   'challenge',
   'progress',
-  'todo',
   'issues',
   'song',
   'sr',
@@ -137,7 +138,9 @@ export function getCommandNames(): Record<string, string> {
     const row = getDb().prepare('SELECT value FROM settings WHERE key = ?').get('custom_commands') as { value: string } | undefined;
     if (row?.value) {
       const custom = JSON.parse(row.value) as Record<string, string>;
-      return { ...DEFAULT_COMMANDS, ...custom };
+      // A rename of a built-in that is gone (!todo, 2026-10-12) names nothing.
+      const known = Object.fromEntries(Object.entries(custom).filter(([key]) => key in DEFAULT_COMMANDS));
+      return { ...DEFAULT_COMMANDS, ...known };
     }
   } catch {}
   return { ...DEFAULT_COMMANDS };
@@ -186,7 +189,7 @@ export function checkTrigger(trigger: string, except?: { table: ConfiguredTable;
     return {
       status: 400,
       error: 'invalid_trigger',
-      message: 'Ein Befehl ist ein einzelnes Wort aus Buchstaben, Zahlen, - oder _, z. B. !projekt.',
+      message: 'Ein Befehl ist ein einzelnes Wort aus Buchstaben, Zahlen, - oder _, z. B. !zeitplan.',
     };
   }
 
