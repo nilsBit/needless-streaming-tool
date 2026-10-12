@@ -139,7 +139,7 @@ export const QUESTS: readonly Quest[] = [
     done: () => count('SELECT COUNT(*) AS n FROM clips') > 0,
   },
   {
-    key: 'report', group: 'momente', title: 'Ersten Stream ausgewertet', xp: 60, feature: 'momente',
+    key: 'report', group: 'momente', title: 'Ersten Stream ausgewertet', xp: 60, feature: null,
     text: 'Nach dem Stream siehst du, was den Chat bewegt hat.',
     goTo: { area: 'after' },
     done: () => count('SELECT COUNT(*) AS n FROM streams WHERE ended_at IS NOT NULL') > 0,

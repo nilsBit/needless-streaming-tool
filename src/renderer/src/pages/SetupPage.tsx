@@ -23,7 +23,7 @@ const STEPS = [
 
 export default function SetupPage() {
   const { toast } = useToast();
-  const { done, features, defaults, worldbuilder, save, finish, closeSetup } = useFeatures();
+  const { done, features, defaults, personal, save, finish, closeSetup } = useFeatures();
   const firstRun = !done;
   const [step, setStep] = useState(1);
   const [picked, setPicked] = useState<Set<string>>(() => new Set<string>(firstRun ? defaults : [...features]));
@@ -31,7 +31,7 @@ export default function SetupPage() {
 
   const current = STEPS[step - 1];
   const needed = connectionsNeeded(picked);
-  const pickedList = [...picked].filter((k) => worldbuilder || !PERSONAL_FEATURES.includes(k as FeatureKey)) as FeatureKey[];
+  const pickedList = [...picked].filter((k) => personal || !PERSONAL_FEATURES.includes(k as FeatureKey)) as FeatureKey[];
 
   const toggle = (key: FeatureKey) => setPicked((prev) => {
     const next = new Set(prev);
@@ -99,7 +99,7 @@ export default function SetupPage() {
         </header>
 
         <main className="setup-body">
-          {step === 1 && <FeaturesStep picked={picked} onToggle={toggle} worldbuilder={worldbuilder} />}
+          {step === 1 && <FeaturesStep picked={picked} onToggle={toggle} personal={personal} />}
           {step === 2 && <ConnectionsStep needed={needed} />}
           {step === 3 && <ObsStep picked={picked} />}
           {step === 4 && <FinishStep picked={picked} />}

@@ -5,14 +5,14 @@ import { CONNECTION_LABELS } from '../../../../shared/features';
 interface Props {
   picked: ReadonlySet<string>;
   onToggle: (key: FeatureKey) => void;
-  /** Nils's own group shows only where the Worldbuilder is set up. */
-  worldbuilder: boolean;
+  /** Nils's own group shows only while the tool is connected to his Twitch channel. */
+  personal: boolean;
 }
 
 // Step 1: "Was soll dein Stream können?" — every feature a card to tick, in
-// the four groups the sidebar has, plus "Welt" on this machine.
-export default function FeaturesStep({ picked, onToggle, worldbuilder }: Props) {
-  const groups = FEATURE_GROUPS.filter((g) => worldbuilder || !g.personal);
+// the four groups the sidebar has, plus "Nur bei dir" on his channel.
+export default function FeaturesStep({ picked, onToggle, personal }: Props) {
+  const groups = FEATURE_GROUPS.filter((g) => personal || !g.personal);
   return (
     <div className="feature-groups">
       {groups.map((g) => (

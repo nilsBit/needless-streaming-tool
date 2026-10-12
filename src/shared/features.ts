@@ -13,7 +13,7 @@ export type FeatureKey =
   | 'momente' | 'autoclips' | 'meilensteine' | 'discord'
   | 'welt' | 'bilder';
 
-export type FeatureGroupKey = 'chat' | 'overlays' | 'rewards' | 'after' | 'welt';
+export type FeatureGroupKey = 'chat' | 'overlays' | 'rewards' | 'after' | 'personal';
 export type ConnectionKey = 'twitch' | 'obs' | 'discord' | 'worldbuilder';
 export type ReadinessId = 'twitch' | 'obs' | 'scenes' | 'overlays' | 'worldbuilder' | 'commands' | 'alertSounds';
 
@@ -21,7 +21,7 @@ export interface FeatureGroup {
   key: FeatureGroupKey;
   label: string;
   sentence: string;
-  /** Nils's own: shown only when the Worldbuilder is set up on this machine. */
+  /** Nils's own: shown only while the tool is connected to his Twitch channel. */
   personal?: boolean;
 }
 
@@ -47,7 +47,7 @@ export const FEATURE_GROUPS: readonly FeatureGroup[] = [
   { key: 'overlays', label: 'Overlays', sentence: 'Was Zuschauer im Stream sehen. Jedes ist eine Browserquelle in OBS.' },
   { key: 'rewards', label: 'Mit Kanalpunkten', sentence: 'Belohnungen legst du hier oder in Twitch an, das Tool reagiert darauf.' },
   { key: 'after', label: 'Nach dem Stream', sentence: 'Wie der Stream gelaufen ist.' },
-  { key: 'welt', label: 'Welt', sentence: 'Deine Welt aus dem Worldbuilder im Stream. Erscheint, weil der Worldbuilder auf diesem Rechner eingerichtet ist.', personal: true },
+  { key: 'personal', label: 'Nur bei dir', sentence: 'Deine eigenen Funktionen. Erscheinen nur, weil das Tool mit deinem Twitch-Kanal verbunden ist.', personal: true },
 ];
 
 export const FEATURES: readonly Feature[] = [
@@ -67,19 +67,30 @@ export const FEATURES: readonly Feature[] = [
   { key: 'bestenliste', group: 'rewards', label: 'Bestenlisten', sentence: 'Wer eine Belohnung am öftesten einlöst – je Liste eine Belohnung. Als Overlay, mit Rangwechsel-Meldung und !stats.', needs: ['twitch', 'obs'], overlays: ['reward-leaderboard', 'reward-rankchange'], commands: ['rewardstats'], panels: [], hotkeys: [], readiness: [] },
   { key: 'belohnungen', group: 'rewards', label: 'Belohnungen auslösen', sentence: 'Kanalpunkte drehen das Rad, wechseln kurz die Szene, ändern die Musik oder reichen einen Vorschlag ein.', needs: ['twitch', 'obs'], overlays: [], commands: ['scene'], panels: ['channelrewards'], hotkeys: [], readiness: [] },
 
-  { key: 'momente', group: 'after', label: 'Momente merken', sentence: 'Ein Klick setzt eine Marke. Nach dem Stream steht sie im Ablauf, mit Uhrzeit.', needs: [], overlays: [], commands: ['hype'], panels: [], hotkeys: ['hype_moment'], readiness: [] },
-  { key: 'autoclips', group: 'after', label: 'Hype von selbst erkennen', sentence: 'Wenn der Chat explodiert, setzt das Tool die Marke für dich.', needs: ['twitch'], overlays: [], commands: [], panels: [], hotkeys: [], readiness: [] },
+  { key: 'momente', group: 'personal', label: 'Momente merken', sentence: 'Ein Klick setzt eine Marke. Nach dem Stream steht sie im Ablauf, mit Uhrzeit.', needs: [], overlays: [], commands: ['hype'], panels: [], hotkeys: ['hype_moment'], readiness: [] },
+  { key: 'autoclips', group: 'personal', label: 'Hype von selbst erkennen', sentence: 'Wenn der Chat explodiert, setzt das Tool die Marke für dich.', needs: ['twitch'], overlays: [], commands: [], panels: [], hotkeys: [], readiness: [] },
   { key: 'meilensteine', group: 'after', label: 'Meilensteine feiern', sentence: 'Ein abgehakter Meilenstein wird groß gefeiert, über allem anderen.', needs: ['obs'], overlays: ['milestone'], commands: [], panels: [], hotkeys: ['milestone_minor', 'milestone_major', 'milestone_epic'], readiness: [] },
   { key: 'discord', group: 'after', label: 'Live-Meldung nach Discord', sentence: 'Wenn du live gehst, postet das Tool eine Nachricht in deinen Server.', needs: ['discord'], overlays: [], commands: [], panels: [], hotkeys: [], readiness: [] },
 
-  { key: 'welt', group: 'welt', label: 'Eintragskarte aus der Welt', sentence: 'Die Karte zeigt den Eintrag, den du im Worldbuilder offen hast.', needs: ['obs', 'worldbuilder'], overlays: ['character'], commands: [], panels: ['world'], hotkeys: [], readiness: ['worldbuilder'] },
-  { key: 'bilder', group: 'welt', label: 'Start-, Pausen- und Endbild', sentence: 'Füllen den ganzen Stream – davor, zwischendurch und danach, mit eigenen Szenen in OBS.', needs: ['obs'], overlays: ['start', 'pause', 'end'], commands: [], panels: [], hotkeys: [], readiness: ['scenes'] },
+  { key: 'welt', group: 'personal', label: 'Eintragskarte aus der Welt', sentence: 'Die Karte zeigt den Eintrag, den du im Worldbuilder offen hast.', needs: ['obs', 'worldbuilder'], overlays: ['character'], commands: [], panels: ['world'], hotkeys: [], readiness: ['worldbuilder'] },
+  { key: 'bilder', group: 'personal', label: 'Start-, Pausen- und Endbild', sentence: 'Füllen den ganzen Stream – davor, zwischendurch und danach, mit eigenen Szenen in OBS.', needs: ['obs'], overlays: ['start', 'pause', 'end'], commands: [], panels: [], hotkeys: [], readiness: ['scenes'] },
 ];
 
 export const FEATURE_KEYS: readonly FeatureKey[] = FEATURES.map((f) => f.key);
 export const PERSONAL_FEATURES: readonly FeatureKey[] = FEATURES.filter((f) => FEATURE_GROUPS.find((g) => g.key === f.group)?.personal).map((f) => f.key);
-/** What a fresh install starts with: things every stream can use that need nothing beyond Twitch and OBS. */
-export const DEFAULT_FEATURES: readonly FeatureKey[] = ['chat', 'alerts', 'momente'];
+/** The Twitch channel the personal features belong to. */
+export const OWNER_CHANNEL = 'chain_des';
+/**
+ * What a fresh install starts with: the core every stream uses (12.10.2026,
+ * Nils sorted every feature on the canvas). Chat overlay and alerts are off
+ * at first, one click away.
+ */
+export const DEFAULT_FEATURES: readonly FeatureKey[] = [
+  'befehle', 'musik', 'rad', 'vote', 'shoutout', 'punkte',
+  'song', 'ziel', 'fortschritt',
+  'bestenliste', 'belohnungen',
+  'meilensteine', 'discord',
+];
 
 export const CONNECTION_ORDER: readonly ConnectionKey[] = ['twitch', 'obs', 'worldbuilder', 'discord'];
 export const CONNECTION_LABELS: Record<ConnectionKey, string> = { twitch: 'Twitch', obs: 'OBS', discord: 'Discord', worldbuilder: 'Worldbuilder' };

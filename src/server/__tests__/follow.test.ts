@@ -5,7 +5,7 @@ import http from 'http';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { initDatabase } from '../db/index';
+import { getDb, initDatabase } from '../db/index';
 import { generateApiToken } from '../auth-token';
 import { createApp } from '../index';
 
@@ -86,6 +86,8 @@ describe('follow mode', () => {
     initDatabase(':memory:');
     process.env.WORLDBUILDER_ANSCHLUSS = CONNECTION;
     focus = null;
+    // The Entry Card is Nils's own: it exists only on his Twitch channel.
+    getDb().prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('twitch_config', JSON.stringify({ channel: 'chain_des', username: 'chain_des', oauth_token: '' }));
     await request(app).post('/api/characters/source').set(auth()).send({ source: 'worldbuilder' }).expect(200);
   });
 

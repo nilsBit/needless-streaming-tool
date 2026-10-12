@@ -2,7 +2,7 @@ import { getDb } from './db/index';
 import { isWorldbuilderAvailable } from './api/worldbuilder';
 import { characterSource } from './api/characters';
 import {
-  DEFAULT_FEATURES, FEATURE_KEYS, PERSONAL_FEATURES, isFeatureKey,
+  DEFAULT_FEATURES, FEATURE_KEYS, OWNER_CHANNEL, PERSONAL_FEATURES, isFeatureKey,
   commandVisible, overlayVisible, type FeatureKey,
 } from '../shared/features';
 
@@ -11,9 +11,8 @@ import {
  * list under the setting `features`. Without the setting everything is on —
  * an installation that predates the setup, and one whose streamer skipped it,
  * both see the whole app. DEFAULT_FEATURES is only what the setup's first
- * step ticks in advance. The personal features (Nils's Worldbuilder things)
- * count as off wherever the Worldbuilder is not set up on this machine —
- * nobody else has it.
+ * step ticks in advance. The personal features (Nils's own) count as off
+ * unless the tool is connected to his Twitch channel — nobody else sees them.
  */
 
 const FEATURES_KEY = 'features';
@@ -54,8 +53,20 @@ export function forgetWorldbuilder(): void {
   worldbuilderSeen = null;
 }
 
+/** The tool is connected to Nils's Twitch channel — his own features exist. */
+export function isOwner(): boolean {
+  const raw = readSetting('twitch_config');
+  if (!raw) return false;
+  try {
+    const { channel } = JSON.parse(raw) as { channel?: string };
+    return channel?.trim().toLowerCase() === OWNER_CHANNEL;
+  } catch {
+    return false;
+  }
+}
+
 const withoutPersonal = (list: FeatureKey[]): FeatureKey[] =>
-  worldbuilderInstalled() ? list : list.filter((k) => !PERSONAL_FEATURES.includes(k));
+  isOwner() ? list : list.filter((k) => !PERSONAL_FEATURES.includes(k));
 
 export function getFeatures(): FeatureKey[] {
   const raw = readSetting(FEATURES_KEY);

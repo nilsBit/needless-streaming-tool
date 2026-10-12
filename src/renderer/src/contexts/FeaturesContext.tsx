@@ -8,14 +8,16 @@ import { FEATURE_KEYS, DEFAULT_FEATURES, panelVisible as panelVisibleFor, type F
 // whether they are wanted. Until the answer arrives everything counts as on
 // and the setup as done, so nothing flickers away on start.
 
-interface SetupInfo { done: boolean; features: FeatureKey[]; worldbuilder: boolean; defaults: FeatureKey[] }
+interface SetupInfo { done: boolean; features: FeatureKey[]; worldbuilder: boolean; personal: boolean; defaults: FeatureKey[] }
 
 interface FeaturesValue {
   loaded: boolean;
   /** The setup was walked through or skipped. */
   done: boolean;
-  /** The Worldbuilder is set up on this machine — Nils's own features exist. */
+  /** The Worldbuilder is set up on this machine — its lookups exist. */
   worldbuilder: boolean;
+  /** The tool is connected to Nils's Twitch channel — his own features exist. */
+  personal: boolean;
   defaults: readonly FeatureKey[];
   features: ReadonlySet<string>;
   isOn(key: FeatureKey): boolean;
@@ -41,6 +43,7 @@ export function FeaturesProvider({ children }: { children: React.ReactNode }) {
       loaded: data !== null,
       done: data ? data.done : true,
       worldbuilder: data?.worldbuilder ?? false,
+      personal: data?.personal ?? false,
       defaults: data?.defaults ?? DEFAULT_FEATURES,
       features,
       isOn: (key) => features.has(key),

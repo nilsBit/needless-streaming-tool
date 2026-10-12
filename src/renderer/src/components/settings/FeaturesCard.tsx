@@ -10,11 +10,11 @@ import SearchField, { matchesSearch } from '../ux/SearchField';
 // whole setup, with connecting and OBS, stays one link away.
 export default function FeaturesCard() {
   const { toast } = useToast();
-  const { features, worldbuilder, save, openSetup } = useFeatures();
+  const { features, personal, save, openSetup } = useFeatures();
   const [saving, setSaving] = useState<FeatureKey | null>(null);
   const [search, setSearch] = useState('');
-  const groups = FEATURE_GROUPS.filter((g) => worldbuilder || !g.personal);
-  const available = FEATURES.filter((f) => worldbuilder || !PERSONAL_FEATURES.includes(f.key));
+  const groups = FEATURE_GROUPS.filter((g) => personal || !g.personal);
+  const available = FEATURES.filter((f) => personal || !PERSONAL_FEATURES.includes(f.key));
   const onCount = available.filter((f) => features.has(f.key)).length;
   const found = (f: (typeof FEATURES)[number]) => matchesSearch(search, f.label, f.sentence, FEATURE_GROUPS.find((g) => g.key === f.group)?.label, ...f.needs.map((n) => CONNECTION_LABELS[n]));
   const shownGroups = groups.map((g) => ({ group: g, items: FEATURES.filter((f) => f.group === g.key && found(f)) })).filter((g) => g.items.length > 0);

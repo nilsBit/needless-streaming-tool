@@ -1,18 +1,19 @@
 import { Router } from 'express';
 import { broadcast } from '../websocket/index';
-import { getFeatures, markSetupDone, saveFeatures, setupDone, worldbuilderInstalled } from '../features';
+import { getFeatures, isOwner, markSetupDone, saveFeatures, setupDone, worldbuilderInstalled } from '../features';
 import { DEFAULT_FEATURES } from '../../shared/features';
 
 /**
  * The setup on first start and the choice "Was dein Stream kann".
- *   GET  /api/setup           — done?, the chosen features, whether the Worldbuilder is set up here
+ *   GET  /api/setup           — done?, the chosen features, whether the Worldbuilder is set up here,
+ *                               whether Nils's own features exist (his Twitch channel)
  *   POST /api/setup/features  — { features: [...] } → saves the choice
  *   POST /api/setup/done      — the setup was walked through (or skipped)
  */
 const router = Router();
 
 router.get('/', (_req, res) => {
-  res.json({ done: setupDone(), features: getFeatures(), worldbuilder: worldbuilderInstalled(), defaults: DEFAULT_FEATURES });
+  res.json({ done: setupDone(), features: getFeatures(), worldbuilder: worldbuilderInstalled(), personal: isOwner(), defaults: DEFAULT_FEATURES });
 });
 
 router.post('/features', (req, res) => {

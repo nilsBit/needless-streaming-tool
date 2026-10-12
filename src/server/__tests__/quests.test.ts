@@ -90,7 +90,8 @@ describe('quests', () => {
     it('groups the quests in chapters, each explained with why and how', async () => {
       await choose(['befehle', 'punkte']);
       const o = await overview();
-      expect(o.chapters.map((c) => [c.n, c.title, c.badge])).toEqual([[1, 'Bereit für den ersten Stream', 'Startklar'], [2, 'Der Chat spielt mit', 'Gastgeber']]);
+      expect(o.chapters.map((c) => [c.n, c.title, c.badge])).toEqual([[1, 'Bereit für den ersten Stream', 'Startklar'], [2, 'Der Chat spielt mit', 'Gastgeber'], [3, 'Den Stream verstehen', 'Chronist']]);
+      // Chapter 3 is there for every stream: the first report belongs to no feature.
       const command = o.chapters[0].quests.find((q) => q.key === 'command')!;
       expect(command.why).toMatch(/erklären/);
       expect(command.how.length).toBeGreaterThan(1);
