@@ -8,6 +8,6 @@ export default defineConfig({
     include: ['src/**/__tests__/**/*.test.ts'],
     // Binds every test server to loopback, so no other program on the machine
     // can take its port away — see setup/loopback.ts.
-    setupFiles: ['./src/server/__tests__/setup/loopback.ts'],
+    setupFiles: ['./src/server/__tests__/setup/loopback.ts', './src/server/__tests__/setup/no-worldbuilder.ts'],
   },
 });
