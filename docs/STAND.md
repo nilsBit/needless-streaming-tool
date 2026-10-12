@@ -4,7 +4,7 @@ Einstieg für einen neuen Rechner oder eine neue Claude-Session. **Offene Arbeit
 steht in den GitHub Issues** (`gh issue list`) — dieses Dokument erklärt das
 Große Ganze, wie die beiden Projekte zusammenhängen und wo wir stehen.
 
-Stand: 8. Oktober 2026.
+Stand: 12. Oktober 2026.
 
 ## Worum es geht
 
@@ -158,6 +158,32 @@ braucht den Bot.
   Warum kein Sync: ADR-0023 im Worldbuilder.
 
 ## Wo wir stehen geblieben sind
+
+**Hier aufgehört (12.10. abends, unter Windows)**
+
+- **Aufräumen entschieden** (Leinwand „NST Bedienung – Neuaufbau“, Bogen
+  Aufräumen): keine Pakete nach Stream-Art. Neue Installationen starten mit dem
+  Kern (`DEFAULT_FEATURES`); Chat-Overlay und Alerts sind anfangs aus.
+- **„Nur bei dir“** statt „Welt“: Eintragskarte, Start-/Pausen-/Endbild,
+  Moment merken und Hype-Erkennung gibt es nur, solange das Tool mit dem
+  Twitch-Kanal `chain_des` verbunden ist (`OWNER_CHANNEL`, `isOwner()`).
+- **Im Stream:** Leiste „Heute dabei“ (Setting `stream_set_aside`), „Moment
+  merken“ als Knopf daneben (Entwurf C).
+- **Projekt „Zahl mit Ziel“:** kein „pro Klick“ mehr – der Stand wird auf der
+  Karte eingetragen (`POST /api/projects/current/stand`); „Projekt weiter“
+  tut dort nichts.
+- **Meilenstein-Tastenkürzel** feiern jetzt (`POST /api/milestones/celebrate`)
+  statt mit 400 zu scheitern.
+- **Kompakte Ansicht** unter 700 × 560: eine Leiste oben (Menü, Punkte, Pin
+  „Immer im Vordergrund“, Moment), auf Im Stream eine Zeile je Karte mit
+  Hauptknopf (Entwürfe KompaktSchmal/KompaktKlein). Der Pin ist nur im echten
+  Fenster und erst nach einem Neustart prüfbar – noch nicht geprüft.
+- Tests laufen ohne die echte `~/.worldbuilder/anschluss.json`
+  (`setup/no-worldbuilder.ts`); 507/507 grün.
+- **Offen:** Version 1.0.3 veröffentlichen (Nils selbst:
+  `npm version 1.0.3 -m "chore: version %s" && git push origin main --follow-tags`),
+  danach Auto-Update 1.0.2 → 1.0.3 beobachten. Pin im Fenster testen. „Chat &
+  Bot“ und „Overlays & Alerts“ ebenso aufräumen.
 
 **Hier aufgehört (12.10., auf dem Mac)**
 
