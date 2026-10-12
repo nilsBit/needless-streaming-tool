@@ -120,19 +120,19 @@ export async function registerHotkeys(config?: Partial<HotkeyConfig>) {
 
   // Milestone Minor
   register(hotkeys.milestone_minor, () => {
-    apiCall('POST', '/api/milestones', { level: 'minor' });
+    apiCall('POST', '/api/milestones/celebrate', { level: 'minor' });
     console.log(`[Hotkey] ${hotkeys.milestone_minor} — Milestone Minor`);
   });
 
   // Milestone Major
   register(hotkeys.milestone_major, () => {
-    apiCall('POST', '/api/milestones', { level: 'major' });
+    apiCall('POST', '/api/milestones/celebrate', { level: 'major' });
     console.log(`[Hotkey] ${hotkeys.milestone_major} — Milestone Major`);
   });
 
   // Milestone Epic
   register(hotkeys.milestone_epic, () => {
-    apiCall('POST', '/api/milestones', { level: 'epic' });
+    apiCall('POST', '/api/milestones/celebrate', { level: 'epic' });
     console.log(`[Hotkey] ${hotkeys.milestone_epic} — Milestone Epic`);
   });
 

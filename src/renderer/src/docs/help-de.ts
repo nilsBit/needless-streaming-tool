@@ -459,6 +459,7 @@ Auth-Header: Authorization: Bearer <token>
 
 **Milestones:**
 - GET /api/milestones — POST /api/milestones — PATCH /api/milestones/:id — DELETE /api/milestones/:id
+- POST /api/milestones/celebrate — { level: minor | major | epic } — hakt den ältesten offenen Meilenstein dieser Stufe ab; ohne einen feiert das Overlay trotzdem (Tastenkürzel, Stream Deck)
 
 **OBS:**
 - GET /api/obs/config — POST /api/obs/config

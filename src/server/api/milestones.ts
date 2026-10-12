@@ -36,28 +36,49 @@ router.post('/', (req, res) => {
   res.status(201).json(milestone);
 });
 
+/** Ticks a milestone off: the overlay celebrates it, the chat hears of the big ones. */
+function complete(milestone: { id: number; title: string; level: string }): unknown {
+  getDb().prepare(
+    'UPDATE milestones SET status = ?, completed_at = CURRENT_TIMESTAMP WHERE id = ?'
+  ).run('completed', milestone.id);
+
+  const updated = getDb().prepare('SELECT * FROM milestones WHERE id = ?').get(milestone.id);
+
+  // Trigger achievement overlay
+  broadcast('milestone-trigger', updated);
+
+  // Announce in chat for major/epic
+  if (milestone.level === 'major' || milestone.level === 'epic') {
+    const emoji = milestone.level === 'epic' ? '🏆🎉' : '🎉';
+    sayInChat(`${emoji} MILESTONE: ${milestone.title}`);
+  }
+
+  broadcast('milestone-updated', updated);
+  return updated;
+}
+
+// The three hotkeys (and Stream Deck keys) celebrate at their level: the
+// oldest open milestone of that level is ticked off; without one the overlay
+// celebrates anyway and nothing is stored. They used to create a milestone
+// without a title and got 400 (12.10.).
+router.post('/celebrate', (req, res) => {
+  const { level } = req.body ?? {};
+  if (!level) { res.status(400).json({ error: 'level required' }); return; }
+  if (!validateEnum(level, VALID_MILESTONE_LEVEL, 'level', res)) return;
+  const open = getDb().prepare(
+    "SELECT * FROM milestones WHERE level = ? AND status != 'completed' ORDER BY created_at, id LIMIT 1"
+  ).get(level) as { id: number; title: string; level: string } | undefined;
+  if (open) { res.json({ milestone: complete(open) }); return; }
+  broadcast('milestone-trigger', { level, title: 'Meilenstein!' });
+  res.json({ milestone: null });
+});
+
 router.patch('/:id', (req, res) => {
   const milestone = getDb().prepare('SELECT * FROM milestones WHERE id = ?').get(req.params.id) as any;
   if (!milestone) { res.status(404).json({ error: 'not found' }); return; }
 
   if (req.body.status === 'completed' && milestone.status !== 'completed') {
-    getDb().prepare(
-      'UPDATE milestones SET status = ?, completed_at = CURRENT_TIMESTAMP WHERE id = ?'
-    ).run('completed', req.params.id);
-
-    const updated = getDb().prepare('SELECT * FROM milestones WHERE id = ?').get(req.params.id);
-
-    // Trigger achievement overlay
-    broadcast('milestone-trigger', updated);
-
-    // Announce in chat for major/epic
-    if (milestone.level === 'major' || milestone.level === 'epic') {
-      const emoji = milestone.level === 'epic' ? '🏆🎉' : '🎉';
-      sayInChat(`${emoji} MILESTONE: ${milestone.title}`);
-    }
-
-    broadcast('milestone-updated', updated);
-    res.json(updated);
+    res.json(complete(milestone));
     return;
   }
 
