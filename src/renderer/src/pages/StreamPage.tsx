@@ -7,7 +7,7 @@ import MomentCard from '../components/stream/MomentCard';
 import { PANEL_REGISTRY } from '../panelRegistry';
 import { PANEL_LABELS, findArea } from '../navigation';
 import type { PanelKey } from '../panelKeys';
-import { useApi } from '../hooks/useApi';
+import { useApi, apiPost } from '../hooks/useApi';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { useFeatures } from '../contexts/FeaturesContext';
 
@@ -51,9 +51,43 @@ export default function StreamPage() {
     .map((key, i) => ({ key, i, scene: sceneOf((CARDS[key] ?? { overlays: [] }).overlays) }))
     .sort((a, b) => rank(a.scene) - rank(b.scene) || a.i - b.i);
 
+  // "Heute dabei" (12.10., canvas draft C): the streamer picks the cards for
+  // today; the rest waits in the strip. What is stored is the cards set aside,
+  // so a feature switched on later shows up at once.
+  const { data: asideSetting, refetch: refetchAside } = useApi<{ value: string | null }>(`/settings/get/${ASIDE_KEY}`);
+  const aside = parseAside(asideSetting?.value ?? null);
+  const isToday = (key: PanelKey) => !aside.includes(key);
+  const toggleToday = async (key: PanelKey) => {
+    const next = isToday(key) ? [...aside, key] : aside.filter((k) => k !== key);
+    await apiPost('/settings/set', { key: ASIDE_KEY, value: JSON.stringify(next) });
+    refetchAside();
+  };
+  const shown = ordered.filter(({ key }) => isToday(key));
+
   return (
+    <div className="stream-page">
+      {(panels.length > 0 || isOn('momente')) && (
+        <div className="stream-top">
+          {panels.length > 0 && (
+            <section className="stream-today" aria-labelledby="stream-today-title">
+              <div className="stream-today-head">
+                <h2 id="stream-today-title">Heute dabei</h2>
+                <span>Bleibt so, bis du es änderst. Der Rest wartet hier.</span>
+              </div>
+              <div className="stream-today-chips">
+                {panels.map((key) => (
+                  <button key={key} type="button" className={`stream-today-chip${isToday(key) ? ' on' : ''}`} aria-pressed={isToday(key)} onClick={() => void toggleToday(key)}>
+                    {isToday(key) ? '✓ ' : ''}{PANEL_LABELS[key]}
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+          {isOn('momente') && <MomentCard />}
+        </div>
+      )}
     <div className="stream-cards">
-      {ordered.map(({ key, scene }: { key: PanelKey; scene: SceneState }) => {
+      {shown.map(({ key, scene }: { key: PanelKey; scene: SceneState }) => {
         const Component = PANEL_REGISTRY[key];
         const card = CARDS[key] ?? { sentence: '', overlays: [] };
         const place = card.overlays[0] ? () => { go({ area: 'overlays', subTab: 'overlays' }); openAt('overlay', `${card.overlays[0]}:obs`); } : undefined;
@@ -65,16 +99,25 @@ export default function StreamPage() {
           </StreamCard>
         );
       })}
+    </div>
       {panels.length === 0 && !isOn('momente') && (
         <p className="empty">Nichts gewählt. Unter Einstellungen → Programm → „Was dein Stream kann“ schaltest du Funktionen an.</p>
       )}
-      {isOn('momente') && <StreamCard
-        title="Moment merken"
-        sentence="Setzt eine Marke im Stream. Nach dem Stream steht sie im Ablauf, mit Uhrzeit und deiner Notiz."
-        scene={null}
-      >
-        <MomentCard />
-      </StreamCard>}
+      {panels.length > 0 && shown.length === 0 && (
+        <p className="empty">Für heute ist nichts gewählt. Tipp oben an, was du im Stream brauchst.</p>
+      )}
     </div>
   );
+}
+
+const ASIDE_KEY = 'stream_set_aside';
+
+function parseAside(raw: string | null): string[] {
+  if (!raw) return [];
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter((k): k is string => typeof k === 'string') : [];
+  } catch {
+    return [];
+  }
 }

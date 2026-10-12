@@ -30,7 +30,7 @@ export default function MomentCard() {
         onKeyDown={(e) => { if (e.key === 'Enter') void mark(); }}
       />
       <button type="button" className="moment-mark" data-quest-target="moment" onClick={() => void mark()} disabled={busy}>
-        {busy ? 'Merke …' : 'Jetzt merken'}
+        {busy ? 'Merke …' : 'Moment merken'}
       </button>
     </div>
   );

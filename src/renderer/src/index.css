@@ -150,6 +150,21 @@ body {
 .moment-mark { min-height: 44px; border: 1px solid var(--border-strong); border-radius: 6px; background: none; color: var(--text); font: inherit; font-weight: 600; cursor: pointer; }
 .moment-mark:hover { background: var(--bg-hover); }
 
+/* "Im Stream" top: "Heute dabei" picks today's cards; "Moment merken" sits beside it */
+.stream-page { display: flex; flex-direction: column; gap: 16px; }
+.stream-top { display: flex; flex-wrap: wrap; gap: 16px; align-items: stretch; }
+.stream-today { flex: 999 1 420px; min-width: 0; border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.stream-today-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 12px; }
+.stream-today-head h2 { font-size: 15px; font-weight: 600; }
+.stream-today-head span { color: var(--muted); font-size: 13px; }
+.stream-today-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.stream-today-chip { min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1.5px solid var(--border-strong); background: none; color: var(--text-secondary); font: inherit; font-weight: 600; cursor: pointer; }
+.stream-today-chip:hover { background: var(--bg-hover); }
+.stream-today-chip.on { border-color: var(--accent); color: var(--accent); }
+.stream-top .moment-card { flex: 1 1 260px; border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; justify-content: center; }
+.stream-top .moment-mark { min-height: 48px; border: none; background: var(--accent); color: #161616; font-weight: 700; font-size: 15px; }
+.stream-top .moment-mark:hover { background: var(--accent); filter: brightness(1.1); }
+
 /* Slim cards on "Im Stream": one field, one button, one line of state, word links */
 .card-slim { gap: 10px; }
 .card-row { display: flex; gap: 8px; }
