@@ -10,4 +10,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.once('update-downloaded', (_event, data) => callback(data));
   },
   installUpdate: () => ipcRenderer.invoke('install-update'),
+  setAlwaysOnTop: (on: boolean) => ipcRenderer.invoke('set-always-on-top', on),
 });

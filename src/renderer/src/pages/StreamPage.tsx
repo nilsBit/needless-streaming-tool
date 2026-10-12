@@ -10,6 +10,9 @@ import type { PanelKey } from '../panelKeys';
 import { useApi, apiPost } from '../hooks/useApi';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { useFeatures } from '../contexts/FeaturesContext';
+import { useCompact } from '../hooks/useCompact';
+import CompactRow from '../components/compact/CompactRow';
+import SceneHint from '../components/ux/SceneHint';
 
 interface VisibleOverlays { scene: string | null; overlays: string[] }
 interface OverlayScenes { connected: boolean; byOverlay: Record<string, string[]> }
@@ -64,6 +67,55 @@ export default function StreamPage() {
   };
   const shown = ordered.filter(({ key }) => isToday(key));
 
+  // Small window (12.10.): "Heute dabei" folds into one button, each card is
+  // a row with its main button; "Moment merken" sits in the bar on top.
+  const compact = useCompact();
+  const [todayOpen, setTodayOpen] = React.useState(false);
+  const [openRow, setOpenRow] = React.useState<PanelKey | null>(null);
+  const chips = (
+    <div className="stream-today-chips">
+      {panels.map((key) => (
+        <button key={key} type="button" className={`stream-today-chip${isToday(key) ? ' on' : ''}`} aria-pressed={isToday(key)} onClick={() => void toggleToday(key)}>
+          {isToday(key) ? '✓ ' : ''}{PANEL_LABELS[key]}
+        </button>
+      ))}
+    </div>
+  );
+
+  if (compact) {
+    return (
+      <div className="stream-page compact">
+        {panels.length > 0 && (
+          <div className="compact-today">
+            <button type="button" className="compact-today-btn" aria-expanded={todayOpen} onClick={() => setTodayOpen(!todayOpen)}>
+              Heute: {shown.length} {todayOpen ? '▴' : '▾'}
+            </button>
+            <SceneHint />
+          </div>
+        )}
+        {todayOpen && chips}
+        <div className="compact-rows">
+          {shown.map(({ key, scene }) => {
+            const Component = PANEL_REGISTRY[key];
+            return (
+              <CompactRow key={key} panel={key} title={PANEL_LABELS[key]} onScreen={scene?.state === 'on'} open={openRow === key} onToggle={() => setOpenRow(openRow === key ? null : key)}>
+                <ErrorBoundary fallback={PANEL_LABELS[key]} errorTitle="Fehler" errorMessage="Etwas ist schiefgelaufen." retryLabel="Nochmal versuchen">
+                  <div data-panel={key}><Component /></div>
+                </ErrorBoundary>
+              </CompactRow>
+            );
+          })}
+        </div>
+        {panels.length === 0 && !isOn('momente') && (
+          <p className="empty">Nichts gewählt. Unter Einstellungen → Programm → „Was dein Stream kann“ schaltest du Funktionen an.</p>
+        )}
+        {panels.length > 0 && shown.length === 0 && (
+          <p className="empty">Für heute ist nichts gewählt. „Heute“ antippen und auswählen.</p>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="stream-page">
       {(panels.length > 0 || isOn('momente')) && (
@@ -74,13 +126,7 @@ export default function StreamPage() {
                 <h2 id="stream-today-title">Heute dabei</h2>
                 <span>Bleibt so, bis du es änderst. Der Rest wartet hier.</span>
               </div>
-              <div className="stream-today-chips">
-                {panels.map((key) => (
-                  <button key={key} type="button" className={`stream-today-chip${isToday(key) ? ' on' : ''}`} aria-pressed={isToday(key)} onClick={() => void toggleToday(key)}>
-                    {isToday(key) ? '✓ ' : ''}{PANEL_LABELS[key]}
-                  </button>
-                ))}
-              </div>
+              {chips}
             </section>
           )}
           {isOn('momente') && <MomentCard />}

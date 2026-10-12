@@ -98,8 +98,8 @@ body {
 }
 .shell-mark:hover { background: var(--bg-hover); border-color: transparent; }
 .shell-mark-dot { width: 8px; height: 8px; border-radius: 50%; background: #666; flex: none; }
-.shell-mark.ok .shell-mark-dot { background: #4ade80; }
-.shell-mark.bad .shell-mark-dot { background: #e74c3c; }
+.shell-mark.ok .shell-mark-dot, .compact-mark.ok .shell-mark-dot { background: #4ade80; }
+.shell-mark.bad .shell-mark-dot, .compact-mark.bad .shell-mark-dot { background: #e74c3c; }
 .shell-mark-text { display: flex; flex-direction: column; min-width: 0; }
 .shell-mark-label { font-weight: 600; }
 .shell-mark-detail { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -3720,3 +3720,47 @@ button.character-active { width: 100%; color: var(--text); text-align: left; cur
 [data-theme="light"] .report-people .follow { color: #1d4f91; }
 [data-theme="light"] .report-insight.join .report-kicker { color: #6d4fc2; }
 [data-theme="light"] .report-insight.follow .report-kicker { color: #1d4f91; }
+
+/* Compact view — a small window beside OBS or in a corner (12.10.2026).
+   Below 700 × 560 the shell is one bar on top; "Im Stream" is one row per card. */
+.shell.compact { display: flex; flex-direction: column; height: 100vh; }
+.compact-bar { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: var(--bg-panel, #1a1a1a); border-bottom: 1px solid var(--border); flex: none; }
+.compact-menu-btn { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 12px; border: 1px solid var(--border-strong); border-radius: 8px; background: none; color: var(--text); font: inherit; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.compact-menu-btn:hover { background: var(--bg-hover); }
+.compact-grow { flex: 1; }
+.compact-marks { display: flex; align-items: center; gap: 2px; }
+.compact-mark { width: 28px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border: none; background: none; cursor: pointer; border-radius: 6px; }
+.compact-mark:hover { background: var(--bg-hover); }
+.compact-icon-btn { min-width: 40px; min-height: 40px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--border-strong); border-radius: 8px; background: none; color: var(--text-secondary); cursor: pointer; }
+.compact-icon-btn:hover { background: var(--bg-hover); }
+.compact-icon-btn.on { border-color: var(--accent); color: var(--accent); }
+.shell-nav .compact-icon-btn { align-self: flex-start; margin: 8px 0 0 10px; }
+.compact-moment { min-height: 40px; padding: 0 14px; border: none; border-radius: 8px; background: var(--accent); color: #161616; font: inherit; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.compact-moment:hover { filter: brightness(1.1); }
+.compact-menu { display: flex; flex-wrap: wrap; gap: 4px; padding: 8px 10px; border-bottom: 1px solid var(--border); background: var(--bg-panel, #1a1a1a); flex: none; }
+.compact-menu .shell-nav-btn { width: auto; padding: 8px 12px; }
+.shell.compact .shell-page, .shell.compact .shell-main { min-height: 0; }
+.shell.compact .shell-main { flex: 1; overflow: auto; padding: 10px 10px 24px; }
+.shell.compact .readiness-banner { padding: 8px 12px; margin-bottom: 10px; font-size: 13px; }
+
+.stream-page.compact { gap: 10px; }
+.compact-today { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.compact-today-btn { min-height: 36px; padding: 0 12px; border: 1px solid var(--border-strong); border-radius: 999px; background: none; color: var(--text-secondary); font: inherit; font-weight: 600; cursor: pointer; }
+.compact-today-btn:hover { background: var(--bg-hover); }
+.compact-rows { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+@media (min-width: 560px) { .compact-rows { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.compact-row { border: 1px solid var(--border); border-radius: 10px; background: var(--bg-panel, #1a1a1a); min-width: 0; }
+.compact-row.on-screen { border-color: #2f7a48; background: #132018; }
+.compact-row.open { grid-column: 1 / -1; }
+.compact-row-head { display: flex; align-items: center; gap: 10px; padding: 6px 8px 6px 12px; min-height: 52px; }
+.compact-row-dot { flex: none; width: 9px; height: 9px; border-radius: 50%; background: #555; }
+.compact-row-dot.on { background: #4ade80; }
+.compact-row-name { flex: 1; min-width: 0; min-height: 44px; display: flex; flex-direction: column; justify-content: center; padding: 0; border: none; background: none; color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+.compact-row-name strong { font-size: 14px; }
+.compact-row-name span { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.compact-row-action { flex: none; min-height: 40px; padding: 0 14px; border: none; border-radius: 8px; background: var(--accent); color: #161616; font: inherit; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.compact-row-action:disabled { opacity: .6; cursor: default; }
+.compact-row-body { padding: 4px 12px 12px; border-top: 1px solid var(--border); }
+.compact-row-body .panel { border: none; padding: 0; background: transparent; }
+.compact-row-body .panel > .panel-desc { display: none; }
+.compact-row-name:hover { background: none; }

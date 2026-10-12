@@ -15,6 +15,9 @@ import StageBadge from './components/quests/StageBadge';
 import QuestTracker from './components/quests/QuestTracker';
 import QuestCoach from './components/quests/QuestCoach';
 import QuestCelebrations from './components/quests/QuestCelebrations';
+import PinButton from './components/compact/PinButton';
+import MomentButton from './components/compact/MomentButton';
+import { useCompact } from './hooks/useCompact';
 import logoSvg from './assets/logo.svg';
 
 // Sidebar with the areas and the connection marks, then the page: header,
@@ -49,8 +52,10 @@ function loadNav(): NavState {
 
 export default function Shell() {
   const [nav, setNav] = useState<NavState>(loadNav);
-  const { loaded, done, features, setupOpen } = useFeatures();
+  const { loaded, done, features, setupOpen, isOn } = useFeatures();
   const areas = useMemo(() => visibleNavigation(features), [features]);
+  const compact = useCompact();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     try {
@@ -73,6 +78,7 @@ export default function Shell() {
       return;
     }
     setNav({ area: target.area, subTab: target.subTab ?? null });
+    setMenuOpen(false);
   }, []);
   const goSubTab = (key: string) => setNav({ area: area.key, subTab: key });
 
@@ -93,6 +99,40 @@ export default function Shell() {
     );
   };
 
+  // Small window (12.10.): one bar instead of sidebar and page header — the
+  // areas behind a menu button, the connections as dots, pin and moment.
+  if (compact) {
+    return (
+      <NavigationProvider value={go}>
+        <div className="shell compact">
+          <header className="compact-bar">
+            <button type="button" className="compact-menu-btn" aria-expanded={menuOpen} aria-controls="compact-menu" onClick={() => setMenuOpen(!menuOpen)}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
+              {area.label}
+            </button>
+            <ConnectionMarks compact />
+            <span className="compact-grow" />
+            <PinButton />
+            {isOn('momente') && <MomentButton />}
+          </header>
+          {menuOpen && (
+            <nav id="compact-menu" className="compact-menu" aria-label="Bereiche">
+              {areas.map((a) => renderNavButton(a.key, a.label, a.group === 'secondary'))}
+            </nav>
+          )}
+          {hasTabRow && <SubTabs tabs={area.subTabs} active={subTab.key} onSelect={goSubTab} />}
+          <main className="shell-main">
+            {area.key === 'stream' && <ReadinessBanner />}
+            {area.key === 'stream'
+              ? <StreamPage />
+              : <AreaPage subTab={subTab} showSentence={hasTabRow} />}
+          </main>
+        </div>
+        <QuestCelebrations />
+      </NavigationProvider>
+    );
+  }
+
   return (
     <NavigationProvider value={go}>
       <div className="shell">
@@ -104,6 +144,7 @@ export default function Shell() {
           <div className="shell-nav-divider" role="separator" />
           {areas.filter((a) => a.group === 'secondary').map((a) => renderNavButton(a.key, a.label, true))}
           <ConnectionMarks />
+          <PinButton />
         </nav>
         <div className="shell-page">
           <PageHeader title={area.label} sentence={area.sentence} aside={area.key === 'stream' ? <SceneHint /> : undefined} />

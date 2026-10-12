@@ -13,7 +13,8 @@ type Tone = 'ok' | 'off' | 'bad';
 
 // The three connections, always in view at the bottom of the sidebar.
 // Green: in place. Red: chosen but not reachable. Grey: not set up.
-export default function ConnectionMarks() {
+// Compact (small window): the dots alone, the words in the tooltip.
+export default function ConnectionMarks({ compact = false }: { compact?: boolean }) {
   const go = useNavigate();
   const { worldbuilder } = useFeatures();
   const { data: bot, refetch: refetchBot } = useApi<BotStatus>('/settings/bot-status');
@@ -60,6 +61,18 @@ export default function ConnectionMarks() {
 
   // Nils's Worldbuilder: a mark only on a machine where it is set up.
   const shown = marks.filter((m) => m.key !== 'world' || worldbuilder);
+
+  if (compact) {
+    return (
+      <div className="compact-marks" aria-label="Verbindungen">
+        {shown.map((m) => (
+          <button key={m.key} type="button" className={`compact-mark ${m.tone}`} onClick={m.onClick} title={`${m.label}: ${m.detail}`} aria-label={`${m.label}: ${m.detail}`}>
+            <span className="shell-mark-dot" aria-hidden="true" />
+          </button>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="shell-marks" aria-label="Verbindungen">
