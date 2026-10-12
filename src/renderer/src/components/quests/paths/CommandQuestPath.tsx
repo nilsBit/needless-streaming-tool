@@ -12,16 +12,16 @@ type Kind = 'text' | 'lookup';
 
 // Usual stream commands; those that exist already are left out.
 const TEXT_IDEAS = [
-  { trigger: '!story', response: 'Wir schreiben live eine Welt – jede Woche ein Stück mehr.' },
-  { trigger: '!welt', response: 'Die Welt spielt in … [hier beschreibst du in zwei Sätzen, wo alles spielt].' },
+  { trigger: '!projekt', response: 'Gerade entsteht … [in zwei Sätzen: woran du arbeitest und wie weit es ist].' },
+  { trigger: '!stream', response: 'Hier entsteht live … [was du machst] – frag gern, was ich gerade tue.' },
   { trigger: '!zeitplan', response: 'Live bin ich … [deine Tage und Uhrzeiten].' },
   { trigger: '!discord', response: 'Komm auf den Discord: [dein Einladungslink]' },
   { trigger: '!links', response: 'Alles an einem Ort: [deine Links]' },
-  { trigger: '!regeln', response: 'Sei freundlich, kein Spam, keine Spoiler. Danke!' },
+  { trigger: '!regeln', response: 'Sei freundlich, kein Spam, keine ungefragten Tipps. Danke!' },
   { trigger: '!lurk', response: 'Schön, dass du still mitliest – mach es dir gemütlich.' },
-  { trigger: '!idee', response: 'Eine Idee für die Welt? Schreib sie in den Chat oder auf den Discord: [Link]' },
+  { trigger: '!idee', response: 'Eine Idee fürs Projekt? Schreib sie in den Chat oder auf den Discord: [Link]' },
   { trigger: '!musik', response: 'Die Musik im Stream: [woher sie kommt, Playlist-Link]' },
-  { trigger: '!setup', response: 'Mein Setup: [Kamera, Mikro, was du benutzt]' },
+  { trigger: '!setup', response: 'Mein Setup: [Programm, Werkzeug, Kamera, Mikro – was du benutzt]' },
   { trigger: '!danke', response: 'Danke an alle, die heute dabei sind!' },
   { trigger: '!clip', response: 'Einen Moment festhalten? Clip ihn mit dem Clip-Knopf unter dem Video.' },
 ];
@@ -100,7 +100,7 @@ export default function CommandQuestPath({ initialTrigger, taken, onClose, onCre
                 value={kind}
                 onChange={pickKind}
                 options={[
-                  { value: 'text', title: 'Mit deinem Text antworten', text: 'Für alles, was du sonst in jedem Stream neu erklärst: !story, !welt, !zeitplan.', icon: 'M4 5h16v11H8l-4 4z' },
+                  { value: 'text', title: 'Mit deinem Text antworten', text: 'Für alles, was du sonst in jedem Stream neu erklärst: !projekt, !zeitplan, !setup.', icon: 'M4 5h16v11H8l-4 4z' },
                   { value: 'lookup', title: 'In deiner Welt nachschlagen', text: lookupReady ? 'Der Chat fragt !figur Mila, der Bot antwortet aus dem Worldbuilder.' : 'Geht, sobald der Worldbuilder läuft.', icon: 'M11 4a7 7 0 100 14 7 7 0 000-14zM20 20l-4-4' },
                 ]}
               />

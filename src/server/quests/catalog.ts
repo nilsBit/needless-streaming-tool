@@ -74,7 +74,7 @@ export const QUESTS: readonly Quest[] = [
   },
   {
     key: 'command', group: 'befehle', title: 'Ersten eigenen Befehl anlegen', xp: 30, feature: 'befehle',
-    text: 'Ein Befehl wie !story, der deine Welt erklärt.',
+    text: 'Ein Befehl wie !projekt, der erklärt, woran du arbeitest.',
     goTo: { area: 'chat', subTab: 'befehle' },
     done: () => count('SELECT COUNT(*) AS n FROM text_commands') > 0,
   },
@@ -171,7 +171,7 @@ export const GUIDE: Record<string, QuestGuide> = {
   twitch: { chapter: 1, why: 'Ohne Twitch antwortet kein Bot, und es kommen keine Alerts.', how: ['Einstellungen → Verbindungen', '„Mit Twitch verbinden“', 'Im Browser bestätigen'] },
   obs: { chapter: 1, why: 'Damit das Tool Overlays in OBS anlegt und weiß, was gerade zu sehen ist.', how: ['In OBS: Werkzeuge → WebSocket-Servereinstellungen, Server an', 'Passwort hier eintragen', '„Verbinden“'] },
   overlay: { chapter: 1, why: 'Deine Zuschauer sehen, was im Stream passiert.', how: ['Overlays & Alerts → eine Karte wählen', 'Schritt 2 „In OBS“ → „In OBS anlegen“', 'In OBS an die richtige Stelle schieben'], needs: 'obs', blockedBy: 'Braucht OBS' },
-  command: { chapter: 1, why: 'Du musst deine Welt nicht jeden Stream neu erklären – der Chat fragt einfach.', how: ['Chat & Bot → Befehle', '„+ Neuer Befehl“ – der Weg führt dich', 'Im Chat ausprobieren'] },
+  command: { chapter: 1, why: 'Du musst nicht jeden Stream neu erklären, woran du arbeitest – der Chat fragt einfach.', how: ['Chat & Bot → Befehle', '„+ Neuer Befehl“ – der Weg führt dich', 'Im Chat ausprobieren'] },
   stream: { chapter: 1, why: 'Alles zusammen im echten Einsatz.', how: ['Tool offen lassen', 'In OBS „Stream starten“'], needs: 'obs', blockedBy: 'Braucht OBS' },
   commands5: { chapter: 2, why: 'Je mehr der Chat selbst nachlesen kann, desto weniger musst du erklären.', how: ['Chat & Bot → Befehle', 'Weitere Befehle über „+ Neuer Befehl“'], needs: 'command', blockedBy: 'Erst einen Befehl' },
   pointReward: { chapter: 2, why: 'Zuschauen und Mitmachen lohnt sich – Punkte haben einen Wert.', how: ['Chat & Bot → Punkte', 'Eine Vorlage übernehmen'] },

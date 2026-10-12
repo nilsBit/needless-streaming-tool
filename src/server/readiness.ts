@@ -121,7 +121,7 @@ export function assessReadiness(input: ReadinessInput): Readiness {
       severity: 'error',
       title: 'Mindestens ein eigener Befehl ist an',
       problem: 'Kein eigener Befehl ist eingeschaltet.',
-      consequence: 'Niemand im Chat kann !welt oder !story fragen.',
+      consequence: 'Niemand im Chat kann !projekt oder !zeitplan fragen.',
       target: { area: 'chat', subTab: 'befehle' },
     },
     {

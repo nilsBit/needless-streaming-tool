@@ -185,7 +185,7 @@ export function checkTrigger(trigger: string, except?: { table: ConfiguredTable;
     return {
       status: 400,
       error: 'invalid_trigger',
-      message: 'Ein Befehl ist ein einzelnes Wort aus Buchstaben, Zahlen, - oder _, z. B. !story.',
+      message: 'Ein Befehl ist ein einzelnes Wort aus Buchstaben, Zahlen, - oder _, z. B. !projekt.',
     };
   }
 

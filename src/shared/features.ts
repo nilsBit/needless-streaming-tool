@@ -51,7 +51,7 @@ export const FEATURE_GROUPS: readonly FeatureGroup[] = [
 ];
 
 export const FEATURES: readonly Feature[] = [
-  { key: 'befehle', group: 'chat', label: 'Erklär-Befehle', sentence: 'Der Chat fragt !welt oder !story, der Bot antwortet mit deinem Text.', needs: ['twitch'], overlays: [], commands: [], panels: [], hotkeys: [], readiness: ['commands'] },
+  { key: 'befehle', group: 'chat', label: 'Erklär-Befehle', sentence: 'Der Chat fragt !projekt oder !zeitplan, der Bot antwortet mit deinem Text.', needs: ['twitch'], overlays: [], commands: [], panels: [], hotkeys: [], readiness: ['commands'] },
   { key: 'musik', group: 'chat', label: 'Musikwünsche', sentence: 'Zuschauer wünschen sich Songs mit !sr und sehen die Reihe mit !queue.', needs: ['twitch'], overlays: [], commands: ['sr', 'queue'], panels: ['song'], hotkeys: [], readiness: [] },
   { key: 'rad', group: 'chat', label: 'Glücksrad', sentence: 'Du sammelst Themen, das Rad entscheidet. Der Chat sieht sie mit !themen.', needs: ['twitch', 'obs'], overlays: ['roulette'], commands: ['issues'], panels: ['issues'], hotkeys: ['roulette'], readiness: [] },
   { key: 'vote', group: 'chat', label: 'Abstimmung', sentence: 'Du sammelst Vorschläge, der Chat stimmt mit !vote ab.', needs: ['twitch', 'obs'], overlays: ['poll'], commands: ['vote', 'design'], panels: ['designs'], hotkeys: [], readiness: [] },

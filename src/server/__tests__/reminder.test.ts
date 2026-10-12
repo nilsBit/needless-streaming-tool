@@ -19,7 +19,7 @@ describe('the bot’s reminder', () => {
 
   it('is off with a built-in line until the streamer sets minutes and words', async () => {
     expect((await request(app).get('/api/settings/reminder').set(auth).expect(200)).body).toMatchObject({
-      minutes: 0, text: 'Neu hier? !welt erklärt die Welt, !story die Geschichte, !befehle den Rest.',
+      minutes: 0, text: 'Neu hier? !befehle zeigt, was du im Chat fragen kannst.',
     });
     await request(app).post('/api/settings/reminder').set(auth).send({ minutes: 20, text: 'Fragen? !welt und !story helfen.' }).expect(200);
     expect((await request(app).get('/api/settings/reminder').set(auth).expect(200)).body).toMatchObject({ minutes: 20, text: 'Fragen? !welt und !story helfen.' });

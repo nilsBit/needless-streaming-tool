@@ -80,7 +80,7 @@ export const AREAS: readonly Area[] = [
       {
         key: 'befehle',
         label: 'Befehle',
-        sentence: 'Eigene Texte wie !story und Nachschlage-Befehle wie !figur – eine Liste, was der Chat tippt und der Bot antwortet. Die eingebauten Befehle stehen unter „Von selbst“.',
+        sentence: 'Eigene Befehle wie !projekt – eine Liste, was der Chat tippt und der Bot antwortet. Die eingebauten Befehle stehen unter „Von selbst“.',
         panels: ['textcommands'],
       },
       {

@@ -1,8 +1,9 @@
 import { getDb } from '../db/index';
+import { worldbuilderInstalled } from '../features';
 
 /**
  * A line the bot says on its own every so often, so a newcomer learns where
- * to look without asking: "Neu hier? !welt erklärt die Welt …".
+ * to look without asking: "Neu hier? !befehle zeigt …".
  *
  * It only speaks into a chat that is alive — somebody must have written
  * since the last time — so an empty room never fills with the bot's own
@@ -15,7 +16,12 @@ export interface ReminderSettings {
   minutes: number;
 }
 
-export const REMINDER_DEFAULT_TEXT = 'Neu hier? !welt erklärt die Welt, !story die Geschichte, !befehle den Rest.';
+const REMINDER_GENERAL = 'Neu hier? !befehle zeigt, was du im Chat fragen kannst.';
+/** Nils's own stream keeps its line about the world. */
+const REMINDER_WORLD = 'Neu hier? !welt erklärt die Welt, !story die Geschichte, !befehle den Rest.';
+export function reminderDefaultText(): string {
+  return worldbuilderInstalled() ? REMINDER_WORLD : REMINDER_GENERAL;
+}
 export const REMINDER_MAX_MINUTES = 240;
 export const REMINDER_MAX_TEXT = 400;
 
@@ -23,7 +29,7 @@ export function getReminderSettings(): ReminderSettings {
   const get = (key: string) => (getDb().prepare('SELECT value FROM settings WHERE key = ?').get(key) as { value: string } | undefined)?.value;
   const minutes = Number(get('reminder_minutes'));
   return {
-    text: get('reminder_text')?.trim() || REMINDER_DEFAULT_TEXT,
+    text: get('reminder_text')?.trim() || reminderDefaultText(),
     minutes: Number.isFinite(minutes) && minutes > 0 ? Math.min(Math.floor(minutes), REMINDER_MAX_MINUTES) : 0,
   };
 }

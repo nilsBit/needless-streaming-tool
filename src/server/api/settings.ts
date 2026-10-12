@@ -13,7 +13,7 @@ import { isAccelerator } from '../hotkey-accelerator';
 import { getUserDataPath } from '../paths';
 import { getSyncStatus, syncToRemoteManual, readSyncConfig, writeSyncConfig } from '../sync';
 import { getLiveSettings, saveLiveSettings } from '../discord/live';
-import { getReminderSettings, REMINDER_DEFAULT_TEXT, REMINDER_MAX_MINUTES, saveReminderSettings } from '../bot/reminder';
+import { getReminderSettings, reminderDefaultText, REMINDER_MAX_MINUTES, saveReminderSettings } from '../bot/reminder';
 import { BUILTIN_COOLDOWN_MAX, builtinCooldownSeconds } from '../bot/cooldown';
 
 const router = Router();
@@ -119,13 +119,13 @@ router.post('/builtin-cooldown', (req, res) => {
 
 // The line the bot says on its own every so often (bot/reminder.ts)
 router.get('/reminder', (_req, res) => {
-  res.json({ ...getReminderSettings(), default: REMINDER_DEFAULT_TEXT, maxMinutes: REMINDER_MAX_MINUTES });
+  res.json({ ...getReminderSettings(), default: reminderDefaultText(), maxMinutes: REMINDER_MAX_MINUTES });
 });
 
 router.post('/reminder', (req, res) => {
   const result = saveReminderSettings((req.body ?? {}) as { text?: unknown; minutes?: unknown });
   if ('error' in result) { res.status(400).json(result); return; }
-  res.json({ ...result, default: REMINDER_DEFAULT_TEXT, maxMinutes: REMINDER_MAX_MINUTES });
+  res.json({ ...result, default: reminderDefaultText(), maxMinutes: REMINDER_MAX_MINUTES });
 });
 
 // Fixed API token for Stream Deck
