@@ -40,7 +40,6 @@ import designRouter from './api/design';
 import devRouter from './api/dev';
 import overlayConfigRouter from './api/overlay-config';
 import { publicOverlayConfig } from './design-apply';
-import songRequestsRouter from './api/song-requests';
 import charactersRouter from './api/characters';
 import entriesRouter from './api/entries';
 import { activeCard, activeCharacter, CHARACTER_IMAGE_DIR } from './api/active-entry';
@@ -180,7 +179,6 @@ export function createApp(): express.Express {
   app.use('/api/streams', streamsRouter);
   app.use('/api/backup', backupRouter);
   app.use('/api/overlay-config', overlayConfigRouter);
-  app.use('/api/song-requests', songRequestsRouter);
   app.use('/api/characters', charactersRouter);
   app.use('/api/entries', entriesRouter);
   app.use('/api/commands', commandsRouter);

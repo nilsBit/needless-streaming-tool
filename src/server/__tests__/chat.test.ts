@@ -24,16 +24,11 @@ describe('chat', () => {
     app = createApp();
   });
 
-  it('!uptime says the stream is offline instead of counting from when the app started', async () => {
-    const res = await tryInChat('!uptime').expect(200);
-    expect(res.body.replies).toEqual(['⏱️ Gerade wird nicht gestreamt.']);
-  });
+  it('a built-in follows a rename', async () => {
+    await request(app).post('/api/settings/commands').set(auth()).send({ progress: '!werk' }).expect(200);
 
-  it('!uptime follows a rename', async () => {
-    await request(app).post('/api/settings/commands').set(auth()).send({ uptime: '!live' }).expect(200);
-
-    const res = await tryInChat('!live').expect(200);
-    expect(res.body.replies).toEqual(['⏱️ Gerade wird nicht gestreamt.']);
+    const res = await tryInChat('!werk').expect(200);
+    expect(res.body.replies).toHaveLength(1);
   });
 
   it('!datenschutz tells a viewer what is stored, for how long, and that it goes on request', async () => {

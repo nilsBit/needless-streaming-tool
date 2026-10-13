@@ -232,7 +232,7 @@ describe('entries', () => {
     it('keeps a hidden field out of chat lookups too', async () => {
       await hide('e-aldric', ['Kurzbeschreibung']);
 
-      const res = await request(app).post('/api/chat/try').set(auth()).send({ message: '!figur aldric' }).expect(200);
+      const res = await request(app).post('/api/chat/try').set(auth()).send({ message: '!welt aldric' }).expect(200);
       expect(res.body.replies[0]).toContain('Aldric');
       expect(res.body.replies[0]).not.toContain(SPOILER);
     });

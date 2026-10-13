@@ -1,4 +1,4 @@
-export const SCHEMA_VERSION = 35;
+export const SCHEMA_VERSION = 36;
 
 export const SCHEMA = `
 CREATE TABLE IF NOT EXISTS schema_version (
@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS lookup_commands (
   id               INTEGER PRIMARY KEY AUTOINCREMENT,
   trigger          TEXT NOT NULL UNIQUE,
   art              TEXT NOT NULL,
+  response         TEXT,
   description      TEXT,
   cooldown_seconds INTEGER NOT NULL DEFAULT 30,
   enabled          INTEGER NOT NULL DEFAULT 1,

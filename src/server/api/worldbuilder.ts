@@ -209,7 +209,8 @@ export async function loadEntriesFromWorld(kind: string): Promise<EntryDetail[] 
   if (!connection) return NOT_RUNNING;
 
   try {
-    const res = await get(connection, `/eintraege?art=${encodeURIComponent(kind)}`);
+    // No Art asks for every entry of the world.
+    const res = await get(connection, kind ? `/eintraege?art=${encodeURIComponent(kind)}` : '/eintraege');
     if (res.status === 503) return NO_WORLD;
     if (!res.ok) return { error: 'worldbuilder_error', status: res.status };
 

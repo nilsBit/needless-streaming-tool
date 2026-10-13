@@ -150,21 +150,14 @@ Läuft der Stream noch, füllt sich die Seite einmal pro Minute. Oben rechts wä
 | !commands / !help | Dasselbe wie !befehle — für alle, die auf Englisch suchen |
 | !so <Name> | Nur Mods: empfiehlt einen Kanal mit seiner letzten Kategorie. Nach einem Raid schreibt der Bot das selbst (Chat & Bot → Von selbst → Raid-Gruß) |
 | !challenge | Zeigt aktuelle Challenge |
-| !figur | Zeigt die Figur, die gerade im Overlay ist |
-| !figur <Name> | Schlägt eine Figur in der Welt nach (nur mit Worldbuilder) |
-| !ort / !gilde / !begriff <Name> | Schlagen Orte, Gilden und Begriffe nach (einstellbar, nur mit Worldbuilder) |
+| !welt <Name> | Schlägt einen Eintrag in der Welt nach, egal welcher Art (nur mit Worldbuilder) |
 | !song | Zeigt aktuellen Song |
-| !sr <URL> | Wünscht einen Song (YouTube oder Spotify) |
-| !queue | Zeigt die nächsten Song-Wünsche |
 | !hype | Löst einen Hype Moment aus |
 | !themen (auch !issues) | Zeigt offene Einträge |
 | !projekt (auch !progress) | Woran gerade gearbeitet wird, wie weit es ist und der wievielte Stream daran |
 | !stats [name] | Zeigt eingelöste Rewards |
 | !vote <option> | Stimme bei Abstimmung ab |
-| !design start/end/status | Chat-Abstimmung |
-| !scene | Listet OBS-Szenen (nur Mods) |
-| !scene <name> | Wechselt OBS-Szene (nur Mods) |
-| !uptime | Zeigt Stream-Laufzeit |
+| !abstimmung start/end/status | Chat-Abstimmung (früher !design) |
 | !stats [Name] | Stand in jeder Bestenliste |
 | !datenschutz (auch !privacy) | Sagt, was das Tool über Zuschauer speichert, wie lange, und dass es auf Wunsch gelöscht wird |
 | !punkte [Name] | Guthaben, Beitrag und Platz bei den eigenen Punkten |
@@ -190,20 +183,20 @@ Alle eingebauten Befehle lassen sich unter Chat & Bot → Befehle → Eingebaut 
 - Ausgeschaltete Befehle antworten nicht und stehen nicht in !befehle.
 - !befehle nennt nur die wichtigsten Befehle — welche, wählst du in der Übersicht mit ★ (bis zu sechs). „!befehle alle“ listet jeden, „!befehle welt“, „!befehle texte“ und „!befehle stream“ je eine Gruppe. Mit einem Namen dahinter (!befehle figur) kommt der eine Satz zu diesem Befehl.
 - **Zweitnamen:** In der Übersicht kannst du einem Befehl weitere Namen geben (!socials für !links); sie antworten wie der Befehl selbst und stehen in Listen dahinter („auch !socials“). !issues ist so ein fester Zweitname von !themen.
-- **Schlaue Cooldowns:** Jeder Cooldown gilt für einen ruhigen Chat. Ab 20 Nachrichten pro Minute halbiert er sich, ab 60 ist es ein Viertel — in einem vollen Chat ist die Antwort schnell weggescrollt. Wer die Antwort gerade bekommen hat, bekommt sie frühestens nach dem Vierfachen (mindestens einer Minute) wieder; andere nach dem normalen Cooldown. Die eingebauten Befehle, die nur etwas sagen (!song, !uptime, !projekt …), teilen sich einen Cooldown (Chat & Bot → Von selbst → Pause zwischen Antworten, Standard 15 s). !vote, !sr und !hype haben keinen. Mods und du warten nie.
+- **Schlaue Cooldowns:** Jeder Cooldown gilt für einen ruhigen Chat. Ab 20 Nachrichten pro Minute halbiert er sich, ab 60 ist es ein Viertel — in einem vollen Chat ist die Antwort schnell weggescrollt. Wer die Antwort gerade bekommen hat, bekommt sie frühestens nach dem Vierfachen (mindestens einer Minute) wieder; andere nach dem normalen Cooldown. Die eingebauten Befehle, die nur etwas sagen (!song, !projekt, !themen …), teilen sich einen Cooldown (Chat & Bot → Von selbst → Pause zwischen Antworten, Standard 15 s). !vote und !hype haben keinen. Mods und du warten nie.
 - **Erinnerung:** Unter Chat & Bot → Von selbst → Erinnerung (An/Aus, Satz und Takt unter „Ändern“) sagt der Bot alle paar Minuten einen Satz von selbst („Neu hier? !befehle zeigt, was du im Chat fragen kannst.“) — aber nur, wenn seit dem letzten Mal jemand im Chat geschrieben hat.
 
 **Übersicht für Zuschauer:** Unten im Panel steht jeder Befehl mit einem Satz. Lässt du das Feld leer, schreibt das Tool den Satz selbst — bei eigenen Texten der erste Satz der Antwort, beim Nachschlagen die Art, bei eingebauten ein fester Text; er steht blass im Feld. **Für Twitch-Panel kopieren** legt die ganze Liste als Text in die Zwischenablage, den du auf Twitch unter *Kanal bearbeiten → Panels* einfügst. Nach Änderungen musst du ihn dort neu einfügen.
 - Eigene Texte und Nachschlage-Commands sind im Backup enthalten.
 
-**Aus der Welt nachschlagen:** Nachschlage-Commands suchen live in deiner Worldbuilder-Welt. Es gibt sie nur auf einem Rechner, auf dem der Worldbuilder eingerichtet ist – sonst bleiben sie stumm und fehlen in !befehle und im Panel. Zuschauer schreiben z. B. !figur Mila oder !ort Saldor und bekommen Titel, Rolle und Kurzbeschreibung (oder den Text) in einer Chat-Nachricht.
-- **Voreingestellt:** !figur → Figur, !ort → Ort, !gilde → Fraktion, !begriff → Konzept. Heißt eine Art in deiner Welt anders (z. B. „Region“ statt „Ort“), wählst du sie im Panel aus. Ein ⚠️ markiert Arten, die es in der offenen Welt nicht gibt.
+**Aus der Welt nachschlagen:** Nachschlage-Commands suchen live in deiner Worldbuilder-Welt. Es gibt sie nur auf einem Rechner, auf dem der Worldbuilder eingerichtet ist – sonst bleiben sie stumm und fehlen in !befehle und im Panel. Zuschauer schreiben z. B. !welt Mila oder !welt Saldor und bekommen Titel, Rolle und Kurzbeschreibung (oder den Text) in einer Chat-Nachricht.
+- **Voreingestellt:** !welt sucht in der ganzen Welt und nennt die Art des Treffers dazu. Wer lieber einen Befehl je Art will (z. B. !figur nur für Figuren), stellt beim Befehl „Nur Figur“ ein.
 - **Eigene dazu:** unten im Abschnitt einen Befehl und eine Art wählen, z. B. !fähigkeit → Fähigkeit.
 - **Suche:** in Titel und Zweitnamen, ohne auf Groß-/Kleinschreibung oder Akzente zu achten. Ein Teil des Namens reicht („silberzunge“). Ein genauer Treffer schlägt Namen, die ihn nur enthalten.
 - **Mehrere Treffer** nennt der Bot. **Kein Treffer:** „Kenne ich (noch) nicht“ — was der Zuschauer getippt hat, wiederholt der Bot nie.
-- **Ohne Namen:** !figur zeigt die Figur im Overlay; ist keine drin, und bei allen anderen Befehlen, listet der Bot die Einträge der Art.
+- **Ohne Namen:** Hat der Befehl eine „Antwort ohne Namen“, sagt der Bot die – so erklärt !welt, worum es in der Welt geht. Sonst zeigt er den Eintrag im Overlay, und ist keiner drin, listet er die Einträge.
 - **Verworfen** markierte Einträge findet niemand.
-- **Cooldown pro Name:** !figur Mila und !figur Selma bremsen sich nicht gegenseitig.
+- **Cooldown pro Name:** !welt Mila und !welt Selma bremsen sich nicht gegenseitig.
 - **Voraussetzung:** Der Worldbuilder läuft und das Schaufenster ist offen (Worldbuilder → Verwalten → Schaufenster öffnen).`,
   },
   {
@@ -221,7 +214,7 @@ Alle eingebauten Befehle lassen sich unter Chat & Bot → Befehle → Eingebaut 
 **Spoiler ausblenden:** 👁 heißt „im Stream zu sehen“, 🙈 heißt „ausgeblendet“.
 - Gilt pro Eintrag und Feld: Samaels Kurzbeschreibung ausblenden lässt die von Mila unberührt.
 - Auch Text, Zweitnamen und Bild lassen sich ausblenden.
-- Ausgeblendetes erscheint weder auf der Karte noch in Chat-Antworten (!figur Samael).
+- Ausgeblendetes erscheint weder auf der Karte noch in Chat-Antworten (!welt Samael).
 - Wirkt sofort, auch wenn die Karte gerade zu sehen ist. Ist die Kurzbeschreibung aus, rückt der Text nach, wenn er an ist.
 - Die Schalter bleiben gespeichert und sind im Backup enthalten.
 
@@ -233,7 +226,7 @@ Alle eingebauten Befehle lassen sich unter Chat & Bot → Befehle → Eingebaut 
 
 **Was die Karte zeigt:** Titel, Zweitname und Rolle, die Kurzbeschreibung (sonst den Text), weitere Felder und Beziehungen („Gehört zu: Die Goldene Hand“), den Namen der Welt und den Reifegrad.
 
-**Damit sie immer in ihre Quelle passt,** auch bei langen Einträgen: Der Titel hat höchstens zwei Zeilen und wird kleiner, wenn er länger ist; Zweitname und Rolle eine Zeile; die Beschreibung höchstens vier Zeilen; Felder und Beziehungen zusammen höchstens drei, jede einzeilig — hat der Eintrag Beziehungen, ist mindestens eine davon dabei. Was darüber hinausgeht, endet mit „…“. Den ganzen Text gibt es mit !figur im Chat. Beziehungen zu verworfenen Einträgen erscheinen nicht. Jede Beziehung hat im Panel ihren eigenen 👁-Schalter (↔).
+**Damit sie immer in ihre Quelle passt,** auch bei langen Einträgen: Der Titel hat höchstens zwei Zeilen und wird kleiner, wenn er länger ist; Zweitname und Rolle eine Zeile; die Beschreibung höchstens vier Zeilen; Felder und Beziehungen zusammen höchstens drei, jede einzeilig — hat der Eintrag Beziehungen, ist mindestens eine davon dabei. Was darüber hinausgeht, endet mit „…“. Den ganzen Text gibt es mit !welt <Name> im Chat. Beziehungen zu verworfenen Einträgen erscheinen nicht. Jede Beziehung hat im Panel ihren eigenen 👁-Schalter (↔).
 
 **Umgestalten:** Farben und Schriften kommen aus Overlays & Alerts → Stil für alle und gelten für alle Overlays zugleich; ein einzelnes bekommt in seiner Karte unter „Aussehen“ einen eigenen Stil. Die Karte selbst nutzt den Kompendium-Stil aus /overlay/lexikon.css — dort liegen auch die drei Gewichte (voll, schlank, flüchtig), die alle Overlays teilen. Nur was dieser Karte allein gehört (Breite, das Wort „Kompendium“ über dem Titel) steht oben in ihrer Datei. In der Karte unter „⋯ Mehr“ → „HTML bearbeiten“ lässt sich eine eigene Fassung anlegen.`,
   },
@@ -270,7 +263,6 @@ Alle eingebauten Befehle lassen sich unter Chat & Bot → Befehle → Eingebaut 
 - Die Hinweise auf den Bildern (!welt, !story, !discord) und der Kanalname stehen fest im Overlay — anpassen über Overlays & Alerts → Overlays → „HTML bearbeiten“.
 
 **Scene-Switching via Chat:**
-- Mods/Broadcaster: !scene <Szenenname> im Chat
 - Viewer: über Channel-Point-Rewards (siehe "Channel Points")
 
 **Scene-Switching via API:**
@@ -442,8 +434,6 @@ Auth-Header: Authorization: Bearer <token>
 - GET /api/designs — POST /api/designs — PATCH /api/designs/:id — DELETE /api/designs/:id
 
 **Song-Wünsche:**
-- GET /api/song-requests — POST /api/song-requests/clear
-- POST /api/song-requests/:id/play — POST /api/song-requests/:id/skip — DELETE /api/song-requests/:id
 
 **Reward Stats:**
 - GET /api/reward-stats — GET /api/reward-stats/types — GET /api/reward-stats/:username
@@ -530,7 +520,6 @@ Alle Events werden als JSON gesendet: { "event": "name", "data": { ... } }
 
 **Songs:**
 - song-update / song-clear — Now Playing
-- sr-update — Song-Wünsche geändert
 
 **OBS:**
 - obs-status — Verbindungsstatus geändert

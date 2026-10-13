@@ -255,16 +255,3 @@ export const VALID_CHALLENGE_STATUS = ['idle', 'in_progress', 'done', 'failed'] 
 export const VALID_MILESTONE_LEVEL = ['minor', 'major', 'epic'] as const;
 export const VALID_MILESTONE_STATUS = ['pending', 'completed'] as const;
 
-export interface SongRequest {
-  id: number;
-  url: string;
-  title: string;
-  artist: string | null;
-  source: string;
-  requested_by: string;
-  status: string;
-  created_at: string;
-}
-
-export const VALID_SONG_REQUEST_STATUS = ['pending', 'playing', 'done', 'skipped'] as const;
-

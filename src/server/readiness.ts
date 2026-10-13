@@ -103,7 +103,7 @@ export function assessReadiness(input: ReadinessInput): Readiness {
           severity: 'error',
           title: input.world.name ? `Worldbuilder erreichbar („${input.world.name}“)` : 'Worldbuilder erreichbar',
           problem: 'Der Worldbuilder ist nicht erreichbar.',
-          consequence: 'Die Eintragskarte bleibt leer, !figur, !ort und !gilde finden nichts.',
+          consequence: 'Die Eintragskarte bleibt leer, und !welt findet nichts.',
           target: { area: 'stream' },
         }
       : {

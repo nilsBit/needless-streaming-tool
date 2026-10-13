@@ -42,7 +42,7 @@ describe('setup and features', () => {
     const res = await request(app).get('/api/setup').set(auth()).expect(200);
     expect(res.body.done).toBe(false);
     // Everything but the personal features — no Twitch channel is connected.
-    expect(res.body.features).toHaveLength(15);
+    expect(res.body.features).toHaveLength(14);
     expect(res.body.features).not.toContain('welt');
     expect(res.body.features).not.toContain('momente');
     expect(res.body.defaults).not.toContain('chat');
@@ -63,17 +63,14 @@ describe('setup and features', () => {
 
   it('keeps built-in commands of features that are off out of the list', async () => {
     const triggers = async () => ((await request(app).get('/api/commands').set(auth()).expect(200)).body.commands as Array<{ trigger: string }>).map((c) => c.trigger);
-    // Only the wheel is on: !themen answers, !sr does not; !befehle belongs to no feature and stays.
+    // Only the wheel is on: !themen answers, !stats does not; !befehle belongs to no feature and stays.
     let list = await triggers();
     expect(list).toContain('!themen');
     expect(list).toContain('!befehle');
-    expect(list).not.toContain('!sr');
     expect(list).not.toContain('!stats');
 
-    await request(app).post('/api/setup/features').set(auth()).send({ features: ['musik', 'bestenliste'] }).expect(200);
+    await request(app).post('/api/setup/features').set(auth()).send({ features: ['bestenliste'] }).expect(200);
     list = await triggers();
-    expect(list).toContain('!sr');
-    expect(list).toContain('!queue');
     expect(list).toContain('!stats');
     expect(list).not.toContain('!themen');
   });

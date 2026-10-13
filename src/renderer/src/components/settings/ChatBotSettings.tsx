@@ -139,7 +139,7 @@ function PauseDialog({ seconds, onClose, onSave }: { seconds: number; onClose: (
   return (
     <Dialog
       title="Pause zwischen Antworten"
-      sentence="Für die eingebauten Befehle, die nur etwas sagen (!song, !uptime, !projekt, !themen, !queue, !stats, !punkte, !belohnungen, !challenge, !datenschutz, !befehle). Die Pause gilt für einen ruhigen Chat: ab 20 Nachrichten pro Minute halbiert sie sich, ab 60 ist es ein Viertel. Wer die Antwort gerade bekommen hat, bekommt sie frühestens nach dem Vierfachen wieder; Mods und du warten nie."
+      sentence="Für die eingebauten Befehle, die nur etwas sagen (!song, !projekt, !themen, !stats, !punkte, !belohnungen, !challenge, !datenschutz, !befehle). Die Pause gilt für einen ruhigen Chat: ab 20 Nachrichten pro Minute halbiert sie sich, ab 60 ist es ein Viertel. Wer die Antwort gerade bekommen hat, bekommt sie frühestens nach dem Vierfachen wieder; Mods und du warten nie."
       onClose={onClose}
       width={560}
       footer={<>

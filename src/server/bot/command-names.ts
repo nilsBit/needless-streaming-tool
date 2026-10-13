@@ -8,21 +8,18 @@ import { worldbuilderInstalled } from '../features';
  * change. The bot and the Settings panel both read this one list, so a command
  * added here can be renamed without touching anything else.
  *
- * `!figur` is not in here: it is a Lookup Command, configured in the app.
+ * `!welt` is not in here: it is a Lookup Command, configured in the app.
  */
 export const DEFAULT_COMMANDS: Record<string, string> = {
   challenge: '!challenge',
   issues: '!themen',
   song: '!song',
   hype: '!hype',
-  uptime: '!uptime',
-  design: '!design',
+  // Was !design, from when the chat voted on designs (2026-10-13).
+  design: '!abstimmung',
   // Was !progress until "Fortschritt" became "Projekt" (2026-10-12).
   progress: '!projekt',
-  scene: '!scene',
   vote: '!vote',
-  sr: '!sr',
-  queue: '!queue',
   rewardstats: '!stats',
   commands: '!befehle',
   shoutout: '!so',
@@ -46,6 +43,8 @@ export const COMMAND_ALIASES: Record<string, readonly string[]> = {
   redeem: ['!einloesen'],
   // The project's name before 2026-10-12.
   progress: ['!progress'],
+  // The vote's name before 2026-10-13.
+  design: ['!design'],
 };
 
 const ALIASES_KEY = 'command_aliases';
@@ -112,23 +111,20 @@ export function saveAliases(input: unknown): Refusal | null {
 }
 
 /**
- * Built-ins a viewer can use, in the order `!befehle` names them. `!scene` and
- * `!so` are for mods and `!design` runs a poll, so none is advertised to chat.
+ * Built-ins a viewer can use, in the order `!befehle` names them. `!so` is for
+ * mods and `!abstimmung` runs a poll, so none is advertised to chat.
  */
 export const VIEWER_COMMAND_KEYS = [
   'challenge',
   'progress',
   'issues',
   'song',
-  'sr',
-  'queue',
   'vote',
   'hype',
   'rewardstats',
   'points',
   'rewards_list',
   'redeem',
-  'uptime',
   'privacy',
 ] as const;
 
@@ -138,7 +134,7 @@ export function getCommandNames(): Record<string, string> {
     const row = getDb().prepare('SELECT value FROM settings WHERE key = ?').get('custom_commands') as { value: string } | undefined;
     if (row?.value) {
       const custom = JSON.parse(row.value) as Record<string, string>;
-      // A rename of a built-in that is gone (!todo, 2026-10-12) names nothing.
+      // A rename of a built-in that is gone (!todo 2026-10-12; !scene, !sr, !queue, !uptime 2026-10-13) names nothing.
       const known = Object.fromEntries(Object.entries(custom).filter(([key]) => key in DEFAULT_COMMANDS));
       return { ...DEFAULT_COMMANDS, ...known };
     }

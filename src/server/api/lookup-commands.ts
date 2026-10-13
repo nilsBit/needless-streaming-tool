@@ -24,6 +24,13 @@ function description(value: unknown, fallback: string | null): string | null {
   return text ? text.slice(0, 300) : null;
 }
 
+/** What the command says without a name; empty means none. Kept whole, so a too-long one is refused, not cut. */
+function answer(value: unknown, fallback: string | null): string | null {
+  if (value === undefined) return fallback;
+  const text = String(value ?? '').trim();
+  return text || null;
+}
+
 router.get('/', (_req, res) => {
   const rows = getDb().prepare('SELECT * FROM lookup_commands ORDER BY trigger').all() as LookupCommand[];
   res.json(rows.map(toJson));
@@ -41,6 +48,7 @@ router.post('/', (req, res) => {
   const command = {
     trigger: normalizeTrigger(String(body.trigger ?? '')),
     art: String(body.art ?? '').trim(),
+    response: answer(body.response, null),
     cooldown_seconds: body.cooldown_seconds === undefined ? DEFAULT_COOLDOWN_SECONDS : Number(body.cooldown_seconds),
   };
   const text = description(body.description, null);
@@ -50,8 +58,8 @@ router.post('/', (req, res) => {
 
   const enabled = body.enabled === undefined || body.enabled ? 1 : 0;
   const result = getDb()
-    .prepare('INSERT INTO lookup_commands (trigger, art, cooldown_seconds, enabled, description) VALUES (?, ?, ?, ?, ?)')
-    .run(command.trigger, command.art, command.cooldown_seconds, enabled, text);
+    .prepare('INSERT INTO lookup_commands (trigger, art, response, cooldown_seconds, enabled, description) VALUES (?, ?, ?, ?, ?, ?)')
+    .run(command.trigger, command.art, command.response, command.cooldown_seconds, enabled, text);
 
   res.status(201).json(toJson(findCommand(String(result.lastInsertRowid))!));
 });
@@ -64,6 +72,7 @@ router.patch('/:id', (req, res) => {
   const next = {
     trigger: body.trigger === undefined ? existing.trigger : normalizeTrigger(String(body.trigger)),
     art: body.art === undefined ? existing.art : String(body.art).trim(),
+    response: answer(body.response, existing.response ?? null),
     cooldown_seconds: body.cooldown_seconds === undefined ? existing.cooldown_seconds : Number(body.cooldown_seconds),
   };
   const text = description(body.description, existing.description ?? null);
@@ -73,8 +82,8 @@ router.patch('/:id', (req, res) => {
 
   const enabled = body.enabled === undefined ? existing.enabled : body.enabled ? 1 : 0;
   getDb()
-    .prepare('UPDATE lookup_commands SET trigger = ?, art = ?, cooldown_seconds = ?, enabled = ?, description = ? WHERE id = ?')
-    .run(next.trigger, next.art, next.cooldown_seconds, enabled, text, existing.id);
+    .prepare('UPDATE lookup_commands SET trigger = ?, art = ?, response = ?, cooldown_seconds = ?, enabled = ?, description = ? WHERE id = ?')
+    .run(next.trigger, next.art, next.response, next.cooldown_seconds, enabled, text, existing.id);
 
   res.json(toJson(findCommand(req.params.id)!));
 });

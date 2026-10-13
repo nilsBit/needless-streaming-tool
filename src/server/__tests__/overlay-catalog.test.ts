@@ -31,7 +31,7 @@ describe('overlay catalog', () => {
     expect(byName.character.url).toMatch(/\/overlay\/character\/index\.html$/);
     expect(byName.song.label).toBe('Musik');
     expect(byName.start.group).toBe('screens');
-    // The song queue overlay was dropped on 2026-10-06; !sr and !queue stay.
+    // The song queue overlay was dropped on 2026-10-06, !sr and !queue on 2026-10-13.
     expect(byName['song-queue']).toBeUndefined();
     for (const entry of res.body) {
       expect(entry.label.length).toBeGreaterThan(0);

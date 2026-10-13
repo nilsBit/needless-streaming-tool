@@ -263,10 +263,9 @@ function runMigrations(from: number, to: number) {
     )`);
     // Worldbuilder's starter Arten. A world that names them differently is
     // remapped in the panel.
-    const seed = db.prepare('INSERT OR IGNORE INTO lookup_commands (trigger, art) VALUES (?, ?)');
-    for (const [trigger, art] of [['!figur', 'Figur'], ['!ort', 'Ort'], ['!gilde', 'Fraktion'], ['!begriff', 'Konzept']]) {
-      seed.run(trigger, art);
-    }
+    // One command for the whole world (13.10.2026): four, one per Art, were
+    // too many for a chat list. An empty Art means every Art.
+    db.prepare("INSERT OR IGNORE INTO lookup_commands (trigger, art) VALUES ('!welt', '')").run();
     console.log('[DB] Migrated: added lookup_commands with the starter set');
   }
 
@@ -407,6 +406,14 @@ function runMigrations(from: number, to: number) {
   if (from < 35) {
     // projects comes with the schema; its data from migrateToProjects().
     console.log('[DB] Migrated: projects for Projekt');
+  }
+
+  if (from < 36) {
+    // A Lookup Command may say something of its own when it comes without a
+    // name: `!welt` tells what the world is, `!welt Mila` looks her up.
+    const columns = db.prepare('PRAGMA table_info(lookup_commands)').all() as Array<{ name: string }>;
+    if (!columns.some((c) => c.name === 'response')) db.exec('ALTER TABLE lookup_commands ADD COLUMN response TEXT');
+    console.log('[DB] Migrated: lookup commands can answer without a name');
   }
 
   // Safety check: ensure experiment_* columns were renamed to challenge_*

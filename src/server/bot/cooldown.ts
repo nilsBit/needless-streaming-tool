@@ -65,8 +65,8 @@ export function passCooldown(key: string, seconds: number, privileged: boolean, 
   return true;
 }
 
-/** Built-ins that only tell something — the ones a cooldown fits. Actions (!vote, !sr, !hype) stay free. */
-export const INFO_BUILTINS: ReadonlySet<string> = new Set(['challenge', 'progress', 'issues', 'song', 'queue', 'rewardstats', 'uptime', 'commands', 'privacy', 'points', 'rewards_list']);
+/** Built-ins that only tell something — the ones a cooldown fits. Actions (!vote, !hype) stay free. */
+export const INFO_BUILTINS: ReadonlySet<string> = new Set(['challenge', 'progress', 'issues', 'song', 'rewardstats', 'commands', 'privacy', 'points', 'rewards_list']);
 
 export const BUILTIN_COOLDOWN_DEFAULT = 15;
 export const BUILTIN_COOLDOWN_MAX = 600;

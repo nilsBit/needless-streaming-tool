@@ -1,4 +1,3 @@
-import { getStreamTimecodes } from '../obs/index';
 import { splitForChat, type ChatAnswer } from './chat-message';
 import { commandList, describeCommand, featuredCommands, withAliases, type CommandGroup, type CommandInfo } from './command-list';
 import { builtinKeyOf, canonicalTrigger, getCommandNames, triggerOf } from './command-names';
@@ -11,7 +10,7 @@ import { pointsReply, rewardsListReply } from '../points/chat';
 
 /**
  * What the bot says to a chat message that no side-effecting built-in claimed:
- * `!befehle`, `!uptime`, a Text Command, or a Lookup Command — tried in that
+ * `!befehle`, `!datenschutz`, a Text Command, or a Lookup Command — tried in that
  * order.
  *
  * The bot and `/api/chat/try` both come through here, so what the app shows
@@ -41,7 +40,6 @@ export async function answerChatMessage(message: string, privileged: boolean, vi
     }
     return { replies: splitForChat(featuredReply(names)) };
   }
-  if (builtin === 'uptime') return { replies: [await uptimeReply()] };
   // What the tool keeps about the viewer who asks — the same sentence as on the Twitch panel.
   if (builtin === 'privacy') return { replies: [privacySentence()] };
   if (builtin === 'points') return { replies: [pointsReply(asTyped, viewer)] };
@@ -91,14 +89,3 @@ function groupReply(group: CommandGroup | 'all', names: Record<string, string>):
   return `📜 ${body} — was einer macht: ${names.commands} <Name>`;
 }
 
-/**
- * How long the stream has been live, from OBS's own stream timecode — counted
- * from going live, not from when this app happened to start.
- */
-async function uptimeReply(): Promise<string> {
-  const { stream_timecode } = await getStreamTimecodes();
-  if (!stream_timecode) return '⏱️ Gerade wird nicht gestreamt.';
-
-  const [hours = 0, minutes = 0] = stream_timecode.split(':').map(Number);
-  return `⏱️ Live seit ${hours > 0 ? `${hours} Std. ` : ''}${minutes} Min.`;
-}

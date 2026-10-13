@@ -143,7 +143,7 @@ Erfahrungspunkte from done quests, and the stage they reach: Funke · Lagerfeuer
 A guided flow that creates something, step by step with stages on a path, a preview and a celebrated end (`QuestPath`). Replaces creating through a form; the forms stay for editing.
 
 **Song Request**:
-A track a viewer asked for by URL, moving through `pending` → `playing` → `done` (or `skipped`). Separate from the Now Playing panel, which reads what the machine is actually playing via SMTC.
+Gone since 2026-10-13 (`!sr`, `!queue`, the wish list on the song card). Only the `song_requests` table is left, so retention and "forget viewer" still find old rows. The Now Playing panel reads what the machine is actually playing via SMTC.
 
 **Poll**:
 A viewer vote on a decision in the story — which way a character turns, what a place is called. Stored in `designs`, shown as "Abstimmungen".

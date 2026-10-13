@@ -4,6 +4,7 @@ import type { Express } from 'express';
 import { initDatabase } from '../db/index';
 import { generateApiToken } from '../auth-token';
 import { createApp } from '../index';
+import { builtinKeyOf } from '../bot/command-names';
 
 interface CommandInfo {
   trigger: string;
@@ -27,7 +28,7 @@ describe('the command list', () => {
     initDatabase(':memory:');
     token = generateApiToken();
     app = createApp();
-    // The starter lookups (!figur …) only exist where the Worldbuilder is set up.
+    // The starter lookup (!welt) only exists where the Worldbuilder is set up.
     await request(app).post('/api/characters/source').set(auth()).send({ source: 'worldbuilder' }).expect(200);
     await request(app).post('/api/text-commands').set(auth())
       .send({ trigger: '!story', response: 'Wir schreiben eine Welt. Jede Woche ein Stück mehr.' }).expect(201);
@@ -35,9 +36,9 @@ describe('the command list', () => {
 
   it('leaves out the lookups where no Worldbuilder is set up', async () => {
     await request(app).post('/api/characters/source').set(auth()).send({ source: 'notion' }).expect(200);
-    expect(await find('!figur')).toBeUndefined();
+    expect(await find('!welt')).toBeUndefined();
     expect(await chat('!befehle alle')).not.toContain('Aus der Welt');
-    expect(await chat('!figur Mila')).toBe('');
+    expect(await chat('!welt Mila')).toBe('');
     // Its name is free for an own text.
     await request(app).post('/api/text-commands').set(auth()).send({ trigger: '!ort', response: 'Mein Atelier.' }).expect(201);
     expect(await chat('!ort')).toBe('Mein Atelier.');
@@ -54,8 +55,8 @@ describe('the command list', () => {
     const { commands } = await list();
     expect(commands.map((c) => c.group)).toContain('text');
     expect(await find('!story')).toMatchObject({ group: 'text', stored: false, description: 'Wir schreiben eine Welt.' });
-    expect((await find('!figur'))?.description).toMatch(/Art „Figur“/);
-    expect(await find('!uptime')).toMatchObject({ group: 'builtin', stored: false, description: 'Sagt, wie lange der Stream schon läuft.' });
+    expect((await find('!welt'))?.description).toMatch(/Eintrag aus der Welt/);
+    expect(await find('!datenschutz')).toMatchObject({ group: 'builtin', stored: false, description: 'Sagt, was das Tool über dich speichert, wie lange, und wie du es löschen lässt.' });
   });
 
   it('takes a description of the streamer\'s own for a command', async () => {
@@ -69,9 +70,9 @@ describe('the command list', () => {
 
   it('takes one for a built-in, and refuses a key that is no command', async () => {
     await request(app).post('/api/commands/descriptions').set(auth())
-      .send({ uptime: 'Wie lange wir heute schon dabei sind.', __proto__: 'x', nonsense: 'y' }).expect(200);
-    expect(await find('!uptime')).toMatchObject({ stored: true, description: 'Wie lange wir heute schon dabei sind.' });
-    expect((await list()).builtinDescriptions).toEqual({ uptime: 'Wie lange wir heute schon dabei sind.' });
+      .send({ privacy: 'Was hier über dich gespeichert wird.', __proto__: 'x', nonsense: 'y' }).expect(200);
+    expect(await find('!datenschutz')).toMatchObject({ stored: true, description: 'Was hier über dich gespeichert wird.' });
+    expect((await list()).builtinDescriptions).toEqual({ privacy: 'Was hier über dich gespeichert wird.' });
     await request(app).post('/api/commands/descriptions').set(auth()).send(['nope']).expect(400);
   });
 
@@ -79,47 +80,47 @@ describe('the command list', () => {
     const { panel } = await list();
     expect(panel.startsWith('Befehle im Chat')).toBe(true);
     expect(panel).toContain('ERKLÄRT\n!story — Wir schreiben eine Welt.');
-    expect(panel).toContain('AUS DER WELT\n!begriff —');
+    expect(panel).toContain('AUS DER WELT\n!welt —');
     expect(panel).toContain('RUND UM DEN STREAM');
     expect(panel).not.toContain('!scene');
   });
 
   it('names a few in chat, lists them all on request, and explains one', async () => {
-    expect(await chat('!befehle figur')).toBe('!figur — Zeigt einen Eintrag der Art „Figur“ aus der Welt — z. B. !figur <Name>.');
+    expect(await chat('!befehle !welt')).toBe('!welt — Zeigt einen Eintrag aus der Welt — z. B. !welt <Name>.');
     expect(await chat('!befehle !story')).toContain('Wir schreiben eine Welt.');
     expect(await chat('!befehle quatsch')).toMatch(/kenne ich nicht.*📜/);
-    // The plain call: the usual ways in — here only !story and !figur exist of them — and how to get the rest.
+    // The plain call: the usual ways in — here only !welt and !story exist of them — and how to get the rest.
     const few = await chat('!befehle');
-    expect(few).toBe('📜 Neu hier? !story · !figur <Name> — alle Befehle: !befehle alle · was einer macht: !befehle <Name>');
+    expect(few).toBe('📜 Neu hier? !welt <Name> · !story — alle Befehle: !befehle alle · was einer macht: !befehle <Name>');
     const all = await chat('!befehle alle');
-    expect(all).toMatch(/^📜 Erklärt: !story · Aus der Welt: !begriff/);
+    expect(all).toMatch(/^📜 Erklärt: !story · Aus der Welt: !welt/);
     expect(all).toContain('Rund um den Stream: !challenge');
-    expect(await chat('!befehle welt')).toMatch(/^📜 Aus der Welt: !begriff !figur/);
+    expect(await chat('!befehle welt')).toMatch(/^📜 Aus der Welt: !welt/);
     expect(await chat('!befehle stream')).not.toContain('!story');
   });
 
   it('lets the streamer pick the few — up to six that exist', async () => {
-    await request(app).post('/api/commands/featured').set(auth()).send({ triggers: ['!uptime', 'story'] }).expect(200);
-    expect(await chat('!befehle')).toMatch(/^📜 Neu hier\? !uptime · !story — /);
-    expect((await list()).featured).toMatchObject({ triggers: ['!uptime', '!story'], stored: true, max: 6 });
+    await request(app).post('/api/commands/featured').set(auth()).send({ triggers: ['!datenschutz', 'story'] }).expect(200);
+    expect(await chat('!befehle')).toMatch(/^📜 Neu hier\? !datenschutz · !story — /);
+    expect((await list()).featured).toMatchObject({ triggers: ['!datenschutz', '!story'], stored: true, max: 6 });
     await request(app).post('/api/commands/featured').set(auth()).send({ triggers: ['!nichts'] }).expect(400);
     await request(app).post('/api/commands/featured').set(auth()).send({ triggers: [] }).expect(200);
     expect((await list()).featured.stored).toBe(false);
   });
 
   it('answers a second name like the command it stands for, and says so in lists', async () => {
-    await request(app).post('/api/commands/aliases').set(auth()).send({ '!geschichte': '!story', 'char': '!figur', '!liste': '!themen' }).expect(200);
+    await request(app).post('/api/commands/aliases').set(auth()).send({ '!geschichte': '!story', 'char': '!welt', '!liste': '!themen' }).expect(200);
     expect(await chat('!geschichte')).toContain('Wir schreiben eine Welt.');
     expect(await chat('!befehle geschichte')).toMatch(/^!story \(auch !geschichte\) — /);
     expect(await chat('!befehle alle')).toContain('!story (auch !geschichte)');
-    expect((await list()).panel).toContain('!figur (auch !char) —');
+    expect((await list()).panel).toContain('!welt (auch !char) —');
     expect(await find('!story')).toMatchObject({ aliases: ['!geschichte'] });
     // A second name is taken: nobody else may become it.
     await request(app).post('/api/text-commands').set(auth()).send({ trigger: '!geschichte', response: 'x' }).expect(409);
   });
 
   it('refuses a second name that is a command, or that stands for nothing', async () => {
-    await request(app).post('/api/commands/aliases').set(auth()).send({ '!story': '!uptime' }).expect(409);
+    await request(app).post('/api/commands/aliases').set(auth()).send({ '!story': '!datenschutz' }).expect(409);
     await request(app).post('/api/commands/aliases').set(auth()).send({ '!x': '!gibtsnicht' }).expect(404);
     await request(app).post('/api/commands/aliases').set(auth()).send({ 'kein wort': '!story' }).expect(400);
     expect((await list()).aliases).toEqual({});
@@ -129,6 +130,13 @@ describe('the command list', () => {
     expect(await find('!themen')).toMatchObject({ group: 'builtin', aliases: [] });
     expect(await find('!issues')).toBeUndefined();
     const res = await request(app).post('/api/text-commands').set(auth()).send({ trigger: '!issues', response: 'x' });
+    expect(res.status).toBe(409);
+  });
+
+  it('calls the vote !abstimmung now, and keeps !design taken for it', async () => {
+    expect(builtinKeyOf('!abstimmung')).toBe('design');
+    expect(builtinKeyOf('!design')).toBe('design');
+    const res = await request(app).post('/api/text-commands').set(auth()).send({ trigger: '!design', response: 'x' });
     expect(res.status).toBe(409);
   });
 
@@ -179,7 +187,7 @@ describe('the command list', () => {
       expect(b.description, b.key).not.toBe('');
     }
     expect(builtins.find((b) => b.key === 'rewardstats')).toMatchObject({ label: 'Stand in den Bestenlisten', modsOnly: false });
-    expect(builtins.filter((b) => b.modsOnly).map((b) => b.key).sort()).toEqual(['design', 'scene', 'shoutout']);
+    expect(builtins.filter((b) => b.modsOnly).map((b) => b.key).sort()).toEqual(['design', 'shoutout']);
   });
 
   it('lists the commands of own points for viewers, the mods-only ones not', async () => {

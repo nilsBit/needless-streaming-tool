@@ -25,7 +25,8 @@ const TEXT_IDEAS = [
   { trigger: '!danke', response: 'Danke an alle, die heute dabei sind!' },
   { trigger: '!clip', response: 'Einen Moment festhalten? Clip ihn mit dem Clip-Knopf unter dem Video.' },
 ];
-const LOOKUP_IDEAS = ['!figur', '!ort', '!gilde', '!begriff'];
+// One command for the whole world comes first; one per Art is still possible.
+const LOOKUP_IDEAS = ['!welt', '!wer', '!lexikon'];
 
 interface Props {
   /** A suggestion clicked on the page: starts at the name with this filled in. */
@@ -52,7 +53,7 @@ export default function CommandQuestPath({ initialTrigger, taken, onClose, onCre
   const [parts, setParts] = useState<number>(1);
   const [made, setMade] = useState<string>('');
 
-  useEffect(() => { apiGet<string[]>('/lookup-commands/arten').then((a) => { setArten(a); if (a?.length) setArt(a[0]); }); }, []);
+  useEffect(() => { apiGet<string[]>('/lookup-commands/arten').then(setArten); }, []);
   // How many chat messages the answer becomes: more than one is said, not hidden.
   useEffect(() => {
     if (kind !== 'text') return;
@@ -103,7 +104,7 @@ export default function CommandQuestPath({ initialTrigger, taken, onClose, onCre
                 onChange={pickKind}
                 options={[
                   { value: 'text', title: 'Mit deinem Text antworten', text: 'Für alles, was du sonst in jedem Stream neu erklärst: !stream, !zeitplan, !setup.', icon: 'M4 5h16v11H8l-4 4z' },
-                  { value: 'lookup', title: 'In deiner Welt nachschlagen', text: lookupReady ? 'Der Chat fragt !figur Mila, der Bot antwortet aus dem Worldbuilder.' : 'Geht, sobald der Worldbuilder läuft.', icon: 'M11 4a7 7 0 100 14 7 7 0 000-14zM20 20l-4-4' },
+                  { value: 'lookup', title: 'In deiner Welt nachschlagen', text: lookupReady ? 'Der Chat fragt !welt Mila, der Bot antwortet aus dem Worldbuilder.' : 'Geht, sobald der Worldbuilder läuft.', icon: 'M11 4a7 7 0 100 14 7 7 0 000-14zM20 20l-4-4' },
                 ]}
               />
             </>
@@ -139,12 +140,15 @@ export default function CommandQuestPath({ initialTrigger, taken, onClose, onCre
             ),
           }
           : {
-            label: 'Art in der Welt',
-            ready: !!art,
+            label: 'Wo suchen',
+            ready: true,
             content: (
               <>
-                <h3 className="quest-step-title">Was soll {name} nachschlagen?</h3>
-                <ChoiceCards label="Art in der Welt" value={art} onChange={setArt} options={(arten ?? []).map((a) => ({ value: a, title: a, text: `${name} <Name> sucht unter „${a}“.` }))} />
+                <h3 className="quest-step-title">Wo soll {name} nachschlagen?</h3>
+                <ChoiceCards label="Wo suchen" value={art} onChange={setArt} options={[
+                  { value: '', title: 'In der ganzen Welt', text: `${name} <Name> findet jeden Eintrag, egal welcher Art.` },
+                  ...(arten ?? []).map((a) => ({ value: a, title: `Nur ${a}`, text: `${name} <Name> sucht nur unter „${a}“.` })),
+                ]} />
               </>
             ),
           },
@@ -155,7 +159,7 @@ export default function CommandQuestPath({ initialTrigger, taken, onClose, onCre
               <h3 className="quest-step-title">So sieht es im Chat aus</h3>
               <div className="quest-preview-chat">
                 <span className="preview-who viewer">kartograph:</span> {kind === 'text' ? name : `${name} Mila`}<br />
-                <span className="preview-who bot">Bot:</span> {kind === 'text' ? response : `Mila – ${art}: [die Kurzbeschreibung aus deiner Welt]`}
+                <span className="preview-who bot">Bot:</span> {kind === 'text' ? response : `Mila – ${art || 'Figur'}: [die Kurzbeschreibung aus deiner Welt]`}
               </div>
               <p className="dialog-hint" style={{ margin: 0 }}>Nach dem Anlegen steht {name} auch in !befehle.</p>
             </>

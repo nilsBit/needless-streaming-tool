@@ -9,14 +9,14 @@ import { useFeatures } from '../contexts/FeaturesContext';
 import { commandVisible } from '../../../shared/features';
 
 // "Befehle" under Chat & Bot: one list for every command — own texts
-// (!zeitplan), lookups into the world (!figur) and, since 13.10., the built-in
+// (!zeitplan), lookups into the world (!welt) and, since 13.10., the built-in
 // ones (!projekt), which can only be renamed here. Filters: all, own, built-in,
 // and what is switched off. A row shows the sentence viewers read, the second
 // names and the star for `!befehle`. Editing happens in a dialog that holds
 // name, answer, sentence, second names and pause together.
 
 interface TextCommand { id: number; trigger: string; response: string; cooldown_seconds: number; enabled: boolean }
-interface LookupCommand { id: number; trigger: string; art: string; cooldown_seconds: number; enabled: boolean }
+interface LookupCommand { id: number; trigger: string; art: string; response: string | null; cooldown_seconds: number; enabled: boolean }
 
 interface CommandInfo {
   trigger: string;
@@ -115,7 +115,7 @@ export default function TextCommandsPanel() {
   const refetchAll = () => { refetchTexts(); refetchLookups(); refetchList(); refetchNames(); };
 
   // How the answer lands in chat while it is being written.
-  const response = draft?.kind === 'text' ? draft.response : '';
+  const response = draft?.response ?? '';
   useEffect(() => {
     if (!response.trim()) { setPreview(null); return; }
     const timer = setTimeout(async () => setPreview(await apiPost<Preview>('/text-commands/preview', { response })), 250);
@@ -132,7 +132,7 @@ export default function TextCommandsPanel() {
     });
     const lookupRows: Row[] = (lookups ?? []).map((l) => {
       const i = info.get(`lookup:${l.id}`);
-      return { kind: 'lookup', id: l.id, trigger: l.trigger, enabled: l.enabled, cooldown: l.cooldown_seconds, sentence: i?.description ?? '', stored: i?.stored ?? false, aliases: i?.aliases ?? [], featured: featured.has(l.trigger), response: '', art: l.art, chars: 0 };
+      return { kind: 'lookup', id: l.id, trigger: l.trigger, enabled: l.enabled, cooldown: l.cooldown_seconds, sentence: i?.description ?? '', stored: i?.stored ?? false, aliases: i?.aliases ?? [], featured: featured.has(l.trigger), response: l.response ?? '', art: l.art, chars: (l.response ?? '').length };
     });
     return [...textRows, ...(worldbuilder ? lookupRows : [])];
   }, [texts, lookups, list, worldbuilder]);
@@ -205,7 +205,7 @@ export default function TextCommandsPanel() {
     const endpoint = draft.kind === 'text' ? '/text-commands' : '/lookup-commands';
     const body = draft.kind === 'text'
       ? { trigger: draft.trigger, response: draft.response, cooldown_seconds: draft.cooldown_seconds, description: draft.description, enabled: draft.enabled }
-      : { trigger: draft.trigger, art: draft.art, cooldown_seconds: draft.cooldown_seconds, description: draft.description, enabled: draft.enabled };
+      : { trigger: draft.trigger, art: draft.art, response: draft.response, cooldown_seconds: draft.cooldown_seconds, description: draft.description, enabled: draft.enabled };
     let refusal: string | null;
     let savedTrigger = draft.trigger.trim();
     if (draft.id === null) {
@@ -342,19 +342,19 @@ export default function TextCommandsPanel() {
       {draft && (
         <Dialog
           title={draft.id === null ? 'Neuer Befehl' : `${draft.originalTrigger} bearbeiten`}
-          sentence={draft.kind === 'text' ? 'Ein Befehl, der einen festen Text antwortet.' : 'Ein Befehl, der in einer Art deiner Welt nachschlägt, z. B. !figur Mila.'}
+          sentence={draft.kind === 'text' ? 'Ein Befehl, der einen festen Text antwortet.' : 'Ein Befehl, der in deiner Welt nachschlägt, z. B. !welt Mila.'}
           onClose={close}
           footer={<>
             {draft.id !== null && <button type="button" className="card-link" onClick={remove}>Löschen</button>}
             <span style={{ flex: 1 }} />
             <button type="button" className="card-secondary" onClick={close}>Abbrechen</button>
-            <button type="button" className="card-primary" onClick={save} disabled={!draft.trigger.trim() || (draft.kind === 'text' ? !draft.response.trim() : !draft.art)}>Speichern</button>
+            <button type="button" className="card-primary" onClick={save} disabled={!draft.trigger.trim() || (draft.kind === 'text' && !draft.response.trim())}>Speichern</button>
           </>}
         >
           {draft.id === null && worldbuilder && (
             <div className="card-row">
               <button type="button" className={`card-secondary ${draft.kind === 'text' ? 'active' : ''}`} onClick={() => setDraft({ ...draft, kind: 'text' })}>Eigener Text</button>
-              <button type="button" className={`card-secondary ${draft.kind === 'lookup' ? 'active' : ''}`} onClick={() => setDraft({ ...draft, kind: 'lookup', art: draft.art || arten?.[0] || '' })}>Aus der Welt nachschlagen</button>
+              <button type="button" className={`card-secondary ${draft.kind === 'lookup' ? 'active' : ''}`} onClick={() => setDraft({ ...draft, kind: 'lookup' })}>Aus der Welt nachschlagen</button>
             </div>
           )}
           <div className="dialog-grid">
@@ -382,14 +382,26 @@ export default function TextCommandsPanel() {
               )}
             </div>
           ) : (
-            <div className="dialog-field">
-              <label htmlFor="cmd-art">Art der Welt, in der gesucht wird</label>
-              <select id="cmd-art" className="card-select" value={draft.art} onChange={(e) => setDraft({ ...draft, art: e.target.value })}>
-                {artOptions(draft.art).length === 0 && <option value="">Keine Art bekannt</option>}
-                {artOptions(draft.art).map((art) => <option key={art} value={art}>{art}</option>)}
-              </select>
-              {arten === null && <span className="dialog-hint">Der Worldbuilder ist nicht erreichbar – die Arten kommen, sobald er läuft und das Schaufenster offen ist.</span>}
-            </div>
+            <>
+              <div className="dialog-field">
+                <label htmlFor="cmd-art">Wo gesucht wird</label>
+                <select id="cmd-art" className="card-select" value={draft.art} onChange={(e) => setDraft({ ...draft, art: e.target.value })}>
+                  <option value="">In der ganzen Welt</option>
+                  {artOptions(draft.art).map((art) => <option key={art} value={art}>Nur {art}</option>)}
+                </select>
+                {arten === null && <span className="dialog-hint">Der Worldbuilder ist nicht erreichbar – die Arten kommen, sobald er läuft und das Schaufenster offen ist.</span>}
+              </div>
+              <div className="dialog-field">
+                <label htmlFor="cmd-text">Antwort ohne Namen (optional) – leer zeigt der Bot, was es gibt</label>
+                <textarea id="cmd-text" rows={4} placeholder={`Was der Chat liest, wenn jemand nur ${draft.trigger.trim() || '!welt'} schreibt.`} value={draft.response} onChange={(e) => setDraft({ ...draft, response: e.target.value })} />
+                {preview && (
+                  <span className={`dialog-hint ${preview.messages.length > 2 ? 'cmd-too-long' : ''}`}>
+                    {draft.response.length} Zeichen · {preview.messages.length === 1 ? '1 Chat-Nachricht' : `${preview.messages.length} Chat-Nachrichten`}
+                    {preview.messages.length > 2 && ' – höchstens 2 gehen'}
+                  </span>
+                )}
+              </div>
+            </>
           )}
 
           <div className="dialog-field">

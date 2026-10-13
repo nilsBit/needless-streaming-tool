@@ -2,13 +2,10 @@ import { Client } from 'tmi.js';
 import { getDb } from '../db/index';
 import { startVote, castVote, getActiveVote, endVote } from './voting';
 import { StreamState, Issue } from '../../shared/types';
-import { changeScene, getScenes } from '../obs/index';
 import { broadcast } from '../websocket/index';
-import { resolveOEmbed } from '../api/song-requests';
-import { parseSongUrl } from '../song-url';
 import { standingsText } from '../leaderboards';
 import { sayInParts } from './chat-message';
-import { builtinKeyOf, triggerOf, canonicalTrigger } from './command-names';
+import { builtinKeyOf, triggerOf, canonicalTrigger, getCommandNames } from './command-names';
 import { commandEnabled } from '../features';
 import { answerChatMessage } from './chat-answers';
 import { builtinCooldownSeconds, INFO_BUILTINS, passCooldown } from './cooldown';
@@ -17,7 +14,7 @@ import { adjustReply } from '../points/chat';
 import { parseRedeem, redeem } from '../points/redeem';
 
 /** Built-ins that answer through answerChatMessage, which applies the info cooldown itself. */
-const ANSWERED_IN_CHAT_ANSWERS: ReadonlySet<string> = new Set(['commands', 'uptime', 'privacy', 'points', 'rewards_list', 'progress']);
+const ANSWERED_IN_CHAT_ANSWERS: ReadonlySet<string> = new Set(['commands', 'privacy', 'points', 'rewards_list', 'progress']);
 
 /** Broadcaster and mods — the people allowed to steer the stream from chat. */
 function isPrivileged(tags: { mod?: boolean; badges?: { broadcaster?: string } | null }): boolean {
@@ -100,17 +97,19 @@ export function registerCommands(client: Client) {
         if (!isPrivileged(tags)) break;
         const args = message.trim().split(/\s+/).slice(1);
         const subCommand = args[0]?.toLowerCase();
+        // Replies name the commands as the streamer has them, not as they were once called.
+        const { design: self, vote: voteName } = getCommandNames();
 
         if (subCommand === 'start') {
           const duration = parseInt(args[1], 10) || 60;
           const options = args.slice(2);
           if (options.length < 2) {
-            say('❌ Mindestens 2 Optionen: !design start 60 option1 option2 ...');
+            say(`❌ Mindestens 2 Optionen: ${self} start 60 option1 option2 ...`);
             break;
           }
           const success = startVote('🗳️ Abstimmung', options, duration);
           if (success) {
-            say(`🎨 ABSTIMMUNG! Schreibt !vote <option> — Optionen: ${options.join(', ')} — ${duration}s Zeit!`);
+            say(`🗳️ ABSTIMMUNG! Schreibt ${voteName} <option> — Optionen: ${options.join(', ')} — ${duration}s Zeit!`);
           } else {
             say('❌ Es läuft bereits eine Abstimmung!');
           }
@@ -119,7 +118,7 @@ export function registerCommands(client: Client) {
           if (result) {
             const sorted = Object.entries(result.counts).sort((a, b) => b[1] - a[1]);
             const resultText = sorted.map(([opt, count]) => `${opt}: ${count}`).join(' | ');
-            say(`🎨 ERGEBNIS: ${resultText} — Gewinner: ${result.winner} 🏆`);
+            say(`🗳️ ERGEBNIS: ${resultText} — Gewinner: ${result.winner} 🏆`);
           } else {
             say('❌ Keine aktive Abstimmung.');
           }
@@ -127,38 +126,12 @@ export function registerCommands(client: Client) {
           const vote = getActiveVote();
           if (vote) {
             const countsText = vote.options.map((o) => `${o}: ${vote.counts[o] || 0}`).join(' | ');
-            say(`🎨 Abstimmung: ${countsText} — noch ${vote.remaining}s`);
+            say(`🗳️ Abstimmung: ${countsText} — noch ${vote.remaining}s`);
           } else {
             say('❌ Keine aktive Abstimmung.');
           }
         } else {
-          say('🎨 Befehle: !design start <sekunden> <opt1> <opt2> ... | !design end | !design status');
-        }
-        break;
-      }
-
-      case 'scene': {
-        if (!isPrivileged(tags)) {
-          say('❌ Nur Mods und Broadcaster können Szenen wechseln!');
-          break;
-        }
-
-        const sceneName = message.trim().split(/\s+/).slice(1).join(' ');
-        if (!sceneName) {
-          const scenes = await getScenes();
-          if (scenes.length > 0) {
-            say(`🎬 Verfügbare Szenen: ${scenes.join(', ')}`);
-          } else {
-            say('❌ OBS nicht verbunden oder keine Szenen gefunden.');
-          }
-          break;
-        }
-
-        const result = await changeScene(sceneName);
-        if (result.success) {
-          say(`🎬 Scene gewechselt zu: ${sceneName}`);
-        } else {
-          say(`❌ Scene-Wechsel fehlgeschlagen: ${result.error || 'Unbekannter Fehler'}`);
+          say(`🗳️ Befehle: ${self} start <sekunden> <opt1> <opt2> ... | ${self} end | ${self} status`);
         }
         break;
       }
@@ -167,7 +140,7 @@ export function registerCommands(client: Client) {
         const option = message.trim().split(/\s+/).slice(1).join(' ');
         const username = tags['display-name'] || tags.username || 'anon';
         if (!option) {
-          say('❌ Schreib !vote <option>');
+          say(`❌ Schreib ${getCommandNames().vote} <option>`);
           break;
         }
         const success = castVote(username, option);
@@ -178,59 +151,6 @@ export function registerCommands(client: Client) {
           } else {
             say(`❌ Ungültige Option. Wähle: ${vote.options.join(', ')}`);
           }
-        }
-        break;
-      }
-
-      case 'sr': {
-        const word = message.trim().split(/\s+/)[1];
-        const username = tags['display-name'] || tags.username || 'anon';
-        if (!word) {
-          say('❌ Benutzung: !sr <YouTube oder Spotify URL>');
-          break;
-        }
-        // One link to one track, rebuilt from its id — never the viewer's raw text.
-        const link = parseSongUrl(word);
-        if (!link) {
-          say('❌ Nur Links zu YouTube-Videos oder Spotify-Titeln.');
-          break;
-        }
-        const url = link.url;
-        // One request every 20 seconds per viewer: each costs a call to YouTube or Spotify.
-        if (!passCooldown(`sr:${tags.username ?? username}`, 20, isPrivileged(tags), { viewer: tags.username })) break;
-        try {
-          const db = getDb();
-          const maxRow = db.prepare('SELECT value FROM settings WHERE key = ?').get('sr_max_per_user') as { value: string } | undefined;
-          const max = parseInt(maxRow?.value || '2', 10);
-          const count = db.prepare("SELECT COUNT(*) as c FROM song_requests WHERE requested_by = ? AND status = 'pending'").get(username) as { c: number };
-          if (count.c >= max) {
-            say(`❌ Du hast bereits ${max} Songs in der Queue, @${username}.`);
-            break;
-          }
-          const meta = await resolveOEmbed(url);
-          if (!meta) {
-            say('❌ Konnte den Song nicht laden.');
-            break;
-          }
-          db.prepare('INSERT INTO song_requests (url, title, artist, source, requested_by) VALUES (?, ?, ?, ?, ?)').run(url, meta.title, meta.artist, meta.source, username);
-          const pos = db.prepare("SELECT COUNT(*) as c FROM song_requests WHERE status = 'pending'").get() as { c: number };
-          broadcast('sr-update', {});
-          say(`🎵 "${meta.title}" von @${username} zur Queue hinzugefügt (Position ${pos.c})`);
-        } catch (err) {
-          console.error('[SR] Error:', err);
-          say('❌ Konnte den Song nicht laden.');
-        }
-        break;
-      }
-
-      case 'queue': {
-        const db = getDb();
-        const pending = db.prepare("SELECT title, requested_by FROM song_requests WHERE status = 'pending' ORDER BY created_at ASC LIMIT 3").all() as Array<{ title: string; requested_by: string }>;
-        if (pending.length === 0) {
-          say('🎵 Die Queue ist leer. Requeste mit !sr <URL>');
-        } else {
-          const list = pending.map((s, i) => `${i + 1}. "${s.title}" (@${s.requested_by})`).join(' | ');
-          say(`🎵 Queue: ${list}`);
         }
         break;
       }
@@ -262,7 +182,7 @@ export function registerCommands(client: Client) {
         break;
       }
 
-      // `!befehle`, `!uptime`, Text Commands and Lookup Commands: the same path the app's "try it" box takes.
+      // `!befehle`, `!datenschutz`, Text Commands and Lookup Commands: the same path the app's "try it" box takes.
       case 'commands':
       default: {
         const answer = await answerChatMessage(message, isPrivileged(tags), tags.username);

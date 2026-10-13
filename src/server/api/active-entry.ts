@@ -310,9 +310,8 @@ export const CHARACTER_IMAGE_DIR = getUserDataPath('character-images');
  *
  * Pinning waits for this copy, so a silent source would otherwise hold the
  * Overlay — the stall the rest of the world client already rules out. Five
- * seconds is the same budget the oEmbed lookups in `song-requests.ts` get, and
- * for the same reason: Worldbuilder answers over loopback in milliseconds, but
- * a Notion portrait comes off the internet and deserves the longer rope.
+ * seconds, because Worldbuilder answers over loopback in milliseconds, but a
+ * Notion portrait comes off the internet and deserves the longer rope.
  */
 const PORTRAIT_TIMEOUT_MS = 5000;
 

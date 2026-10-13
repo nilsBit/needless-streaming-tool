@@ -5,7 +5,7 @@ import http from 'http';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { initDatabase } from '../db/index';
+import { initDatabase, getDb } from '../db/index';
 import { generateApiToken } from '../auth-token';
 import { createApp } from '../index';
 
@@ -118,18 +118,40 @@ describe('lookup commands', () => {
   });
 
   beforeEach(() => {
-    // A fresh database per test: starter set, no Text Commands, no renames.
+    // A fresh database per test: no Text Commands, no renames, and besides the
+    // starter `!welt` one command per Art, the way it was set up before 13.10.
     initDatabase(':memory:');
+    const add = getDb().prepare('INSERT INTO lookup_commands (trigger, art) VALUES (?, ?)');
+    for (const [trigger, art] of [['!figur', 'Figur'], ['!ort', 'Ort'], ['!gilde', 'Fraktion'], ['!begriff', 'Konzept']]) add.run(trigger, art);
     process.env.WORLDBUILDER_ANSCHLUSS = CONNECTION;
   });
 
-  it('start with Worldbuilder’s starter Arten', async () => {
-    expect((await lookups()).map((l) => [l.trigger, l.art])).toEqual([
-      ['!begriff', 'Konzept'],
-      ['!figur', 'Figur'],
-      ['!gilde', 'Fraktion'],
-      ['!ort', 'Ort'],
-    ]);
+  it('start with one command for the whole world', async () => {
+    expect((await lookups()).find((l) => l.trigger === '!welt')).toMatchObject({ art: '', response: null });
+  });
+
+  describe('the whole world', () => {
+    it('finds an entry of any Art and names the Art', async () => {
+      expect(await reply('!welt saldor')).toMatch(/^📖 Saldor · Region — Eine Wüstenstadt/);
+      expect(await reply('!welt mila')).toContain('Mila („Die Graue“) · Figur');
+    });
+
+    it('says its own words without a name, and looks up with one', async () => {
+      const welt = (await lookups()).find((l) => l.trigger === '!welt')!;
+      await request(app).patch(`/api/lookup-commands/${welt.id}`).set(auth()).send({ response: 'Die Verborgene Stadt — Urban Fantasy.' }).expect(200);
+      expect(await reply('!welt')).toBe('Die Verborgene Stadt — Urban Fantasy.');
+      expect(await reply('!welt jörm')).toContain('Jörm · Region');
+      const list = (await request(app).get('/api/commands').set(auth()).expect(200)).body.commands as Array<{ trigger: string; description: string }>;
+      expect(list.find((c) => c.trigger === '!welt')?.description).toBe('Die Verborgene Stadt — Urban Fantasy. Mit Namen: zeigt einen Eintrag aus der Welt — z. B. !welt <Name>.');
+    });
+
+    it('lists every entry without a name and without words of its own', async () => {
+      expect(await reply('!welt')).toMatch(/^📖 Welt — schreib !welt <Name>: .*Saldor/);
+    });
+
+    it('refuses an answer without a name that is too long', async () => {
+      await request(app).post('/api/lookup-commands').set(auth()).send({ trigger: '!lexikon', art: '', response: 'x'.repeat(2000) }).expect(400);
+    });
   });
 
   it('offer the Arten of the open world to pick from', async () => {
@@ -271,6 +293,6 @@ describe('lookup commands', () => {
   it('are listed in !befehle between the Text Commands and the built-ins', async () => {
     await request(app).post('/api/text-commands').set(auth()).send({ trigger: '!story', response: 'Text.' }).expect(201);
 
-    expect(await reply('!befehle alle')).toMatch(/^📜 Erklärt: !story · Aus der Welt: !begriff !figur !gilde !ort · Rund um den Stream: !challenge/);
+    expect(await reply('!befehle alle')).toMatch(/^📜 Erklärt: !story · Aus der Welt: !begriff !figur !gilde !ort !welt · Rund um den Stream: !challenge/);
   });
 });

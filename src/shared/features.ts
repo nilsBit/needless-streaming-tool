@@ -7,7 +7,7 @@
 // Spec: docs/superpowers/specs/2026-10-06-einrichtung-design.md
 
 export type FeatureKey =
-  | 'befehle' | 'musik' | 'rad' | 'vote' | 'shoutout' | 'punkte'
+  | 'befehle' | 'rad' | 'vote' | 'shoutout' | 'punkte'
   | 'chat' | 'song' | 'ziel' | 'fortschritt' | 'alerts'
   | 'bestenliste' | 'belohnungen'
   | 'momente' | 'autoclips' | 'meilensteine' | 'discord'
@@ -52,7 +52,6 @@ export const FEATURE_GROUPS: readonly FeatureGroup[] = [
 
 export const FEATURES: readonly Feature[] = [
   { key: 'befehle', group: 'chat', label: 'Erklär-Befehle', sentence: 'Der Chat fragt !zeitplan oder !setup, der Bot antwortet mit deinem Text.', needs: ['twitch'], overlays: [], commands: [], panels: [], hotkeys: [], readiness: ['commands'] },
-  { key: 'musik', group: 'chat', label: 'Musikwünsche', sentence: 'Zuschauer wünschen sich Songs mit !sr und sehen die Reihe mit !queue.', needs: ['twitch'], overlays: [], commands: ['sr', 'queue'], panels: ['song'], hotkeys: [], readiness: [] },
   { key: 'rad', group: 'chat', label: 'Glücksrad', sentence: 'Du sammelst Themen, das Rad entscheidet. Der Chat sieht sie mit !themen.', needs: ['twitch', 'obs'], overlays: ['roulette'], commands: ['issues'], panels: ['issues'], hotkeys: ['roulette'], readiness: [] },
   { key: 'vote', group: 'chat', label: 'Abstimmung', sentence: 'Du sammelst Vorschläge, der Chat stimmt mit !vote ab.', needs: ['twitch', 'obs'], overlays: ['poll'], commands: ['vote', 'design'], panels: ['designs'], hotkeys: [], readiness: [] },
   { key: 'shoutout', group: 'chat', label: 'Raid-Gruß von selbst', sentence: 'Wer dich raidet, bekommt vom Bot einen Gruß mit Link zum Kanal.', needs: ['twitch'], overlays: [], commands: ['shoutout'], panels: [], hotkeys: [], readiness: [] },
@@ -65,7 +64,7 @@ export const FEATURES: readonly Feature[] = [
   { key: 'alerts', group: 'overlays', label: 'Alerts', sentence: 'Tafel mit Ton bei Follow, Abo, Geschenk, Raid und Bits.', needs: ['twitch', 'obs'], overlays: ['alerts'], commands: [], panels: [], hotkeys: [], readiness: ['alertSounds'] },
 
   { key: 'bestenliste', group: 'rewards', label: 'Bestenlisten', sentence: 'Wer eine Belohnung am öftesten einlöst – je Liste eine Belohnung. Als Overlay, mit Rangwechsel-Meldung und !stats.', needs: ['twitch', 'obs'], overlays: ['reward-leaderboard', 'reward-rankchange'], commands: ['rewardstats'], panels: [], hotkeys: [], readiness: [] },
-  { key: 'belohnungen', group: 'rewards', label: 'Belohnungen auslösen', sentence: 'Kanalpunkte drehen das Rad, wechseln kurz die Szene, ändern die Musik oder reichen einen Vorschlag ein.', needs: ['twitch', 'obs'], overlays: [], commands: ['scene'], panels: ['rewards'], hotkeys: [], readiness: [] },
+  { key: 'belohnungen', group: 'rewards', label: 'Belohnungen auslösen', sentence: 'Kanalpunkte drehen das Rad, wechseln kurz die Szene, ändern die Musik oder reichen einen Vorschlag ein.', needs: ['twitch', 'obs'], overlays: [], commands: [], panels: ['rewards'], hotkeys: [], readiness: [] },
 
   { key: 'momente', group: 'personal', label: 'Momente merken', sentence: 'Ein Klick setzt eine Marke. Nach dem Stream steht sie im Ablauf, mit Uhrzeit.', needs: [], overlays: [], commands: ['hype'], panels: [], hotkeys: ['hype_moment'], readiness: [] },
   { key: 'autoclips', group: 'personal', label: 'Hype von selbst erkennen', sentence: 'Wenn der Chat explodiert, setzt das Tool die Marke für dich.', needs: ['twitch'], overlays: [], commands: [], panels: [], hotkeys: [], readiness: [] },
@@ -86,7 +85,7 @@ export const OWNER_CHANNEL = 'chain_des';
  * at first, one click away.
  */
 export const DEFAULT_FEATURES: readonly FeatureKey[] = [
-  'befehle', 'musik', 'rad', 'vote', 'shoutout', 'punkte',
+  'befehle', 'rad', 'vote', 'shoutout', 'punkte',
   'song', 'ziel', 'fortschritt',
   'bestenliste', 'belohnungen',
   'meilensteine', 'discord',

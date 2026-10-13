@@ -29,18 +29,15 @@ export interface CommandInfo {
   aliases: string[];
 }
 
-/** Built-ins a viewer can use. `!scene` (mods) and `!design` (a poll) stay out, as in `!befehle`. */
+/** Built-ins a viewer can use. `!so` (mods) and `!abstimmung` (a poll) stay out, as in `!befehle`. */
 const BUILTIN_DESCRIPTIONS: Record<string, string> = {
   challenge: 'Sagt, welche Challenge gerade läuft und wie sie steht.',
   progress: 'Sagt, woran gerade gearbeitet wird, wie weit es ist und seit wie vielen Streams.',
   issues: 'Zählt die offenen Themen fürs Glücksrad.',
   song: 'Sagt, welcher Song gerade läuft.',
-  sr: 'Wünscht sich einen Song: !sr <Link oder Titel>.',
-  queue: 'Zeigt die nächsten Songwünsche.',
   vote: 'Stimmt in der laufenden Abstimmung ab: !vote <Nummer>.',
   hype: 'Treibt den Hype-Zähler hoch.',
   rewardstats: 'Zeigt deinen Stand in jeder Bestenliste: !stats, oder !stats <Name>.',
-  uptime: 'Sagt, wie lange der Stream schon läuft.',
   privacy: 'Sagt, was das Tool über dich speichert, wie lange, und wie du es löschen lässt.',
   points: 'Zeigt deine Punkte, deinen Beitrag und deinen Platz: !punkte, oder !punkte <Name>.',
   rewards_list: 'Nennt, was du mit deinen Punkten einlösen kannst, und was es kostet.',
@@ -57,27 +54,22 @@ const BUILTIN_LABELS: Record<string, string> = {
   progress: 'Projekt',
   issues: 'Themen fürs Glücksrad',
   song: 'Aktueller Song',
-  sr: 'Songwunsch',
-  queue: 'Songwünsche',
   vote: 'Abstimmen',
   hype: 'Hype-Moment',
   rewardstats: 'Stand in den Bestenlisten',
   points: 'Eigene Punkte',
   rewards_list: 'Belohnungen für Punkte',
   redeem: 'Mit Punkten einlösen',
-  uptime: 'Laufzeit',
   privacy: 'Datenschutz',
   commands: 'Befehlsliste',
   shoutout: 'Shoutout',
-  scene: 'Szene wechseln',
   design: 'Abstimmung führen',
 };
 
 /** The built-ins for mods: never in `!befehle`, so their sentence lives here, for the app only. */
 const MOD_DESCRIPTIONS: Record<string, string> = {
   shoutout: 'Empfiehlt einen anderen Kanal: !so <Name>.',
-  scene: 'Wechselt die Szene in OBS: !scene <Name>, ohne Namen nennt er die Szenen.',
-  design: 'Startet, beendet und zeigt eine Abstimmung: !design start 60 A B …, !design end, !design status.',
+  design: 'Startet, beendet und zeigt eine Abstimmung: !abstimmung start 60 A B …, !abstimmung end, !abstimmung status.',
 };
 
 export interface BuiltinInfo {
@@ -130,9 +122,15 @@ function firstSentence(text: string): string {
   return sentence.length > 140 ? `${sentence.slice(0, 137)}…` : sentence;
 }
 
-export function derivedDescription(command: { group: CommandGroup; trigger: string; response?: string; art?: string; key?: string }): string {
+export function derivedDescription(command: { group: CommandGroup; trigger: string; response?: string | null; art?: string; key?: string }): string {
   if (command.group === 'text') return firstSentence(command.response ?? '') || 'Antwortet mit einem festen Text.';
-  if (command.group === 'lookup') return `Zeigt einen Eintrag der Art „${command.art}“ aus der Welt — z. B. ${command.trigger} <Name>.`;
+  if (command.group === 'lookup') {
+    const lookup = command.art
+      ? `Zeigt einen Eintrag der Art „${command.art}“ aus der Welt — z. B. ${command.trigger} <Name>.`
+      : `Zeigt einen Eintrag aus der Welt — z. B. ${command.trigger} <Name>.`;
+    const own = firstSentence(command.response ?? '');
+    return own ? `${own} Mit Namen: ${lookup.charAt(0).toLowerCase()}${lookup.slice(1)}` : lookup;
+  }
   return BUILTIN_DESCRIPTIONS[command.key ?? ''] ?? 'Eingebauter Befehl.';
 }
 
@@ -145,8 +143,8 @@ export function commandList(): CommandInfo[] {
 
   const texts = db.prepare('SELECT id, trigger, response, description FROM text_commands WHERE enabled = 1 ORDER BY trigger')
     .all() as Array<{ id: number; trigger: string; response: string; description: string | null }>;
-  const lookups = db.prepare('SELECT id, trigger, art, description FROM lookup_commands WHERE enabled = 1 ORDER BY trigger')
-    .all() as Array<{ id: number; trigger: string; art: string; description: string | null }>;
+  const lookups = db.prepare('SELECT id, trigger, art, response, description FROM lookup_commands WHERE enabled = 1 ORDER BY trigger')
+    .all() as Array<{ id: number; trigger: string; art: string; response: string | null; description: string | null }>;
 
   const list: CommandInfo[] = [];
   for (const row of texts) {
@@ -160,7 +158,7 @@ export function commandList(): CommandInfo[] {
     list.push({
       trigger: row.trigger, group: 'lookup', id: String(row.id), stored: Boolean(row.description?.trim()),
       aliases: aliasesOf(row.trigger, aliases),
-      description: row.description?.trim() || derivedDescription({ group: 'lookup', trigger: row.trigger, art: row.art }),
+      description: row.description?.trim() || derivedDescription({ group: 'lookup', trigger: row.trigger, art: row.art, response: row.response }),
     });
   }
   for (const key of [...VIEWER_COMMAND_KEYS, 'commands']) {
@@ -204,7 +202,7 @@ export function featuredCommands(list: CommandInfo[] = commandList()): { trigger
       return { triggers: stored, stored: true };
     } catch {}
   }
-  return { triggers: ['!welt', '!story', '!figur', '!discord'].filter((trigger) => have.has(trigger)), stored: false };
+  return { triggers: ['!welt', '!story', '!discord'].filter((trigger) => have.has(trigger)), stored: false };
 }
 
 export function saveFeaturedCommands(input: unknown): { triggers: string[] } | { error: string; message: string } {

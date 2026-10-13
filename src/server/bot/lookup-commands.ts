@@ -2,20 +2,22 @@ import { getDb } from '../db/index';
 import { fold } from '../fold';
 import { getActiveEntry, toCard, type EntryCard } from '../api/active-entry';
 import { isWorldbuilderAvailable, loadEntriesFromWorld, toEntry, type EntryDetail } from '../api/worldbuilder';
-import { CHAT_MESSAGE_LIMIT, type ChatAnswer } from './chat-message';
+import { CHAT_MESSAGE_LIMIT, splitForChat, type ChatAnswer } from './chat-message';
 import { checkCooldown, checkTrigger, triggerOf, type Refusal } from './command-names';
 import { passCooldown } from './cooldown';
 import { worldbuilderInstalled } from '../features';
 
 /**
  * Lookup Commands: chat commands that find an entry of one Worldbuilder Art by
- * name — `!figur Mila`, `!ort Saldor` — and answer with a short description.
+ * name — `!welt Mila`, `!figur Mila` — and answer with a short description.
  *
  * Viewers ask "who is that?" all stream long. The answer is already written
  * down in the world; this lets chat read it without the streamer stopping.
  *
  * Each command points at an Art **by name**, the way the Schaufenster speaks:
  * Arten are user data, and what one world calls "Region" another calls "Ort".
+ * An empty Art searches every Art — one `!welt Mila` instead of `!figur`,
+ * `!region`, `!gilde` and `!begriff` (13.10.2026).
  *
  * Answers go through the Entry Card, so a field the streamer hid from stream
  * stays out of chat as well.
@@ -24,7 +26,10 @@ import { worldbuilderInstalled } from '../features';
 export interface LookupCommand {
   id: number;
   trigger: string;
+  /** Empty: every Art. */
   art: string;
+  /** What the command says without a name; empty means it shows what is there. */
+  response: string | null;
   cooldown_seconds: number;
   /** SQLite has no boolean. */
   enabled: number;
@@ -35,14 +40,14 @@ export interface LookupCommand {
 
 /** Checks a new or changed Lookup Command. `ownId` leaves the command itself out of the duplicate check. */
 export function checkLookupCommand(
-  command: { trigger: string; art: string; cooldown_seconds: number },
+  command: { trigger: string; art: string; response?: string | null; cooldown_seconds: number },
   ownId?: number,
 ): Refusal | null {
   const trigger = checkTrigger(command.trigger, ownId === undefined ? undefined : { table: 'lookup_commands', id: ownId });
   if (trigger) return trigger;
 
-  if (!command.art.trim()) {
-    return { status: 400, error: 'art_required', message: 'In welcher Art soll gesucht werden?' };
+  if ((command.response ?? '').length > MAX_RESPONSE_CHARS) {
+    return { status: 400, error: 'response_too_long', message: `Die Antwort ohne Namen darf höchstens ${MAX_RESPONSE_CHARS} Zeichen haben.` };
   }
 
   return checkCooldown(command.cooldown_seconds);
@@ -69,8 +74,17 @@ export async function answerLookupCommand(message: string, privileged: boolean, 
     return { replies: null, reason: 'cooldown' };
   }
 
+  // Without a name, the command's own words come first: `!welt` says what the world is.
+  if (!query && command.response?.trim()) return { replies: splitForChat(command.response) };
+
   return { replies: [await lookUp(command, query)] };
 }
+
+/** Room for an answer without a name: two chat messages, like a long Text Command. */
+export const MAX_RESPONSE_CHARS = 2 * CHAT_MESSAGE_LIMIT;
+
+/** "Figur" for a command of one Art, "Welt" for one that searches every Art. */
+const scope = (command: LookupCommand) => command.art || 'Welt';
 
 const WORLD_CLOSED = '📖 Die Welt ist gerade nicht geöffnet — frag gleich noch mal.';
 
@@ -78,7 +92,7 @@ async function lookUp(command: LookupCommand, query: string): Promise<string> {
   // The command alone asks "what is on screen right now" — when that is of its Art.
   if (!query) {
     const active = getActiveEntry();
-    if (active && active.art === command.art) return describeActive(toCard(active));
+    if (active && (!command.art || active.art === command.art)) return describeActive(toCard(active));
   }
 
   const entries = await entriesOf(command.art);
@@ -86,12 +100,14 @@ async function lookUp(command: LookupCommand, query: string): Promise<string> {
   if (!query) return listing(command, entries);
 
   const match = findEntry(entries, query);
-  if (match.length === 1) return describe(match[0]);
+  if (match.length === 1) return describe(match[0], !command.art);
   if (match.length > 1) return candidates(command, match);
 
   // Never repeats what the viewer typed: the bot must not be a way to make it
   // say anything at all in chat.
-  return `🤷 Kenne ich (noch) nicht — ${command.trigger} ohne Namen zeigt, was es gibt.`;
+  return command.art
+    ? `🤷 Kenne ich (noch) nicht — ${command.trigger} ohne Namen zeigt, was es gibt.`
+    : '🤷 Kenne ich (noch) nicht.';
 }
 
 /** How long an Art's entries are reused. A busy chat must not fetch the world per message. */
@@ -130,9 +146,10 @@ function findEntry(entries: EntryDetail[], query: string): EntryDetail[] {
   return entries.filter((entry) => names(entry).some((name) => name.includes(wanted)));
 }
 
-function describe(entry: EntryDetail): string {
+function describe(entry: EntryDetail, all = false): string {
   const card = toCard(toEntry(entry, { artColor: null, world: null, image: null }));
-  const head = `📖 ${card.title}${card.alias ? ` („${card.alias}“)` : ''}${card.role ? ` · ${card.role}` : ''}`;
+  // Searching every Art, the answer says which one it found.
+  const head = `📖 ${card.title}${card.alias ? ` („${card.alias}“)` : ''}${card.role ? ` · ${card.role}` : ''}${all && entry.art ? ` · ${entry.art}` : ''}`;
   return oneMessage(`${head} — ${card.body || 'noch ohne Beschreibung.'}`);
 }
 
@@ -153,9 +170,9 @@ function candidates(command: LookupCommand, found: EntryDetail[]): string {
 }
 
 function listing(command: LookupCommand, entries: EntryDetail[]): string {
-  if (entries.length === 0) return `📖 Unter „${command.art}“ steht noch nichts in der Welt.`;
+  if (entries.length === 0) return command.art ? `📖 Unter „${command.art}“ steht noch nichts in der Welt.` : '📖 In der Welt steht noch nichts.';
   const names = entries.map((entry) => entry.titel).join(', ');
-  return oneMessage(`📖 ${command.art} — schreib ${command.trigger} <Name>: ${names}`);
+  return oneMessage(`📖 ${scope(command)} — schreib ${command.trigger} <Name>: ${names}`);
 }
 
 /** A lookup answers in exactly one message. Longer text is cut between words and says so. */

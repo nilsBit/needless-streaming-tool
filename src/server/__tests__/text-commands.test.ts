@@ -209,6 +209,6 @@ describe('text commands', () => {
 
   it('offers every built-in command for renaming in Settings', async () => {
     const res = await request(app).get('/api/settings/commands').set(auth()).expect(200);
-    expect(Object.keys(res.body)).toEqual(expect.arrayContaining(['sr', 'queue', 'rewardstats', 'commands']));
+    expect(Object.keys(res.body)).toEqual(expect.arrayContaining(['song', 'rewardstats', 'commands']));
   });
 });

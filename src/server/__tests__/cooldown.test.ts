@@ -78,10 +78,10 @@ describe('cooldowns', () => {
 
     it('hold the informational built-ins to one shared, adjustable cooldown', async () => {
       expect((await request(app).get('/api/settings/builtin-cooldown').set(auth).expect(200)).body).toEqual({ seconds: 15, max: 600 });
-      expect((await ask('!uptime', 'mila')).replies).toHaveLength(1);
-      expect(await ask('!uptime', 'selma')).toEqual({ replies: null, reason: 'cooldown' });
+      expect((await ask('!datenschutz', 'mila')).replies).toHaveLength(1);
+      expect(await ask('!datenschutz', 'selma')).toEqual({ replies: null, reason: 'cooldown' });
       await request(app).post('/api/settings/builtin-cooldown').set(auth).send({ seconds: 0 }).expect(200);
-      expect((await ask('!uptime', 'selma')).replies).toHaveLength(1);
+      expect((await ask('!datenschutz', 'selma')).replies).toHaveLength(1);
       await request(app).post('/api/settings/builtin-cooldown').set(auth).send({ seconds: 601 }).expect(400);
       await request(app).post('/api/settings/builtin-cooldown').set(auth).send({ seconds: 2.5 }).expect(400);
     });
