@@ -159,6 +159,39 @@ braucht den Bot.
 
 ## Wo wir stehen geblieben sind
 
+**Hier aufgehört (13.10. abends, Mac)**
+
+- **„Chat & Bot“ aufgeräumt nach Entwurf A** (Leinwand, Bogen `ChatA`
+  „A · Drei Reiter“; B und C liegen daneben). Drei Reiter statt fünf, ohne
+  Satz unter den Reitern; alte Reiter-Schlüssel (`punkte`, `kanalpunkte`,
+  `ausprobieren`) führen über `OLD_SUB_TABS` an die neue Stelle, Quests auch.
+  - **Befehle:** Kasten „Ausprobieren“ oben (fragt als Streamer). Darunter eine
+    flache Liste aus eigenen Befehlen, Befehlen aus der Welt und den
+    eingebauten Befehlen. Jede Zeile zeigt Befehl, Satz, Art und
+    „Bearbeiten“. Filter: Alle, Eigene, Eingebaut und „Ausgeschaltet“, das nur
+    erscheint, wenn etwas aus ist. Stern und An/Aus stecken jetzt im
+    Bearbeiten-Dialog. Eingebaute Befehle werden dort umbenannt. Die Suche
+    ist weg. „Text fürs Twitch-Panel“ steht als Link unter der Liste.
+  - **Belohnungen:** ein Panel `rewards` (`RewardsPanel`) mit Umschalter
+    zwischen „Kanalpunkte von Twitch“ und „Eigene Punkte“, gemerkt in
+    `localStorage` unter `nst.rewardsMode`. Eine Quest stellt den Umschalter
+    selbst um. Jede Zeile zeigt Name, Preis, Wirkung und „Bearbeiten“.
+    Schritte und Vorlagen gibt es nur, solange noch keine Belohnung existiert.
+    Bei eigenen Punkten steht oben „Verdienen · …“ mit „Ändern“.
+  - **Von selbst:** Erinnerung (Ändern und An/Aus), Raid-Gruß (An/Aus) und
+    Pause (Ändern), je eine Zeile.
+- Bewusst anders als im Entwurf:
+  - Zuschauerliste und „Selbst ausprobieren“ bleiben bei den eigenen Punkten.
+  - Dashboard-Belohnungen stehen mit „nur ansehen“ in der Liste.
+- **Offen:**
+  - Nils sieht es sich in der App an; Rückmeldung steht aus.
+  - Danach „Overlays & Alerts“ genauso aufräumen (erst Entwürfe auf der
+    Leinwand).
+  - „Alle paar Stunden nach Updates suchen“ für 1.0.4.
+  - Issue #29 erst schließen, wenn beide Bereiche aufgeräumt sind.
+- `npm test` flackerte einmal (12 Fehler in 2 Dateien), der zweite Lauf war
+  grün (508 Tests). Bei Wiederholung den Fehler ansehen.
+
 **Hier aufgehört (13.10. morgens, unter Windows)**
 
 - **1.0.3 installiert.** Installiert war noch 1.0.0 (lokaler Build vom 09.10.,

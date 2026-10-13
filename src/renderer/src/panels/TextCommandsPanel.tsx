@@ -5,15 +5,15 @@ import EmptyState from '../components/ux/EmptyState';
 import Dialog from '../components/ux/Dialog';
 import CommandQuestPath from '../components/quests/paths/CommandQuestPath';
 import { useQuestPath } from '../components/quests/questStart';
-import SearchField, { matchesSearch } from '../components/ux/SearchField';
 import { useFeatures } from '../contexts/FeaturesContext';
+import { commandVisible } from '../../../shared/features';
 
-// "Befehle" under Chat & Bot: one list for everything the streamer maintains —
-// own texts (!story) and lookups into the world (!figur) — grouped, with a
-// filter for what is on or off. A row shows the sentence viewers read, the
-// second names and the star for `!befehle`. Editing happens in a dialog that
-// holds name, answer, sentence, second names and pause together; the built-in
-// commands are not listed (decided 2026-10-06).
+// "Befehle" under Chat & Bot: one list for every command — own texts
+// (!zeitplan), lookups into the world (!figur) and, since 13.10., the built-in
+// ones (!projekt), which can only be renamed here. Filters: all, own, built-in,
+// and what is switched off. A row shows the sentence viewers read, the second
+// names and the star for `!befehle`. Editing happens in a dialog that holds
+// name, answer, sentence, second names and pause together.
 
 interface TextCommand { id: number; trigger: string; response: string; cooldown_seconds: number; enabled: boolean }
 interface LookupCommand { id: number; trigger: string; art: string; cooldown_seconds: number; enabled: boolean }
@@ -36,6 +36,10 @@ interface CommandList {
 }
 
 interface Preview { messages: string[]; max: number }
+
+interface Builtin { key: string; label: string; description: string; modsOnly: boolean }
+
+type Filter = 'all' | 'own' | 'builtin' | 'off';
 
 type Kind = 'text' | 'lookup';
 
@@ -64,6 +68,8 @@ interface Draft {
   description: string;
   aliases: string[];
   originalTrigger: string | null;
+  enabled: boolean;
+  featured: boolean;
 }
 
 const MAX_CHARS = 500;
@@ -88,13 +94,12 @@ async function write(method: 'POST' | 'PATCH', endpoint: string, body: unknown):
 
 export default function TextCommandsPanel() {
   const { toast } = useToast();
-  const { worldbuilder } = useFeatures();
+  const { worldbuilder, features } = useFeatures();
   const { data: texts, loading, refetch: refetchTexts } = useApi<TextCommand[]>('/text-commands');
   const { data: lookups, refetch: refetchLookups } = useApi<LookupCommand[]>('/lookup-commands');
   const { data: list, refetch: refetchList } = useApi<CommandList>('/commands');
   const [arten, setArten] = useState<string[] | null>(null);
-  const [filter, setFilter] = useState<'on' | 'off'>('on');
-  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState<Filter>('all');
   const [draft, setDraft] = useState<Draft | null>(null);
   const [preview, setPreview] = useState<Preview | null>(null);
   const [newAlias, setNewAlias] = useState('');
@@ -102,7 +107,12 @@ export default function TextCommandsPanel() {
 
   useEffect(() => { apiGet<string[]>('/lookup-commands/arten').then(setArten); }, []);
 
-  const refetchAll = () => { refetchTexts(); refetchLookups(); refetchList(); };
+  // The built-in commands: their names, and what each is called in the app.
+  const { data: names, refetch: refetchNames } = useApi<Record<string, string>>('/settings/commands');
+  const { data: builtinInfo } = useApi<Builtin[]>('/commands/builtins');
+  const [renaming, setRenaming] = useState<{ key: string; label: string; name: string } | null>(null);
+
+  const refetchAll = () => { refetchTexts(); refetchLookups(); refetchList(); refetchNames(); };
 
   // How the answer lands in chat while it is being written.
   const response = draft?.kind === 'text' ? draft.response : '';
@@ -127,39 +137,53 @@ export default function TextCommandsPanel() {
     return [...textRows, ...(worldbuilder ? lookupRows : [])];
   }, [texts, lookups, list, worldbuilder]);
 
+  // Built-ins of features that are off say nothing in chat, so they are not listed.
+  const builtins = Object.entries(names ?? {})
+    .filter(([key]) => commandVisible(features, key))
+    .map(([key, name]) => {
+      const info = builtinInfo?.find((b) => b.key === key);
+      return { key, name, label: info?.label ?? key, description: info?.description ?? '', modsOnly: info?.modsOnly ?? false };
+    });
+
   const onCount = rows.filter((r) => r.enabled).length;
   const offCount = rows.length - onCount;
-  // A search looks through everything, on and off; the filter applies without one.
-  const searching = search.trim() !== '';
-  const shown = rows.filter((r) => (searching
-    ? matchesSearch(search, r.trigger, r.sentence, r.response, r.art, ...r.aliases)
-    : (filter === 'on' ? r.enabled : !r.enabled)));
-  const groups: Array<{ kind: Kind; title: string; rows: Row[] }> = [
-    { kind: 'text', title: 'Eigene Texte', rows: shown.filter((r) => r.kind === 'text') },
-    { kind: 'lookup', title: 'Aus der Welt nachschlagen', rows: shown.filter((r) => r.kind === 'lookup') },
+  // Nothing left switched off: the filter for it goes, and with it the view.
+  const view: Filter = filter === 'off' && offCount === 0 ? 'all' : filter;
+  const shown = rows.filter((r) => (view === 'builtin' ? false : view === 'off' ? !r.enabled : r.enabled));
+  const shownBuiltins = view === 'all' || view === 'builtin' ? builtins : [];
+  const showOwn = view !== 'builtin';
+  const filters: Array<[Filter, string]> = [
+    ['all', `Alle · ${onCount + builtins.length}`],
+    ['own', `Eigene · ${onCount}`],
+    ['builtin', `Eingebaut · ${builtins.length}`],
+    ...(offCount > 0 ? [['off', `Ausgeschaltet · ${offCount}`] as [Filter, string]] : []),
   ];
+
+  const saveName = async () => {
+    if (!renaming || !names) return;
+    const refusal = await write('POST', '/settings/commands', { ...names, [renaming.key]: renaming.name });
+    if (refusal) { toast.error(refusal); return; }
+    toast.success('Name gespeichert');
+    setRenaming(null);
+    refetchAll();
+  };
 
   // New commands are made on a Quest-Pfad; the dialog below stays for editing.
   const [path, setPath] = useState<{ trigger?: string } | null>(null);
   useQuestPath(['command'], () => setPath({}));
   const openEdit = (row: Row) =>
-    setDraft({ kind: row.kind, id: row.id, trigger: row.trigger, response: row.response, art: row.art, cooldown_seconds: row.cooldown, description: row.stored ? row.sentence : '', aliases: row.aliases, originalTrigger: row.trigger });
+    setDraft({ kind: row.kind, id: row.id, trigger: row.trigger, response: row.response, art: row.art, cooldown_seconds: row.cooldown, description: row.stored ? row.sentence : '', aliases: row.aliases, originalTrigger: row.trigger, enabled: row.enabled, featured: row.featured });
   const close = () => { setDraft(null); setNewAlias(''); };
 
-  const toggleEnabled = async (row: Row) => {
-    const refusal = await write('PATCH', `/${row.kind === 'text' ? 'text-commands' : 'lookup-commands'}/${row.id}`, { enabled: !row.enabled });
-    if (refusal) { toast.error(refusal); return; }
-    refetchAll();
-  };
-
-  const toggleFeatured = async (row: Row) => {
-    if (!list) return;
+  /** Names the command in "!befehle" first, or no longer; null when nothing changed or it worked. */
+  const saveFeatured = async (trigger: string, previousTrigger: string | null, featured: boolean) => {
+    if (!list) return null;
     const current = list.featured.triggers;
-    const triggers = current.includes(row.trigger) ? current.filter((t) => t !== row.trigger) : [...current, row.trigger];
-    if (triggers.length > list.featured.max) { toast.error(`Höchstens ${list.featured.max} vorn – mehr liest im Chat niemand.`); return; }
-    const refusal = await write('POST', '/commands/featured', { triggers });
-    if (refusal) { toast.error(refusal); return; }
-    refetchList();
+    const others = current.filter((t) => t !== trigger && t !== previousTrigger);
+    const triggers = featured ? [...others, trigger] : others;
+    if (JSON.stringify(triggers) === JSON.stringify(current)) return null;
+    if (triggers.length > list.featured.max) return `Höchstens ${list.featured.max} vorn – mehr liest im Chat niemand.`;
+    return write('POST', '/commands/featured', { triggers });
   };
 
   /** Saves the second names: the whole map goes back, with this command's entries replaced. */
@@ -180,8 +204,8 @@ export default function TextCommandsPanel() {
     if (!draft) return;
     const endpoint = draft.kind === 'text' ? '/text-commands' : '/lookup-commands';
     const body = draft.kind === 'text'
-      ? { trigger: draft.trigger, response: draft.response, cooldown_seconds: draft.cooldown_seconds, description: draft.description }
-      : { trigger: draft.trigger, art: draft.art, cooldown_seconds: draft.cooldown_seconds, description: draft.description };
+      ? { trigger: draft.trigger, response: draft.response, cooldown_seconds: draft.cooldown_seconds, description: draft.description, enabled: draft.enabled }
+      : { trigger: draft.trigger, art: draft.art, cooldown_seconds: draft.cooldown_seconds, description: draft.description, enabled: draft.enabled };
     let refusal: string | null;
     let savedTrigger = draft.trigger.trim();
     if (draft.id === null) {
@@ -198,6 +222,8 @@ export default function TextCommandsPanel() {
     }
     const aliasRefusal = await saveAliases(savedTrigger, draft.aliases, draft.originalTrigger);
     if (aliasRefusal) toast.error(`Gespeichert, aber die Zweitnamen nicht: ${aliasRefusal}`);
+    const featuredRefusal = await saveFeatured(savedTrigger, draft.originalTrigger, draft.featured);
+    if (featuredRefusal) toast.error(`Gespeichert, aber nicht vorn in „!befehle“: ${featuredRefusal}`);
     close();
     refetchAll();
   };
@@ -240,16 +266,14 @@ export default function TextCommandsPanel() {
     <div className="panel cmd-panel">
       <div className="cmd-toolbar">
         <div className="filter-pills" role="group" aria-label="Filter">
-          <button type="button" className={`pill ${filter === 'on' ? 'active' : ''}`} aria-pressed={filter === 'on'} onClick={() => setFilter('on')}>Aktiv · {onCount}</button>
-          <button type="button" className={`pill ${filter === 'off' ? 'active' : ''}`} aria-pressed={filter === 'off'} onClick={() => setFilter('off')}>Ausgeschaltet · {offCount}</button>
+          {filters.map(([key, label]) => (
+            <button key={key} type="button" className={`pill ${view === key ? 'active' : ''}`} aria-pressed={view === key} onClick={() => setFilter(key)}>{label}</button>
+          ))}
         </div>
-        <div className="card-row card-wrap">
-          {rows.length > 0 && <SearchField value={search} onChange={setSearch} label="Befehle suchen" />}
-          <button type="button" className="card-primary" onClick={() => setPath({})}>+ Neuer Befehl</button>
-        </div>
+        <button type="button" className="card-primary" onClick={() => setPath({})}>+ Neuer Befehl</button>
       </div>
 
-      {rows.length === 0 ? (
+      {showOwn && rows.length === 0 && (
         <>
           <EmptyState size="compact" icon="✍️" title="Noch keine eigenen Befehle" description="Womit fängst du an? Ein Klick legt den Befehl an, den Text schreibst du." />
           <div className="card-row card-wrap">
@@ -258,51 +282,35 @@ export default function TextCommandsPanel() {
             ))}
           </div>
         </>
-      ) : shown.length === 0 ? (
-        <p className="dialog-empty">{searching ? `Kein Befehl passt zu „${search.trim()}“.` : filter === 'off' ? 'Hier ist nichts ausgeschaltet.' : 'Alles ist ausgeschaltet.'}</p>
-      ) : (
-        groups.filter((g) => g.rows.length > 0).map((g) => (
-          <section key={g.kind} className="cmd-group" aria-label={g.title}>
-            <h3 className="dialog-section">{g.title}</h3>
-            {g.kind === 'lookup' && arten === null && (
-              <p className="dialog-hint">Der Worldbuilder ist nicht erreichbar – diese Befehle finden gerade nichts.</p>
-            )}
-            <ul className="cmd-list">
-              {g.rows.map((row) => (
-                <li key={`${row.kind}:${row.id}`} className={`cmd-row ${row.enabled ? '' : 'off'}`}>
-                  <button
-                    type="button"
-                    className={`cmd-star ${row.featured ? 'on' : ''}`}
-                    title={row.featured ? 'Steht in „!befehle“ vorn – abwählen' : 'In „!befehle“ vorn nennen'}
-                    aria-label={row.featured ? `${row.trigger} steht vorn` : `${row.trigger} vorn nennen`}
-                    aria-pressed={row.featured}
-                    onClick={() => toggleFeatured(row)}
-                  >★</button>
-                  <code className="cmd-trigger">{row.trigger}</code>
-                  <span className="cmd-text">
-                    <span className={row.stored ? '' : 'cmd-derived'}>{row.sentence || '–'}</span>
-                    {row.aliases.length > 0 && <span className="cmd-aliases"> · auch {row.aliases.join(', ')}</span>}
-                  </span>
-                  <span className="cmd-meta">
-                    {row.kind === 'text'
-                      ? `${row.chars} von ${MAX_CHARS} Zeichen`
-                      : arten && !arten.includes(row.art) ? `Art „${row.art}“ fehlt in der offenen Welt` : `sucht unter „${row.art}“`}
-                  </span>
-                  <button type="button" className="card-secondary" onClick={() => openEdit(row)}>Bearbeiten</button>
-                  <button type="button" className="card-link" onClick={() => toggleEnabled(row)}>{row.enabled ? 'Ausschalten' : 'Einschalten'}</button>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ))
+      )}
+      {showOwn && rows.length > 0 && shown.length === 0 && view !== 'off' && <p className="dialog-empty">Alle eigenen Befehle sind ausgeschaltet.</p>}
+      {shown.some((r) => r.kind === 'lookup') && arten === null && (
+        <p className="dialog-hint">Der Worldbuilder ist nicht erreichbar – die Befehle „aus der Welt“ finden gerade nichts.</p>
       )}
 
-      <div className="cmd-footer">
-        <span className="dialog-hint">Der Stern heißt: Dieser Befehl steht vorn, wenn jemand „!befehle“ schreibt – höchstens {list?.featured.max ?? 5}. Der Satz daneben steht in „!befehle“ und im Twitch-Panel; ohne eigenen Satz schreibt das Tool einen.</span>
-        <div className="card-row card-wrap">
-          <button type="button" className="card-secondary" onClick={copyPanel} disabled={!list}>Text fürs Twitch-Panel kopieren</button>
-          <button type="button" className="card-link" onClick={() => setShowPanelText(true)} disabled={!list}>Ansehen</button>
-        </div>
+      {(shown.length > 0 || shownBuiltins.length > 0) && (
+        <ul className="chat-list" aria-label="Befehle">
+          {shown.map((row) => (
+            <li key={`${row.kind}:${row.id}`} className={`chat-row ${row.enabled ? '' : 'off'}`}>
+              <code>{row.trigger}</code>
+              <span className="chat-row-text">{row.sentence || '–'}</span>
+              <span className="chat-row-kind">{row.kind === 'text' ? 'eigener' : 'aus der Welt'}{row.enabled ? '' : ' · aus'}</span>
+              <button type="button" className="card-secondary" onClick={() => openEdit(row)}>Bearbeiten</button>
+            </li>
+          ))}
+          {shownBuiltins.map((b) => (
+            <li key={b.key} className="chat-row">
+              <code>{b.name}</code>
+              <span className="chat-row-text">{b.description || b.label}</span>
+              <span className="chat-row-kind">{b.modsOnly ? 'eingebaut · nur Mods' : 'eingebaut'}</span>
+              <button type="button" className="card-secondary" onClick={() => setRenaming({ key: b.key, label: b.label, name: b.name })}>Bearbeiten</button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div className="card-row">
+        <button type="button" className="card-link" onClick={() => setShowPanelText(true)} disabled={!list}>Text fürs Twitch-Panel</button>
       </div>
 
       {showPanelText && list && (
@@ -312,6 +320,24 @@ export default function TextCommandsPanel() {
         </Dialog>
       )}
 
+      {renaming && (
+        <Dialog
+          title={`${renaming.label} bearbeiten`}
+          sentence="Der Befehl tut dasselbe, der Chat tippt nur einen anderen Namen."
+          onClose={() => setRenaming(null)}
+          width={480}
+          footer={<>
+            <span style={{ flex: 1 }} />
+            <button type="button" className="card-secondary" onClick={() => setRenaming(null)}>Abbrechen</button>
+            <button type="button" className="card-primary" onClick={saveName} disabled={!renaming.name.trim()}>Speichern</button>
+          </>}
+        >
+          <div className="dialog-field">
+            <label htmlFor="builtin-name">Name – das tippt der Chat</label>
+            <input id="builtin-name" type="text" maxLength={40} value={renaming.name} onChange={(e) => setRenaming({ ...renaming, name: e.target.value })} onKeyDown={(e) => e.key === 'Enter' && renaming.name.trim() && saveName()} autoFocus />
+          </div>
+        </Dialog>
+      )}
       {path && <CommandQuestPath initialTrigger={path.trigger} taken={[...rows.map((r) => r.trigger), ...Object.keys(list?.aliases ?? {})]} onClose={() => setPath(null)} onCreated={refetchAll} />}
       {draft && (
         <Dialog
@@ -370,6 +396,17 @@ export default function TextCommandsPanel() {
             <label htmlFor="cmd-sentence">Ein Satz für Zuschauer – steht in „!befehle“ und im Twitch-Panel</label>
             <input id="cmd-sentence" type="text" maxLength={300} placeholder={derivedSentence(draft) ?? 'Leer lassen, dann schreibt das Tool einen.'} value={draft.description} onChange={(e) => setDraft({ ...draft, description: e.target.value })} />
           </div>
+
+          {draft.id !== null && (
+            <label className="card-check">
+              <input type="checkbox" checked={draft.enabled} onChange={(e) => setDraft({ ...draft, enabled: e.target.checked })} />
+              <span>An – der Bot antwortet darauf</span>
+            </label>
+          )}
+          <label className="card-check">
+            <input type="checkbox" checked={draft.featured} onChange={(e) => setDraft({ ...draft, featured: e.target.checked })} />
+            <span>In „!befehle“ vorn nennen – höchstens {list?.featured.max ?? 5} Befehle</span>
+          </label>
 
           <div className="dialog-field">
             <span className="dialog-field-label">Zweitnamen – antworten genauso</span>

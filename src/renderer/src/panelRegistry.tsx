@@ -11,8 +11,7 @@ import ChatBotSettings from './components/settings/ChatBotSettings';
 import TryCommandsPanel from './panels/TryCommandsPanel';
 import OverlaysPanel from './panels/OverlaysPanel';
 import StreamReportPanel from './panels/StreamReportPanel';
-import PointsPanel from './panels/PointsPanel';
-import ChannelRewardsPanel from './panels/ChannelRewardsPanel';
+import RewardsPanel from './panels/RewardsPanel';
 import QuestsPanel from './panels/QuestsPanel';
 import SettingsPanel from './panels/SettingsPanel';
 import HotkeysPanel from './panels/HotkeysPanel';
@@ -36,8 +35,7 @@ export const PANEL_REGISTRY: Record<PanelKey, React.ComponentType> = {
   trycommands: TryCommandsPanel,
   overlays: OverlaysPanel,
   report: StreamReportPanel,
-  points: PointsPanel,
-  channelrewards: ChannelRewardsPanel,
+  rewards: RewardsPanel,
   quests: QuestsPanel,
   'settings-connections': SettingsConnections,
   'settings-app': SettingsApp,

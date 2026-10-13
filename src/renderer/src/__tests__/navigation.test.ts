@@ -100,6 +100,16 @@ describe('navigation', () => {
     expect(visibleNavigation(new Set(FEATURE_KEYS))).toEqual(AREAS);
   });
 
+  it('keeps Chat & Bot to three tabs, and finds the old ones', () => {
+    // 13.10. (Leinwand "A · Drei Reiter"): five tabs were three topics.
+    const chat = findArea('chat');
+    expect(chat.subTabs.map((t) => t.label)).toEqual(['Befehle', 'Belohnungen', 'Von selbst']);
+    expect(chat.subTabs[0].panels).toEqual(['trycommands', 'textcommands']);
+    expect(findSubTab(chat, 'punkte').key).toBe('belohnungen');
+    expect(findSubTab(chat, 'kanalpunkte').key).toBe('belohnungen');
+    expect(findSubTab(chat, 'ausprobieren').key).toBe('befehle');
+  });
+
   it('claims only panels that exist, each overlay and hotkey once', () => {
     const overlays = FEATURES.flatMap((f) => f.overlays);
     const hotkeys = FEATURES.flatMap((f) => f.hotkeys);

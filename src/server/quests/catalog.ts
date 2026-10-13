@@ -87,25 +87,25 @@ export const QUESTS: readonly Quest[] = [
   {
     key: 'pointReward', group: 'punkte', title: 'Erste Belohnung anlegen', xp: 50, feature: 'punkte',
     text: 'Was Zuschauer mit deinen Punkten einlösen.',
-    goTo: { area: 'chat', subTab: 'punkte' },
+    goTo: { area: 'chat', subTab: 'belohnungen' },
     done: () => count('SELECT COUNT(*) AS n FROM point_rewards') > 0,
   },
   {
     key: 'pointTry', group: 'punkte', title: 'Belohnung selbst testen', xp: 30, feature: 'punkte',
     text: 'Gib dir Punkte und löse im Chat ein.',
-    goTo: { area: 'chat', subTab: 'punkte' },
+    goTo: { area: 'chat', subTab: 'belohnungen' },
     done: () => flagged('pointTry'),
   },
   {
     key: 'points10', group: 'punkte', title: '10 Einlösungen', xp: 100, feature: 'punkte',
     text: 'Deine Zuschauer lösen mit Punkten ein.',
-    goTo: { area: 'chat', subTab: 'punkte' },
+    goTo: { area: 'chat', subTab: 'belohnungen' },
     done: () => count(`SELECT COUNT(*) AS n FROM rewards WHERE data LIKE '%"source":"points"%'`) >= 10,
   },
   {
     key: 'channelReward', group: 'kanalpunkte', title: 'Erste Belohnung aus dem Tool', xp: 50, feature: 'belohnungen',
     text: 'Eine Kanalpunkte-Belohnung, die etwas tut.',
-    goTo: { area: 'chat', subTab: 'kanalpunkte' },
+    goTo: { area: 'chat', subTab: 'belohnungen' },
     done: () => count('SELECT COUNT(*) AS n FROM twitch_reward_actions') > 0,
   },
   {

@@ -246,7 +246,7 @@ router.post('/commands', (req, res) => {
       db.prepare('SELECT 1 FROM text_commands WHERE trigger = ?').get(trigger) ||
       (worldbuilderInstalled() && db.prepare('SELECT 1 FROM lookup_commands WHERE trigger = ?').get(trigger));
     if (taken) {
-      res.status(409).json({ error: 'trigger_taken', message: `${trigger} ist schon ein Erklär-Command.` });
+      res.status(409).json({ error: 'trigger_taken', message: `${trigger} ist schon ein eigener Befehl.` });
       return;
     }
   }

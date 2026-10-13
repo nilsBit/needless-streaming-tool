@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { apiFetch, apiDelete, useApi } from '../hooks/useApi';
 import { useToast } from '../contexts/ToastContext';
 import Dialog from '../components/ux/Dialog';
-import SearchField, { matchesSearch } from '../components/ux/SearchField';
 import RewardSteps, { type Step } from '../components/rewards/RewardSteps';
 import RewardTemplates, { type RewardTemplate } from '../components/rewards/RewardTemplates';
 import RewardQuestPath, { type RewardDraft } from '../components/rewards/RewardQuestPath';
@@ -27,7 +26,9 @@ const ACTIONS: Record<Action, string> = {
 };
 
 
-// "Kanalpunkte" under Chat & Bot (#24): the channel's Twitch rewards. Those
+const POINTS = new Intl.NumberFormat('de-DE');
+
+// Kanalpunkte under Chat & Bot → Belohnungen (#24): the channel's Twitch rewards. Those
 // made here can be edited and carry an action; those from the Creator
 // Dashboard are shown read-only and keep working by their name.
 export default function ChannelRewardsPanel() {
@@ -38,7 +39,6 @@ export default function ChannelRewardsPanel() {
   // Listing needs only the read right; creating answers 401 until the login is renewed.
   const [needsReconnect, setNeedsReconnect] = useState(false);
   const [draft, setDraft] = useState<Draft | null>(null);
-  const [search, setSearch] = useState('');
 
   const load = async () => {
     const res = await apiFetch('/channel-rewards');
@@ -59,6 +59,8 @@ export default function ChannelRewardsPanel() {
   useQuestPath(['channelReward'], () => setPath({}));
 
   const ownCount = (rewards ?? []).filter((r) => r.manageable && r.enabled).length;
+  // The steps and templates help to start; once one reward is made here, the list comes first.
+  const starting = rewards !== null && !rewards.some((r) => r.manageable);
   const steps: Step[] = [
     {
       title: 'Verbinden',
@@ -81,30 +83,28 @@ export default function ChannelRewardsPanel() {
     },
   ];
 
-  const shown = (rewards ?? []).filter((r) => matchesSearch(search, r.title, r.prompt, r.action ? ACTIONS[r.action] : '', r.by_name ? ACTIONS[r.by_name] : ''));
-  const own = shown.filter((r) => r.manageable);
-  const dashboard = shown.filter((r) => !r.manageable);
+  // Made here first, then those from the Creator Dashboard, which can only be looked at.
+  const list = [...(rewards ?? []).filter((r) => r.manageable), ...(rewards ?? []).filter((r) => !r.manageable)];
+  const fromDashboard = list.some((r) => !r.manageable);
 
   const row = (r: Reward) => (
-    <div key={r.id} className="rewards-row">
-      <div className="rewards-who">
-        <div className="rewards-name">{r.title}{r.enabled ? '' : ' (aus)'}</div>
-        <div className="dialog-hint">
-          {r.manageable
-            ? <>{r.action ? ACTIONS[r.action] : 'Ohne Aktion'}{r.action === 'scene' && r.scene_name ? ` „${r.scene_name}“${r.scene_seconds ? `, ${r.scene_seconds} s` : ''}` : ''}{r.input_required ? ' · mit Text' : ''}</>
-            : r.by_name ? `Am Namen erkannt: ${ACTIONS[r.by_name]}${r.by_name === 'scene' ? ' – nur mit einer früher freigegebenen Szene. Leg sie hier neu an, dann wählst du die Szene direkt.' : ''}` : 'Löst nur einen Alert aus'}
-        </div>
-      </div>
-      <div className="rewards-total"><div className="rewards-total-n">{r.cost}</div><div className="dialog-hint">Kanalpunkte</div></div>
+    <li key={r.id} className={`chat-row reward-line ${r.enabled ? '' : 'off'}`}>
+      <span className="chat-row-name">{r.title}{r.enabled ? '' : ' (aus)'}</span>
+      <span className="reward-line-cost">{POINTS.format(r.cost)} Punkte</span>
+      <span className="chat-row-text">
+        {r.manageable
+          ? <>{r.action ? ACTIONS[r.action] : 'Ohne Aktion'}{r.action === 'scene' && r.scene_name ? ` „${r.scene_name}“${r.scene_seconds ? `, ${r.scene_seconds} s` : ''}` : ''}{r.input_required ? ' · mit Text' : ''}</>
+          : r.by_name ? `Im Creator-Dashboard angelegt · am Namen erkannt: ${ACTIONS[r.by_name]}` : 'Im Creator-Dashboard angelegt · nur ein Alert'}
+      </span>
       {r.manageable
         ? <button type="button" className="card-secondary" onClick={() => setDraft({ ...r, action: r.action ?? 'alert' })}>Bearbeiten</button>
-        : <span className="dialog-hint" style={{ width: 96, textAlign: 'center' }}>nur ansehen</span>}
-    </div>
+        : <span className="chat-row-kind">nur ansehen</span>}
+    </li>
   );
 
   return (
     <div className="panel card-slim rewards">
-      <RewardSteps steps={steps} label="So laufen die Kanalpunkte" />
+      {starting && <RewardSteps steps={steps} label="So laufen die Kanalpunkte" />}
 
       {needsReconnect && (
         <div className="reward-banner" role="alert">
@@ -113,27 +113,16 @@ export default function ChannelRewardsPanel() {
         </div>
       )}
 
-      <RewardTemplates unit="Kanalpunkte" existing={(rewards ?? []).map((r) => r.title)} isOn={(f) => isOn(f as FeatureKey)} disabled={!!error && !needsReconnect} madeLabel="gibt es schon" onUse={applyTemplate} />
+      {starting && <RewardTemplates unit="Kanalpunkte" existing={(rewards ?? []).map((r) => r.title)} isOn={(f) => isOn(f as FeatureKey)} disabled={!!error && !needsReconnect} madeLabel="gibt es schon" onUse={applyTemplate} />}
 
-      <div className="card-line card-wrap">
-        <div className="rewards-name">Deine Belohnungen in Twitch</div>
-        <div className="card-row card-wrap">
-          {(rewards?.length ?? 0) > 0 && <SearchField value={search} onChange={setSearch} label="Belohnungen suchen" />}
-          <button type="button" className="card-primary" onClick={() => setPath({})} disabled={!!error && !needsReconnect}>+ Eigene Belohnung</button>
-        </div>
+      <div className="chat-list-head">
+        <h2>Belohnungen</h2>
+        <button type="button" className="card-primary" onClick={() => setPath({})} disabled={!!error && !needsReconnect}>+ Neue Belohnung</button>
       </div>
       {error && !needsReconnect && <p className="dialog-hint" role="alert">{error}</p>}
       {rewards && !error && rewards.length === 0 && <p className="dialog-empty">Noch keine Belohnung in deinem Kanal. Lege hier eine an – sie erscheint sofort bei den Zuschauern.</p>}
-      {rewards && rewards.length > 0 && shown.length === 0 && <p className="dialog-empty">Keine Belohnung passt zu „{search.trim()}“.</p>}
-
-      {own.length > 0 && <section aria-label="Aus dem Tool"><h3 className="dialog-section">Aus dem Tool</h3><div className="rewards-ranking">{own.map(row)}</div></section>}
-      {dashboard.length > 0 && (
-        <section aria-label="In Twitch angelegt">
-          <h3 className="dialog-section">In Twitch angelegt</h3>
-          <p className="dialog-hint">Ändern und löschen nur im Creator-Dashboard. Was sie tun, erkennt das Tool am Namen: „Roulette“, „Feature“, „Musik“ oder „Song“, „Szene“ oder „Scene“. Soll eine davon etwas anderes tun, lege sie hier neu an.</p>
-          <div className="rewards-ranking">{dashboard.map(row)}</div>
-        </section>
-      )}
+      {list.length > 0 && <ul className="chat-list" aria-label="Belohnungen">{list.map(row)}</ul>}
+      {fromDashboard && <p className="dialog-hint">Was im Creator-Dashboard angelegt ist, änderst und löschst du nur dort. Was es tut, erkennt das Tool am Namen: „Roulette“, „Feature“, „Musik“ oder „Song“, „Szene“ oder „Scene“. Soll eine davon etwas anderes tun, lege sie hier neu an.</p>}
 
       {path && <RewardQuestPath mode="twitch" currency="Kanalpunkte" initial={path.initial} onClose={() => setPath(null)} onCreated={() => void load()} onNeedsReconnect={() => setNeedsReconnect(true)} />}
       {draft && <RewardDialog draft={draft} onClose={() => setDraft(null)} onSaved={() => { setDraft(null); void load(); toast.success('Gespeichert'); }} />}

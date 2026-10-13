@@ -41,7 +41,7 @@ Links stehen die Bereiche nach Situation: **Im Stream** (alles, was du live ausl
     title: 'Wo finde ich was',
     content: `Die Oberfläche ist nach Situation sortiert, nicht nach Technik. Links die Bereiche, oben auf einer Seite die Themen.
 
-**Suchen:** Lange Listen haben oben ein Suchfeld – Was dein Stream kann, Befehle, die Namen der eingebauten Befehle, Overlays, Punkte und diese Hilfe. Groß- und Kleinschreibung ist egal, „ae“ findet auch „ä“, Escape leert das Feld.
+**Suchen:** Lange Listen haben oben ein Suchfeld – Was dein Stream kann, Befehle (eigene und eingebaute), Overlays, Belohnungen und diese Hilfe. Groß- und Kleinschreibung ist egal, „ae“ findet auch „ä“, Escape leert das Feld.
 
 | Früher | Jetzt |
 |--------|-------|
@@ -76,7 +76,7 @@ Oben unter **Heute dabei** tippst du an, welche Karten du heute brauchst. Die an
 
 **Über Zuschauer gespeichert:** der Twitch-Login mit der Zahl seiner Einlösungen je Bestenliste, mit eingeschalteten eigenen Punkten sein Guthaben und Beitrag, Songwünsche, Themen und Vorschläge. Für **Nach dem Stream** zählt das Tool pro Stream, wer wie oft geschrieben hat (je Minute), wer gefolgt ist und wer welchen Befehl oder welche Belohnung genutzt hat – nie, was geschrieben wurde. Chatzeilen bleiben nur im Speicher und sind nach dem Neustart weg.
 
-**Wie lange:** Erledigte Songwünsche löscht das Tool nach 90 Tagen von selbst. Wer ein Jahr nicht eingelöst hat, verschwindet aus der Bestenliste, wer ein Jahr keine Punkte verdient hat, mit seinen Punkten. Ein Stream mit allem, was dazu gezählt wurde, bleibt ein Jahr. Was ein Zuschauer beim Einlösen dazuschreibt, steht nur im Alert und wird nicht gespeichert. Bei einem Zuschauer unter **Chat & Bot → Punkte** oder in einer Bestenliste verschwindet mit **Zuschauer vergessen** alles, was unter seinem Namen gespeichert ist, sofort – auch in den Streams.
+**Wie lange:** Erledigte Songwünsche löscht das Tool nach 90 Tagen von selbst. Wer ein Jahr nicht eingelöst hat, verschwindet aus der Bestenliste, wer ein Jahr keine Punkte verdient hat, mit seinen Punkten. Ein Stream mit allem, was dazu gezählt wurde, bleibt ein Jahr. Was ein Zuschauer beim Einlösen dazuschreibt, steht nur im Alert und wird nicht gespeichert. Bei einem Zuschauer unter **Chat & Bot → Belohnungen → Eigene Punkte** oder in einer Bestenliste verschwindet mit **Zuschauer vergessen** alles, was unter seinem Namen gespeichert ist, sofort – auch in den Streams.
 
 **Was den Rechner verlässt – nur wenn du es anschließt:**
 - **Notion:** nur Abfragen deiner Figuren, wenn Notion die Quelle der Eintragskarte ist. Notion ist ein US-Anbieter.
@@ -148,7 +148,7 @@ Läuft der Stream noch, füllt sich die Seite einmal pro Minute. Oben rechts wä
 | !befehle | Nennt die wichtigsten Befehle (die mit ★ in der Übersicht). „!befehle alle“ listet jeden, „!befehle welt / texte / stream“ eine Gruppe |
 | !befehle <Name> | Erklärt einen einzelnen Befehl, z. B. !befehle figur |
 | !commands / !help | Dasselbe wie !befehle — für alle, die auf Englisch suchen |
-| !so <Name> | Nur Mods: empfiehlt einen Kanal mit seiner letzten Kategorie. Nach einem Raid schreibt der Bot das selbst (Chat & Bot → Von selbst → Shoutout nach einem Raid) |
+| !so <Name> | Nur Mods: empfiehlt einen Kanal mit seiner letzten Kategorie. Nach einem Raid schreibt der Bot das selbst (Chat & Bot → Von selbst → Raid-Gruß) |
 | !challenge | Zeigt aktuelle Challenge |
 | !figur | Zeigt die Figur, die gerade im Overlay ist |
 | !figur <Name> | Schlägt eine Figur in der Welt nach (nur mit Worldbuilder) |
@@ -172,18 +172,18 @@ Läuft der Stream noch, füllt sich die Seite einmal pro Minute. Oben rechts wä
 | !belohnungen | Was man mit Punkten einlösen kann, und was es kostet |
 | !einlösen <Name> [Text] (auch !einloesen) | Löst eine Belohnung mit Punkten ein |
 
-Alle Befehle lassen sich unter Chat & Bot → Von selbst umbenennen. Antworten, die länger als eine Chat-Nachricht (500 Zeichen) sind, verteilt der Bot automatisch auf mehrere Nachrichten.`,
+Alle eingebauten Befehle lassen sich unter Chat & Bot → Befehle → Eingebaut umbenennen; der Befehl tut danach dasselbe unter dem neuen Namen. Antworten, die länger als eine Chat-Nachricht (500 Zeichen) sind, verteilt der Bot automatisch auf mehrere Nachrichten.`,
   },
   {
     title: 'Erklär-Commands',
     content: `Erklär-Commands sind Chat-Befehle, deren Antwort du selbst schreibst — für alles, was du sonst in jedem Stream neu erklärst: Woran arbeitest du gerade? Was passiert hier? Wann bist du live?
 
-**Anlegen:** Chat & Bot → Befehle → „+ Neuer Befehl“. Im Dialog stehen Name, Antwort, der Satz für Zuschauer, Zweitnamen und die Pause beisammen; der Stern an einer Zeile nennt den Befehl in „!befehle“ vorn. Unter „Ausprobieren“ siehst du die Antwort, ohne live zu sein.
+**Anlegen:** Chat & Bot → Befehle → „+ Neuer Befehl“. Im Dialog stehen Name, Antwort, der Satz für Zuschauer, Zweitnamen und die Pause beisammen; „In !befehle vorn nennen“ stellt ihn dort an den Anfang, „An“ schaltet ihn aus und wieder ein. Den Text fürs Twitch-Panel findest du unter der Liste. Oben auf derselben Seite, unter „Ausprobieren“, siehst du die Antwort, ohne live zu sein. Die Liste zeigt **Alle**, nur **Eigene**, nur **Eingebaut** oder, wenn es welche gibt, was **Ausgeschaltet** ist.
 - **Befehl:** ein Wort, z. B. !zeitplan. Das ! kannst du weglassen.
 - **Text:** was der Chat lesen soll. Darunter siehst du, in wie viele Chat-Nachrichten er aufgeteilt wird — höchstens 3.
 - **Cooldown:** so viele Sekunden antwortet der Befehl nach einer Antwort nicht noch einmal. Mods und du selbst sind davon ausgenommen und starten ihn auch nicht.
 
-**Ausprobieren:** Unten im Panel einen Befehl eintippen, z. B. !befehle — du siehst die Antwort, ohne live zu sein. Getestet wird als Broadcaster, der Cooldown startet also nicht.
+**Ausprobieren:** Oben unter Chat & Bot → Befehle einen Befehl eintippen, z. B. !befehle — du siehst die Antwort, ohne live zu sein. Getestet wird als du selbst, eine Pause startet also nicht.
 
 **Regeln:**
 - Ein Erklär-Command darf nicht heißen wie ein eingebauter Befehl — auch nicht wie ein umbenannter.
@@ -191,7 +191,7 @@ Alle Befehle lassen sich unter Chat & Bot → Von selbst umbenennen. Antworten, 
 - !befehle nennt nur die wichtigsten Befehle — welche, wählst du in der Übersicht mit ★ (bis zu sechs). „!befehle alle“ listet jeden, „!befehle welt“, „!befehle texte“ und „!befehle stream“ je eine Gruppe. Mit einem Namen dahinter (!befehle figur) kommt der eine Satz zu diesem Befehl.
 - **Zweitnamen:** In der Übersicht kannst du einem Befehl weitere Namen geben (!socials für !links); sie antworten wie der Befehl selbst und stehen in Listen dahinter („auch !socials“). !issues ist so ein fester Zweitname von !themen.
 - **Schlaue Cooldowns:** Jeder Cooldown gilt für einen ruhigen Chat. Ab 20 Nachrichten pro Minute halbiert er sich, ab 60 ist es ein Viertel — in einem vollen Chat ist die Antwort schnell weggescrollt. Wer die Antwort gerade bekommen hat, bekommt sie frühestens nach dem Vierfachen (mindestens einer Minute) wieder; andere nach dem normalen Cooldown. Die eingebauten Befehle, die nur etwas sagen (!song, !uptime, !projekt …), teilen sich einen Cooldown (Chat & Bot → Von selbst → Pause zwischen Antworten, Standard 15 s). !vote, !sr und !hype haben keinen. Mods und du warten nie.
-- **Erinnerung:** Unter Chat & Bot → Von selbst → Erinnerung sagt der Bot alle paar Minuten einen Satz von selbst („Neu hier? !befehle zeigt, was du im Chat fragen kannst.“) — aber nur, wenn seit dem letzten Mal jemand im Chat geschrieben hat.
+- **Erinnerung:** Unter Chat & Bot → Von selbst → Erinnerung (An/Aus, Satz und Takt unter „Ändern“) sagt der Bot alle paar Minuten einen Satz von selbst („Neu hier? !befehle zeigt, was du im Chat fragen kannst.“) — aber nur, wenn seit dem letzten Mal jemand im Chat geschrieben hat.
 
 **Übersicht für Zuschauer:** Unten im Panel steht jeder Befehl mit einem Satz. Lässt du das Feld leer, schreibt das Tool den Satz selbst — bei eigenen Texten der erste Satz der Antwort, beim Nachschlagen die Art, bei eingebauten ein fester Text; er steht blass im Feld. **Für Twitch-Panel kopieren** legt die ganze Liste als Text in die Zwischenablage, den du auf Twitch unter *Kanal bearbeiten → Panels* einfügst. Nach Änderungen musst du ihn dort neu einfügen.
 - Eigene Texte und Nachschlage-Commands sind im Backup enthalten.
@@ -279,7 +279,7 @@ Alle Befehle lassen sich unter Chat & Bot → Von selbst umbenennen. Antworten, 
   },
   {
     title: 'Kanalpunkte & Bestenliste',
-    content: `Kanalpunkte gibt es auf Twitch erst mit **Affiliate oder Partner**. Belohnungen legst du am einfachsten unter **Chat & Bot → Kanalpunkte → + Belohnung** an: Name, Preis, ein Text für Zuschauer und **was passiert** – nur ein Alert, Glücksrad, Vorschlag, Musik oder eine Szene wechseln (Szene und Dauer wählst du gleich dabei). Die Belohnung erscheint sofort bei deinen Zuschauern; ändern und löschen geht an derselben Stelle. Klappt die Aktion nicht (OBS nicht verbunden, kein Thema fürs Rad), gibt das Tool die Kanalpunkte zurück. Dafür braucht das Tool das Recht channel:manage:redemptions – einmal neu mit Twitch verbinden.
+    content: `Kanalpunkte gibt es auf Twitch erst mit **Affiliate oder Partner**. Belohnungen legst du am einfachsten unter **Chat & Bot → Belohnungen → Kanalpunkte von Twitch → + Eigene Belohnung** an: Name, Preis, ein Text für Zuschauer und **was passiert** – nur ein Alert, Glücksrad, Vorschlag, Musik oder eine Szene wechseln (Szene und Dauer wählst du gleich dabei). Die Belohnung erscheint sofort bei deinen Zuschauern; ändern und löschen geht an derselben Stelle. Klappt die Aktion nicht (OBS nicht verbunden, kein Thema fürs Rad), gibt das Tool die Kanalpunkte zurück. Dafür braucht das Tool das Recht channel:manage:redemptions – einmal neu mit Twitch verbinden.
 
 Twitch lässt das Tool nur Belohnungen ändern, die es selbst angelegt hat. Was im **Creator-Dashboard** (Zuschauer belohnen → Kanalpunkte) angelegt ist, steht auf derselben Seite unter „In Twitch angelegt“ zum Ansehen, mit dem, was das Tool an ihrem Namen erkennt:
 
@@ -303,7 +303,7 @@ In der Liste siehst du die Rangliste, kannst Zahlen korrigieren, Einträge von H
   },
   {
     title: 'Eigene Punkte',
-    content: `Neben den Kanalpunkten von Twitch kann das Tool **eigene Punkte** vergeben – auch auf einem Kanal ohne Affiliate. Die beiden haben nichts miteinander zu tun: Es gibt keinen Umtausch, Twitch-Belohnungen bleiben, wie sie sind. Einschalten unter **Einstellungen → Programm → Was dein Stream kann → Eigene Punkte**, einrichten unter **Chat & Bot → Punkte**.
+    content: `Neben den Kanalpunkten von Twitch kann das Tool **eigene Punkte** vergeben – auch auf einem Kanal ohne Affiliate. Die beiden haben nichts miteinander zu tun: Es gibt keinen Umtausch, Twitch-Belohnungen bleiben, wie sie sind. Einschalten unter **Einstellungen → Programm → Was dein Stream kann → Eigene Punkte**, einrichten unter **Chat & Bot → Belohnungen → Eigene Punkte**. Sind Kanalpunkte und eigene Punkte beide an, wechselst du oben auf der Seite zwischen ihnen.
 
 **Verdienen – nur, solange du live bist:**
 | Wofür | Standard |
@@ -319,7 +319,7 @@ Alle Zahlen und den Namen der Währung stellst du unter **Verdienen → Einstell
 
 **Zwei Zahlen je Zuschauer:** Das **Guthaben** ist, was man ausgeben kann. Der **Beitrag** ist alles, was jemand je verdient hat – er sinkt beim Ausgeben nicht und zeigt, wer am meisten beigetragen hat. Dazu der Beitrag **heute**, der mit jedem neuen Stream bei null beginnt (nicht, wenn das Tool mitten im Stream neu startet).
 
-**Oben auf der Seite** zeigen drei Schritte, wo du stehst: Verdienen – Belohnungen anlegen – im Chat einlösen. Darunter liegen **Vorlagen** (Glücksrad drehen, Licht aus, Szene kurz wechseln, Idee einreichen, Musik wechseln): „Übernehmen“ legt eine mit einem Klick an, bei der Szene wählst du sie vorher. Dieselben Vorlagen gibt es unter Kanalpunkte für Twitch. **Selbst ausprobieren** gibt dir mit einem Klick 500 Punkte, dann löst du im Chat ein – auch ohne live zu sein.
+**Solange es noch keine Belohnung gibt,** zeigen oben drei Schritte, wo du stehst: Verdienen – Belohnungen anlegen – im Chat einlösen. Darunter liegen **Vorlagen** (Glücksrad drehen, Licht aus, Szene kurz wechseln, Idee einreichen, Musik wechseln): „Übernehmen“ legt eine mit einem Klick an, bei der Szene wählst du sie vorher. Dieselben Vorlagen gibt es unter Kanalpunkte für Twitch. Ab der ersten Belohnung steht die Liste oben, darüber eine Zeile **Verdienen** mit „Ändern“. **Selbst ausprobieren** gibt dir mit einem Klick 500 Punkte, dann löst du im Chat ein – auch ohne live zu sein.
 
 **Ausgeben:** Unter **+ Eigene Belohnung** legst du an, was es gibt: Name, Preis und was passiert – nur ein Alert, Glücksrad drehen, Vorschlag einreichen, Musik wechseln oder eine Szene wechseln (Szene und Dauer wählst du gleich dabei). Dazu, ob der Zuschauer einen Text schreibt, und eine Sperre je Zuschauer. Im Chat: \`!belohnungen\` zeigt die Liste, \`!einlösen <Name> [Text]\` löst ein. Reichen die Punkte nicht, ist die Belohnung aus oder gesperrt, wird nichts abgezogen; klappt die Aktion nicht (OBS nicht verbunden, kein Thema fürs Rad), kommen die Punkte zurück. Die Einlösung steht wie eine von Twitch in der Liste und im Alert – mit dem Namen deiner Währung statt „Kanalpunkte“.
 

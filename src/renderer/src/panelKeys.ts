@@ -13,8 +13,7 @@ export const PANEL_KEYS = [
   'textcommands',
   'chatbot',
   'trycommands',
-  'points',
-  'channelrewards',
+  'rewards',
   'quests',
   // Overlays & Alerts — alerts, milestones, leaderboards and the style for
   // all live in the overlay workshop, not as panels of their own (08.10.)

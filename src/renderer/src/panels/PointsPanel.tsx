@@ -40,9 +40,10 @@ const RATES: Array<[keyof Config, string, string]> = [
 ];
 
 
-// "Punkte" under Chat & Bot: the tool's own points next to Twitch channel
-// points (spec 2026-10-08-eigene-punkte), laid out as design B (08.10.):
-// three steps that say where the streamer stands, templates to start from,
+// Eigene Punkte under Chat & Bot → Belohnungen: the tool's own points next to
+// Twitch channel points (spec 2026-10-08-eigene-punkte), laid out as design B
+// (08.10.): until the first reward, three steps that say where the streamer
+// stands and templates to start from (13.10.: then the list comes first),
 // the rewards, how points are earned, who contributed and a corner to try
 // it out — with give, take and "Für jemanden einlösen" on each viewer.
 export default function PointsPanel() {
@@ -100,30 +101,38 @@ export default function PointsPanel() {
     },
   ];
 
+  // The steps and templates help to start; once there is a reward, the list comes first.
+  const starting = rewards !== null && rewards.length === 0;
+
   return (
     <div className="panel card-slim rewards">
-      <RewardSteps steps={steps} label="So laufen die Punkte" />
+      {starting && <RewardSteps steps={steps} label="So laufen die Punkte" />}
+      {starting && <RewardTemplates unit={currency} existing={(rewards ?? []).map((r) => r.name)} isOn={(f) => isOn(f as FeatureKey)} onUse={applyTemplate} />}
+      {!starting && config && (
+        <div className="chat-box-row">
+          <div><b>Verdienen</b> <span>· {earning(config)}</span></div>
+          <button type="button" className="card-secondary" onClick={() => setEditingConfig(true)}>Ändern</button>
+        </div>
+      )}
 
-      <RewardTemplates unit={currency} existing={(rewards ?? []).map((r) => r.name)} isOn={(f) => isOn(f as FeatureKey)} onUse={applyTemplate} />
-
-      <section aria-label="Deine Belohnungen">
-        <div className="card-line card-wrap">
-          <div className="rewards-name">Deine Belohnungen</div>
-          <button type="button" className="card-primary" onClick={() => setPath({})}>+ Eigene Belohnung</button>
+      <section aria-label="Belohnungen" className="rewards-switch-page">
+        <div className="chat-list-head">
+          <h2>Belohnungen</h2>
+          <button type="button" className="card-primary" onClick={() => setPath({})}>+ Neue Belohnung</button>
         </div>
         {rewards && rewards.length === 0 && <p className="dialog-empty">Noch keine. Eine Vorlage oben ist der schnellste Anfang.</p>}
-        <div className="rewards-ranking">
-          {(rewards ?? []).map((r) => (
-            <div key={r.id} className="rewards-row">
-              <div className="rewards-who">
-                <div className="rewards-name">{r.name}{r.enabled ? '' : ' (aus)'}</div>
-                <div className="dialog-hint">{ACTIONS[r.action]}{r.action === 'scene' && r.scene_name ? ` „${r.scene_name}“${r.scene_seconds ? `, ${r.scene_seconds} s` : ''}` : ''}{r.needs_input ? ' · mit Text' : ''}{r.cooldown_seconds ? ` · Sperre ${r.cooldown_seconds} s` : ''}</div>
-              </div>
-              <div className="rewards-total"><div className="rewards-total-n">{r.cost}</div><div className="dialog-hint">{currency}</div></div>
-              <button type="button" className="card-secondary" onClick={() => setEditingReward(r)}>Bearbeiten</button>
-            </div>
-          ))}
-        </div>
+        {(rewards?.length ?? 0) > 0 && (
+          <ul className="chat-list">
+            {(rewards ?? []).map((r) => (
+              <li key={r.id} className={`chat-row reward-line ${r.enabled ? '' : 'off'}`}>
+                <span className="chat-row-name">{r.name}{r.enabled ? '' : ' (aus)'}</span>
+                <span className="reward-line-cost">{POINTS.format(r.cost)} {currency}</span>
+                <span className="chat-row-text">{ACTIONS[r.action]}{r.action === 'scene' && r.scene_name ? ` „${r.scene_name}“${r.scene_seconds ? `, ${r.scene_seconds} s` : ''}` : ''}{r.needs_input ? ' · mit Text' : ''}{r.cooldown_seconds ? ` · Sperre ${r.cooldown_seconds} s` : ''}</span>
+                <button type="button" className="card-secondary" onClick={() => setEditingReward(r)}>Bearbeiten</button>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <div className="reward-columns">
@@ -146,6 +155,20 @@ export default function PointsPanel() {
       {openViewer && <ViewerDialog viewer={openViewer} currency={currency} rewards={rewards ?? []} onClose={() => setOpenViewer(null)} />}
     </div>
   );
+}
+
+const POINTS = new Intl.NumberFormat('de-DE');
+
+/** How points are earned, in one line; a source set to 0 is left out. */
+function earning(c: Config): string {
+  const parts = [
+    c.watch_points > 0 && `${c.watch_points} pro ${c.watch_minutes} Minuten zuschauen`,
+    c.chat_points > 0 && `${c.chat_points} pro Nachricht`,
+    c.follow_points > 0 && `${c.follow_points} für einen Follow`,
+    c.sub_points > 0 && `${c.sub_points} pro Sub`,
+    c.raid_points > 0 && `${c.raid_points} für einen Raid`,
+  ].filter(Boolean);
+  return parts.length ? `${parts.join(' · ')}` : 'Gerade gibt es für nichts Punkte.';
 }
 
 function ViewerList({ currency, onOpen }: { currency: string; onOpen: (v: Viewer) => void }) {

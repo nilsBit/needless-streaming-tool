@@ -42,8 +42,7 @@ export const PANEL_LABELS: Record<PanelKey, string> = {
   textcommands: 'Befehle',
   chatbot: 'Von selbst',
   trycommands: 'Ausprobieren',
-  points: 'Punkte',
-  channelrewards: 'Kanalpunkte',
+  rewards: 'Belohnungen',
   quests: 'Quests',
   overlays: 'Overlays',
   report: 'Auswertung',
@@ -73,39 +72,28 @@ export const AREAS: readonly Area[] = [
   {
     key: 'chat',
     label: 'Chat & Bot',
-    sentence: 'Was der Bot antwortet und was er von selbst sagt.',
-    keywords: ['Befehle', 'Nachschlagen in der Welt', 'Erinnerung', 'Shoutout', 'Punkte', 'Kanalpunkte', 'Ausprobieren'],
+    sentence: 'Was der Chat tippen kann, was er einlösen kann und was der Bot von selbst sagt.',
+    keywords: ['Befehle', 'Eingebaute Befehle', 'Nachschlagen in der Welt', 'Ausprobieren', 'Belohnungen', 'Punkte', 'Kanalpunkte', 'Erinnerung', 'Shoutout'],
     group: 'main',
+    // Three tabs since 13.10. (Leinwand "A · Drei Reiter"): five were three topics.
     subTabs: [
       {
         key: 'befehle',
         label: 'Befehle',
-        sentence: 'Eigene Befehle wie !zeitplan – eine Liste, was der Chat tippt und der Bot antwortet. Die eingebauten Befehle stehen unter „Von selbst“.',
-        panels: ['textcommands'],
+        sentence: '',
+        panels: ['trycommands', 'textcommands'],
+      },
+      {
+        key: 'belohnungen',
+        label: 'Belohnungen',
+        sentence: '',
+        panels: ['rewards'],
       },
       {
         key: 'selbst',
         label: 'Von selbst',
-        sentence: 'Was der Bot ohne Aufforderung sagt, wie lange er zwischen Antworten wartet und wie die eingebauten Befehle heißen.',
+        sentence: '',
         panels: ['chatbot'],
-      },
-      {
-        key: 'punkte',
-        label: 'Punkte',
-        sentence: 'Eigene Punkte neben den Kanalpunkten von Twitch: wofür es welche gibt, was man dafür einlöst und wer am meisten beigetragen hat.',
-        panels: ['points'],
-      },
-      {
-        key: 'kanalpunkte',
-        label: 'Kanalpunkte',
-        sentence: 'Belohnungen für Twitch-Kanalpunkte: hier anlegen, mit einer Aktion verbinden, ändern und löschen. Was im Creator-Dashboard angelegt ist, steht zum Ansehen dabei.',
-        panels: ['channelrewards'],
-      },
-      {
-        key: 'ausprobieren',
-        label: 'Ausprobieren',
-        sentence: 'Schreib einen Befehl, wie ihn ein Zuschauer schreiben würde. Im echten Chat passiert dabei nichts.',
-        panels: ['trycommands'],
       },
     ],
   },
@@ -217,6 +205,9 @@ export const OVERLAY_OF_OLD_TAB: Record<string, string> = {
   alerts: 'alerts', meilensteine: 'milestone', bestenlisten: 'reward-leaderboard', szenen: 'start', aussehen: '@style',
 };
 
+/** Chat & Bot had five tabs until 13.10.; a stored or linked old one opens where it went. */
+const OLD_SUB_TABS: Record<string, string> = { punkte: 'belohnungen', kanalpunkte: 'belohnungen', ausprobieren: 'befehle' };
+
 /** The area for a stored key; the first area when the key is unknown. */
 export function findArea(key: string | null | undefined): Area {
   return AREAS.find((a) => a.key === key) ?? AREAS[0];
@@ -224,5 +215,6 @@ export function findArea(key: string | null | undefined): Area {
 
 /** The sub tab for a stored key within an area; the first when unknown. */
 export function findSubTab(area: Area, key: string | null | undefined): SubTab {
-  return area.subTabs.find((t) => t.key === key) ?? area.subTabs[0];
+  const renamed = OLD_SUB_TABS[key ?? ''];
+  return area.subTabs.find((t) => t.key === key || t.key === renamed) ?? area.subTabs[0];
 }

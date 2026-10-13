@@ -257,6 +257,47 @@ body {
 .cmd-panel { gap: 16px; }
 .cmd-toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; }
 .filter-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+/* Chat & Bot (13.10., Leinwand "A · Drei Reiter"): Ausprobieren as a box,
+   one flat row per command or reward, the points switch, Von selbst as rows. */
+.rewards-switch-page { display: flex; flex-direction: column; gap: 16px; }
+.chat-try { display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; background: var(--bg-hover); border: 1px solid var(--border-subtle); border-radius: 10px; }
+.chat-try h2, .chat-list-head h2 { margin: 0; font-size: 15px; font-weight: 600; }
+.chat-try-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.chat-try-row input[type="text"] { flex: 1 1 200px; min-width: 0; }
+.chat-bot-line { margin: 0; padding: 10px 12px; background: var(--bg-input); border-left: 3px solid var(--accent); border-radius: 4px; color: var(--text); }
+.chat-bot-line b { color: #a78bfa; margin-right: 6px; }
+.chat-bot-line.muted { color: var(--muted); }
+.chat-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.chat-row { display: grid; grid-template-columns: 120px minmax(0, 1fr) auto auto; gap: 12px; align-items: center; padding: 8px 12px; border: 1px solid var(--border-subtle); border-radius: 8px; }
+.chat-row.off { opacity: 0.7; }
+.chat-row code { color: var(--accent); font-size: 14px; overflow-wrap: anywhere; }
+.chat-row-text { color: var(--text-secondary); min-width: 0; }
+.chat-row-kind { color: var(--muted); font-size: 12px; white-space: nowrap; }
+.chat-row-name { font-weight: 600; min-width: 0; }
+.reward-line { grid-template-columns: minmax(0, 1fr) 130px minmax(0, 1fr) auto; }
+.reward-line-cost { color: #f0c35e; font-weight: 600; }
+.chat-list-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; }
+.chat-box-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 14px; background: var(--bg-hover); border: 1px solid var(--border-subtle); border-radius: 8px; }
+.chat-box-row span { color: var(--text-secondary); }
+.segmented { display: inline-flex; align-self: flex-start; padding: 3px; border: 1px solid var(--border); border-radius: 999px; }
+.segmented button { min-height: 38px; padding: 0 16px; border: none; border-radius: 999px; background: none; color: var(--text-secondary); font: inherit; font-weight: 600; cursor: pointer; }
+.segmented button[aria-checked="true"] { background: var(--accent); color: #161616; }
+.chat-sentence { margin: 0; color: var(--muted); }
+.selbst-list { display: flex; flex-direction: column; gap: 8px; }
+.selbst-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 12px; align-items: center; padding: 14px 16px; background: var(--bg-hover); border: 1px solid var(--border-subtle); border-radius: 10px; }
+.selbst-row-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.selbst-row-text b { font-size: 15px; }
+.selbst-row-text span { color: var(--text-secondary); }
+.onoff { min-width: 64px; min-height: 40px; border: 1.5px solid var(--border); border-radius: 6px; background: none; color: var(--muted); font: inherit; font-weight: 700; cursor: pointer; }
+.onoff[aria-pressed="true"] { border-color: #6ee7a0; color: #6ee7a0; }
+@media (max-width: 640px) {
+  .chat-row, .reward-line { grid-template-columns: minmax(0, 1fr) auto; }
+  .chat-row-kind { display: none; }
+}
+[data-theme="light"] .reward-line-cost { color: #a16207; }
+[data-theme="light"] .onoff[aria-pressed="true"] { border-color: #1e7d4a; color: #1e7d4a; }
+[data-theme="light"] .chat-bot-line b { color: #6d28d9; }
+[data-theme="light"] .segmented button[aria-checked="true"] { color: #fff; }
 .pill { min-height: 40px; padding: 0 14px; border: 1px solid var(--border); border-radius: 999px; background: none; color: var(--text-secondary); font: inherit; cursor: pointer; }
 .pill:hover { color: var(--text); background: var(--bg-hover); border-color: var(--border-strong); }
 .pill.active { color: var(--accent); border-color: var(--accent); font-weight: 600; background: none; }

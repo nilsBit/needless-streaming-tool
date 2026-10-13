@@ -1,180 +1,159 @@
-import React, { useState, useEffect } from 'react';
-import SearchField, { matchesSearch } from '../ux/SearchField';
+import React, { useState } from 'react';
 import { useApi, apiPost, apiFetch } from '../../hooks/useApi';
 import { useToast } from '../../contexts/ToastContext';
-import { useFeatures } from '../../contexts/FeaturesContext';
-import { commandVisible } from '../../../../shared/features';
+import Dialog from '../ux/Dialog';
 
-interface Builtin { key: string; label: string; description: string; modsOnly: boolean }
+const MINUTES = [10, 15, 20, 30, 45, 60, 90, 120];
+const PAUSES = [0, 5, 10, 15, 20, 30, 45, 60, 120];
 
-// What the bot does on its own: the reminder it says every so often, the
-// shoutout after a raid, the pause between answers of the built-in commands,
-// and the names of those built-in commands. Moved here from the old
-// Settings → Features → "Chat Commands" card; behaviour and API calls unchanged.
+// "Von selbst" under Chat & Bot (13.10., Leinwand "A · Drei Reiter"): what
+// the bot does on its own, one row each — the reminder it says every so
+// often, the greeting after a raid and the pause between answers of the
+// built-in commands. "Ändern" opens the details, the switch turns it on or
+// off. The built-in names moved to Befehle → Eingebaut.
 export default function ChatBotSettings() {
   const { toast } = useToast();
+  const [editing, setEditing] = useState<'reminder' | 'pause' | null>(null);
 
-  // The bot's own reminder every so often — text and interval.
+  // The bot's own reminder every so often — text and interval; 0 minutes is off.
   const { data: reminderInfo, refetch: refetchReminder } = useApi<{ text: string; minutes: number; default: string; maxMinutes: number }>('/settings/reminder');
-  const [reminderText, setReminderText] = useState<string | null>(null);
+  const [lastMinutes, setLastMinutes] = useState(20);
   const saveReminder = async (change: { text?: string; minutes?: number }) => {
     const res = await apiFetch('/settings/reminder', { method: 'POST', body: JSON.stringify(change) });
-    if (!res.ok) { toast.error('Erinnerung nicht gespeichert'); return; }
-    setReminderText(null);
+    if (!res.ok) { toast.error('Erinnerung nicht gespeichert'); return false; }
     refetchReminder();
+    return true;
   };
+  const reminderOn = (reminderInfo?.minutes ?? 0) > 0;
+  const toggleReminder = () => {
+    if (reminderOn) { setLastMinutes(reminderInfo!.minutes); void saveReminder({ minutes: 0 }); }
+    else void saveReminder({ minutes: lastMinutes });
+  };
+  const reminderLine = reminderInfo?.text || reminderInfo?.default || '';
 
-  // Shoutout after a raid.
+  // Greeting after a raid.
   const { data: raidShoutout, refetch: refetchRaidShoutout } = useApi<{ value: string | null }>('/settings/get/raid_shoutout');
-  const raidShoutoutOn = raidShoutout?.value !== '0';
-  const setRaidShoutout = async (on: boolean) => {
-    await apiPost('/settings/set', { key: 'raid_shoutout', value: on ? '1' : '0' });
+  const raidOn = raidShoutout?.value !== '0';
+  const toggleRaid = async () => {
+    await apiPost('/settings/set', { key: 'raid_shoutout', value: raidOn ? '0' : '1' });
     refetchRaidShoutout();
   };
 
-  // Shared cooldown of the built-in commands that only say something.
+  // Shared pause of the built-in commands that only say something.
   const { data: builtinCooldown, refetch: refetchBuiltinCooldown } = useApi<{ seconds: number; max: number }>('/settings/builtin-cooldown');
-  const saveBuiltinCooldown = async (seconds: number) => {
+  const pause = builtinCooldown?.seconds ?? 15;
+  const savePause = async (seconds: number) => {
     const res = await apiFetch('/settings/builtin-cooldown', { method: 'POST', body: JSON.stringify({ seconds }) });
-    if (!res.ok) { toast.error('Pause nicht gespeichert'); return; }
+    if (!res.ok) { toast.error('Pause nicht gespeichert'); return false; }
     refetchBuiltinCooldown();
+    return true;
   };
 
-  // Names of the built-in commands.
-  const { data: commandsData, refetch: refetchCommands } = useApi<Record<string, string>>('/settings/commands');
-  const [editCommands, setEditCommands] = useState<Record<string, string>>({});
-  const [commandSearch, setCommandSearch] = useState('');
-  // Each built-in's name in the app and its sentence (08.10.: the internal key alone said nothing).
-  const { data: builtins } = useApi<Builtin[]>('/commands/builtins');
-  const { features } = useFeatures();
-  const infoOf = (key: string) => builtins?.find((b) => b.key === key);
-  const [commandsLoaded, setCommandsLoaded] = useState(false);
-  useEffect(() => {
-    if (commandsData && !commandsLoaded) {
-      setEditCommands(commandsData);
-      setCommandsLoaded(true);
-    }
-  }, [commandsData, commandsLoaded]);
-  const saveCommands = async () => {
-    const result = await apiPost('/settings/commands', editCommands);
-    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
-    toast.success('Namen gespeichert'); refetchCommands();
-  };
+  const onOff = (on: boolean, toggle: () => void, label: string) => (
+    <button type="button" className="onoff" aria-pressed={on} aria-label={`${label}: ${on ? 'an' : 'aus'}`} onClick={toggle}>{on ? 'An' : 'Aus'}</button>
+  );
 
   return (
-    <div className="panel settings-cards">
-      <div className="s-card">
-        <div className="s-card-header">
-          <div className="s-card-info">
-            <div>
-              <div className="s-card-title">Erinnerung</div>
-              <div className="s-card-status" style={{ color: '#888' }}>
-                Der Bot sagt alle paar Minuten einen Satz von selbst – aber nur, wenn seit dem letzten Mal jemand im Chat geschrieben hat. Leer = Standardtext.
-              </div>
-            </div>
-          </div>
+    <div className="selbst-list">
+      <div className="selbst-row">
+        <div className="selbst-row-text">
+          <b>Erinnerung</b>
+          <span>{reminderOn ? `Alle ${reminderInfo!.minutes} Minuten: „${reminderLine}“ Nur wenn seitdem jemand geschrieben hat.` : `Aus. Wenn an, sagt der Bot alle paar Minuten: „${reminderLine}“`}</span>
         </div>
-        <div className="s-card-body">
-          <div className="s-command-row">
-            <span className="s-command-label">Wie oft</span>
-            <select
-              className="s-alert-select" style={{ flex: '0 0 170px' }}
-              value={reminderInfo?.minutes ?? 0}
-              onChange={(e) => saveReminder({ minutes: Number(e.target.value) })}
-            >
-              <option value={0}>Aus</option>
-              {[10, 15, 20, 30, 45, 60, 90, 120].map((m) => <option key={m} value={m}>alle {m} Minuten</option>)}
-            </select>
-          </div>
-          <div className="s-command-row">
-            <span className="s-command-label">Satz</span>
-            <input
-              type="text" maxLength={400}
-              placeholder={reminderInfo?.default ?? ''}
-              value={reminderText ?? reminderInfo?.text ?? ''}
-              onChange={(e) => setReminderText(e.target.value)}
-              onBlur={() => reminderText !== null && saveReminder({ text: reminderText })}
-              onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
-            />
-          </div>
-        </div>
+        <button type="button" className="card-secondary" onClick={() => setEditing('reminder')}>Ändern</button>
+        {onOff(reminderOn, toggleReminder, 'Erinnerung')}
       </div>
 
-      <div className="s-card">
-        <div className="s-card-header">
-          <div className="s-card-info">
-            <div>
-              <div className="s-card-title">Shoutout nach einem Raid</div>
-              <div className="s-card-status" style={{ color: '#888' }}>
-                Kommt jemand mit einem Raid, empfiehlt der Bot dessen Kanal mit der letzten Kategorie. Von Hand geht es für Mods mit !so Name.
-              </div>
-            </div>
-          </div>
-          <div className="s-toggle-row compact">
-            <button className={`s-toggle-btn ${raidShoutoutOn ? 'active' : ''}`} onClick={() => setRaidShoutout(true)}>An</button>
-            <button className={`s-toggle-btn ${!raidShoutoutOn ? 'active' : ''}`} onClick={() => setRaidShoutout(false)}>Aus</button>
-          </div>
+      <div className="selbst-row">
+        <div className="selbst-row-text">
+          <b>Raid-Gruß</b>
+          <span>Wer dich raidet, bekommt einen Gruß mit Link zum Kanal und der letzten Kategorie. Von Hand geht es für Mods mit !so Name.</span>
         </div>
+        <span />
+        {onOff(raidOn, () => void toggleRaid(), 'Raid-Gruß')}
       </div>
 
-      <div className="s-card">
-        <div className="s-card-header">
-          <div className="s-card-info">
-            <div>
-              <div className="s-card-title">Pause zwischen Antworten</div>
-              <div className="s-card-status" style={{ color: '#888' }}>
-                Für die eingebauten Befehle, die nur etwas sagen (!song, !uptime, !projekt, !themen, !queue, !stats, !punkte, !belohnungen, !challenge, !datenschutz, !befehle).
-                Die Pause gilt für einen ruhigen Chat: ab 20 Nachrichten pro Minute halbiert sie sich, ab 60 ist es ein Viertel.
-                Wer die Antwort gerade bekommen hat, bekommt sie frühestens nach dem Vierfachen wieder; Mods und du warten nie.
-              </div>
-            </div>
-          </div>
-          <select
-            className="s-alert-select" style={{ flex: '0 0 150px' }}
-            aria-label="Pause in Sekunden"
-            value={builtinCooldown?.seconds ?? 15}
-            onChange={(e) => saveBuiltinCooldown(Number(e.target.value))}
-          >
-            {[0, 5, 10, 15, 20, 30, 45, 60, 120].map((s) => <option key={s} value={s}>{s === 0 ? 'Keine' : `${s} Sekunden`}</option>)}
+      <div className="selbst-row">
+        <div className="selbst-row-text">
+          <b>Pause zwischen Antworten</b>
+          <span>{pause === 0 ? 'Keine Pause: Die eingebauten Befehle antworten jedes Mal.' : `${pause} Sekunden je eingebautem Befehl, in vollem Chat kürzer. Mods und du sind ausgenommen.`}</span>
+        </div>
+        <button type="button" className="card-secondary" onClick={() => setEditing('pause')}>Ändern</button>
+        <span />
+      </div>
+
+      {editing === 'reminder' && reminderInfo && (
+        <ReminderDialog info={reminderInfo} fallbackMinutes={lastMinutes} onClose={() => setEditing(null)} onSave={saveReminder} />
+      )}
+      {editing === 'pause' && (
+        <PauseDialog seconds={pause} onClose={() => setEditing(null)} onSave={savePause} />
+      )}
+    </div>
+  );
+}
+
+function ReminderDialog({ info, fallbackMinutes, onClose, onSave }: {
+  info: { text: string; minutes: number; default: string };
+  fallbackMinutes: number;
+  onClose: () => void;
+  onSave: (change: { text?: string; minutes?: number }) => Promise<boolean>;
+}) {
+  const [text, setText] = useState(info.text);
+  const [minutes, setMinutes] = useState(info.minutes || fallbackMinutes);
+  const save = async () => {
+    if (await onSave({ text, minutes })) onClose();
+  };
+  return (
+    <Dialog
+      title="Erinnerung"
+      sentence="Der Bot sagt alle paar Minuten einen Satz von selbst – aber nur, wenn seit dem letzten Mal jemand im Chat geschrieben hat."
+      onClose={onClose}
+      width={560}
+      footer={<>
+        <span style={{ flex: 1 }} />
+        <button type="button" className="card-secondary" onClick={onClose}>Abbrechen</button>
+        <button type="button" className="card-primary" onClick={save}>Speichern</button>
+      </>}
+    >
+      <div className="dialog-grid">
+        <div className="dialog-field">
+          <label htmlFor="reminder-text">Satz – leer lassen für den Standardtext</label>
+          <input id="reminder-text" type="text" maxLength={400} placeholder={info.default} value={text} onChange={(e) => setText(e.target.value)} autoFocus />
+        </div>
+        <div className="dialog-field">
+          <label htmlFor="reminder-minutes">Wie oft</label>
+          <select id="reminder-minutes" value={minutes} onChange={(e) => setMinutes(Number(e.target.value))}>
+            {MINUTES.map((m) => <option key={m} value={m}>alle {m} Minuten</option>)}
           </select>
         </div>
       </div>
+    </Dialog>
+  );
+}
 
-      <div className="s-card">
-        <div className="s-card-header">
-          <div className="s-card-info">
-            <div>
-              <div className="s-card-title">Namen der eingebauten Befehle</div>
-              <div className="s-card-status" style={{ color: '#888' }}>
-                Alle Befehle beginnen mit !. !commands und !help antworten wie !befehle.
-              </div>
-            </div>
-          </div>
-          <SearchField value={commandSearch} onChange={setCommandSearch} label="Befehle suchen" />
-        </div>
-        <div className="s-card-body">
-          {Object.entries(editCommands)
-            .filter(([key, value]) => matchesSearch(commandSearch, key, value, infoOf(key)?.label, infoOf(key)?.description))
-            .map(([key, value]) => {
-              const info = infoOf(key);
-              const off = !commandVisible(features, key);
-              return (
-                <div key={key} className={`s-command-row ${off ? 'off' : ''}`}>
-                  <div className="s-command-text">
-                    <div className="s-command-name">
-                      {info?.label ?? key}
-                      {info?.modsOnly && <span className="s-command-tag">nur Mods</span>}
-                      {off && <span className="s-command-tag">Funktion aus</span>}
-                    </div>
-                    {info?.description && <div className="s-command-sentence">{info.description}</div>}
-                  </div>
-                  <input type="text" aria-label={`Name für ${info?.label ?? key}`} value={value} onChange={e => setEditCommands(prev => ({ ...prev, [key]: e.target.value }))} />
-                </div>
-              );
-            })}
-          <button className="s-card-action primary" onClick={saveCommands}>Speichern</button>
-        </div>
+function PauseDialog({ seconds, onClose, onSave }: { seconds: number; onClose: () => void; onSave: (seconds: number) => Promise<boolean> }) {
+  const [value, setValue] = useState(seconds);
+  const save = async () => {
+    if (await onSave(value)) onClose();
+  };
+  return (
+    <Dialog
+      title="Pause zwischen Antworten"
+      sentence="Für die eingebauten Befehle, die nur etwas sagen (!song, !uptime, !projekt, !themen, !queue, !stats, !punkte, !belohnungen, !challenge, !datenschutz, !befehle). Die Pause gilt für einen ruhigen Chat: ab 20 Nachrichten pro Minute halbiert sie sich, ab 60 ist es ein Viertel. Wer die Antwort gerade bekommen hat, bekommt sie frühestens nach dem Vierfachen wieder; Mods und du warten nie."
+      onClose={onClose}
+      width={560}
+      footer={<>
+        <span style={{ flex: 1 }} />
+        <button type="button" className="card-secondary" onClick={onClose}>Abbrechen</button>
+        <button type="button" className="card-primary" onClick={save}>Speichern</button>
+      </>}
+    >
+      <div className="dialog-field">
+        <label htmlFor="pause-seconds">Pause</label>
+        <select id="pause-seconds" value={value} onChange={(e) => setValue(Number(e.target.value))}>
+          {Array.from(new Set([...PAUSES, seconds])).sort((a, b) => a - b).map((s) => <option key={s} value={s}>{s === 0 ? 'Keine' : `${s} Sekunden`}</option>)}
+        </select>
       </div>
-    </div>
+    </Dialog>
   );
 }
