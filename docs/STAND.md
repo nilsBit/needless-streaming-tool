@@ -159,6 +159,29 @@ braucht den Bot.
 
 ## Wo wir stehen geblieben sind
 
+**Hier aufgehört (13.10. spät, unter Windows)**
+
+- Rückmeldung „Chat & Bot“, Teil 2. Nils hat ausgemistet:
+  - `!design` heißt jetzt `!abstimmung` (`!design` bleibt fester Zweitname).
+    Die Bot-Antworten nennen den eingestellten Namen statt fest `!design`/`!vote`.
+  - `!scene` ist weg. Szenenwechsel gibt es weiter über Belohnungen und die API.
+  - Song-Wünsche sind weg: `!sr`, `!queue`, die Wunschliste auf der Song-Karte,
+    das Feature „Musikwünsche“ und `/api/song-requests`. Die Tabelle
+    `song_requests` bleibt für Aufräumen und „Zuschauer vergessen“.
+  - `!uptime` ist weg.
+  - Befehle aus der Welt: Ein Befehl kann jetzt in der ganzen Welt suchen
+    (`art` leer) und eine „Antwort ohne Namen“ haben (`response`, Schema 36).
+    Bei Nils ersetzt `!welt` die Befehle `!figur`, `!region`, `!gilde` und
+    `!begriff`. Ohne Namen sagt es den alten `!welt`-Text, mit Namen schlägt
+    es nach. Neue Installationen starten nur mit `!welt`. Sicherung:
+    `data/stream-vor-welt-befehl-2026-10-13.db`.
+- Tests: `npx vitest run --pool=threads` lief zuverlässig. Der Standard-Pool
+  brach heute oft mit `ERR_IPC_CHANNEL_CLOSED` ab, während das Dev-Tool lief.
+- `data/stream.seed.db.neu` ist veraltet (vor Schema 36, noch mit den vier
+  Welt-Befehlen) und nicht committet: neu bereinigen, bevor sie das Seed ersetzt.
+- **Offen:** restliche Rückmeldung „Chat & Bot“; der abgeschaltete Text-Befehl
+  `!tool` erwähnt noch Song-Requests; danach „Overlays & Alerts“.
+
 **Hier aufgehört (13.10. abends, unter Windows)**
 
 - Nils hat „Chat & Bot“ (Entwurf A) im Dev-Tool angefangen anzusehen. Zwei
