@@ -159,6 +159,28 @@ braucht den Bot.
 
 ## Wo wir stehen geblieben sind
 
+**Hier aufgehört (13.10. abends, unter Windows)**
+
+- Nils hat „Chat & Bot“ (Entwurf A) im Dev-Tool angefangen anzusehen. Zwei
+  Funde behoben:
+  - Dialoge stahlen nach jedem Buchstaben den Fokus aus dem Feld
+    (`components/ux/Dialog.tsx`: Fokus-Effekt hing an `onClose`, das die
+    Aufrufer inline übergeben). Jetzt nur noch einmal beim Öffnen.
+  - `!themen` antwortet „Keine offenen Themen! 🎉“ bzw. „Offene Themen (n)“
+    statt „Issues“.
+- `!discord` (in `stream.db`) ohne „needless.studio“ — Twitch machte daraus
+  einen Link. Sicherung `data/stream-vor-discord-text-2026-10-13.db`.
+- `data/stream.seed.db.neu`: frische, bereinigte Kopie (Schema 18, neuer
+  `!discord`-Text, alle fünf Zugangswerte geprüft nicht drin). Ersetzen und
+  committen hat die Rechteprüfung blockiert — Nils macht es selbst
+  (`mv -f data/stream.seed.db.neu data/stream.seed.db`).
+- Erster Start zeigte ein weißes Fenster: Electrons Netzwerkdienst stürzte
+  beim ersten Laden ab („Network service crashed“). Neustart über nodemon
+  half; im Code lag nichts.
+- **Offen:** restliche Rückmeldung zu „Chat & Bot“, danach „Overlays &
+  Alerts“ (erst Entwürfe auf der Leinwand), Update-Prüfung alle paar Stunden
+  (1.0.4), Issue #29.
+
 **Hier aufgehört (13.10. abends, Mac)**
 
 - **„Chat & Bot“ aufgeräumt nach Entwurf A** (Leinwand, Bogen `ChatA`
