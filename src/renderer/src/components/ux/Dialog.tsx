@@ -19,13 +19,18 @@ interface Props {
 // nothing from the panel that opened it. The shared building block of the rebuild.
 export default function Dialog({ title, sentence, onClose, children, footer, width = 720 }: Props) {
   const ref = useRef<HTMLElement>(null);
+  // Callers pass onClose inline, so it changes on every keystroke. Kept in a ref
+  // so the effect runs once — re-running it would pull focus out of the input.
+  const close = useRef(onClose);
+  close.current = onClose;
 
   useEffect(() => {
-    ref.current?.focus();
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    // An autoFocus field inside wins; otherwise the dialog itself takes focus.
+    if (!ref.current?.contains(document.activeElement)) ref.current?.focus();
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close.current(); };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  }, []);
 
   return createPortal(
     <div className="dialog-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
