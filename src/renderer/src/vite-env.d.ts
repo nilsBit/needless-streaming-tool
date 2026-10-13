@@ -16,7 +16,6 @@ interface ElectronAPI {
   onUpdateAvailable: (callback: (data: UpdateInfo) => void) => void;
   onUpdateDownloaded?: (callback: (data: { version: string }) => void) => void;
   installUpdate?: () => Promise<void>;
-  setAlwaysOnTop?: (on: boolean) => Promise<boolean>;
 }
 
 interface Window {

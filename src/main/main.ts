@@ -114,12 +114,6 @@ app.whenReady().then(async () => {
     return result.canceled ? null : result.filePaths[0];
   });
 
-  // IPC: "Immer im Vordergrund" — the small window stays above OBS (12.10.).
-  ipcMain.handle('set-always-on-top', (_event, on: unknown) => {
-    mainWindow?.setAlwaysOnTop(on === true);
-    return mainWindow?.isAlwaysOnTop() ?? false;
-  });
-
   // Sync from remote before starting server
   const syncResult = syncFromRemote();
   if (syncResult.error) {

@@ -15,7 +15,6 @@ import StageBadge from './components/quests/StageBadge';
 import QuestTracker from './components/quests/QuestTracker';
 import QuestCoach from './components/quests/QuestCoach';
 import QuestCelebrations from './components/quests/QuestCelebrations';
-import PinButton from './components/compact/PinButton';
 import MomentButton from './components/compact/MomentButton';
 import { useCompact } from './hooks/useCompact';
 import logoSvg from './assets/logo.svg';
@@ -100,7 +99,7 @@ export default function Shell() {
   };
 
   // Small window (12.10.): one bar instead of sidebar and page header — the
-  // areas behind a menu button, the connections as dots, pin and moment.
+  // areas behind a menu button, the connections as dots, and moment.
   if (compact) {
     return (
       <NavigationProvider value={go}>
@@ -112,7 +111,6 @@ export default function Shell() {
             </button>
             <ConnectionMarks compact />
             <span className="compact-grow" />
-            <PinButton />
             {isOn('momente') && <MomentButton />}
           </header>
           {menuOpen && (
@@ -144,7 +142,6 @@ export default function Shell() {
           <div className="shell-nav-divider" role="separator" />
           {areas.filter((a) => a.group === 'secondary').map((a) => renderNavButton(a.key, a.label, true))}
           <ConnectionMarks />
-          <PinButton />
         </nav>
         <div className="shell-page">
           <PageHeader title={area.label} sentence={area.sentence} aside={area.key === 'stream' ? <SceneHint /> : undefined} />

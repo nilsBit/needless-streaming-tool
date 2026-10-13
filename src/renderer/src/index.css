@@ -3731,10 +3731,6 @@ button.character-active { width: 100%; color: var(--text); text-align: left; cur
 .compact-marks { display: flex; align-items: center; gap: 2px; }
 .compact-mark { width: 28px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border: none; background: none; cursor: pointer; border-radius: 6px; }
 .compact-mark:hover { background: var(--bg-hover); }
-.compact-icon-btn { min-width: 40px; min-height: 40px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--border-strong); border-radius: 8px; background: none; color: var(--text-secondary); cursor: pointer; }
-.compact-icon-btn:hover { background: var(--bg-hover); }
-.compact-icon-btn.on { border-color: var(--accent); color: var(--accent); }
-.shell-nav .compact-icon-btn { align-self: flex-start; margin: 8px 0 0 10px; }
 .compact-moment { min-height: 40px; padding: 0 14px; border: none; border-radius: 8px; background: var(--accent); color: #161616; font: inherit; font-weight: 700; cursor: pointer; white-space: nowrap; }
 .compact-moment:hover { filter: brightness(1.1); }
 .compact-menu { display: flex; flex-wrap: wrap; gap: 4px; padding: 8px 10px; border-bottom: 1px solid var(--border); background: var(--bg-panel, #1a1a1a); flex: none; }

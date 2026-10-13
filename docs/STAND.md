@@ -174,16 +174,20 @@ braucht den Bot.
   tut dort nichts.
 - **Meilenstein-Tastenkürzel** feiern jetzt (`POST /api/milestones/celebrate`)
   statt mit 400 zu scheitern.
-- **Kompakte Ansicht** unter 700 × 560: eine Leiste oben (Menü, Punkte, Pin
-  „Immer im Vordergrund“, Moment), auf Im Stream eine Zeile je Karte mit
-  Hauptknopf (Entwürfe KompaktSchmal/KompaktKlein). Der Pin ist nur im echten
-  Fenster und erst nach einem Neustart prüfbar – noch nicht geprüft.
+- **Kompakte Ansicht** unter 700 × 560: eine Leiste oben (Menü, Punkte,
+  Moment), auf Im Stream eine Zeile je Karte mit Hauptknopf (Entwürfe
+  KompaktSchmal/KompaktKlein). Den Pin „Immer im Vordergrund“ gab es kurz;
+  am 13.10. wieder entfernt: Nils braucht ihn nicht, und neben TFT/Overwolf
+  verlor das Fenster den Vorrang nach 1–2 s wieder.
 - Tests laufen ohne die echte `~/.worldbuilder/anschluss.json`
   (`setup/no-worldbuilder.ts`); 507/507 grün.
 - **Offen:** Version 1.0.3 veröffentlichen (Nils selbst:
   `npm version 1.0.3 -m "chore: version %s" && git push origin main --follow-tags`),
-  danach Auto-Update 1.0.2 → 1.0.3 beobachten. Pin im Fenster testen. „Chat &
+  danach Auto-Update 1.0.2 → 1.0.3 beobachten. „Chat &
   Bot“ und „Overlays & Alerts“ ebenso aufräumen.
+  (13.10.: 1.0.3 ist veröffentlicht und installiert; installiert war vorher
+  noch 1.0.0 ohne Auto-Update, deshalb keine Meldung. Erst 1.0.4 zeigt, ob
+  das Auto-Update greift.)
 
 **Hier aufgehört (12.10., auf dem Mac)**
 
