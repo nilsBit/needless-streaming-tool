@@ -66,10 +66,10 @@ export function registerCommands(client: Client) {
       case 'issues': {
         const bugs = getDb().prepare('SELECT * FROM issues WHERE status = ? ORDER BY created_at DESC LIMIT 5').all('open') as Issue[];
         if (bugs.length === 0) {
-          say('Keine offenen Issues! 🎉');
+          say('Keine offenen Themen! 🎉');
         } else {
           const list = bugs.map((b, i) => `${i + 1}. ${b.title}`).join(' | ');
-          say(`⚠️ Offene Issues (${bugs.length}): ${list}`);
+          say(`⚠️ Offene Themen (${bugs.length}): ${list}`);
         }
         break;
       }
