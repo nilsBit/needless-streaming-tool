@@ -4,7 +4,7 @@ Einstieg für einen neuen Rechner oder eine neue Claude-Session. **Offene Arbeit
 steht in den GitHub Issues** (`gh issue list`) — dieses Dokument erklärt das
 Große Ganze, wie die beiden Projekte zusammenhängen und wo wir stehen.
 
-Stand: 12. Oktober 2026.
+Stand: 13. Oktober 2026.
 
 ## Worum es geht
 
@@ -158,6 +158,33 @@ braucht den Bot.
   Warum kein Sync: ADR-0023 im Worldbuilder.
 
 ## Wo wir stehen geblieben sind
+
+**Hier aufgehört (13.10. morgens, unter Windows)**
+
+- **1.0.3 installiert.** Installiert war noch 1.0.0 (lokaler Build vom 09.10.,
+  vor dem Auto-Update) – darum kam keine Update-Meldung. 1.0.3 von Hand aus
+  dem GitHub-Release installiert; ob das Auto-Update greift, zeigt erst 1.0.4.
+  Dev-Modus und installierte App nie gleichzeitig starten: beide wollen
+  Port 4000, die zweite stirbt mit „A JavaScript error occurred“.
+- **Pin „Immer im Vordergrund“ entfernt** (Nils braucht ihn nicht; neben
+  TFT/Overwolf ging der Vorrang nach 1–2 s verloren).
+- **Als Nächstes: „Chat & Bot“ aufräumen.** Nils: zu viele Reiter, und die
+  Reiter sind zu voll. Befund: fünf Reiter, aber drei Themen; Punkte und
+  Kanalpunkte sind fast Kopien (gleiche Schritte, Vorlagen, Dialog);
+  eingebaute Befehle verstreut (Namen unter „Von selbst“, Pause an drei
+  Stellen); „Ausprobieren“ ist ein Reiter für ein Feld. Drei Richtungen
+  vorgeschlagen, **Nils’ Antwort steht aus** (Claude empfiehlt A):
+  - A · drei Reiter Befehle (eigene + eingebaute, Ausprobier-Feld oben) ·
+    Belohnungen (Punkte + Kanalpunkte mit Umschalter) · Von selbst
+    (Erinnerung, Raid-Shoutout, Pause); Liste zuerst, Schritte/Vorlagen nur
+    solange leer.
+  - B · keine Reiter, eine Übersicht mit Zeilen, Einzelheiten in Seitenleiste.
+  - C · zwei Reiter: „Was der Chat tippen kann“ / „Was der Bot von selbst sagt“.
+  Danach: drei Entwürfe auf der Leinwand
+  https://claude.ai/artifact/5Nw7Ci85coRGA526iNv8u7 (neue Reihe unter
+  „Kompakt“, Stil wie RuhigC), Nils wählt, dann bauen. Danach
+  „Overlays & Alerts“ genauso, und „alle paar Stunden nach Updates suchen“
+  für 1.0.4.
 
 **Hier aufgehört (12.10. abends, unter Windows)**
 
