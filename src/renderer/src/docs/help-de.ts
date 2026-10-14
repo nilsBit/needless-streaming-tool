@@ -325,7 +325,7 @@ Alle Zahlen und den Namen der Währung stellst du unter **Verdienen → Einstell
     title: 'Overlays',
     content: `Overlays werden als **Browser Source** in OBS eingebunden.
 
-**Eine Liste:** Unter Overlays & Alerts steht jedes Overlay in einer Zeile – Name, ein Satz dazu und wo es in OBS liegt („In OBS: Malen“ in Grün oder „Noch nicht in OBS“). Darüber eine Leiste: links der **Stil** mit seinen Farben und „Ändern“, daneben der Stand von OBS – wie viele Overlays schon darin liegen, oder „OBS nicht verbunden“ mit „Verbinden“ –, rechts **+ Eigenes Overlay**.
+**Eine Liste:** Unter Overlays & Alerts steht jedes Overlay in einer Zeile – Name, ein Satz dazu und wo es in OBS liegt („In OBS: Malen“ in Grün oder „Noch nicht in OBS“). Darüber eine Leiste: links der **Stil** mit seinen Farben und „Ändern“, daneben der Stand von OBS – wie viele Overlays schon darin liegen, oder „OBS nicht verbunden“ mit „Verbinden“.
 - **In OBS anlegen** steht nur in Zeilen, die noch fehlen. Das Tool legt die Browserquelle in der richtigen Größe in die Szene, die gerade läuft; Platz und Größe änderst du danach in OBS. Ein eigenes Overlay klappt auf und zeigt die Adresse – die legst du in OBS selbst an.
 - **Bearbeiten** klappt die Zeile auf: links die Vorschau mit Beispieldaten, rechts je eine Zeile für **was drinsteht**, das **Aussehen** und die **Adresse für OBS** (Kopieren). Was drinsteht, öffnet bei den Alerts Text und Ton je Anlass, beim Meilenstein deine Meilensteine, bei Bestenliste und Rangwechsel deine Listen. Bei Live-Overlays (Glücksrad, Ziel, Projekt, Abstimmung, Musik, Eintragskarte) bringt dich **Hingehen** zu ihrer Karte unter „Im Stream“.
 - **Im Stream testen** steht darunter, sobald das Overlay in OBS liegt – auch deine Zuschauer sehen den Test. Wo es keinen Test gibt, sagst du mit **Sitzt in OBS und sieht gut aus**, dass es passt.
@@ -370,17 +370,10 @@ Alle Zahlen und den Namen der Währung stellst du unter **Verdienen → Einstell
 
 **Größe der Schrift:** Ein einziger Regler unter Overlays & Alerts → Stil für alle stellt sie für alle Overlays zugleich — Titel, Kicker und Zahlen ziehen mit, nicht nur der Fließtext. Standard sind 18px. Wächst die Schrift, wächst auch der Kasten: Passt eine Browser-Quelle in OBS danach nicht mehr, gib ihr ein paar Pixel mehr Höhe.
 
-**Custom Overlays:**
-- Overlays & Alerts → „+ Eigenes Overlay“ unten auf der Seite
-- Aus Template erstellen oder eigene HTML-Datei hochladen
+**Eigene Overlays:**
+- Neue legt die App nicht mehr an (seit 14.10.). Schon angelegte stehen weiter in der Liste, mit Adresse, „HTML bearbeiten“ und „Overlay löschen“.
 - URL: http://localhost:4000/overlay/custom/<name>/index.html
-
-**Eigene Overlays entwickeln:**
-Das Template unter /overlay/_template/index.html enthält:
-- Alle verfügbaren WebSocket-Events
-- Alle Public API Endpoints
-- Zwei Design-Vorlagen (Pixel Art + Modern)
-- Helper-Funktionen (Auto-Reconnect, escapeHtml)`,
+- Wer selbst eins baut: Das Template unter /overlay/_template/index.html enthält alle WebSocket-Events, die Public-API-Endpunkte und Helfer (Auto-Reconnect, escapeHtml); anlegen über POST /api/overlays.`,
   },
   {
     title: 'API Referenz',

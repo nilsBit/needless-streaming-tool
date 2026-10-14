@@ -295,7 +295,6 @@ body {
 .ovl-head-muted { color: var(--muted); }
 .ovl-head-on { color: #6ee7a0; }
 .ovl-head-sep { width: 1px; height: 28px; background: var(--border-subtle); }
-.ovl-head-fill { flex: 1; }
 .ovl-swatches { display: inline-flex; }
 .ovl-swatches > span { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--bg-hover); }
 .ovl-swatches > span + span { margin-left: -6px; }

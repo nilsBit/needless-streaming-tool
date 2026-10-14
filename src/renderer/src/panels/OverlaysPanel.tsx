@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { useApi, apiPost, apiFetch } from '../hooks/useApi';
 import { useToast } from '../contexts/ToastContext';
 import { useWebSocket } from '../hooks/useWebSocket';
@@ -99,11 +99,7 @@ export default function OverlaysPanel() {
   const [editing, setEditing] = useState<{ what: Editing; name: string; listPath?: boolean } | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [moment, setMoment] = useState<{ label: string; icon: string; xp: number; levelUp: boolean; stage: string } | null>(null);
-  const [creating, setCreating] = useState(false);
   const [placing, setPlacing] = useState<{ initial?: string } | null>(null);
-  const [newName, setNewName] = useState('');
-  const [uploadMode, setUploadMode] = useState<'template' | 'file'>('template');
-  const fileRef = useRef<HTMLInputElement>(null);
   const [editor, setEditor] = useState<{ entry: CatalogEntry; html: string; loading: boolean; saving: boolean } | null>(null);
 
   const refresh = () => { refetchPlacement(); refetchSteps(); };
@@ -166,38 +162,9 @@ export default function OverlaysPanel() {
     await mark(entry, 'tested');
   };
 
-  // Own overlays: create from the template or from an uploaded file, edit the
+  // Own overlays (made before 14.10., when creating them left the app): edit the
   // HTML, delete. Built-in overlays: edit the HTML as an override, reset it.
   const customBase = (entry: CatalogEntry) => entry.name.replace(/^custom\//, '');
-  const afterCreate = (name: string) => { setNewName(''); setCreating(false); refetchCatalog(); refetchSteps(); setOpenName(`custom/${name}`); };
-  const createFromTemplate = async () => {
-    if (!newName.trim()) return;
-    setBusy('create');
-    try {
-      const { html } = await (await apiFetch('/overlays/template')).json();
-      const name = newName.trim();
-      const customHtml = html
-        .replace("OVERLAY_NAME = 'MeinOverlay'", `OVERLAY_NAME = '${name}'`)
-        .replace('<div class="title">MEIN OVERLAY</div>', `<div class="title">${name.toUpperCase()}</div>`)
-        .replace('<title>Custom Overlay Template</title>', `<title>${name}</title>`);
-      const res = await apiFetch('/overlays', { method: 'POST', body: JSON.stringify({ name, html: customHtml }) });
-      if (!res.ok) { const err = await res.json().catch(() => ({})); toast.error(err.error || 'Anlegen fehlgeschlagen'); return; }
-      afterCreate(name);
-    } catch { toast.error('Anlegen fehlgeschlagen'); }
-    finally { setBusy(null); }
-  };
-  const uploadFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !newName.trim()) return;
-    setBusy('create');
-    try {
-      const name = newName.trim();
-      const res = await apiFetch('/overlays', { method: 'POST', body: JSON.stringify({ name, html: await file.text() }) });
-      if (!res.ok) { const err = await res.json().catch(() => ({})); toast.error(err.error || 'Hochladen fehlgeschlagen'); return; }
-      afterCreate(name);
-    } catch { toast.error('Hochladen fehlgeschlagen'); }
-    finally { setBusy(null); if (fileRef.current) fileRef.current.value = ''; }
-  };
   const deleteCustom = async (entry: CatalogEntry) => {
     if (!window.confirm(`„${entry.label}“ löschen? Die Browserquelle in OBS zeigt dann ins Leere.`)) return;
     const res = await apiFetch(`/overlays/${encodeURIComponent(customBase(entry))}`, { method: 'DELETE' });
@@ -380,8 +347,6 @@ export default function OverlaysPanel() {
             </span>
           </>
         )}
-        <span className="ovl-head-fill" />
-        <button type="button" className="card-secondary" onClick={() => setCreating(true)}>+ Eigenes Overlay</button>
       </div>
       <ul className="chat-list" aria-label="Overlays">{sorted.map(row)}</ul>
 
@@ -424,30 +389,6 @@ export default function OverlaysPanel() {
         </div>
       )}
 
-      {creating && (
-        <Dialog
-          title="Eigenes Overlay"
-          sentence="Aus der Vorlage oder aus einer eigenen HTML-Datei. Es bekommt eine Adresse wie die anderen."
-          onClose={() => { setCreating(false); setNewName(''); }}
-          width={560}
-          footer={<>
-            <button type="button" className="card-secondary" onClick={() => { setCreating(false); setNewName(''); }}>Abbrechen</button>
-            {uploadMode === 'template'
-              ? <button type="button" className="card-primary" onClick={createFromTemplate} disabled={!newName.trim() || busy !== null}>{busy === 'create' ? 'Legt an …' : 'Aus Vorlage anlegen'}</button>
-              : <button type="button" className="card-primary" onClick={() => fileRef.current?.click()} disabled={!newName.trim() || busy !== null}>{busy === 'create' ? 'Lädt hoch …' : 'HTML-Datei wählen'}</button>}
-          </>}
-        >
-          <div className="dialog-field">
-            <label htmlFor="ovl-new-name">Name – wird Teil der Adresse, z. B. mein-banner</label>
-            <input id="ovl-new-name" type="text" value={newName} onChange={(e) => setNewName(e.target.value)} autoFocus />
-          </div>
-          <div className="card-row">
-            <button type="button" className={`card-secondary ${uploadMode === 'template' ? 'active' : ''}`} onClick={() => setUploadMode('template')}>Aus der Vorlage</button>
-            <button type="button" className={`card-secondary ${uploadMode === 'file' ? 'active' : ''}`} onClick={() => setUploadMode('file')}>Eigene HTML-Datei</button>
-          </div>
-          <input ref={fileRef} type="file" accept=".html,.htm" onChange={uploadFile} style={{ display: 'none' }} />
-        </Dialog>
-      )}
       {editor && (
         <Dialog
           title={`${editor.entry.label} – HTML`}

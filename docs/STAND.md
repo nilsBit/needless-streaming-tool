@@ -189,6 +189,9 @@ braucht den Bot.
   der Szenen, steht unter Einstellungen → Verbindungen → OBS „Szenen anlegen“.
   Alte Links auf den Reiter „szenen“ und der Prüfpunkt führen dorthin.
   „HTML bearbeiten“ gibt es für die drei Bilder in der App nicht mehr.
+- „+ Eigenes Overlay“ ist raus (Knopf und Dialog). Schon angelegte eigene
+  Overlays stehen weiter in der Liste (Adresse, HTML bearbeiten, löschen);
+  `/api/overlays` und das Template bleiben.
 - **Offen:** Seed unter Windows neu bereinigen, 1.0.4 veröffentlichen
   (Nils), Issue #29 schließen, wenn Nils die Overlays-Seite im Alltag abnimmt.
 
