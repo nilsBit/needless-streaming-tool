@@ -159,24 +159,56 @@ braucht den Bot.
 
 ## Wo wir stehen geblieben sind
 
-**Hier aufgehört (14.10. spät, unter Windows)**
+**Hier aufgehört (14.10. spät, unter Windows)** – alles gepusht
 
-- Belohnungen aus Bausteinen gebaut, auf Branch `belohnungen-bausteine` im
-  Worktree `.worktrees/belohnungen-bausteine`, **noch nicht in main**. Spec:
-  `docs/superpowers/specs/2026-10-14-belohnungen-bausteine-design.md`, Plan:
-  `docs/superpowers/plans/2026-10-14-belohnungen-bausteine.md`. Schema 37
-  (Idee und Musik sind jetzt Alert).
-- Bausteine: Alert, Glücksrad, Szene, **Timer** und **Ton**. Der Timer läuft
-  als Countdown über „Ziel für heute“ (Pause, Beenden; übersteht einen Neustart der App, das eigene Ziel
-  kommt zurück; nur einer zur Zeit, ein zweiter wird zurückerstattet). Der Text
-  des Zuschauers steht im Alert (höchstens 100 Zeichen, Links werden
-  „[Link]“); der Ton einer Ton-Belohnung läuft im Alert.
-- „+ Neue Belohnung“ mit Vorlagen für Kreativ, Gaming, Talk, Coding (eigene
-  Punkte kosten ein Zehntel), „+ Eigene Belohnung“ Schritt für Schritt,
-  schlanker Bearbeiten-Dialog. Hilfe ist angepasst.
-- Offen: im echten Programm ansehen; Nils nimmt im Alltag ab; „Quelle kurz
-  einblenden“ später; die Datei `C:\tmp_out.txt` hat ein Helfer liegen
-  lassen – Nils löscht sie.
+- **Belohnungen aus Bausteinen** – in main (`08ba5a4`…`0a6825f`), gebaut mit
+  Subagenten Aufgabe für Aufgabe, jede geprüft, am Ende eine Gesamtprüfung.
+  Spec `docs/superpowers/specs/2026-10-14-belohnungen-bausteine-design.md`,
+  Plan `docs/superpowers/plans/2026-10-14-belohnungen-bausteine.md`.
+  Nils: „wir brauchen einen Userflow, der einfach ist“, gewählt Entwurf A
+  (Leinwand, Brett `BelohnungA`, „Vorlage zuerst“).
+- Bausteine: Alert (auf Wunsch mit Text des Zuschauers), Glücksrad, Szene
+  kurz zeigen, **Timer** und **Ton**. „Idee einreichen“ und „Musik wechseln“
+  sind weg (waren technisch nur ein Alert) – Schema 37 macht vorhandene zu
+  Alert. Im Dashboard angelegte Belohnungen werden nur noch an „Roulette“
+  und „Szene“ erkannt.
+- Timer = Countdown über „Ziel für heute“ (`src/server/reward-timer.ts`):
+  Aufgabe + „von <Name>“ + Countdown im Ziel-Overlay und auf der Ziel-Karte,
+  „Zeit um!“ etwa 5 s, danach ist das eigene Ziel wieder da (Uhr lief
+  weiter). Pause, „Beenden“, übersteht einen Neustart. Nur einer zur Zeit:
+  ein zweiter wird zurückerstattet, ohne Alert. Während er läuft, lehnt
+  `PATCH /api/stream-state` Geschafft/Titel/Uhr mit 409 ab; „Abbrechen“ und
+  die Kompakt-Ansicht zeigen dann nur „Beenden“.
+- Text im Alert jetzt auch bei Kanalpunkten (höchstens 100 Zeichen, Links →
+  „[Link]“); Ton-Belohnungen spielen ihren Ton (Lautstärke fest 0.8).
+- „+ Neue Belohnung“: Vorlagen nach Persona (Kreativ, Gaming, Talk, Coding;
+  eigene Punkte kosten ein Zehntel, mindestens 10), „+ Eigene Belohnung“
+  Schritt für Schritt. Bearbeiten-Dialog nur noch mit dem Feld des
+  Bausteins; „Text für Zuschauer“ ist raus. Fehler beim Löschen nennen den
+  Grund.
+- Abweichungen von der Spec: Preis-Stufen beim eigenen Anlegen wie bisher
+  (500/2.000/10.000 bzw. 100/300/1.000), „Sperre je Zuschauer“ bleibt.
+- Nils' Windows-`stream.db` ist auf Schema 37 (Sicherung
+  `data/stream-vor-v37-2026-10-14.db`). Der Seed im Repo ist noch Schema 36 –
+  die App hebt ihn beim Start selbst.
+- Bewusst liegen gelassen (klein): ein Ziel ohne Titel per API während eines
+  Countdowns; ein gerade „geschafftes“ Ziel kann nach dem Countdown
+  wiederkommen; Kompakt-Ansicht zeigt kein „Zeit um!“; 409 zeigt nur
+  „Aktion fehlgeschlagen“.
+- Tests: 544 grün (`npx vitest run --pool=threads`), Typecheck und Lint
+  sauber. `song.test.ts` und `obs-visible-overlays.test.ts` wackelten je
+  einmal im vollen Lauf (einzeln grün).
+- **Was noch zu tun ist:**
+  1. Belohnungen im echten Programm ansehen (Nils oder Claude mit dem
+     API-Token): Vorlage „Handicap: 5 Minuten“ bei eigenen Punkten anlegen,
+     „Für jemanden einlösen“, Countdown in Overlay und Ziel-Karte, Pause,
+     Beenden; Test-Belohnung wieder löschen.
+  2. 1.0.4 veröffentlichen (Nils:
+     `npm version 1.0.4 -m "chore: version %s" && git push origin main --follow-tags`).
+  3. Nils nimmt „Overlays & Alerts“ und die Belohnungen im Alltag ab, danach
+     Issue #29 schließen.
+  4. Später: Baustein „Quelle kurz einblenden“; nächster Bereich auf der
+     Leinwand („Im Stream“, „Nach dem Stream“ oder „Einstellungen“).
 
 **Hier aufgehört (14.10. abends, unter Windows)**
 
