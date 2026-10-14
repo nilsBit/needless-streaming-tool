@@ -306,6 +306,9 @@ body {
 .ovl-line { display: grid; grid-template-columns: 150px minmax(0, 1fr) 200px auto; gap: 12px; align-items: center; padding: 8px 12px; }
 .ovl-where { color: var(--muted); font-size: 13px; min-width: 0; }
 .ovl-where.on { color: #6ee7a0; }
+/* Einstellungen → Daten (14.10.): the same rows, without the OBS column. */
+.data-line { grid-template-columns: 190px minmax(0, 1fr) auto; }
+.data-open { display: flex; flex-direction: column; gap: 8px; padding: 4px 12px 14px; }
 .ovl-open { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; padding: 4px 12px 14px; }
 .ovl-open-preview { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .ovl-open-rows { display: flex; flex-direction: column; gap: 8px; min-width: 0; }

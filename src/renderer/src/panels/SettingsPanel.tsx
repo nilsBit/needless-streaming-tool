@@ -25,7 +25,6 @@ export default function SettingsPanel({ category }: { category: SettingsCategory
   const [expanded, setExpanded] = useState<string | null>(null);
   const [syncPath, setSyncPath] = useState('');
   const [syncEnabled, setSyncEnabled] = useState(false);
-  const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
     apiGet<{ enabled: boolean; syncPath: string }>('/settings/sync/config').then((cfg) => {
@@ -90,101 +89,69 @@ export default function SettingsPanel({ category }: { category: SettingsCategory
   );
 
   const renderData = () => (
-    <>
-      <div className="s-card">
-        <div className="s-card-header">
-          <div className="s-card-info">
-            <div>
-              <div className="s-card-title">Sicherung</div>
-              <div className="s-card-status" style={{ color: '#888' }}>Alle Daten als Datei sichern oder eine Sicherung zurückspielen. Zugangsdaten und Tokens bleiben draußen und werden beim Zurückspielen nicht angerührt.</div>
-            </div>
-          </div>
+    <ul className="chat-list" aria-label="Daten">
+      <li className="ovl-item">
+        <div className="ovl-line data-line">
+          <span className="chat-row-name">Sicherung erstellen</span>
+          <span className="chat-row-text">Befehle, Overlays, Einstellungen und Zahlen in eine Datei. Zugangsdaten bleiben draußen.</span>
+          <button type="button" className="card-primary" onClick={exportBackup}>Sicherung erstellen</button>
         </div>
-        <div className="s-card-body" style={{ paddingTop: 0 }}>
-          <div className="s-card-input-row">
-            <button className="s-card-action primary" onClick={exportBackup}>Sicherung erstellen</button>
-            <label className="s-card-action primary" style={{ cursor: 'pointer', textAlign: 'center' }}>
-              Sicherung zurückspielen
-              <input ref={fileInputRef} type="file" accept=".json" onChange={importBackup} style={{ display: 'none' }} />
-            </label>
-          </div>
-        </div>
-      </div>
+      </li>
 
-      <div className="s-card">
-        <div className="s-card-header">
-          <div className="s-card-info">
-            <div>
-              <div className="s-card-title">Für eigene Werkzeuge</div>
-              <div className="s-card-status" style={{ color: '#888' }}>Nur nötig, wenn du selbst etwas an das Tool anbindest. Stream Deck und Figma finden ihren Zugang allein.</div>
-            </div>
-          </div>
-          <button className="s-card-action ghost" onClick={() => toggle('api')}>
+      <li className="ovl-item">
+        <div className="ovl-line data-line">
+          <span className="chat-row-name">Sicherung zurückspielen</span>
+          <span className="chat-row-text">Ersetzt die Daten hier durch die aus der Datei. Deine Zugänge bleiben, wie sie sind.</span>
+          <button type="button" className="card-secondary" onClick={() => fileInputRef.current?.click()}>Datei wählen …</button>
+          <input ref={fileInputRef} type="file" accept=".json" onChange={importBackup} hidden />
+        </div>
+      </li>
+
+      <li className={`ovl-item ${expanded === 'api' ? 'open' : ''}`}>
+        <div className="ovl-line data-line">
+          <span className="chat-row-name">Für eigene Werkzeuge</span>
+          <span className="chat-row-text">Nur nötig, wenn du selbst etwas an das Tool anbindest. Stream Deck und Figma finden ihren Zugang allein.</span>
+          <button type="button" className="card-secondary" aria-expanded={expanded === 'api'} onClick={() => toggle('api')}>
             {expanded === 'api' ? 'Zuklappen' : 'Anzeigen'}
           </button>
         </div>
         {expanded === 'api' && (
-          <div className="s-card-body">
+          <div className="data-open">
             {tokenInfo?.token ? (
               <>
-                <div className="s-card-input-row">
-                  <code className="s-code-block" style={{ flex: 1 }}>API-Token: {tokenInfo.token.substring(0, 8)}...</code>
+                <div className="chat-box-row">
+                  <div className="ovl-box-text"><b>API-Token</b><span>{tokenInfo.token.substring(0, 8)}…</span></div>
                   <CopyButton text={tokenInfo.token} />
                 </div>
-                <code className="s-code-block">Base URL: http://localhost:{getServerPort()}/api</code>
-                <code className="s-code-block">Authorization: Bearer {tokenInfo.token.substring(0, 12)}...</code>
+                <div className="chat-box-row">
+                  <div className="ovl-box-text"><b>Adresse</b><span>http://localhost:{getServerPort()}/api · Kopfzeile „Authorization: Bearer &lt;Token&gt;“</span></div>
+                </div>
               </>
             ) : (
-              <div className="s-card-status" style={{ color: '#888' }}>Token wird geladen …</div>
+              <span className="chat-row-text">Token wird geladen …</span>
             )}
           </div>
         )}
-      </div>
+      </li>
 
       {/* The sync folder is retired from the app; it only shows while it is
           still switched on, so whoever uses it can switch it off. */}
       {syncEnabled && (
-      <div className="s-card">
-        <div className="s-card-header">
-          <div className="s-card-info">
-            <div>
-              <div className="s-card-title">Sync-Ordner</div>
-              <div className="s-card-status" style={{ color: syncEnabled ? '#2ecc71' : '#888' }}>
-                {syncEnabled ? (syncStatus?.lastSync ? `Zuletzt abgeglichen ${new Date(syncStatus.lastSync).toLocaleString('de-DE')}` : 'An') : 'Aus'}
-              </div>
-            </div>
+        <li className="ovl-item">
+          <div className="ovl-line data-line">
+            <span className="chat-row-name">Sync-Ordner</span>
+            <span className="chat-row-text">
+              {syncStatus?.error ?? (syncStatus?.lastSync ? `Zuletzt abgeglichen ${new Date(syncStatus.lastSync).toLocaleString('de-DE')}` : 'An')}
+            </span>
+            <button type="button" className="card-secondary" onClick={async () => {
+              setSyncEnabled(false);
+              await apiPost('/settings/sync/config', { enabled: false, syncPath });
+              refetchSync();
+            }}>Ausschalten</button>
           </div>
-          <button className={`s-card-action ${expanded === 'sync' ? 'ghost' : 'primary'}`} onClick={() => toggle('sync')}>
-            {expanded === 'sync' ? 'Zuklappen' : 'Einrichten'}
-          </button>
-        </div>
-        {expanded === 'sync' && (
-          <div className="s-card-body">
-            <label className="s-checkbox">
-              <input type="checkbox" checked={syncEnabled} onChange={e => { setSyncEnabled(e.target.checked); apiPost('/settings/sync/config', { enabled: e.target.checked, syncPath }); refetchSync(); }} />
-              Mit einem Ordner abgleichen, etwa in Dropbox
-            </label>
-            <div className="s-card-input-row">
-              <input type="text" value={syncPath} readOnly placeholder="Kein Ordner gewählt" style={{ flex: 1 }} />
-              <button className="s-card-action ghost" onClick={async () => {
-                const folder = await window.electronAPI?.selectSyncFolder();
-                if (folder) { setSyncPath(folder); await apiPost('/settings/sync/config', { enabled: syncEnabled, syncPath: folder }); refetchSync(); }
-              }}>Ordner wählen</button>
-            </div>
-            {syncStatus?.error && <div className="s-card-status" style={{ color: '#e74c3c' }}>{syncStatus.error}</div>}
-            <button className="s-card-action primary" onClick={async () => {
-              setSyncing(true);
-              const result = await apiPost<{ success: boolean; error?: string }>('/settings/sync/trigger', {});
-              setSyncing(false); refetchSync();
-              if (result?.success) toast.success('Abgeglichen'); else toast.error(result?.error || 'Abgleich fehlgeschlagen');
-            }} disabled={!syncEnabled || !syncPath || syncing}>
-              {syncing ? 'Gleicht ab …' : 'Jetzt abgleichen'}
-            </button>
-          </div>
-        )}
-      </div>
+        </li>
       )}
-    </>
+    </ul>
   );
 
   return (
