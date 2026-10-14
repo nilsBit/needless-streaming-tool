@@ -10,7 +10,8 @@ data/*.db-wal
 data/character-images/
 .env
 .worktrees/
-.claude/
+.claude/*
+!.claude/skills/
 .superpowers/
 design/captured/
 design/compare/

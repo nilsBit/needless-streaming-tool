@@ -159,7 +159,7 @@ braucht den Bot.
 
 ## Wo wir stehen geblieben sind
 
-**Hier aufgehört (14.10. mittags, Mac)**
+**Hier aufgehört (14.10. nachmittags, Mac)** – alles gepusht
 
 - „Overlays & Alerts“ aufgeräumt nach Leinwand-Entwurf „A · Eine Liste“ und
   Kopfleiste A (Bretter `BildA`/`BildKopf`, y=32290/33410):
@@ -168,7 +168,7 @@ braucht den Bot.
     Aufgeklappt: Vorschau, was angezeigt wird, Aussehen, Adresse für OBS,
     „Im Stream testen“ bzw. „Sitzt in OBS und sieht gut aus“.
   - Kopfleiste: Stil mit Farbtupfern und „Ändern“, OBS-Stand („x von y
-    Overlays in OBS“ oder „Verbinden“), „+ Eigenes Overlay“.
+    Overlays in OBS“ oder „Verbinden“).
   - Einsatzbereit/+EP bleibt: Einstellungen schließen zählt als „eingestellt“,
     Test oder „Sitzt in OBS“ als „getestet“. Quests (Bestenliste,
     Alert-Ton) zeigen weiter auf die richtige Stelle.
@@ -192,8 +192,20 @@ braucht den Bot.
 - „+ Eigenes Overlay“ ist raus (Knopf und Dialog). Schon angelegte eigene
   Overlays stehen weiter in der Liste (Adresse, HTML bearbeiten, löschen);
   `/api/overlays` und das Template bleiben.
-- **Offen:** Seed unter Windows neu bereinigen, 1.0.4 veröffentlichen
-  (Nils), Issue #29 schließen, wenn Nils die Overlays-Seite im Alltag abnimmt.
+- Neu: Skill `/stand-sichern` (`.claude/skills/stand-sichern/SKILL.md`, im
+  Repo, also auf Mac und Windows): prüfen, Stand hier eintragen, committen,
+  pushen.
+- **Was noch zu tun ist:**
+  1. Seed unter Windows neu bereinigen (dort liegt die aktuelle `stream.db`;
+     Vorgehen unter „Auf einem neuen Rechner einrichten“).
+  2. 1.0.4 veröffentlichen (Nils:
+     `npm version 1.0.4 -m "chore: version %s" && git push origin main --follow-tags`),
+     dann unter Windows beobachten, ob das Auto-Update von 1.0.3 greift.
+  3. Nils nimmt „Overlays & Alerts“ im Alltag ab – Rückmeldung einarbeiten,
+     danach Issue #29 schließen.
+  4. Nächster Bereich nach demselben Muster (Leinwand-Entwürfe, Nils wählt,
+     bauen): offen, welcher – „Im Stream“, „Nach dem Stream“ oder
+     „Einstellungen“.
 
 **Hier aufgehört (14.10. morgens, unter Windows)**
 
