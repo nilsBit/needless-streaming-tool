@@ -1,4 +1,5 @@
 import { getDb } from '../db/index';
+import { featureOn } from '../features';
 
 /**
  * Tells a Discord channel that the stream just went live.
@@ -75,12 +76,13 @@ export function saveLiveSettings(input: { webhook_url?: string; message?: string
  * Posts the live message unless it was posted recently.
  *
  * @param now for the cooldown; passed in so the tests need no clock.
- * @returns `off` without a webhook, `recent` inside the cooldown, `failed`
- *   when Discord refused — never throws, a stream must not stop over this.
+ * @returns `off` without a webhook or with the feature switched off, `recent`
+ *   inside the cooldown, `failed` when Discord refused — never throws, a
+ *   stream must not stop over this.
  */
 export async function announceLive(now = Date.now()): Promise<'sent' | 'recent' | 'off' | 'failed'> {
   const url = setting(WEBHOOK_KEY);
-  if (url === undefined) return 'off';
+  if (url === undefined || !featureOn('discord')) return 'off';
 
   const last = Number(setting(LAST_KEY) ?? 0);
   if (last > 0 && now - last < LIVE_COOLDOWN_MS) return 'recent';

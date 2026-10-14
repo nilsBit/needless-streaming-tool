@@ -48,6 +48,14 @@ describe('Discord live announcement', () => {
     expect(received).toEqual([]);
   });
 
+  it('does nothing while the feature is switched off, even with a webhook', async () => {
+    setSetting('discord_live_webhook', hookUrl);
+    setSetting('features', JSON.stringify(['ziel']));
+
+    await expect(announceLive(1_000)).resolves.toBe('off');
+    expect(received).toEqual([]);
+  });
+
   it('posts the message with the Twitch channel filled in', async () => {
     setSetting('discord_live_webhook', hookUrl);
     setSetting('discord_live_message', '🔴 Live: https://twitch.tv/{channel}');
