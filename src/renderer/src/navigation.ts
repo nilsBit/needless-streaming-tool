@@ -48,7 +48,6 @@ export const PANEL_LABELS: Record<PanelKey, string> = {
   report: 'Auswertung',
   'settings-connections': 'Verbindungen',
   'settings-app': 'Programm',
-  hotkeys: 'Tastenkürzel',
   'settings-data': 'Daten',
   help: 'Hilfe',
 };
@@ -146,7 +145,7 @@ export const AREAS: readonly Area[] = [
     key: 'settings',
     label: 'Einstellungen',
     sentence: 'Verbindungen, Programm und Daten.',
-    keywords: ['Twitch', 'OBS', 'Discord', 'Notion', 'Backup', 'Tastenkürzel'],
+    keywords: ['Twitch', 'OBS', 'Discord', 'Notion', 'Backup'],
     group: 'secondary',
     subTabs: [
       {
@@ -158,8 +157,8 @@ export const AREAS: readonly Area[] = [
       {
         key: 'programm',
         label: 'Programm',
-        sentence: 'Aussehen der App, Autostart und globale Tastenkürzel.',
-        panels: ['settings-app', 'hotkeys'],
+        sentence: 'Was das Tool kann, Aussehen der App und Autostart.',
+        panels: ['settings-app'],
       },
       {
         key: 'daten',

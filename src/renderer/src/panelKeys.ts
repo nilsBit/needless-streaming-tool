@@ -23,7 +23,6 @@ export const PANEL_KEYS = [
   // Einstellungen
   'settings-connections',
   'settings-app',
-  'hotkeys',
   'settings-data',
   // Hilfe
   'help',

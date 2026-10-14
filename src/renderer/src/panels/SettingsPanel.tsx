@@ -9,8 +9,7 @@ import FeaturesCard from '../components/settings/FeaturesCard';
 export type SettingsCategory = 'connections' | 'app' | 'data';
 
 // Einstellungen: Verbindungen (the connection cards, shared with the setup),
-// Programm (what the stream can do, look, autostart; the hotkeys are their
-// own panel) and Daten (backup, API token folded away, sync folder only while on).
+// Programm (what the stream can do, look, autostart) and Daten (backup, API token folded away, sync folder only while on).
 export default function SettingsPanel({ category }: { category: SettingsCategory }) {
   const { data: tokenInfo } = useApi<{ token: string | null }>('/settings/api-token');
   const { data: syncStatus, refetch: refetchSync } = useApi<{

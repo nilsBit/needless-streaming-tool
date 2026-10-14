@@ -3,7 +3,6 @@ import path from 'path';
 import { startServer } from '../server/index';
 import { deleteConnectionFile } from '../server/connection-file';
 import { syncFromRemote, syncToRemoteOnQuit } from '../server/sync';
-import { registerHotkeys, unregisterHotkeys, setHotkeyPort } from './hotkeys';
 import { createTray } from './tray';
 import { startUpdates } from './auto-update';
 
@@ -125,9 +124,7 @@ app.whenReady().then(async () => {
   const serverResult = await startServer();
   apiToken = serverResult.token;
   appPort = serverResult.port;
-  setHotkeyPort(appPort);
   createWindow();
-  registerHotkeys();
 
   // Check for updates after a short delay (let UI render first)
   setTimeout(() => {
@@ -137,7 +134,6 @@ app.whenReady().then(async () => {
 
 app.on('before-quit', () => {
   isQuitting = true;
-  unregisterHotkeys();
   syncToRemoteOnQuit();
   deleteConnectionFile();
 });

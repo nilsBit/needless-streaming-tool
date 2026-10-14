@@ -17,7 +17,7 @@ Links stehen die Bereiche nach Situation: **Im Stream** (alles, was du live ausl
     content: `Beim ersten Start fragt das Tool **„Was soll dein Stream können?“** – siebzehn Funktionen in vier Gruppen (Im Chat, Overlays, Mit Kanalpunkten, Nach dem Stream), jede mit einem Satz und dem Hinweis, was sie braucht. Danach **Verbinden** (nur Twitch, OBS, Discord – was die Auswahl braucht), **In OBS einrichten** (das Tool legt die Browserquellen an, du wählst die Szene) und **Fertig** (deine Stufe, was steht, was fehlt und deine nächsten Quests). Die Einrichtung ist deine erste Quest: jede Etappe zeigt, welche EP sie bringt.
 
 - Jeder Schritt lässt sich überspringen. Wer die Einrichtung überspringt, sieht die ganze App.
-- Die Auswahl **blendet aus, sie löscht nicht**: Karten auf „Im Stream“, Overlays in der Liste, Unterreiter, eingebaute Befehle, Tastenkürzel und Prüfpunkte im Balken richten sich danach. Der Bot antwortet auf einen ausgeschalteten Befehl nicht, und \`!befehle\` nennt ihn nicht.
+- Die Auswahl **blendet aus, sie löscht nicht**: Karten auf „Im Stream“, Overlays in der Liste, Unterreiter, eingebaute Befehle und Prüfpunkte im Balken richten sich danach. Der Bot antwortet auf einen ausgeschalteten Befehl nicht, und \`!befehle\` nennt ihn nicht.
 - Ändern: Unter **Einstellungen → Programm → Was dein Stream kann** steht jede Funktion mit ihrem Satz und **An/Aus** – ein Klick gilt sofort. Braucht etwas Neues eine Verbindung oder Browserquellen in OBS, führt **Einrichtung noch einmal durchgehen** auf derselben Karte durch alle vier Schritte; dort übernimmt **Speichern** im ersten Schritt die Auswahl und bringt dich zurück in die App.
 - Die Gruppe **Nur bei dir** (Eintragskarte, Start-, Pausen- und Endbild, Moment merken) erscheint nur, solange das Tool mit deinem eigenen Twitch-Kanal verbunden ist.`,
   },
@@ -62,7 +62,7 @@ Links stehen die Bereiche nach Situation: **Im Stream** (alles, was du live ausl
 | Projekt → Statistiken, Nach dem Stream → Statistik | Nach dem Stream → Auswertung |
 | Live → Reward Stats | Nach dem Stream → Kanalpunkte |
 | Settings → Verbindungen / App / Daten & API | Einstellungen → Verbindungen / Programm / Daten |
-| Hotkeys | Einstellungen → Programm → Tastenkürzel |
+| Hotkeys | entfallen – dafür gibt es das Stream Deck |
 
 Die Kästen lassen sich nicht mehr verschieben, anpinnen oder ausblenden — jedes Panel hat genau einen Ort. Welcher Bereich und welches Thema zuletzt offen waren, merkt sich das Tool.
 
@@ -96,7 +96,7 @@ Oben unter **Heute dabei** tippst du an, welche Karten du heute brauchst. Die an
 - **Zähler** – etwa 12 von 30 Figuren. Jeder Klick zählt eins dazu.
 - **Zahl mit Ziel** – etwa 6.200 von 10.000 Wörtern. Ein Klick zählt so viel dazu, wie du einstellst (z. B. 500). Mit „Beginnt jeden Montag neu“ ist es ein Wochenziel.
 
-**Im Stream:** Oben steht unter „Gerade dran“ das Projekt, an dem du arbeitest, mit einem Knopf zum Weiterschalten („Weiter zu „Farbe““, „+1“). Direkt danach kannst du es rückgängig machen. Auf dem Stream Deck oder per Tastenkürzel heißt das „Projekt weiter“ (Standard: Cmd/Strg+Alt+P). Bei „Zahl mit Ziel“ gibt es keinen festen Schritt: Du trägst den Stand ein, z. B. 1.873 Wörter, und „Projekt weiter“ tut dort nichts.
+**Im Stream:** Oben steht unter „Gerade dran“ das Projekt, an dem du arbeitest, mit einem Knopf zum Weiterschalten („Weiter zu „Farbe““, „+1“). Direkt danach kannst du es rückgängig machen. Auf dem Stream Deck heißt das „Projekt weiter“. Bei „Zahl mit Ziel“ gibt es keinen festen Schritt: Du trägst den Stand ein, z. B. 1.873 Wörter, und „Projekt weiter“ tut dort nichts.
 
 **Mehrere Projekte:** Darunter stehen unter „Auch offen“ die zwei, an denen du zuletzt gearbeitet hast; „Alle … offenen Projekte“ zeigt den Rest. „Weitermachen“ wechselt – jedes Projekt behält seinen Stand, abschließen musst du dafür nichts. Ein Stream zählt für jedes Projekt, an dem du in ihm gearbeitet hast.
 
@@ -122,7 +122,7 @@ Bis Oktober 2026 hieß das „Fortschritt“, mit Aufgabenbrett, Meilenstein-Ver
 
 **Was genutzt wurde:** Befehle und Belohnungen, wie oft und von wie vielen Leuten. Darunter deine eigenen Befehle, die seit fünf Streams niemand getippt hat.
 
-**Moment merken** (Im Stream, Stream Deck oder Tastenkürzel) setzt eine Marke in den Ablauf. Die Hype-Erkennung setzt ihre eigenen.
+**Moment merken** (Im Stream oder Stream Deck) setzt eine Marke in den Ablauf. Die Hype-Erkennung setzt ihre eigenen.
 
 **Verbindung weg:** Verliert der Rechner im Stream kurz das Internet, steht im Ablauf ein gestrichelter Teil „Verbindung weg“. Was in der Zeit im Chat passiert ist, kommt nicht nach – diese Minuten zählen deshalb bei Nachrichten pro Minute und der ruhigsten Phase nicht mit. Beginnt Twitch danach einen neuen Stream, keine 15 Minuten nach dem Ende des alten, bleibt es eine Auswertung.
 
@@ -442,7 +442,7 @@ Auth-Header: Authorization: Bearer <token>
 
 **Milestones:**
 - GET /api/milestones — POST /api/milestones — PATCH /api/milestones/:id — DELETE /api/milestones/:id
-- POST /api/milestones/celebrate — { level: minor | major | epic } — hakt den ältesten offenen Meilenstein dieser Stufe ab; ohne einen feiert das Overlay trotzdem (Tastenkürzel, Stream Deck)
+- POST /api/milestones/celebrate — { level: minor | major | epic } — hakt den ältesten offenen Meilenstein dieser Stufe ab; ohne einen feiert das Overlay trotzdem (Stream Deck)
 
 **OBS:**
 - GET /api/obs/config — POST /api/obs/config
@@ -528,12 +528,6 @@ Alle Events werden als JSON gesendet: { "event": "name", "data": { ... } }
 **Overlays:**
 - overlay-config — Farben oder Schriften geändert
 - overlay-ready — ein Overlay ist einsatzbereit geworden`,
-  },
-  {
-    title: 'Tastenkürzel',
-    content: `Die App hat globale Hotkeys die auch funktionieren wenn die App im Hintergrund ist.
-
-Hotkeys werden über die Hotkey-Konfiguration in der App verwaltet. Die Hotkeys lösen die gleichen API-Calls aus wie die Stream Deck Buttons.`,
   },
   {
     title: 'Troubleshooting',

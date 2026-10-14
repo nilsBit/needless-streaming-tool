@@ -14,7 +14,6 @@ import StreamReportPanel from './panels/StreamReportPanel';
 import RewardsPanel from './panels/RewardsPanel';
 import QuestsPanel from './panels/QuestsPanel';
 import SettingsPanel from './panels/SettingsPanel';
-import HotkeysPanel from './panels/HotkeysPanel';
 import HelpPanel from './panels/HelpPanel';
 
 // Panel key → component. Where a panel lives is navigation.ts's business;
@@ -39,7 +38,6 @@ export const PANEL_REGISTRY: Record<PanelKey, React.ComponentType> = {
   quests: QuestsPanel,
   'settings-connections': SettingsConnections,
   'settings-app': SettingsApp,
-  hotkeys: HotkeysPanel,
   'settings-data': SettingsData,
   help: HelpPanel,
 };
