@@ -41,6 +41,10 @@ export default function ChallengePanel() {
     const id = setInterval(() => setNow(Date.now()), 500);
     return () => clearInterval(id);
   }, [state?.timer_ends_at]);
+  // A fresh countdown must not be dropped by the delayed reset after "Geschafft"
+  useEffect(() => {
+    if (state?.timer_ends_at != null && resetTimerRef.current) { clearTimeout(resetTimerRef.current); resetTimerRef.current = null; }
+  }, [state?.timer_ends_at]);
   const left = state?.timer_paused_left != null ? state.timer_paused_left : Math.max(0, (state?.timer_ends_at ?? 0) - now);
   const leftSeconds = Math.ceil(left / 1000);
   const countdownDisplay = `${Math.floor(leftSeconds / 60).toString().padStart(2, '0')}:${(leftSeconds % 60).toString().padStart(2, '0')}`;
@@ -86,7 +90,7 @@ export default function ChallengePanel() {
   if (loading && !state) return <div className="panel"><p className="empty">Laden …</p></div>;
 
   const isActive = !!state?.challenge_title && state.challenge_status !== 'idle';
-  const statusLabel = state?.challenge_status === 'in_progress' ? 'läuft' : state?.challenge_status === 'done' ? 'geschafft' : state?.challenge_status === 'failed' ? 'nicht geschafft' : '';
+  const statusLabel = countdown ? (state?.challenge_status === 'done' ? 'Zeit um!' : 'Timer einer Belohnung') : state?.challenge_status === 'in_progress' ? 'läuft' : state?.challenge_status === 'done' ? 'geschafft' : state?.challenge_status === 'failed' ? 'nicht geschafft' : '';
   const statusTone = state?.challenge_status === 'done' ? 'ok' : state?.challenge_status === 'failed' ? 'bad' : 'live';
 
   if (!isActive) {
@@ -136,9 +140,11 @@ export default function ChallengePanel() {
       </div>
         </>
       )}
-      <div className="card-status">
-        <button type="button" className="card-link" onClick={cancelChallenge}>Abbrechen</button>
-      </div>
+      {!countdown && (
+        <div className="card-status">
+          <button type="button" className="card-link" onClick={cancelChallenge}>Abbrechen</button>
+        </div>
+      )}
     </div>
   );
 }

@@ -85,11 +85,23 @@ export async function handleRedemption(event: Record<string, unknown>) {
 
   console.log(`[EventSub] Redemption: ${userName} redeemed "${rewardTitle}"`);
 
+  // A reward made in the app carries its action by id (#24); no name convention.
+  // It runs first: one that did not happen is refunded and leaves no count, no
+  // queue row and no alert (as points/redeem.ts does it).
+  const bound = actionForReward(rewardId);
+  if (bound) {
+    const done = await runAction(bound.action, { sceneName: bound.scene_name, sceneSeconds: bound.scene_seconds, task: bound.task, minutes: bound.minutes, who: userName });
+    if (!done.ok) {
+      // Like own points: an action that did not happen gives the points back.
+      const refunded = await cancelRedemption(rewardId, String(event.id ?? ''));
+      console.log(`[EventSub] "${rewardTitle}" did not run (${done.reason})${refunded ? ' — points given back' : ''}`);
+      return;
+    }
+  }
+
   // A reward with a Bestenliste counts there, by its id; the rest is told
   // apart by title and does what it does (wheel, music, scene, suggestion).
   const point = countRedemption(rewardId, login, userName);
-  // A reward made in the app carries its action by id (#24); no name convention.
-  const bound = actionForReward(rewardId);
   let rewardType = point ? point.leaderboard.key : bound ? rewardTypeOf(bound.action) : rewardTitle;
   if (!point && !bound) {
     const byName = actionFromTitle(rewardTitle);
@@ -111,15 +123,7 @@ export async function handleRedemption(event: Record<string, unknown>) {
   // tells the standing on request (Nils, 06.10.: "jedesmal diese Notiz macht keinen Sinn").
   if (point) console.log(`[EventSub] ${userName}: ${point.leaderboard.title} Nr. ${point.count}, Platz ${point.rank}`);
 
-  if (bound) {
-    const done = await runAction(bound.action, { sceneName: bound.scene_name, sceneSeconds: bound.scene_seconds, task: bound.task, minutes: bound.minutes, who: userName });
-    if (!done.ok) {
-      // Like own points: an action that did not happen gives the points back.
-      const refunded = await cancelRedemption(rewardId, String(event.id ?? ''));
-      console.log(`[EventSub] "${rewardTitle}" did not run (${done.reason})${refunded ? ' — points given back' : ''}`);
-    }
-    return;
-  }
+  if (bound) return;
 
   // Auto-trigger roulette when someone redeems roulette
   if (rewardType === 'roulette') {

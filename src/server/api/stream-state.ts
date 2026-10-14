@@ -3,7 +3,7 @@ import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
 import { VALID_CHALLENGE_STATUS } from '../../shared/types';
 import { validateEnum } from './validate';
-import { dropRewardTimer, endRewardTimer, toggleRewardTimerPause } from '../reward-timer';
+import { dropRewardTimer, endRewardTimer, rewardTimerActive, toggleRewardTimerPause } from '../reward-timer';
 
 const router = Router();
 
@@ -84,6 +84,12 @@ router.patch('/', (req, res) => {
 
   if (fields.length === 0) {
     res.status(400).json({ error: 'No fields to update' });
+    return;
+  }
+
+  // A countdown owns the goal's place: finishing, replacing or counting up under it would break it
+  if (rewardTimerActive() && (challenge_status === 'done' || challenge_status === 'failed' || (challenge_title !== undefined && challenge_title !== null) || timer_running)) {
+    res.status(409).json({ error: 'Gerade läuft der Timer einer Belohnung – erst „Beenden“.' });
     return;
   }
 

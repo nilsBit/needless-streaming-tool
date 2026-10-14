@@ -292,7 +292,11 @@ export async function startServer(): Promise<{ token: string; port: number }> {
   const server = http.createServer(app);
   initWebSocket(server, { port: PORT, host: HOST });
   restoreTimerState();
-  restoreRewardTimer();
+  try {
+    restoreRewardTimer();
+  } catch (err) {
+    console.warn('[reward-timer] Could not restore reward timer:', err);
+  }
 
   server.on('error', (err: NodeJS.ErrnoException) => {
     if (err.code === 'EADDRINUSE') {

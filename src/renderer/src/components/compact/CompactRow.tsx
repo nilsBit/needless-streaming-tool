@@ -13,7 +13,7 @@ interface Quick {
   action?: { label: string; run: () => Promise<unknown> };
 }
 
-interface StreamState { challenge_title: string | null; challenge_status: string; timer_running: number }
+interface StreamState { challenge_title: string | null; challenge_status: string; timer_running: number; timer_ends_at?: number | null; timer_paused_left?: number | null; timer_task_by?: string | null }
 interface Issue { status: string }
 interface Design { status: string; title: string }
 interface ActiveVote { active?: boolean; options?: string[] }
@@ -25,6 +25,13 @@ function useChallenge(): Quick {
   useWebSocket((event) => { if (event === 'stream-state') refetch(); });
   const running = !!data?.challenge_title && data.challenge_status === 'in_progress';
   if (!data?.challenge_title || data.challenge_status === 'idle') return { line: 'Kein Ziel gesetzt' };
+  // A reward's countdown holds the place: only "Beenden" fits, "Geschafft" would break it
+  if (data.timer_ends_at != null || data.timer_paused_left != null) {
+    return {
+      line: data.timer_task_by ? `${data.challenge_title} · von ${data.timer_task_by}` : data.challenge_title,
+      action: { label: 'Beenden', run: () => apiPost('/stream-state/reward-timer/end', {}) },
+    };
+  }
   const state = data.challenge_status === 'done' ? ' · geschafft' : data.challenge_status === 'failed' ? ' · nicht geschafft' : '';
   return {
     line: data.challenge_title + state,

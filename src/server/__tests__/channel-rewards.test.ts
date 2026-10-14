@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 import request from 'supertest';
 import type { Express } from 'express';
 import http from 'http';
@@ -6,6 +6,12 @@ import { initDatabase } from '../db/index';
 import { generateApiToken } from '../auth-token';
 import { createApp } from '../index';
 import { handleRedemption } from '../bot/eventsub';
+
+const alerts: string[] = [];
+vi.mock('../websocket/index', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../websocket/index')>()),
+  broadcast: (event: string) => { alerts.push(event); },
+}));
 
 /**
  * #24: Twitch channel-point rewards made and edited from the app, each bound
@@ -155,12 +161,18 @@ describe('Twitch rewards from the app', () => {
 
     it("starts the timer with the viewer's name, and refunds a second one", async () => {
       const made = (await request(app).post('/api/channel-rewards').set(auth()).send({ title: 'Nur Pistole', cost: 500, action: 'timer', minutes: 5 }).expect(201)).body;
+      alerts.length = 0;
       await redeem({ id: made.id, title: made.title });
       const state = (await request(app).get('/api/stream-state').set(auth()).expect(200)).body;
       expect(state).toMatchObject({ challenge_title: 'Nur Pistole', timer_task_by: 'Mila' });
+      expect(alerts.filter((e) => e === 'reward-redeemed')).toHaveLength(1);
+      const rows = (await queue()).length;
       calls = [];
       await handleRedemption({ id: 'red-2', user_name: 'Tom', user_login: 'tom', reward: { id: made.id, title: made.title }, user_input: '' });
       expect(calls.find((c) => c.path === '/channel_points/custom_rewards/redemptions')?.body).toEqual({ status: 'CANCELED' });
+      // A refused, refunded timer is no alert and no queue row
+      expect(alerts.filter((e) => e === 'reward-redeemed')).toHaveLength(1);
+      expect(await queue()).toHaveLength(rows);
       await request(app).post('/api/stream-state/reward-timer/end').set(auth()).expect(200);
     });
 

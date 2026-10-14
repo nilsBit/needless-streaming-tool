@@ -99,10 +99,10 @@ describe('reward timer', () => {
     vi.advanceTimersByTime(600_000);
     expect(state().challenge_title).toBeNull();
   });
-  it('a count-up started during the countdown does not survive it (goal saved and running)', async () => {
+  it('a count-up cannot be started under a countdown (goal saved and running)', async () => {
     await request(app).patch('/api/stream-state').set(auth()).send({ challenge_title: 'Eigenes', challenge_status: 'in_progress', timer_seconds: 100, timer_running: 1 }).expect(200);
     startRewardTimer({ task: 'Nur Pistole', minutes: 1, who: 'Lena' });
-    await request(app).patch('/api/stream-state').set(auth()).send({ timer_running: 1 }).expect(200);
+    await request(app).patch('/api/stream-state').set(auth()).send({ timer_running: 1 }).expect(409);
     vi.advanceTimersByTime(60_000 + REWARD_TIMER_DONE_MS);
     const s = state();
     expect(s).toMatchObject({ challenge_title: 'Eigenes', timer_running: 1 });
@@ -112,12 +112,22 @@ describe('reward timer', () => {
     expect(state().timer_seconds).toBe(168);
   });
 
-  it('a count-up started during the countdown stops with it (no goal saved)', async () => {
+  it('a refused count-up leaves no clock behind (no goal saved)', async () => {
     startRewardTimer({ task: 'Nur Pistole', minutes: 1, who: 'Lena' });
-    await request(app).patch('/api/stream-state').set(auth()).send({ timer_running: 1 }).expect(200);
+    await request(app).patch('/api/stream-state').set(auth()).send({ timer_running: 1 }).expect(409);
     vi.advanceTimersByTime(60_000 + REWARD_TIMER_DONE_MS);
     expect(state()).toMatchObject({ timer_running: 0, timer_seconds: 0 });
     vi.advanceTimersByTime(30_000);
     expect(state()).toMatchObject({ timer_running: 0, timer_seconds: 0 });
+  });
+
+  it('during a countdown the goal cannot be finished or replaced from the app', async () => {
+    startRewardTimer({ task: 'Nur Pistole', minutes: 1, who: 'Lena' });
+    const before = state();
+    const msg = 'Gerade läuft der Timer einer Belohnung – erst „Beenden“.';
+    expect((await request(app).patch('/api/stream-state').set(auth()).send({ challenge_status: 'done' }).expect(409)).body.error).toBe(msg);
+    await request(app).patch('/api/stream-state').set(auth()).send({ challenge_status: 'failed', timer_running: 0 }).expect(409);
+    await request(app).patch('/api/stream-state').set(auth()).send({ challenge_title: 'Neu', challenge_status: 'in_progress' }).expect(409);
+    expect(state()).toEqual(before);
   });
 });
