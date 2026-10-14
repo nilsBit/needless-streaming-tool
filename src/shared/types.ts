@@ -9,6 +9,11 @@ export interface StreamState {
   is_live: number;
   is_recording: number;
   project_name: string | null;
+  /** A reward's countdown: when it ends (ms), who redeemed it, what was left when paused (spec 2026-10-14). */
+  timer_ends_at: number | null;
+  timer_task_by: string | null;
+  timer_paused_left: number | null;
+  saved_challenge: string | null;
 }
 
 export interface Issue {

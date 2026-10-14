@@ -5,6 +5,7 @@ import { initDatabase } from './db/index';
 import { generateApiToken, validateApiToken, validateDesignToken, getApiToken } from './auth-token';
 import { writeConnectionFile, deleteConnectionFile } from './connection-file';
 import streamStateRouter, { restoreTimerState } from './api/stream-state';
+import { restoreRewardTimer } from './reward-timer';
 import issuesRouter from './api/issues';
 import rewardsRouter from './api/rewards';
 import designsRouter from './api/designs';
@@ -291,6 +292,7 @@ export async function startServer(): Promise<{ token: string; port: number }> {
   const server = http.createServer(app);
   initWebSocket(server, { port: PORT, host: HOST });
   restoreTimerState();
+  restoreRewardTimer();
 
   server.on('error', (err: NodeJS.ErrnoException) => {
     if (err.code === 'EADDRINUSE') {

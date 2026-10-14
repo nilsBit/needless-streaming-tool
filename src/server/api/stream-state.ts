@@ -3,6 +3,7 @@ import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
 import { VALID_CHALLENGE_STATUS } from '../../shared/types';
 import { validateEnum } from './validate';
+import { dropRewardTimer, endRewardTimer, toggleRewardTimerPause } from '../reward-timer';
 
 const router = Router();
 
@@ -11,7 +12,7 @@ let timerInterval: ReturnType<typeof setInterval> | null = null;
 let timerSeconds = 0;
 let tickCount = 0;
 
-function startServerTimer() {
+export function startServerTimer() {
   if (timerInterval) return;
   // Load current value from DB
   const row = getDb().prepare('SELECT timer_seconds FROM stream_state WHERE id = 1').get() as { timer_seconds: number } | undefined;
@@ -29,13 +30,24 @@ function startServerTimer() {
   }, 1000);
 }
 
-function stopServerTimer() {
+export function stopServerTimer() {
   if (timerInterval) {
     // Persist final value to DB
     getDb().prepare('UPDATE stream_state SET timer_seconds = ? WHERE id = 1').run(timerSeconds);
     clearInterval(timerInterval);
     timerInterval = null;
   }
+}
+
+/** The goal's clock as it stands — the running value, not the last one saved. */
+export function currentTimerSeconds(): number {
+  if (timerInterval) return timerSeconds;
+  const row = getDb().prepare('SELECT timer_seconds FROM stream_state WHERE id = 1').get() as { timer_seconds: number } | undefined;
+  return row?.timer_seconds ?? 0;
+}
+
+export function broadcastState(): void {
+  broadcast('stream-state', getDb().prepare('SELECT * FROM stream_state WHERE id = 1').get());
 }
 
 // Resume a timer that was running when the app went down. Called by
@@ -75,6 +87,9 @@ router.patch('/', (req, res) => {
     return;
   }
 
+  // Resetting the goal ends a reward countdown with no way back
+  if (challenge_status === 'idle') dropRewardTimer();
+
   db.prepare(`UPDATE stream_state SET ${fields.join(', ')} WHERE id = 1`).run(...values);
 
   // Start/stop server-side timer based on timer_running changes
@@ -87,6 +102,16 @@ router.patch('/', (req, res) => {
 
   broadcast('stream-state', state);
   res.json(state);
+});
+
+router.post('/reward-timer/end', (_req, res) => {
+  endRewardTimer();
+  res.json(getDb().prepare('SELECT * FROM stream_state WHERE id = 1').get());
+});
+
+router.post('/reward-timer/pause', (_req, res) => {
+  if (!toggleRewardTimerPause()) { res.status(409).json({ error: 'Es läuft kein Timer einer Belohnung.' }); return; }
+  res.json(getDb().prepare('SELECT * FROM stream_state WHERE id = 1').get());
 });
 
 export default router;
