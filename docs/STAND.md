@@ -159,6 +159,38 @@ braucht den Bot.
 
 ## Wo wir stehen geblieben sind
 
+**Hier aufgehört (14.10. abends, unter Windows)**
+
+- Seed neu bereinigt aus der Windows-`stream.db` (`f9ee9a3`, Schema 36, nur
+  `!welt`). Entfernt nach der Regel von `isSecretSetting`: `api_token`,
+  `design_token`, `notion_token`, `obs_config`, `twitch_config`. Ersetzen und
+  committen blockiert die Rechteprüfung („Sensitive-Source Provenance“) –
+  Nils macht das und den Push selbst.
+- Befehls-Dialog: Feld „Ein Satz für Zuschauer“ ist raus. Den Satz für
+  `!befehle <Name>` und den Text fürs Twitch-Panel schreibt das Tool immer
+  selbst. Die gespeicherten eigenen Sätze bei `!lurk` und `!links` sind
+  gelöscht (Sicherung `data/stream-vor-saetze-loeschen-2026-10-14.db`).
+- `!befehle` nennt vorn: `!story`, `!idee`, `!welt`, `!lexikon`, `!discord`.
+- Einstellungen → Daten als Zeilen wie „Overlays & Alerts“: Sicherung
+  erstellen, Sicherung zurückspielen (echter Knopf), „Für eigene Werkzeuge“
+  (API-Token zugeklappt). Der Sync-Ordner erscheint nur noch, solange er an
+  ist – dann mit „Ausschalten“. Der Sync-Code selbst bleibt.
+- Globale Tastenkürzel ganz raus: Seite, Navigation, Anmelden in
+  `src/main/main.ts` und die Hilfe. Sie griffen Strg+Umschalt+T/C/E/… auch im
+  Browser. Das Stream Deck kann dasselbe. Liegen geblieben: das Feld `hotkeys`
+  in `src/shared/features.ts`, `/api/settings/hotkeys`,
+  `src/server/hotkey-accelerator.ts`.
+- Chat-Overlay zeigt die Antworten des Bots auf Befehle (`feedBotAnswer` in
+  `src/server/bot/chat-feed.ts`, aufgerufen in `commands.ts` beim
+  Standardzweig): „↳“ vor dem Namen, Text kursiv. Der Befehl selbst und was der
+  Bot von sich aus sagt (Erinnerungen, Bestätigungen) bleiben draußen.
+- Twitch-Panels für chain_des liegen in Figma
+  (`https://www.figma.com/design/0DwpvuPcYoGJFH4AL9vvQ0`): acht allgemeine
+  Überschriften, Unbounded Black + rote Kontur-Nummer, Export PNG @2x.
+- Tests: alle 514 grün (`npx vitest run --pool=threads`), beide Typechecks
+  sauber.
+- **Offen:** Push durch Nils, dann 1.0.4 (siehe unten).
+
 **Hier aufgehört (14.10. nachmittags, Mac)** – alles gepusht
 
 - „Overlays & Alerts“ aufgeräumt nach Leinwand-Entwurf „A · Eine Liste“ und
