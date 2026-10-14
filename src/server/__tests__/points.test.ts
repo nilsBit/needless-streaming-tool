@@ -207,7 +207,7 @@ describe('own points', () => {
 
     it('are created, listed cheapest first, edited and deleted', async () => {
       const wald = (await create({ name: 'Licht aus', cost: 300, action: 'alert' }).expect(201)).body;
-      await create({ name: 'Vorschlag', cost: 100, action: 'feature_request', needs_input: true, cooldown_seconds: 60 }).expect(201);
+      await create({ name: 'Vorschlag', cost: 100, action: 'alert', needs_input: true, cooldown_seconds: 60 }).expect(201);
       const list = (await request(app).get('/api/points/rewards').set(auth()).expect(200)).body;
       expect(list.map((r: { name: string }) => r.name)).toEqual(['Vorschlag', 'Licht aus']);
       expect(list[0]).toMatchObject({ needs_input: true, cooldown_seconds: 60, enabled: true });
@@ -251,7 +251,7 @@ describe('own points', () => {
       setLive(true, '2026-10-08T18:00:00Z');
       onFollow('mila', 'Mila'); // 50
       await request(app).post('/api/points/rewards').set(auth()).send({ name: 'Licht aus', cost: 30, action: 'alert', cooldown_seconds: 60 }).expect(201);
-      await request(app).post('/api/points/rewards').set(auth()).send({ name: 'Vorschlag', cost: 10, action: 'feature_request', needs_input: true }).expect(201);
+      await request(app).post('/api/points/rewards').set(auth()).send({ name: 'Vorschlag', cost: 10, action: 'alert', needs_input: true }).expect(201);
     });
 
     it('takes the cost from the Guthaben only, the Beitrag stays', async () => {
@@ -342,7 +342,7 @@ describe('own points', () => {
     it('!belohnungen lists what is on, cheapest first', async () => {
       expect(await say('!belohnungen')).toEqual(['Noch keine Belohnungen für Punkte.']);
       await request(app).post('/api/points/rewards').set(auth()).send({ name: 'Licht aus', cost: 300, action: 'alert' }).expect(201);
-      await request(app).post('/api/points/rewards').set(auth()).send({ name: 'Vorschlag', cost: 100, action: 'feature_request' }).expect(201);
+      await request(app).post('/api/points/rewards').set(auth()).send({ name: 'Vorschlag', cost: 100, action: 'alert' }).expect(201);
       await request(app).post('/api/points/rewards').set(auth()).send({ name: 'Geheim', cost: 5, action: 'alert', enabled: false }).expect(201);
       expect(await say('!belohnungen')).toEqual(['Belohnungen (!einlösen <Name>): Vorschlag 100 · Licht aus 300 Punkte']);
     });

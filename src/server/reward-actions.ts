@@ -7,10 +7,10 @@ import { changeScene, getCurrentScene, getSceneMappings, type SceneMapping } fro
  * its action by name (eventsub.ts), a Punkte-Belohnung carries it; #24 will
  * bind Twitch rewards by id to the same keys.
  *
- * `feature_request` and `change_music` do nothing beyond the alert and the
- * queue row the caller writes — the streamer acts on them.
+ * Five building blocks (spec 2026-10-14-belohnungen-bausteine): an alert, the
+ * wheel, a scene for a while, a timer over the goal, a sound with the alert.
  */
-export const ACTION_KEYS = ['roulette', 'feature_request', 'change_music', 'scene', 'alert'] as const;
+export const ACTION_KEYS = ['alert', 'roulette', 'scene', 'timer', 'sound'] as const;
 export type ActionKey = (typeof ACTION_KEYS)[number];
 
 export const isActionKey = (value: unknown): value is ActionKey =>
@@ -24,8 +24,6 @@ export const isActionKey = (value: unknown): value is ActionKey =>
 export function actionFromTitle(title: string): ActionKey | null {
   const t = title.toLowerCase();
   if (t.includes('roulette')) return 'roulette';
-  if (t.includes('feature')) return 'feature_request';
-  if (t.includes('musik') || t.includes('song')) return 'change_music';
   if (t.includes('scene') || t.includes('szene')) return 'scene';
   return null;
 }

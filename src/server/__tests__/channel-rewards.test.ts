@@ -91,8 +91,8 @@ describe('Twitch rewards from the app', () => {
 
   it('creates a reward in Twitch with title, cost, text and its action', async () => {
     const made = (await request(app).post('/api/channel-rewards').set(auth())
-      .send({ title: 'Vorschlag', cost: 500, prompt: 'Was soll passieren?', input_required: true, action: 'feature_request' }).expect(201)).body;
-    expect(made).toMatchObject({ title: 'Vorschlag', cost: 500, prompt: 'Was soll passieren?', input_required: true, manageable: true, action: 'feature_request' });
+      .send({ title: 'Vorschlag', cost: 500, prompt: 'Was soll passieren?', input_required: true, action: 'alert' }).expect(201)).body;
+    expect(made).toMatchObject({ title: 'Vorschlag', cost: 500, prompt: 'Was soll passieren?', input_required: true, manageable: true, action: 'alert' });
     expect(calls.find((c) => c.method === 'POST')?.body).toEqual({ title: 'Vorschlag', cost: 500, prompt: 'Was soll passieren?', is_user_input_required: true });
   });
 
@@ -136,9 +136,9 @@ describe('Twitch rewards from the app', () => {
     const queue = async () => (await request(app).get('/api/rewards').set(auth()).expect(200)).body as Array<{ reward_type: string }>;
 
     it('runs the action its id is bound to, whatever its name', async () => {
-      const made = (await request(app).post('/api/channel-rewards').set(auth()).send({ title: 'Wie heißt das Ding', cost: 50, action: 'change_music' }).expect(201)).body;
+      const made = (await request(app).post('/api/channel-rewards').set(auth()).send({ title: 'Wie heißt das Ding', cost: 50, action: 'alert' }).expect(201)).body;
       await redeem({ id: made.id, title: made.title });
-      expect((await queue())[0].reward_type).toBe('change_music');
+      expect((await queue())[0].reward_type).toBe('alert');
     });
 
     it('gives the points back when the action does not happen', async () => {
@@ -153,9 +153,9 @@ describe('Twitch rewards from the app', () => {
       expect((await list()).find((r) => r.id === 'dddd-3')?.by_name).toBe('roulette');
     });
 
-    it('keeps telling a dashboard reward apart by its name, as before', async () => {
+    it('treats a dashboard reward named for music or ideas as an alert', async () => {
       await redeem({ id: 'dddd-2', title: 'Feature wünschen' });
-      expect((await queue())[0].reward_type).toBe('feature_request');
+      expect((await queue())[0].reward_type).toBe('Feature wünschen');
       expect(calls.some((c) => c.path === '/channel_points/custom_rewards/redemptions')).toBe(false);
     });
   });

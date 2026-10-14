@@ -416,6 +416,26 @@ function runMigrations(from: number, to: number) {
     console.log('[DB] Migrated: lookup commands can answer without a name');
   }
 
+  if (from < 37) {
+    // Belohnungen get Timer and Ton (14.10.); "Idee einreichen" and "Musik
+    // wechseln" were only ever an alert and become one.
+    const add = (table: string, column: string, type: string) => {
+      const columns = db.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>;
+      if (!columns.some((c) => c.name === column)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
+    };
+    for (const table of ['twitch_reward_actions', 'point_rewards']) {
+      add(table, 'task', 'TEXT');
+      add(table, 'minutes', 'INTEGER');
+      add(table, 'sound', 'TEXT');
+      db.prepare(`UPDATE ${table} SET action = 'alert' WHERE action IN ('feature_request', 'change_music')`).run();
+    }
+    add('stream_state', 'timer_ends_at', 'INTEGER');
+    add('stream_state', 'timer_task_by', 'TEXT');
+    add('stream_state', 'timer_paused_left', 'INTEGER');
+    add('stream_state', 'saved_challenge', 'TEXT');
+    console.log('[DB] Migrated: reward timer and sound');
+  }
+
   // Safety check: ensure experiment_* columns were renamed to challenge_*
   // (can be missed if DB was copied from an older version after migration ran)
   try {

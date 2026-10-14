@@ -181,7 +181,7 @@ function getTestEvents(name: string): { event: string; data: unknown }[] {
   // streamer's own wording and sounds — read now, not when the server started.
   if (base === 'alerts') {
     return [
-      { event: 'reward-redeemed', data: { reward_type: 'feature_request', user_name: 'TestViewer' } },
+      { event: 'reward-redeemed', data: { reward_type: 'alert', user_name: 'TestViewer' } },
       ...(['follow', 'sub', 'raid', 'cheer'] as const).map((slot) => ({ event: 'alert', data: sampleAlert(slot) })),
     ];
   }

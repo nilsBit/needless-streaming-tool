@@ -1,4 +1,4 @@
-export const SCHEMA_VERSION = 36;
+export const SCHEMA_VERSION = 37;
 
 export const SCHEMA = `
 CREATE TABLE IF NOT EXISTS schema_version (
@@ -66,7 +66,13 @@ CREATE TABLE IF NOT EXISTS stream_state (
   timer_running     INTEGER DEFAULT 0,
   is_live           INTEGER DEFAULT 0,
   is_recording      INTEGER DEFAULT 0,
-  project_name      TEXT
+  project_name      TEXT,
+  -- A reward's countdown over the goal (v37): when it ends (ms since 1970),
+  -- who redeemed it, how much was left when paused, and the goal it covers.
+  timer_ends_at     INTEGER,
+  timer_task_by     TEXT,
+  timer_paused_left INTEGER,
+  saved_challenge   TEXT
 );
 
 INSERT OR IGNORE INTO stream_state (id) VALUES (1);
@@ -177,7 +183,11 @@ CREATE TABLE IF NOT EXISTS twitch_reward_actions (
   action        TEXT NOT NULL,
   scene_name    TEXT,
   -- How long a scene change lasts before the scene before comes back (v33).
-  scene_seconds INTEGER
+  scene_seconds INTEGER,
+  -- Timer and sound (v37): the task shown, its minutes, the sound file.
+  task          TEXT,
+  minutes       INTEGER,
+  sound         TEXT
 );
 
 -- Quests the streamer has done (spec 2026-10-08-quests-design). Done stays done.
@@ -203,6 +213,9 @@ CREATE TABLE IF NOT EXISTS point_rewards (
   action           TEXT NOT NULL,
   scene_name       TEXT,
   scene_seconds    INTEGER,
+  task             TEXT,
+  minutes          INTEGER,
+  sound            TEXT,
   needs_input      INTEGER NOT NULL DEFAULT 0,
   cooldown_seconds INTEGER NOT NULL DEFAULT 0,
   enabled          INTEGER NOT NULL DEFAULT 1,
