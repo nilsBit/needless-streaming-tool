@@ -153,6 +153,17 @@ describe('Twitch rewards from the app', () => {
       expect(calls.find((c) => c.path === '/channel_points/custom_rewards/redemptions')?.body).toEqual({ status: 'CANCELED' });
     });
 
+    it("starts the timer with the viewer's name, and refunds a second one", async () => {
+      const made = (await request(app).post('/api/channel-rewards').set(auth()).send({ title: 'Nur Pistole', cost: 500, action: 'timer', minutes: 5 }).expect(201)).body;
+      await redeem({ id: made.id, title: made.title });
+      const state = (await request(app).get('/api/stream-state').set(auth()).expect(200)).body;
+      expect(state).toMatchObject({ challenge_title: 'Nur Pistole', timer_task_by: 'Mila' });
+      calls = [];
+      await handleRedemption({ id: 'red-2', user_name: 'Tom', user_login: 'tom', reward: { id: made.id, title: made.title }, user_input: '' });
+      expect(calls.find((c) => c.path === '/channel_points/custom_rewards/redemptions')?.body).toEqual({ status: 'CANCELED' });
+      await request(app).post('/api/stream-state/reward-timer/end').set(auth()).expect(200);
+    });
+
     it('shows what a dashboard reward does by its name', async () => {
       rewards.push({ id: 'dddd-3', title: 'Bug-Roulette drehen', cost: 2000, prompt: '', is_user_input_required: false, is_enabled: true, mine: false });
       expect((await list()).find((r) => r.id === 'dddd-3')?.by_name).toBe('roulette');

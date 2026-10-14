@@ -1,5 +1,6 @@
 import { triggerRoulette } from './api/actions';
 import { listSounds } from './bot/alerts';
+import { startRewardTimer } from './reward-timer';
 import { changeScene, getCurrentScene, getSceneMappings, type SceneMapping } from './obs/index';
 
 /**
@@ -121,8 +122,10 @@ export function extrasOfReward(action: ActionKey | undefined, task: unknown, min
   return { task: null, minutes: null, sound: null };
 }
 
+export interface RunOptions { sceneName?: string | null; sceneSeconds?: number | null; task?: string | null; minutes?: number | null; who?: string }
+
 /** Runs one action. A reason comes back when it did not happen, so the caller can refund. */
-export async function runAction(action: ActionKey, opts: { sceneName?: string | null; sceneSeconds?: number | null } = {}): Promise<{ ok: true } | { ok: false; reason: string }> {
+export async function runAction(action: ActionKey, opts: RunOptions = {}): Promise<{ ok: true } | { ok: false; reason: string }> {
   switch (action) {
     case 'roulette': {
       const result = triggerRoulette();
@@ -132,7 +135,12 @@ export async function runAction(action: ActionKey, opts: { sceneName?: string | 
       if (!opts.sceneName) return { ok: false, reason: 'die Belohnung nennt keine Szene' };
       return switchMappedScene(rewardScene(opts.sceneName, opts.sceneSeconds));
     }
+    case 'timer': {
+      if (!opts.task || !opts.minutes) return { ok: false, reason: 'die Belohnung nennt keine Aufgabe' };
+      return startRewardTimer({ task: opts.task, minutes: opts.minutes, who: opts.who || 'jemand' });
+    }
     default:
+      // alert and sound: the alert the caller sends is all there is.
       return { ok: true };
   }
 }

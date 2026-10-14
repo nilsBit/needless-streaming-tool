@@ -309,6 +309,17 @@ describe('own points', () => {
       expect(parseRedeem('Drache spucken')).toEqual({ name: 'Drache', input: 'spucken' });
     });
 
+
+    it("starts a timer reward's countdown and gives the points back for a second", async () => {
+      await request(app).post('/api/points/rewards').set(auth()).send({ name: 'Handicap', cost: 10, action: 'timer', task: 'Nur Pistole', minutes: 3 }).expect(201);
+      await request(app).post('/api/points/viewers/mila/adjust').set(auth()).send({ amount: 50 }).expect(200);
+      await redeemFor('mila', { reward: 'Handicap' }).expect(200);
+      expect((await request(app).get('/api/stream-state').set(auth())).body).toMatchObject({ challenge_title: 'Nur Pistole', timer_task_by: 'mila' });
+      const second = await redeemFor('mila', { reward: 'Handicap' });
+      expect(second.status).toBe(502);
+      expect(second.body.message).toMatch(/läuft schon ein Timer/);
+      await request(app).post('/api/stream-state/reward-timer/end').set(auth()).expect(200);
+    });
     it('is not there while the feature is off', async () => {
       await request(app).post('/api/setup/features').set(auth()).send({ features: ['rad'] }).expect(200);
       expect((await redeemFor('mila', { reward: 'Licht aus' }).expect(409)).body.error).toBe('feature_off');

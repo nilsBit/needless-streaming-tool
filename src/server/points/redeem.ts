@@ -76,7 +76,7 @@ export async function redeem(name: string, displayName: string, rewardName: stri
   // Held before the action runs, so a second message right behind cannot pay twice.
   lastRedeemed.set(key, now);
 
-  const done = await runAction(reward.action, { sceneName: reward.scene_name, sceneSeconds: reward.scene_seconds });
+  const done = await runAction(reward.action, { sceneName: reward.scene_name, sceneSeconds: reward.scene_seconds, task: reward.task, minutes: reward.minutes, who });
   if (!done.ok) {
     refundPoints(login, reward.cost);
     if (last === undefined) lastRedeemed.delete(key); else lastRedeemed.set(key, last);
