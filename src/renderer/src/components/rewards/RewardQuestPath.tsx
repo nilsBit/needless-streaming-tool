@@ -4,6 +4,8 @@ import ScenePicker, { SCENE_DURATIONS } from './ScenePicker';
 import { useToast } from '../../contexts/ToastContext';
 import QuestPath, { ChoiceCards, PathDone } from '../quests/QuestPath';
 import { useQuests } from '../quests/useQuests';
+import BlockFields from './BlockFields';
+import { BLOCKS, streamPreview, type Block } from './rewardBlocks';
 
 // Creating a reward as a Quest-Pfad (spec 2026-10-08-quests-design, design B
 // on the canvas): Wirkung · Name & Preis · Vorschau · Geschafft. A scene
@@ -11,22 +13,12 @@ import { useQuests } from '../quests/useQuests';
 // both kinds — the tool's own points (`points`) and Twitch channel points
 // (`twitch`); they differ in where it is saved and how it is redeemed.
 
-export type RewardAction = 'alert' | 'roulette' | 'feature_request' | 'change_music' | 'scene';
-
-const ACTIONS: Array<{ value: RewardAction; title: string; text: string; icon: string; names: string[] }> = [
-  { value: 'alert', title: 'Nur ein Alert', text: 'Eine Meldung im Stream – du reagierst darauf.', icon: 'M12 3a6 6 0 016 6v4l2 3H4l2-3V9a6 6 0 016-6zM10 19a2 2 0 004 0', names: ['Licht aus', 'Tanz!', 'Hallo sagen'] },
-  { value: 'roulette', title: 'Glücksrad drehen', text: 'Das Rad wählt ein Thema für dich.', icon: 'M12 3a9 9 0 100 18 9 9 0 000-18zM12 3v9l6 4', names: ['Glücksrad drehen', 'Schicksal', 'Rad!'] },
-  { value: 'feature_request', title: 'Idee einreichen', text: 'Der Zuschauer schreibt eine Idee dazu.', icon: 'M9 18h6M10 21h4M12 3a6 6 0 00-3.5 10.9V16h7v-2.1A6 6 0 0012 3z', names: ['Idee einreichen', 'Mein Vorschlag', 'Weltidee'] },
-  { value: 'change_music', title: 'Musik wechseln', text: 'Ein Alert – du wechselst den Song.', icon: 'M9 18V5l11-2v13M9 18a3 3 0 11-6 0 3 3 0 016 0zM20 16a3 3 0 11-6 0 3 3 0 016 0z', names: ['Musik wechseln', 'Nächster Song', 'DJ-Wunsch'] },
-  { value: 'scene', title: 'Szene wechseln', text: 'Kurz eine andere Szene zeigen.', icon: 'M3 5h18v12H3zM8 21h8', names: ['Kamera groß', 'Karte zeigen', 'Szene wechseln'] },
-];
-
 const TIERS = {
   points: [{ value: 'klein', cost: 100, title: 'Klein', text: 'Öfter einlösbar' }, { value: 'mittel', cost: 300, title: 'Mittel', text: 'Etwas Besonderes' }, { value: 'gross', cost: 1000, title: 'Groß', text: 'Selten, für Treue' }],
   twitch: [{ value: 'klein', cost: 500, title: 'Klein', text: 'Öfter einlösbar' }, { value: 'mittel', cost: 2000, title: 'Mittel', text: 'Etwas Besonderes' }, { value: 'gross', cost: 10000, title: 'Groß', text: 'Selten, für Treue' }],
 } as const;
 
-export interface RewardDraft { action: RewardAction; name: string; cost: number; scene: string | null; sceneSeconds?: number }
+export interface RewardDraft { action: Block; name: string; cost: number; scene: string | null; sceneSeconds?: number }
 
 interface Props {
   mode: 'points' | 'twitch';
@@ -48,26 +40,31 @@ export default function RewardQuestPath({ mode, currency, initial, onClose, onCr
   const tiers = TIERS[mode];
   const unit = mode === 'points' ? currency : 'Kanalpunkte';
 
-  const [action, setAction] = useState<RewardAction>(initial?.action ?? 'alert');
-  const [name, setName] = useState(initial?.name ?? ACTIONS.find((a) => a.value === (initial?.action ?? 'alert'))!.names[0]);
+  const [action, setAction] = useState<Block>(initial?.action ?? 'alert');
+  const [name, setName] = useState(initial?.name ?? BLOCKS.find((a) => a.value === (initial?.action ?? 'alert'))!.names[0]);
   const [cost, setCost] = useState<number>(initial?.cost ?? tiers[1].cost);
   const [scene, setScene] = useState<string | null>(initial?.scene ?? null);
   const [sceneSeconds, setSceneSeconds] = useState(initial?.sceneSeconds ?? 30);
+  const [task, setTask] = useState('');
+  const [minutes, setMinutes] = useState(5);
+  const [sound, setSound] = useState<string | null>(null);
+  const [withText, setWithText] = useState(false);
   const [touchedName, setTouchedName] = useState(!!initial?.name);
 
-  const act = ACTIONS.find((a) => a.value === action)!;
+  const act = BLOCKS.find((a) => a.value === action)!;
   const questKey = mode === 'points' ? 'pointReward' : 'channelReward';
   const questOpen = quests?.open.find((q) => q.key === questKey) ?? null;
 
-  const pickAction = (v: RewardAction) => {
+  const pickAction = (v: Block) => {
     setAction(v);
-    if (!touchedName) setName(ACTIONS.find((a) => a.value === v)!.names[0]);
+    if (!touchedName) setName(BLOCKS.find((a) => a.value === v)!.names[0]);
   };
 
   const create = async (): Promise<boolean> => {
+    const extras = { task: action === 'timer' ? (task.trim() || name.trim()) : undefined, minutes: action === 'timer' ? minutes : undefined, sound: action === 'sound' ? sound : undefined };
     const res = mode === 'points'
-      ? await apiFetch('/points/rewards', { method: 'POST', body: JSON.stringify({ name: name.trim(), cost, action, scene_name: scene, scene_seconds: sceneSeconds, needs_input: action === 'feature_request', cooldown_seconds: 0, enabled: true }) })
-      : await apiFetch('/channel-rewards', { method: 'POST', body: JSON.stringify({ title: name.trim(), cost, action, scene_name: scene, scene_seconds: sceneSeconds, prompt: action === 'feature_request' ? 'Schreib deine Idee dazu.' : '', input_required: action === 'feature_request', enabled: true }) });
+      ? await apiFetch('/points/rewards', { method: 'POST', body: JSON.stringify({ name: name.trim(), cost, action, scene_name: scene, scene_seconds: sceneSeconds, ...extras, needs_input: action === 'alert' && withText, cooldown_seconds: 0, enabled: true }) })
+      : await apiFetch('/channel-rewards', { method: 'POST', body: JSON.stringify({ title: name.trim(), cost, action, scene_name: scene, scene_seconds: sceneSeconds, ...extras, input_required: action === 'alert' && withText, enabled: true }) });
     if (res.status === 401 && mode === 'twitch') { onNeedsReconnect?.(); toast.error('Dem Twitch-Login fehlt das Recht, Belohnungen anzulegen.'); return false; }
     if (!res.ok) { toast.error((await res.json().catch(() => ({}))).error ?? 'Nicht angelegt'); return false; }
     onCreated();
@@ -92,7 +89,7 @@ export default function RewardQuestPath({ mode, currency, initial, onClose, onCr
           content: (
             <>
               <h3 className="quest-step-title">Was soll passieren, wenn jemand sie einlöst?</h3>
-              <ChoiceCards label="Wirkung" options={ACTIONS} value={action} onChange={pickAction} />
+              <ChoiceCards label="Wirkung" options={[...BLOCKS]} value={action} onChange={pickAction} />
             </>
           ),
         },
@@ -103,6 +100,28 @@ export default function RewardQuestPath({ mode, currency, initial, onClose, onCr
             <>
               <h3 className="quest-step-title">Welche Szene zeigt sie, und wie lange?</h3>
               <ScenePicker scene={scene} seconds={sceneSeconds} onChange={(s, sec) => { setScene(s); setSceneSeconds(sec); }} onLeave={onClose} />
+            </>
+          ),
+        }] : []),
+        ...(action === 'timer' || action === 'sound' ? [{
+          label: action === 'timer' ? 'Aufgabe' : 'Ton',
+          ready: action === 'timer' ? !!(task.trim() || name.trim()) : !!sound,
+          content: (
+            <>
+              <h3 className="quest-step-title">{action === 'timer' ? 'Welche Aufgabe, und wie lange?' : 'Welcher Ton?'}</h3>
+              <BlockFields block={action} task={task} minutes={minutes} sound={sound} onChange={(p) => { if (p.task !== undefined) setTask(p.task); if (p.minutes !== undefined) setMinutes(p.minutes); if (p.sound !== undefined) setSound(p.sound); }} />
+            </>
+          ),
+        }] : []),
+        ...(action === 'alert' ? [{
+          label: 'Text',
+          content: (
+            <>
+              <h3 className="quest-step-title">Schreibt der Zuschauer etwas dazu?</h3>
+              <ChoiceCards label="Text" value={withText ? 'ja' : 'nein'} onChange={(v) => setWithText(v === 'ja')} options={[
+                { value: 'ja', title: 'Ja, er schreibt etwas dazu', text: 'Der Text steht im Alert unter seinem Namen.' },
+                { value: 'nein', title: 'Nein, nur der Alert', text: 'Name und Belohnung, sonst nichts.' },
+              ]} />
             </>
           ),
         }] : []),
@@ -142,7 +161,7 @@ export default function RewardQuestPath({ mode, currency, initial, onClose, onCr
               <span className="quest-kicker">{mode === 'points' ? 'Im Chat' : 'Bei Twitch'}</span>
               <div className="quest-preview-chat">{redeemLine}</div>
               <span className="quest-kicker">Im Stream</span>
-              <div className="quest-preview-alert"><span className="quest-preview-label">{unit}</span><span><strong>kartograph</strong> löst „{name.trim()}“ ein.</span></div>
+              <div className="quest-preview-alert"><span className="quest-preview-label">{unit}</span><span>{streamPreview(action, name.trim(), { minutes, sound, withText })}</span></div>
               <p className="dialog-hint" style={{ margin: 0 }}>{act.title}{action === 'scene' && scene ? ` „${scene}“ für ${SCENE_DURATIONS.find((d) => d.seconds === sceneSeconds)?.label ?? `${sceneSeconds} Sekunden`}` : ''}. Klappt die Aktion nicht, gibt es die Punkte zurück.</p>
             </>
           ),

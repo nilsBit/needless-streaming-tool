@@ -3,7 +3,7 @@ import { apiFetch, apiDelete, useApi } from '../hooks/useApi';
 import { useToast } from '../contexts/ToastContext';
 import Dialog from '../components/ux/Dialog';
 import RewardSteps, { type Step } from '../components/rewards/RewardSteps';
-import RewardTemplates, { type RewardTemplate } from '../components/rewards/RewardTemplates';
+import RewardStart from '../components/rewards/RewardStart';
 import RewardQuestPath, { type RewardDraft } from '../components/rewards/RewardQuestPath';
 import ScenePicker from '../components/rewards/ScenePicker';
 import { useQuestPath } from '../components/quests/questStart';
@@ -53,9 +53,9 @@ export default function ChannelRewardsPanel() {
     catch { toast.error('Twitch ließ sich nicht öffnen'); }
   };
 
-  // New rewards are made on a Quest-Pfad; a template opens it filled in.
+  // New rewards start from a template sheet; an own one goes step by step on a Quest-Pfad.
   const [path, setPath] = useState<{ initial?: Partial<RewardDraft> } | null>(null);
-  const applyTemplate = (t: RewardTemplate) => setPath({ initial: { action: t.action, name: t.name, cost: t.cost } });
+  const [start, setStart] = useState(false);
   useQuestPath(['channelReward'], () => setPath({}));
 
   const ownCount = (rewards ?? []).filter((r) => r.manageable && r.enabled).length;
@@ -113,17 +113,17 @@ export default function ChannelRewardsPanel() {
         </div>
       )}
 
-      {starting && <RewardTemplates unit="Kanalpunkte" existing={(rewards ?? []).map((r) => r.title)} isOn={(f) => isOn(f as FeatureKey)} disabled={!!error && !needsReconnect} madeLabel="gibt es schon" onUse={applyTemplate} />}
-
       <div className="chat-list-head">
         <h2>Belohnungen</h2>
-        <button type="button" className="card-primary" onClick={() => setPath({})} disabled={!!error && !needsReconnect}>+ Neue Belohnung</button>
+        <button type="button" className="card-primary" onClick={() => setStart(true)} disabled={!!error && !needsReconnect}>+ Neue Belohnung</button>
       </div>
       {error && !needsReconnect && <p className="dialog-hint" role="alert">{error}</p>}
       {rewards && !error && rewards.length === 0 && <p className="dialog-empty">Noch keine Belohnung in deinem Kanal. Lege hier eine an – sie erscheint sofort bei den Zuschauern.</p>}
       {list.length > 0 && <ul className="chat-list" aria-label="Belohnungen">{list.map(row)}</ul>}
       {fromDashboard && <p className="dialog-hint">Was im Creator-Dashboard angelegt ist, änderst und löschst du nur dort. Was es tut, erkennt das Tool am Namen: „Roulette“, „Feature“, „Musik“ oder „Song“, „Szene“ oder „Scene“. Soll eine davon etwas anderes tun, lege sie hier neu an.</p>}
 
+      {start && <RewardStart mode="twitch" currency="Kanalpunkte" existing={(rewards ?? []).map((r) => r.title)} isOn={(f) => isOn(f as FeatureKey)}
+        onClose={() => setStart(false)} onCreated={() => { setStart(false); void load(); }} onOwn={() => { setStart(false); setPath({}); }} onNeedsReconnect={() => setNeedsReconnect(true)} />}
       {path && <RewardQuestPath mode="twitch" currency="Kanalpunkte" initial={path.initial} onClose={() => setPath(null)} onCreated={() => void load()} onNeedsReconnect={() => setNeedsReconnect(true)} />}
       {draft && <RewardDialog draft={draft} onClose={() => setDraft(null)} onSaved={() => { setDraft(null); void load(); toast.success('Gespeichert'); }} />}
     </div>

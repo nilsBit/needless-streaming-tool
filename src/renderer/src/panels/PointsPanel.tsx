@@ -5,7 +5,7 @@ import { useToast } from '../contexts/ToastContext';
 import Dialog from '../components/ux/Dialog';
 import SearchField from '../components/ux/SearchField';
 import RewardSteps, { type Step } from '../components/rewards/RewardSteps';
-import RewardTemplates, { type RewardTemplate } from '../components/rewards/RewardTemplates';
+import RewardStart from '../components/rewards/RewardStart';
 import RewardQuestPath, { type RewardDraft } from '../components/rewards/RewardQuestPath';
 import ScenePicker from '../components/rewards/ScenePicker';
 import { useQuestPath } from '../components/quests/questStart';
@@ -61,9 +61,9 @@ export default function PointsPanel() {
   const count = rewards?.filter((r) => r.enabled).length ?? 0;
   const firstReward = rewards?.find((r) => r.enabled);
 
-  // New rewards are made on a Quest-Pfad; a template opens it filled in.
+  // New rewards start from a template sheet; an own one goes step by step on a Quest-Pfad.
   const [path, setPath] = useState<{ initial?: Partial<RewardDraft> } | null>(null);
-  const applyTemplate = (t: RewardTemplate) => setPath({ initial: { action: t.action, name: t.name, cost: t.cost } });
+  const [start, setStart] = useState(false);
   useQuestPath(['pointReward'], () => setPath({}));
   const tryReward = async (name: string) => {
     await giveMyself();
@@ -107,7 +107,6 @@ export default function PointsPanel() {
   return (
     <div className="panel card-slim rewards">
       {starting && <RewardSteps steps={steps} label="So laufen die Punkte" />}
-      {starting && <RewardTemplates unit={currency} existing={(rewards ?? []).map((r) => r.name)} isOn={(f) => isOn(f as FeatureKey)} onUse={applyTemplate} />}
       {!starting && config && (
         <div className="chat-box-row">
           <div><b>Verdienen</b> <span>· {earning(config)}</span></div>
@@ -118,9 +117,9 @@ export default function PointsPanel() {
       <section aria-label="Belohnungen" className="rewards-switch-page">
         <div className="chat-list-head">
           <h2>Belohnungen</h2>
-          <button type="button" className="card-primary" onClick={() => setPath({})}>+ Neue Belohnung</button>
+          <button type="button" className="card-primary" onClick={() => setStart(true)}>+ Neue Belohnung</button>
         </div>
-        {rewards && rewards.length === 0 && <p className="dialog-empty">Noch keine. Eine Vorlage oben ist der schnellste Anfang.</p>}
+        {rewards && rewards.length === 0 && <p className="dialog-empty">Noch keine. „+ Neue Belohnung“ zeigt Vorlagen für jeden Stream.</p>}
         {(rewards?.length ?? 0) > 0 && (
           <ul className="chat-list">
             {(rewards ?? []).map((r) => (
@@ -150,6 +149,8 @@ export default function PointsPanel() {
       </div>
 
       {editingConfig && config && <ConfigDialog config={config} onClose={() => setEditingConfig(false)} onSaved={refetchConfig} />}
+      {start && <RewardStart mode="points" currency={currency} existing={(rewards ?? []).map((r) => r.name)} isOn={(f) => isOn(f as FeatureKey)}
+        onClose={() => setStart(false)} onCreated={() => { setStart(false); void refetchRewards(); }} onOwn={() => { setStart(false); setPath({}); }} />}
       {path && <RewardQuestPath mode="points" currency={currency} initial={path.initial} onClose={() => setPath(null)} onCreated={refetchRewards} onTry={tryReward} />}
       {editingReward && <RewardDialog reward={editingReward} currency={currency} onClose={() => setEditingReward(null)} onSaved={refetchRewards} />}
       {openViewer && <ViewerDialog viewer={openViewer} currency={currency} rewards={rewards ?? []} onClose={() => setOpenViewer(null)} />}
