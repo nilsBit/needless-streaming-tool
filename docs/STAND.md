@@ -177,8 +177,15 @@ braucht den Bot.
   - Abweichungen vom Entwurf: „In OBS anlegen“ legt in die aktuelle Szene
     (keine Szenenwahl); Bestenliste und Rangwechsel bleiben zwei Zeilen.
   - Escape schließt nur noch den obersten Dialog.
-- **Offen:** Update-Prüfung alle paar Stunden (1.0.4), Seed neu bereinigen,
-  Issue #29 schließen, wenn Nils die Overlays-Seite im Alltag abnimmt.
+- Update-Prüfung alle vier Stunden statt nur beim Start (`src/main/auto-update.ts`).
+  Windows hört nach einem heruntergeladenen Update auf zu suchen; der
+  Hinweis mit Link zur Release-Seite (Mac, Dev) kommt je Version nur einmal.
+  Kommt mit 1.0.4.
+- Seed **nicht** auf dem Mac neu bereinigt: Die Mac-`stream.db` ist veraltet
+  (alter `!discord`-Text, noch `!figur`/`!gilde`/`!begriff`/`!ort`). Die
+  aktuelle Fassung liegt unter Windows – dort bereinigen.
+- **Offen:** Seed unter Windows neu bereinigen, 1.0.4 veröffentlichen
+  (Nils), Issue #29 schließen, wenn Nils die Overlays-Seite im Alltag abnimmt.
 
 **Hier aufgehört (14.10. morgens, unter Windows)**
 
