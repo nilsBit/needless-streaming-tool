@@ -3,7 +3,7 @@ import { markQuestFlag } from '../quests/flags';
 import { getBotConfig } from '../bot/config';
 import { broadcast } from '../websocket/index';
 import { featureOn } from '../features';
-import { rewardTypeOf, runAction } from '../reward-actions';
+import { alertText, rewardTypeOf, runAction, soundOf } from '../reward-actions';
 import { noteReward } from '../stream-report/log';
 import { getPointsConfig } from './config';
 import { refundPoints, spendPoints, standing, type Standing } from './ledger';
@@ -87,7 +87,7 @@ export async function redeem(name: string, displayName: string, rewardName: stri
   const id = getDb().prepare('INSERT INTO rewards (user_name, reward_type, data) VALUES (?, ?, ?)')
     .run(who, rewardTypeOf(reward.action), JSON.stringify(stored)).lastInsertRowid;
   const row = getDb().prepare('SELECT * FROM rewards WHERE id = ?').get(id) as Record<string, unknown>;
-  broadcast('reward-redeemed', { ...row, data: JSON.stringify({ ...stored, message: text || undefined }) });
+  broadcast('reward-redeemed', { ...row, data: JSON.stringify({ ...stored, message: alertText(text), sound: reward.action === 'sound' ? soundOf(reward.sound) : undefined }) });
   noteReward(reward.name, login);
 
   const after = standing(login)!;

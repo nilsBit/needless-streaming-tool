@@ -15,6 +15,25 @@ import { changeScene, getCurrentScene, getSceneMappings, type SceneMapping } fro
 export const ACTION_KEYS = ['alert', 'roulette', 'scene', 'timer', 'sound'] as const;
 export type ActionKey = (typeof ACTION_KEYS)[number];
 
+export const ALERT_TEXT_MAX = 100;
+const LINK = /\b(?:https?:\/\/\S+|www\.\S+|[a-z0-9-]+\.[a-z]{2,}\/\S*)/gi;
+
+/**
+ * What a viewer wrote, as it may stand in the alert on stream: one line, links
+ * as "[Link]", at most 100 characters. Nothing for an empty text.
+ */
+export function alertText(input: string | null | undefined): string | undefined {
+  const text = (input ?? '').replace(/\s+/g, ' ').trim().replace(LINK, '[Link]');
+  if (!text) return undefined;
+  return text.length > ALERT_TEXT_MAX ? `${text.slice(0, ALERT_TEXT_MAX - 1)}…` : text;
+}
+
+/** A sound reward's sound for the alert overlay, if the file is still there. */
+export function soundOf(name: string | null | undefined): { url: string; volume: number } | undefined {
+  if (!name || !listSounds().includes(name)) return undefined;
+  return { url: `/public/alert-sound/${encodeURIComponent(name)}`, volume: 0.8 };
+}
+
 export const isActionKey = (value: unknown): value is ActionKey =>
   typeof value === 'string' && (ACTION_KEYS as readonly string[]).includes(value);
 

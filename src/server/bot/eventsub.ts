@@ -4,7 +4,7 @@ import { broadcast } from '../websocket/index';
 import { getBotConfig } from './config';
 import { triggerRoulette } from '../api/actions';
 import { sceneMappingForRedemption } from '../obs/index';
-import { actionFromTitle, rewardTypeOf, runAction, switchMappedScene } from '../reward-actions';
+import { actionFromTitle, alertText, rewardTypeOf, runAction, soundOf, switchMappedScene } from '../reward-actions';
 import { actionForReward, cancelRedemption } from '../channel-rewards';
 import { countRedemption } from '../leaderboards';
 import { getClientId } from '../twitch-config';
@@ -102,8 +102,10 @@ export async function handleRedemption(event: Record<string, unknown>) {
   ).run(userName, rewardType, JSON.stringify({ reward_title: rewardTitle, reward_id: rewardId, leaderboard: point?.leaderboard.key ?? null }));
 
   noteReward(rewardTitle, login);
-  const reward = getDb().prepare('SELECT * FROM rewards WHERE id = ?').get(result.lastInsertRowid);
-  broadcast('reward-redeemed', reward);
+  const reward = getDb().prepare('SELECT * FROM rewards WHERE id = ?').get(result.lastInsertRowid) as Record<string, unknown>;
+  // What the viewer wrote and the reward's sound travel with the alert only; the row keeps neither.
+  const shown = { reward_title: rewardTitle, reward_id: rewardId, leaderboard: point?.leaderboard.key ?? null, message: alertText(userInput), sound: bound?.action === 'sound' ? soundOf(bound.sound) : undefined };
+  broadcast('reward-redeemed', { ...reward, data: JSON.stringify(shown) });
 
   // No chat line for a point: the overlays and the alert board show it, !stats
   // tells the standing on request (Nils, 06.10.: "jedesmal diese Notiz macht keinen Sinn").

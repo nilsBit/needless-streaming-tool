@@ -73,13 +73,6 @@
   <script>
     const slot = document.getElementById('slot');
 
-    // What a redeemed reward did, in the same words as the rest. The wheel is
-    // not among them: it shows itself, and says who won on its own.
-    const REWARDS = {
-      feature_request: 'schlägt etwas vor.',
-      change_music: 'wechselt die Musik.',
-    };
-
     // Size and time on screen, by kind. Whatever isn't listed is small.
     const WEIGHT = {
       follow: ['klein', 5000],
@@ -165,13 +158,14 @@
           let extra = {};
           try { extra = JSON.parse(data.data || '{}'); } catch {}
           if (data.reward_type === 'roulette' || extra.leaderboard) break;
-          // Own points (2026-10-08) carry their currency and the reward's name; what the viewer typed comes along.
+          // Both kinds name the reward; text and sound come along when the reward has them (14.10.).
           const own = extra.source === 'points';
           showAlert({
             label: own ? (extra.currency || 'Punkte') : 'Kanalpunkte',
             who: data.user_name,
-            text: REWARDS[data.reward_type] || (own && extra.reward_title ? `löst „${extra.reward_title}“ ein.` : 'löst eine Belohnung ein.'),
-            message: own ? extra.message : undefined,
+            text: extra.reward_title ? `löst „${extra.reward_title}“ ein.` : 'löst eine Belohnung ein.',
+            message: extra.message,
+            sound: extra.sound,
             kind: 'reward',
           });
           break;
