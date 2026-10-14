@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useApi, apiPatch } from '../hooks/useApi';
+import { useApi, apiPatch, apiPost } from '../hooks/useApi';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { StreamState } from '../../../shared/types';
 import { useToast } from '../contexts/ToastContext';
@@ -31,6 +31,21 @@ export default function ChallengePanel() {
 
   const seconds = state?.timer_seconds || 0;
   const timerDisplay = `${Math.floor(seconds / 60).toString().padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
+
+  // A reward's countdown (14.10.): ticks only while one is running.
+  const [now, setNow] = useState(Date.now());
+  const countdown = state?.timer_ends_at != null || state?.timer_paused_left != null;
+  useEffect(() => {
+    if (state?.timer_ends_at == null) return;
+    const id = setInterval(() => setNow(Date.now()), 500);
+    return () => clearInterval(id);
+  }, [state?.timer_ends_at]);
+  const left = state?.timer_paused_left != null ? state.timer_paused_left : Math.max(0, (state?.timer_ends_at ?? 0) - now);
+  const leftSeconds = Math.ceil(left / 1000);
+  const countdownDisplay = `${Math.floor(leftSeconds / 60).toString().padStart(2, '0')}:${(leftSeconds % 60).toString().padStart(2, '0')}`;
+
+  const pauseCountdown = async () => { if (!(await apiPost('/stream-state/reward-timer/pause', {}))) toast.error('Aktion fehlgeschlagen'); };
+  const endCountdown = async () => { if (!(await apiPost('/stream-state/reward-timer/end', {}))) toast.error('Aktion fehlgeschlagen'); };
 
   const startChallenge = async () => {
     if (!title.trim()) return;
@@ -101,6 +116,15 @@ export default function ChallengePanel() {
         <span className="card-goal-title">{state?.challenge_title}</span>
         <span className="card-goal-state">{statusLabel}</span>
       </div>
+      {countdown ? (
+        <div className="card-line">
+          <span className="card-timer">{state?.challenge_status === 'done' ? 'Zeit um!' : countdownDisplay}</span>
+          {state?.timer_task_by && <span className="dialog-hint">von {state.timer_task_by}</span>}
+          {state?.challenge_status !== 'done' && <button type="button" className="card-secondary" onClick={pauseCountdown}>{state?.timer_paused_left != null ? 'Weiter' : 'Pause'}</button>}
+          <button type="button" className="card-secondary" onClick={endCountdown}>Beenden</button>
+        </div>
+      ) : (
+        <>
       <div className="card-line">
         <span className="card-timer">{timerDisplay}</span>
         <button type="button" className="card-secondary" onClick={toggleTimer}>{state?.timer_running ? 'Pause' : 'Weiter'}</button>
@@ -109,6 +133,8 @@ export default function ChallengePanel() {
         <button type="button" className="card-primary" onClick={() => finishChallenge('done')}>Geschafft</button>
         <button type="button" className="card-secondary" onClick={() => finishChallenge('failed')}>Nicht geschafft</button>
       </div>
+        </>
+      )}
       <div className="card-status">
         <button type="button" className="card-link" onClick={cancelChallenge}>Abbrechen</button>
       </div>
