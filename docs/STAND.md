@@ -159,6 +159,26 @@ braucht den Bot.
 
 ## Wo wir stehen geblieben sind
 
+**Hier aufgehört (14.10. morgens, unter Windows)**
+
+- Zwei Discords: der Welt-Server (`discord.gg/CNJD83hB7N`, „Workingtitle:
+  Die verborgene Stadt“) und die Community „Nervt mich nicht“
+  (`discord.gg/jJtkEnKHN7`), die Nils sich mit drei anderen teilt. Nur in
+  Nils' `stream.db` umgestellt, Sicherung
+  `data/stream-vor-zwei-discords-2026-10-14.db`:
+  - `!discord` zeigt auf die Community, `!lexikon` (vorher Zweitname von
+    `!discord`) ist jetzt der eigene Befehl für den Welt-Server.
+  - `!idee`, `!fanart`, `!clip` verweisen auf `!lexikon`; `!zeitplan` ohne
+    ├announcements; `!links` nennt beide; `!befehle` zeigt zuerst `!welt`,
+    `!story`, `!lexikon`, `!discord`, `!idee`.
+  - `!tool` ohne Song-Requests.
+- Live-Meldung bei Nils aus (Discord hat schon eine); Webhook entfernt. Sie
+  bleibt für andere Streamer als Funktion „Live-Meldung nach Discord“. Der
+  Schalter wirkt jetzt wirklich — vorher postete das Tool, solange ein
+  Webhook eingetragen war.
+- **Offen:** „Overlays & Alerts“ aufräumen (erst Entwürfe auf der Leinwand),
+  Update-Prüfung alle paar Stunden (1.0.4), Seed neu bereinigen, Issue #29.
+
 **Hier aufgehört (13.10. spät, unter Windows)**
 
 - Rückmeldung „Chat & Bot“, Teil 2. Nils hat ausgemistet:
