@@ -273,7 +273,7 @@ Alle eingebauten Befehle lassen sich unter Chat & Bot → Befehle → Eingebaut 
   },
   {
     title: 'Kanalpunkte & Bestenliste',
-    content: `Kanalpunkte gibt es auf Twitch erst mit **Affiliate oder Partner**. Belohnungen legst du am einfachsten unter **Chat & Bot → Belohnungen → Kanalpunkte von Twitch → + Eigene Belohnung** an: Name, Preis, ein Text für Zuschauer und **was passiert** – nur ein Alert, Glücksrad, Vorschlag, Musik oder eine Szene wechseln (Szene und Dauer wählst du gleich dabei). Die Belohnung erscheint sofort bei deinen Zuschauern; ändern und löschen geht an derselben Stelle. Klappt die Aktion nicht (OBS nicht verbunden, kein Thema fürs Rad), gibt das Tool die Kanalpunkte zurück. Dafür braucht das Tool das Recht channel:manage:redemptions – einmal neu mit Twitch verbinden.
+    content: `Kanalpunkte gibt es auf Twitch erst mit **Affiliate oder Partner**. Belohnungen legst du am einfachsten unter **Chat & Bot → Belohnungen → Kanalpunkte von Twitch → + Eigene Belohnung** an: Name, Preis, ein Text für Zuschauer und **was passiert** (siehe unten **Was eine Belohnung tut**). Die Belohnung erscheint sofort bei deinen Zuschauern; ändern und löschen geht an derselben Stelle. Klappt die Aktion nicht (OBS nicht verbunden, kein Thema fürs Rad), gibt das Tool die Kanalpunkte zurück. Dafür braucht das Tool das Recht channel:manage:redemptions – einmal neu mit Twitch verbinden.
 
 Twitch lässt das Tool nur Belohnungen ändern, die es selbst angelegt hat. Was im **Creator-Dashboard** (Zuschauer belohnen → Kanalpunkte) angelegt ist, steht auf derselben Seite unter „In Twitch angelegt“ zum Ansehen, mit dem, was das Tool an ihrem Namen erkennt:
 
@@ -281,9 +281,7 @@ Twitch lässt das Tool nur Belohnungen ändern, die es selbst angelegt hat. Was 
 |---|---|
 | *(Belohnung einer Bestenliste)* | zählt eine Einlösung in dieser Bestenliste |
 | "roulette" | Glücksrad drehen |
-| "feature" | Vorschlag einreichen |
-| "musik" oder "song" | Musik ändern |
-| "scene" oder "szene" | Szene wechseln – nur in Szenen, die früher unter „Szenen in OBS“ freigegeben wurden. Eine neue Szenen-Belohnung legst du im Tool an. |
+| "scene" oder "szene" | Szene kurz zeigen – nur in Szenen, die früher unter „Szenen in OBS“ freigegeben wurden. Eine neue Szenen-Belohnung legst du im Tool an. |
 
 Bestenlisten legst du unter **Overlays & Alerts → Zeile Bestenliste → Bearbeiten → Listen** an: ein Name und die Belohnung aus deinem Kanal. Die Wahl hängt an der Belohnung selbst, nicht an ihrem Namen – umbenennen in Twitch ist kein Problem. Löschst du sie in Twitch, zeigt die Liste das an, bis du eine andere wählst.
 
@@ -292,6 +290,8 @@ Bestenlisten legst du unter **Overlays & Alerts → Zeile Bestenliste → Bearbe
 In der Liste siehst du die Rangliste, kannst Zahlen korrigieren, Einträge von Hand setzen, die Liste umbenennen oder löschen und einen Zuschauer vergessen.
 
 **Zuschauerdaten:** Einlösungen werden mit dem Twitch-Login gezählt, nicht protokolliert. Erledigte Songwünsche löscht das Tool nach 90 Tagen von selbst, Zuschauer ohne Einlösung seit einem Jahr fallen aus der Zählung. Sicherung und Sync-Ordner enthalten keine Zugangsdaten.
+
+**Was eine Belohnung tut:** Nur ein Alert (auf Wunsch mit dem Text des Zuschauers), Glücksrad drehen, Szene kurz zeigen, **Timer starten** (eine Aufgabe mit Countdown über deinem Ziel; danach ist dein Ziel wieder da, nur ein Timer zur Zeit) und **Ton abspielen** (ein Ton aus deinen Alert-Tönen). „+ Neue Belohnung“ zeigt Vorlagen für Kreative, Gaming, Talk und Coding; „+ Eigene Belohnung“ führt Schritt für Schritt. Text im Alert ist höchstens 100 Zeichen lang, Links werden zu „[Link]“.
 
 **Szene per Kanalpunkt:** Legst du eine Belohnung mit „Szene wechseln“ an, kommt nach der Wirkung der Schritt **Szene**: die Szene direkt aus OBS und wie lange sie bleibt – 15 Sekunden, 30 Sekunden oder 1 Minute. Danach kommt von selbst die Szene zurück, die vorher lief. Nur diese eine Szene kann die Belohnung zeigen; der Zuschauer wählt nichts. Vorher freigeben musst du nichts mehr.`,
   },
@@ -313,9 +313,9 @@ Alle Zahlen und den Namen der Währung stellst du unter **Verdienen → Einstell
 
 **Zwei Zahlen je Zuschauer:** Das **Guthaben** ist, was man ausgeben kann. Der **Beitrag** ist alles, was jemand je verdient hat – er sinkt beim Ausgeben nicht und zeigt, wer am meisten beigetragen hat. Dazu der Beitrag **heute**, der mit jedem neuen Stream bei null beginnt (nicht, wenn das Tool mitten im Stream neu startet).
 
-**Solange es noch keine Belohnung gibt,** zeigen oben drei Schritte, wo du stehst: Verdienen – Belohnungen anlegen – im Chat einlösen. Darunter liegen **Vorlagen** (Glücksrad drehen, Licht aus, Szene kurz wechseln, Idee einreichen, Musik wechseln): „Übernehmen“ legt eine mit einem Klick an, bei der Szene wählst du sie vorher. Dieselben Vorlagen gibt es unter Kanalpunkte für Twitch. Ab der ersten Belohnung steht die Liste oben, darüber eine Zeile **Verdienen** mit „Ändern“. **Selbst ausprobieren** gibt dir mit einem Klick 500 Punkte, dann löst du im Chat ein – auch ohne live zu sein.
+**Solange es noch keine Belohnung gibt,** zeigen oben drei Schritte, wo du stehst: Verdienen – Belohnungen anlegen – im Chat einlösen. Darunter liegen **Vorlagen** unter „+ Neue Belohnung“ (für Kreative, Gaming, Talk und Coding; eigene Punkte kosten ein Zehntel der Kanalpunkte): „Übernehmen“ legt eine mit einem Klick an, bei einer Szene wählst du sie vorher. Dieselben Vorlagen gibt es unter Kanalpunkte für Twitch. Ab der ersten Belohnung steht die Liste oben, darüber eine Zeile **Verdienen** mit „Ändern“. **Selbst ausprobieren** gibt dir mit einem Klick 500 Punkte, dann löst du im Chat ein – auch ohne live zu sein.
 
-**Ausgeben:** Unter **+ Eigene Belohnung** legst du an, was es gibt: Name, Preis und was passiert – nur ein Alert, Glücksrad drehen, Vorschlag einreichen, Musik wechseln oder eine Szene wechseln (Szene und Dauer wählst du gleich dabei). Dazu, ob der Zuschauer einen Text schreibt, und eine Sperre je Zuschauer. Im Chat: \`!belohnungen\` zeigt die Liste, \`!einlösen <Name> [Text]\` löst ein. Reichen die Punkte nicht, ist die Belohnung aus oder gesperrt, wird nichts abgezogen; klappt die Aktion nicht (OBS nicht verbunden, kein Thema fürs Rad), kommen die Punkte zurück. Die Einlösung steht wie eine von Twitch in der Liste und im Alert – mit dem Namen deiner Währung statt „Kanalpunkte“.
+**Ausgeben:** Unter **+ Eigene Belohnung** legst du an, was es gibt: Name, Preis und was passiert – nur ein Alert, Glücksrad drehen, Szene kurz zeigen, Timer starten oder Ton abspielen (siehe **Was eine Belohnung tut** unter Kanalpunkte). Dazu, ob der Zuschauer einen Text schreibt, und eine Sperre je Zuschauer. Im Chat: \`!belohnungen\` zeigt die Liste, \`!einlösen <Name> [Text]\` löst ein. Reichen die Punkte nicht, ist die Belohnung aus oder gesperrt, wird nichts abgezogen; klappt die Aktion nicht (OBS nicht verbunden, kein Thema fürs Rad), kommen die Punkte zurück. Die Einlösung steht wie eine von Twitch in der Liste und im Alert – mit dem Namen deiner Währung statt „Kanalpunkte“.
 
 **Zuschauer:** Die Liste zeigt alle nach Beitrag. **Öffnen** gibt oder nimmt Punkte (Nehmen ist eine Korrektur und senkt auch den Beitrag), löst für jemanden ein – nach denselben Regeln wie im Chat – oder vergisst ihn. Mods geben und nehmen im Chat mit \`!punkte geben @Name 50\` und \`!punkte nehmen @Name 50\`.
 
