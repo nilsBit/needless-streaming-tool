@@ -199,10 +199,11 @@ export function visibleNavigation(on: ReadonlySet<string>): Area[] {
 /**
  * Overlays & Alerts had sub tabs until 08.10.; each became an overlay's
  * workshop or "Stil für alle". A link to one of them (a quest, the readiness
- * banner) opens that instead — `@style` is Stil für alle.
+ * banner) opens that instead — `@style` is Stil für alle. „Szenen“ (start,
+ * pause, end) moved to Einstellungen → Verbindungen → OBS on 14.10.
  */
 export const OVERLAY_OF_OLD_TAB: Record<string, string> = {
-  alerts: 'alerts', meilensteine: 'milestone', bestenlisten: 'reward-leaderboard', szenen: 'start', aussehen: '@style',
+  alerts: 'alerts', meilensteine: 'milestone', bestenlisten: 'reward-leaderboard', aussehen: '@style',
 };
 
 /** Chat & Bot had five tabs until 13.10.; a stored or linked old one opens where it went. */

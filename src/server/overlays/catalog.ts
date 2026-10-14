@@ -5,6 +5,7 @@ import { getOverlayConfig } from '../api/overlay-config';
 import { appliedChanges } from '../design-apply';
 import { getBuiltinOverlaysDir, getUserDataPath } from '../paths';
 import { featureOfOverlay, type FeatureKey } from '../../shared/features';
+import { SCREENS } from '../obs/screens';
 
 /**
  * The overlays as the app presents them: German name, one sentence, a group,
@@ -18,7 +19,7 @@ import { featureOfOverlay, type FeatureKey } from '../../shared/features';
  * appears, under its folder name.
  */
 
-export type CatalogGroup = 'always' | 'join' | 'today' | 'rewards' | 'screens' | 'alerts' | 'custom';
+export type CatalogGroup = 'always' | 'join' | 'today' | 'rewards' | 'alerts' | 'custom';
 
 /**
  * What the first of the three steps to "einsatzbereit" is (2026-10-08):
@@ -62,7 +63,6 @@ export const GROUP_LABELS: Record<CatalogGroup, string> = {
   join: 'Mitmachen',
   today: 'Heute im Stream',
   rewards: 'Bestenlisten',
-  screens: 'Start, Pause, Ende',
   alerts: 'Meldungen',
   custom: 'Eigene Overlays',
 };
@@ -78,13 +78,10 @@ const META: Record<string, { label: string; sentence: string; group: CatalogGrou
   milestone: { label: 'Meilenstein', sentence: 'Feiert einen abgehakten Meilenstein groß, über allem anderen.', group: 'today', preview: 'major' },
   'reward-leaderboard': { label: 'Bestenliste', sentence: 'Blendet bei jeder Einlösung die Top 3 der betroffenen Liste ein – eine Adresse für alle Listen.', group: 'rewards', preview: 'top-three' },
   'reward-rankchange': { label: 'Rangwechsel', sentence: 'Meldet, wenn jemand in einer Bestenliste aufsteigt – eine Adresse für alle Listen.', group: 'rewards', preview: 'overtake' },
-  start: { label: 'Startbild', sentence: 'Füllt den ganzen Stream, bevor es losgeht.', group: 'screens', preview: 'mit-eintrag' },
-  pause: { label: 'Pausenbild', sentence: 'Füllt den ganzen Stream, wenn du kurz weg bist.', group: 'screens', preview: 'mit-eintrag' },
-  end: { label: 'Endbild', sentence: 'Füllt den ganzen Stream zum Abschluss.', group: 'screens', preview: 'mit-eintrag' },
   alerts: { label: 'Alerts', sentence: 'Tafel bei Follow, Abo, Geschenk, Raid und Bits.', group: 'alerts', preview: 'follow' },
 };
 
-const GROUP_ORDER: CatalogGroup[] = ['always', 'join', 'today', 'rewards', 'screens', 'alerts', 'custom'];
+const GROUP_ORDER: CatalogGroup[] = ['always', 'join', 'today', 'rewards', 'alerts', 'custom'];
 
 function builtinDir(): string {
   return getBuiltinOverlaysDir();
@@ -117,7 +114,10 @@ export function overlayCatalog(host: string): CatalogEntry[] {
   const figma = new Set(appliedChanges().map((c) => c.overlay));
   const overrideDir = getUserDataPath('overlay-overrides');
 
-  const entries: CatalogEntry[] = builtinNames().map((name) => {
+  // Start, pause and end fill the whole picture: scenes of their own, set up
+  // under Einstellungen → Verbindungen → OBS (POST /api/obs/screens), not overlays.
+  const screens = new Set(SCREENS.map((s) => s.overlay));
+  const entries: CatalogEntry[] = builtinNames().filter((name) => !screens.has(name)).map((name) => {
     const meta = META[name];
     const showcase = Object.prototype.hasOwnProperty.call(states, name) ? states[name] : null;
     const by: CatalogEntry['customizedBy'] = [];

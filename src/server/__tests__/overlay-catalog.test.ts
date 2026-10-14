@@ -30,7 +30,10 @@ describe('overlay catalog', () => {
     expect(byName.character.previewState).toBe('with-portrait');
     expect(byName.character.url).toMatch(/\/overlay\/character\/index\.html$/);
     expect(byName.song.label).toBe('Musik');
-    expect(byName.start.group).toBe('screens');
+    // Start, pause and end are scenes of their own since 2026-10-14, set up under OBS.
+    expect(byName.start).toBeUndefined();
+    expect(byName.pause).toBeUndefined();
+    expect(byName.end).toBeUndefined();
     // The song queue overlay was dropped on 2026-10-06, !sr and !queue on 2026-10-13.
     expect(byName['song-queue']).toBeUndefined();
     for (const entry of res.body) {
@@ -45,8 +48,8 @@ describe('overlay catalog', () => {
     const firstIndex = (g: string) => groups.indexOf(g);
     expect(firstIndex('always')).toBeLessThan(firstIndex('join'));
     expect(firstIndex('join')).toBeLessThan(firstIndex('today'));
-    expect(firstIndex('today')).toBeLessThan(firstIndex('screens'));
-    expect(firstIndex('screens')).toBeLessThan(firstIndex('alerts'));
+    expect(firstIndex('today')).toBeLessThan(firstIndex('rewards'));
+    expect(firstIndex('rewards')).toBeLessThan(firstIndex('alerts'));
   });
 
   it('calls an overlay customized once it carries its own palette values', async () => {

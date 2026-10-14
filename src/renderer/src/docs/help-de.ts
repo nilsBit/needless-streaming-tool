@@ -56,7 +56,7 @@ Links stehen die Bereiche nach Situation: **Im Stream** (alles, was du live ausl
 | Settings → Milestones | Overlays & Alerts → Zeile Meilenstein → Bearbeiten → Meilensteine |
 | Overlays & Alerts → Bestenlisten | Overlays & Alerts → Zeile Bestenliste → Bearbeiten → Listen |
 | Overlays & Alerts → Aussehen | Overlays & Alerts → Stil (oben); ein einzelnes Overlay unter Bearbeiten → Aussehen |
-| Live → OBS Scenes, Overlays & Alerts → Szenen in OBS | Start-, Pausen- und Endbild: ihre Zeile → In OBS anlegen; Szene per Kanalpunkt: beim Anlegen der Belohnung |
+| Live → OBS Scenes, Overlays & Alerts → Szenen in OBS | Start-, Pausen- und Endbild: Einstellungen → Verbindungen → OBS → Szenen anlegen; Szene per Kanalpunkt: beim Anlegen der Belohnung |
 | Produktion → Clip Moments | Im Stream → Moment merken; die Marken stehen unter Nach dem Stream |
 | Nach dem Stream → Content planen | entfallen – das Tool ist nur noch fürs Streamen |
 | Projekt → Statistiken, Nach dem Stream → Statistik | Nach dem Stream → Auswertung |
@@ -257,10 +257,12 @@ Alle eingebauten Befehle lassen sich unter Chat & Bot → Befehle → Eingebaut 
 - "Mit OBS verbinden" klicken
 
 **Start, Pause, Ende:**
-- Im OBS-Panel legt **Szenen anlegen** je eine Szene für das Startbild („start“), das Pausenbild („brb“) und das Endbild („end“) an — mit dem ganzseitigen Overlay als Browser-Quelle (startScreen, pauseScreen, endScreen).
+- Die drei Bilder füllen den ganzen Stream und sind darum keine Overlays, sondern eigene Szenen. Sie stehen nicht in der Liste unter Overlays & Alerts.
+- Fehlt eine der drei, steht unter **Einstellungen → Verbindungen → OBS** der Knopf **Szenen anlegen**. Er legt je eine Szene für das Startbild („start“), das Pausenbild („brb“) und das Endbild („end“) an — mit dem ganzseitigen Bild als Browser-Quelle (startScreen, pauseScreen, endScreen).
+- Umschalten tust du in OBS, per Stream Deck oder über eine Kanalpunkt-Belohnung mit Szenenwechsel. Das Aussehen folgt dem „Stil für alle“.
 - Gibt es eine der drei schon, werden die neuen wie sie aufgebaut: dieselben Quellen (Chat, Musik …) an denselben Stellen, nur das Bild getauscht. Wer die Pausen-Szene eingerichtet hat, bekommt Start und Ende also passend dazu.
 - Was es schon gibt, bleibt unberührt: Eine Szene, die das Bild schon zeigt, wird erkannt, egal wie sie heißt. Eine Szene, die nur so heißt und etwas anderes zeigt, wird nicht angefasst. Ein zweiter Klick ändert nichts.
-- Die Hinweise auf den Bildern (!welt, !story, !discord) und der Kanalname stehen fest im Overlay — anpassen über Overlays & Alerts → Zeile des Bildes → Bearbeiten → Aussehen → „HTML bearbeiten“.
+- Die Hinweise auf den Bildern (!welt, !story, !discord) und der Kanalname stehen fest im Bild.
 
 **Scene-Switching via Chat:**
 - Viewer: über Channel-Point-Rewards (siehe "Channel Points")
@@ -324,7 +326,7 @@ Alle Zahlen und den Namen der Währung stellst du unter **Verdienen → Einstell
     content: `Overlays werden als **Browser Source** in OBS eingebunden.
 
 **Eine Liste:** Unter Overlays & Alerts steht jedes Overlay in einer Zeile – Name, ein Satz dazu und wo es in OBS liegt („In OBS: Malen“ in Grün oder „Noch nicht in OBS“). Darüber eine Leiste: links der **Stil** mit seinen Farben und „Ändern“, daneben der Stand von OBS – wie viele Overlays schon darin liegen, oder „OBS nicht verbunden“ mit „Verbinden“ –, rechts **+ Eigenes Overlay**.
-- **In OBS anlegen** steht nur in Zeilen, die noch fehlen. Das Tool legt die Browserquelle in der richtigen Größe in die Szene, die gerade läuft; Platz und Größe änderst du danach in OBS. Start-, Pausen- und Endbild bekommen eigene Szenen („start“, „brb“, „end“). Ein eigenes Overlay klappt auf und zeigt die Adresse – die legst du in OBS selbst an.
+- **In OBS anlegen** steht nur in Zeilen, die noch fehlen. Das Tool legt die Browserquelle in der richtigen Größe in die Szene, die gerade läuft; Platz und Größe änderst du danach in OBS. Ein eigenes Overlay klappt auf und zeigt die Adresse – die legst du in OBS selbst an.
 - **Bearbeiten** klappt die Zeile auf: links die Vorschau mit Beispieldaten, rechts je eine Zeile für **was drinsteht**, das **Aussehen** und die **Adresse für OBS** (Kopieren). Was drinsteht, öffnet bei den Alerts Text und Ton je Anlass, beim Meilenstein deine Meilensteine, bei Bestenliste und Rangwechsel deine Listen. Bei Live-Overlays (Glücksrad, Ziel, Projekt, Abstimmung, Musik, Eintragskarte) bringt dich **Hingehen** zu ihrer Karte unter „Im Stream“.
 - **Im Stream testen** steht darunter, sobald das Overlay in OBS liegt – auch deine Zuschauer sehen den Test. Wo es keinen Test gibt, sagst du mit **Sitzt in OBS und sieht gut aus**, dass es passt.
 - **Einsatzbereit** ist ein Overlay, wenn es eingestellt ist, in OBS liegt und getestet ist – dann gibt es **+20 EP**.

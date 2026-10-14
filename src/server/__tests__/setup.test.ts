@@ -96,7 +96,6 @@ describe('setup and features', () => {
     expect(byName.progress).toBe('fortschritt');
     expect(byName['reward-rankchange']).toBe('bestenliste');
     expect(byName.character).toBe('welt');
-    expect(byName.start).toBe('bilder');
   });
 
   it('marks the setup done and keeps the choice', async () => {

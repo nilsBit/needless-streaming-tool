@@ -49,16 +49,14 @@ interface Steps { tuned: boolean; placed: boolean | null; tested: boolean; ready
 interface StepsAnswer { steps: Record<string, Steps>; xp: number }
 interface MarkAnswer { steps: Steps; becameReady: boolean; xp: number; levelUp: boolean; stage: { level: number; name: string } }
 interface OverlayScenes { connected: boolean; byOverlay: Record<string, string[]> }
-interface ScreenResult { overlay: string; scene: string; status: 'created' | 'exists' | 'taken' }
 interface AlertsOverview { alerts: Array<{ name: string; enabled: boolean; sound: string | null }> }
 interface Leaderboard { title: string }
 
-const GROUP_ORDER = ['always', 'join', 'today', 'rewards', 'screens', 'alerts', 'custom'];
+const GROUP_ORDER = ['always', 'join', 'today', 'rewards', 'alerts', 'custom'];
 const ICONS: Record<string, string> = {
   character: '📖', chat: '💬', song: '🎵', roulette: '🎡', poll: '🗳️', progress: '📈', challenge: '🎯',
-  milestone: '🎉', 'reward-leaderboard': '🏆', 'reward-rankchange': '⬆️', start: '🌅', pause: '☕', end: '🌙', alerts: '🔔',
+  milestone: '🎉', 'reward-leaderboard': '🏆', 'reward-rankchange': '⬆️', alerts: '🔔',
 };
-const SCREENS = new Set(['start', 'pause', 'end']);
 // Overlays a test event exists for (POST /api/actions/overlay-test/<name>).
 const TESTABLE = new Set(['alerts', 'song', 'poll', 'milestone', 'roulette', 'challenge', 'progress', 'reward-leaderboard', 'reward-rankchange', 'character', 'chat']);
 // The overlays "Stil für alle" shows side by side, the first three there are.
@@ -160,17 +158,6 @@ export default function OverlaysPanel() {
     if (!res?.ok) { toast.error(res?.status === 503 ? 'OBS ist nicht verbunden.' : body?.error ?? 'Nicht angelegt'); return; }
     toast.success(body.status === 'exists' ? `${entry.label} lag schon in „${body.scene}“` : `${entry.label} liegt jetzt in „${body.scene}“ – Platz und Größe änderst du in OBS`);
     refresh();
-  };
-  const createScreens = async () => {
-    setBusy('screens');
-    const result = await apiPost<{ screens: ScreenResult[] }>('/obs/screens', {});
-    setBusy(null);
-    if (!result) { toast.error('Szenen konnten nicht angelegt werden'); return; }
-    const taken = result.screens.filter((s) => s.status === 'taken').map((s) => `„${s.scene}“`);
-    if (taken.length) toast.error(`Szene ${taken.join(', ')} gibt es schon mit anderem Inhalt – nicht angerührt.`);
-    else toast.success('Szenen für Start, Pause und Ende stehen in OBS');
-    refresh();
-    refetchScenes();
   };
   const testOnStream = async (entry: CatalogEntry) => {
     const result = await apiPost(`/actions/overlay-test/${entry.name}`, {});
@@ -311,7 +298,6 @@ export default function OverlaysPanel() {
         act: () => { go({ area: 'stream' }); lightUp(() => document.querySelector(`[data-panel="${live.card}"]`)?.closest('.stream-card') ?? null); },
       };
     }
-    if (SCREENS.has(entry.name)) return { t: 'Was drinsteht', d: 'Der Eintrag, den du im Worldbuilder offen hast.' };
     return null;
   };
 
@@ -324,9 +310,7 @@ export default function OverlaysPanel() {
     const where = scenes === null ? '' : placed ? `In OBS: ${scenes.join(', ')}` : 'Noch nicht in OBS';
     // Not in OBS yet: the one thing to do. An own overlay is set up by its address, so it opens.
     const action = missing && entry.builtin
-      ? (SCREENS.has(entry.name)
-        ? <button type="button" className="card-primary" disabled={busy !== null} onClick={createScreens}>{busy === 'screens' ? 'Legt an …' : 'In OBS anlegen'}</button>
-        : <button type="button" className="card-primary" disabled={busy !== null} onClick={() => placeIn(entry)}>{busy === entry.name ? 'Legt an …' : 'In OBS anlegen'}</button>)
+      ? <button type="button" className="card-primary" disabled={busy !== null} onClick={() => placeIn(entry)}>{busy === entry.name ? 'Legt an …' : 'In OBS anlegen'}</button>
       : <button type="button" className={missing ? 'card-primary' : 'card-secondary'} aria-expanded={open} onClick={() => setOpenName(open ? null : entry.name)}>{open ? 'Zuklappen' : missing ? 'In OBS anlegen' : 'Bearbeiten'}</button>;
     const content = contentRow(entry);
     const ownLook = entry.customizedBy.includes('palette');

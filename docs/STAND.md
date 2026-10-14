@@ -184,6 +184,11 @@ braucht den Bot.
 - Seed **nicht** auf dem Mac neu bereinigt: Die Mac-`stream.db` ist veraltet
   (alter `!discord`-Text, noch `!figur`/`!gilde`/`!begriff`/`!ort`). Die
   aktuelle Fassung liegt unter Windows – dort bereinigen.
+- Start-, Pausen- und Endbild sind raus aus „Overlays & Alerts“ (Nils: „macht
+  keinen Sinn“ – sie füllen den ganzen Stream, sind eigene Szenen). Fehlt eine
+  der Szenen, steht unter Einstellungen → Verbindungen → OBS „Szenen anlegen“.
+  Alte Links auf den Reiter „szenen“ und der Prüfpunkt führen dorthin.
+  „HTML bearbeiten“ gibt es für die drei Bilder in der App nicht mehr.
 - **Offen:** Seed unter Windows neu bereinigen, 1.0.4 veröffentlichen
   (Nils), Issue #29 schließen, wenn Nils die Overlays-Seite im Alltag abnimmt.
 

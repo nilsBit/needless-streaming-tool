@@ -69,6 +69,7 @@ export default function Shell() {
   const hasTabRow = area.subTabs.length > 1;
 
   const go = useCallback((target: NavTarget) => {
+    if (target.area === 'overlays' && target.subTab === 'szenen') target = { area: 'settings', subTab: 'verbindungen' };
     // An old sub tab of Overlays & Alerts opens the workshop it became.
     const overlay = target.area === 'overlays' && target.subTab ? OVERLAY_OF_OLD_TAB[target.subTab] : undefined;
     if (overlay) {

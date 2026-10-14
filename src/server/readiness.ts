@@ -85,7 +85,7 @@ export function assessReadiness(input: ReadinessInput): Readiness {
         ? `In OBS ${missingScenes.length === 1 ? 'fehlt die Szene' : 'fehlen die Szenen'} ${missingScenes.map((s) => `„${s}“`).join(', ')}.`
         : 'In OBS fehlen Szenen für Start, Pause oder Ende.',
       consequence: 'Start-, Pausen- und Endbild lassen sich nicht aufrufen.',
-      target: { area: 'overlays', subTab: 'szenen' },
+      target: { area: 'settings', subTab: 'verbindungen' },
     },
     {
       id: 'overlays',

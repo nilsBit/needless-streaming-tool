@@ -23,9 +23,11 @@ const OK = '#2ecc71';
 const BAD = '#e74c3c';
 const OFF = '#888';
 
-function Card({ id, title, note, status, statusColor, action, actionColor, onAction, expanded, children }: {
+function Card({ id, title, note, status, statusColor, action, actionColor, onAction, expanded, children, extra }: {
   id: string; title: string; note?: string; status: string; statusColor: string;
   action?: string; actionColor?: string; onAction?: () => void; expanded: boolean; children?: React.ReactNode;
+  /** Shown under the header whether or not the card is open. */
+  extra?: React.ReactNode;
 }) {
   return (
     <div className={`s-card ${expanded ? 'expanded' : ''}`} data-connection={id}>
@@ -38,6 +40,7 @@ function Card({ id, title, note, status, statusColor, action, actionColor, onAct
         </div>
         {action && onAction && <button type="button" className={`s-card-action ${actionColor || 'primary'}`} onClick={onAction}>{action}</button>}
       </div>
+      {extra}
       {expanded && children && <div className="s-card-body">{children}</div>}
     </div>
   );
@@ -55,6 +58,10 @@ export default function ConnectionCards({ only }: Props) {
   const { data: notionInfo, refetch: refetchNotion } = useApi<{ configured: boolean; preview: string | null }>('/settings/notion');
   const { data: discordLive, refetch: refetchDiscordLive } = useApi<{ configured: boolean; message: string }>('/settings/discord-live');
   const { data: world, refetch: refetchWorld } = useApi<SourceInfo>('/characters/source');
+  // Start, pause and end are scenes of their own; the check only exists while that feature is on.
+  const { data: readiness, refetch: refetchReadiness } = useApi<{ items: Array<{ id: string; ok: boolean | null; problem: string }> }>('/readiness');
+  const scenesMissing = readiness?.items.find((i) => i.id === 'scenes' && i.ok === false);
+  const [creatingScenes, setCreatingScenes] = useState(false);
 
   const [expanded, setExpanded] = useState<string | null>(null);
   const toggle = (key: string) => setExpanded((prev) => (prev === key ? null : key));
@@ -68,7 +75,8 @@ export default function ConnectionCards({ only }: Props) {
 
   useWebSocket((event) => {
     if (event === 'bot-status') refetchBot();
-    if (event === 'obs-status') refetchObsStatus();
+    if (event === 'obs-status') { refetchObsStatus(); refetchReadiness(); }
+    if (event === 'obs-scene-changed') refetchReadiness();
     if (event === 'entry-changed' || event === 'follow-changed') refetchWorld();
   });
   useVisibleInterval(refetchWorld, 30_000, show('worldbuilder'));
@@ -76,6 +84,16 @@ export default function ConnectionCards({ only }: Props) {
   const connectTwitch = async () => {
     try { await apiFetch('/auth/twitch/open', { method: 'POST' }); }
     catch { toast.error('Aktion fehlgeschlagen'); }
+  };
+  const createScenes = async () => {
+    setCreatingScenes(true);
+    const result = await apiPost<{ screens: Array<{ scene: string; status: 'created' | 'exists' | 'taken' }> }>('/obs/screens', {});
+    setCreatingScenes(false);
+    if (!result) { toast.error('Szenen konnten nicht angelegt werden'); return; }
+    const taken = result.screens.filter((s) => s.status === 'taken').map((s) => `„${s.scene}“`);
+    if (taken.length) toast.error(`Szene ${taken.join(', ')} gibt es schon mit anderem Inhalt – nicht angerührt.`);
+    else toast.success('Szenen für Start, Pause und Ende stehen in OBS');
+    refetchReadiness();
   };
   const disconnectBot = async () => { await apiPost('/settings/bot/disconnect', {}); refetchBot(); };
 
@@ -147,6 +165,12 @@ export default function ConnectionCards({ only }: Props) {
             : obsConfig?.configured
               ? async () => { await apiPost('/obs/connect', {}); refetchObsStatus(); }
               : () => toggle('obs')}
+          extra={obsStatus?.connected && scenesMissing ? (
+            <div className="s-card-extra">
+              <span>{scenesMissing.problem} Sie zeigen Start-, Pausen- und Endbild.</span>
+              <button type="button" className="s-card-action primary" disabled={creatingScenes} onClick={createScenes}>{creatingScenes ? 'Legt an …' : 'Szenen anlegen'}</button>
+            </div>
+          ) : undefined}
         >
           <div className="s-card-inputs">
             <div className="s-card-input-row">
