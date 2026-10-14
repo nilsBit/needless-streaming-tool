@@ -164,7 +164,7 @@ export const AREAS: readonly Area[] = [
       {
         key: 'daten',
         label: 'Daten',
-        sentence: 'API-Token, Sicherung und Sync-Ordner.',
+        sentence: 'Sicherung erstellen und zurückspielen.',
         panels: ['settings-data'],
       },
     ],

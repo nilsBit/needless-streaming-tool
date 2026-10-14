@@ -10,7 +10,7 @@ export type SettingsCategory = 'connections' | 'app' | 'data';
 
 // Einstellungen: Verbindungen (the connection cards, shared with the setup),
 // Programm (what the stream can do, look, autostart; the hotkeys are their
-// own panel) and Daten (API token, backup, sync folder).
+// own panel) and Daten (backup, API token folded away, sync folder only while on).
 export default function SettingsPanel({ category }: { category: SettingsCategory }) {
   const { data: tokenInfo } = useApi<{ token: string | null }>('/settings/api-token');
   const { data: syncStatus, refetch: refetchSync } = useApi<{
@@ -95,26 +95,6 @@ export default function SettingsPanel({ category }: { category: SettingsCategory
         <div className="s-card-header">
           <div className="s-card-info">
             <div>
-              <div className="s-card-title">API-Token für externe Werkzeuge</div>
-              <div className="s-card-status" style={{ color: '#888' }}>
-                {tokenInfo?.token ? `${tokenInfo.token.substring(0, 8)}...` : 'Token wird geladen …'}
-              </div>
-            </div>
-          </div>
-          {tokenInfo?.token && <CopyButton text={tokenInfo.token} />}
-        </div>
-        {expanded === 'api' && tokenInfo?.token && (
-          <div className="s-card-body">
-            <code className="s-code-block">Base URL: http://localhost:{getServerPort()}/api</code>
-            <code className="s-code-block">Authorization: Bearer {tokenInfo.token.substring(0, 12)}...</code>
-          </div>
-        )}
-      </div>
-
-      <div className="s-card">
-        <div className="s-card-header">
-          <div className="s-card-info">
-            <div>
               <div className="s-card-title">Sicherung</div>
               <div className="s-card-status" style={{ color: '#888' }}>Alle Daten als Datei sichern oder eine Sicherung zurückspielen. Zugangsdaten und Tokens bleiben draußen und werden beim Zurückspielen nicht angerührt.</div>
             </div>
@@ -131,6 +111,39 @@ export default function SettingsPanel({ category }: { category: SettingsCategory
         </div>
       </div>
 
+      <div className="s-card">
+        <div className="s-card-header">
+          <div className="s-card-info">
+            <div>
+              <div className="s-card-title">Für eigene Werkzeuge</div>
+              <div className="s-card-status" style={{ color: '#888' }}>Nur nötig, wenn du selbst etwas an das Tool anbindest. Stream Deck und Figma finden ihren Zugang allein.</div>
+            </div>
+          </div>
+          <button className="s-card-action ghost" onClick={() => toggle('api')}>
+            {expanded === 'api' ? 'Zuklappen' : 'Anzeigen'}
+          </button>
+        </div>
+        {expanded === 'api' && (
+          <div className="s-card-body">
+            {tokenInfo?.token ? (
+              <>
+                <div className="s-card-input-row">
+                  <code className="s-code-block" style={{ flex: 1 }}>API-Token: {tokenInfo.token.substring(0, 8)}...</code>
+                  <CopyButton text={tokenInfo.token} />
+                </div>
+                <code className="s-code-block">Base URL: http://localhost:{getServerPort()}/api</code>
+                <code className="s-code-block">Authorization: Bearer {tokenInfo.token.substring(0, 12)}...</code>
+              </>
+            ) : (
+              <div className="s-card-status" style={{ color: '#888' }}>Token wird geladen …</div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* The sync folder is retired from the app; it only shows while it is
+          still switched on, so whoever uses it can switch it off. */}
+      {syncEnabled && (
       <div className="s-card">
         <div className="s-card-header">
           <div className="s-card-info">
@@ -170,6 +183,7 @@ export default function SettingsPanel({ category }: { category: SettingsCategory
           </div>
         )}
       </div>
+      )}
     </>
   );
 
