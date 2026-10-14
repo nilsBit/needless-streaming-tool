@@ -72,6 +72,12 @@ function isThemeActive(theme: typeof THEME_PRESETS[0], global: Record<string, st
     && theme.values['--color-accent'] === global['--color-accent'];
 }
 
+/** The preset the colours for all match, "Eigener Stil" when none does; nothing saved yet is the Kompendium. */
+export function styleName(global: Record<string, string> | undefined): string {
+  if (!global || !global['--color-accent']) return THEME_PRESETS[0].label;
+  return THEME_PRESETS.find((t) => isThemeActive(t, global))?.label ?? 'Eigener Stil';
+}
+
 export default function AppearancePanel() {
   const { toast } = useToast();
   const { data: designStatus, refetch: refetchDesign } = useApi<DesignStatus>('/design/status');

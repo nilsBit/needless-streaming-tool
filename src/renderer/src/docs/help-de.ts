@@ -33,7 +33,7 @@ Links stehen die Bereiche nach Situation: **Im Stream** (alles, was du live ausl
 - Manche Quests warten auf eine andere, z. B. **Braucht OBS**. Sie stehen schon da, werden aber nie als Nächstes vorgeschlagen.
 - Geschaffte Quests kommen nacheinander unten rechts. Eine neue Stufe oder ein geschafftes Kapitel bekommt einen eigenen kurzen Moment – während du live bist, bleibt es beim Hinweis.
 - Eine Quest gilt als geschafft, wenn das Tool es am Zustand sieht – auch was du vorher oder auf anderem Weg eingerichtet hast, zählt. Einmal geschafft, bleibt geschafft, auch wenn du es später löschst.
-- Jedes Overlay, das du **einsatzbereit** machst (Overlays & Alerts), bringt zusätzlich 20 EP.
+- Jedes Overlay, das **einsatzbereit** ist – eingestellt, in OBS und einmal getestet –, bringt zusätzlich 20 EP.
 - Schaltest du unter „Was dein Stream kann“ eine Funktion aus, verschwinden ihre Quests und zählen nicht mehr zur Stufe.
 - Stufe, EP und Quests siehst nur du. Das Tool prüft sie nur, wenn sich etwas ändert – nie im Dauerlauf.`,
   },
@@ -52,11 +52,11 @@ Links stehen die Bereiche nach Situation: **Im Stream** (alles, was du live ausl
 | Projekt → Erklär-Commands | Chat & Bot → Befehle |
 | Settings → Features → Chat Commands | Chat & Bot → Von selbst |
 | Settings → Overlays | Overlays & Alerts → Overlays |
-| Settings → Features → Alerts | Overlays & Alerts → Karte Alerts → Einstellungen |
-| Settings → Milestones | Overlays & Alerts → Karte Meilenstein → Einstellungen |
-| Overlays & Alerts → Bestenlisten | Overlays & Alerts → Karte Bestenliste → Einstellungen |
-| Overlays & Alerts → Aussehen | Overlays & Alerts → Stil für alle; ein einzelnes Overlay in seiner Karte unter Aussehen |
-| Live → OBS Scenes, Overlays & Alerts → Szenen in OBS | Start-, Pausen- und Endbild: ihre Karte → In OBS; Szene per Kanalpunkt: beim Anlegen der Belohnung |
+| Settings → Features → Alerts | Overlays & Alerts → Zeile Alerts → Bearbeiten → Was angezeigt wird |
+| Settings → Milestones | Overlays & Alerts → Zeile Meilenstein → Bearbeiten → Meilensteine |
+| Overlays & Alerts → Bestenlisten | Overlays & Alerts → Zeile Bestenliste → Bearbeiten → Listen |
+| Overlays & Alerts → Aussehen | Overlays & Alerts → Stil (oben); ein einzelnes Overlay unter Bearbeiten → Aussehen |
+| Live → OBS Scenes, Overlays & Alerts → Szenen in OBS | Start-, Pausen- und Endbild: ihre Zeile → In OBS anlegen; Szene per Kanalpunkt: beim Anlegen der Belohnung |
 | Produktion → Clip Moments | Im Stream → Moment merken; die Marken stehen unter Nach dem Stream |
 | Nach dem Stream → Content planen | entfallen – das Tool ist nur noch fürs Streamen |
 | Projekt → Statistiken, Nach dem Stream → Statistik | Nach dem Stream → Auswertung |
@@ -66,7 +66,7 @@ Links stehen die Bereiche nach Situation: **Im Stream** (alles, was du live ausl
 
 Die Kästen lassen sich nicht mehr verschieben, anpinnen oder ausblenden — jedes Panel hat genau einen Ort. Welcher Bereich und welches Thema zuletzt offen waren, merkt sich das Tool.
 
-Auf „Im Stream“ steht an jeder Karte, ob ihr Overlay in der laufenden OBS-Szene an ist — sobald OBS verbunden ist. **In der Szene** ist grün umrandet mit pulsierendem Punkt, und diese Karten stehen vorne. Danach kommen die mit **Nicht in der Szene** (darunter steht, in welcher Szene sie liegen), zuletzt die mit **Nicht in OBS** – „In OBS anlegen“ bringt dich zur Werkstatt des Overlays. Wechselst du die Szene, ordnen sich die Karten neu; oben rechts der Name der Szene. „Moment merken“ setzt dort eine Marke für später (Nach dem Stream → Content planen).
+Auf „Im Stream“ steht an jeder Karte, ob ihr Overlay in der laufenden OBS-Szene an ist — sobald OBS verbunden ist. **In der Szene** ist grün umrandet mit pulsierendem Punkt, und diese Karten stehen vorne. Danach kommen die mit **Nicht in der Szene** (darunter steht, in welcher Szene sie liegen), zuletzt die mit **Nicht in OBS** – „In OBS anlegen“ bringt dich zu seiner Zeile unter Overlays & Alerts. Wechselst du die Szene, ordnen sich die Karten neu; oben rechts der Name der Szene. „Moment merken“ setzt dort eine Marke für später (Nach dem Stream → Content planen).
 
 Oben unter **Heute dabei** tippst du an, welche Karten du heute brauchst. Die anderen verschwinden von der Seite, bis du sie wieder antippst – gelöscht wird nichts, und die Auswahl bleibt, bis du sie änderst.`,
   },
@@ -228,7 +228,7 @@ Alle eingebauten Befehle lassen sich unter Chat & Bot → Befehle → Eingebaut 
 
 **Damit sie immer in ihre Quelle passt,** auch bei langen Einträgen: Der Titel hat höchstens zwei Zeilen und wird kleiner, wenn er länger ist; Zweitname und Rolle eine Zeile; die Beschreibung höchstens vier Zeilen; Felder und Beziehungen zusammen höchstens drei, jede einzeilig — hat der Eintrag Beziehungen, ist mindestens eine davon dabei. Was darüber hinausgeht, endet mit „…“. Den ganzen Text gibt es mit !welt <Name> im Chat. Beziehungen zu verworfenen Einträgen erscheinen nicht. Jede Beziehung hat im Panel ihren eigenen 👁-Schalter (↔).
 
-**Umgestalten:** Farben und Schriften kommen aus Overlays & Alerts → Stil für alle und gelten für alle Overlays zugleich; ein einzelnes bekommt in seiner Karte unter „Aussehen“ einen eigenen Stil. Die Karte selbst nutzt den Kompendium-Stil aus /overlay/lexikon.css — dort liegen auch die drei Gewichte (voll, schlank, flüchtig), die alle Overlays teilen. Nur was dieser Karte allein gehört (Breite, das Wort „Kompendium“ über dem Titel) steht oben in ihrer Datei. In der Karte unter „⋯ Mehr“ → „HTML bearbeiten“ lässt sich eine eigene Fassung anlegen.`,
+**Umgestalten:** Farben und Schriften kommen aus Overlays & Alerts → Stil und gelten für alle Overlays zugleich; ein einzelnes bekommt unter Bearbeiten → Aussehen einen eigenen Stil. Die Karte selbst nutzt den Kompendium-Stil aus /overlay/lexikon.css — dort liegen auch die drei Gewichte (voll, schlank, flüchtig), die alle Overlays teilen. Nur was dieser Karte allein gehört (Breite, das Wort „Kompendium“ über dem Titel) steht oben in ihrer Datei. Unter Bearbeiten → Aussehen → „HTML bearbeiten“ lässt sich eine eigene Fassung anlegen.`,
   },
   {
     title: 'Discord: Live-Meldung',
@@ -260,7 +260,7 @@ Alle eingebauten Befehle lassen sich unter Chat & Bot → Befehle → Eingebaut 
 - Im OBS-Panel legt **Szenen anlegen** je eine Szene für das Startbild („start“), das Pausenbild („brb“) und das Endbild („end“) an — mit dem ganzseitigen Overlay als Browser-Quelle (startScreen, pauseScreen, endScreen).
 - Gibt es eine der drei schon, werden die neuen wie sie aufgebaut: dieselben Quellen (Chat, Musik …) an denselben Stellen, nur das Bild getauscht. Wer die Pausen-Szene eingerichtet hat, bekommt Start und Ende also passend dazu.
 - Was es schon gibt, bleibt unberührt: Eine Szene, die das Bild schon zeigt, wird erkannt, egal wie sie heißt. Eine Szene, die nur so heißt und etwas anderes zeigt, wird nicht angefasst. Ein zweiter Klick ändert nichts.
-- Die Hinweise auf den Bildern (!welt, !story, !discord) und der Kanalname stehen fest im Overlay — anpassen über Overlays & Alerts → Overlays → „HTML bearbeiten“.
+- Die Hinweise auf den Bildern (!welt, !story, !discord) und der Kanalname stehen fest im Overlay — anpassen über Overlays & Alerts → Zeile des Bildes → Bearbeiten → Aussehen → „HTML bearbeiten“.
 
 **Scene-Switching via Chat:**
 - Viewer: über Channel-Point-Rewards (siehe "Channel Points")
@@ -283,7 +283,7 @@ Twitch lässt das Tool nur Belohnungen ändern, die es selbst angelegt hat. Was 
 | "musik" oder "song" | Musik ändern |
 | "scene" oder "szene" | Szene wechseln – nur in Szenen, die früher unter „Szenen in OBS“ freigegeben wurden. Eine neue Szenen-Belohnung legst du im Tool an. |
 
-Bestenlisten legst du unter **Overlays & Alerts → Karte Bestenliste → Einstellungen** an: ein Name und die Belohnung aus deinem Kanal. Die Wahl hängt an der Belohnung selbst, nicht an ihrem Namen – umbenennen in Twitch ist kein Problem. Löschst du sie in Twitch, zeigt die Liste das an, bis du eine andere wählst.
+Bestenlisten legst du unter **Overlays & Alerts → Zeile Bestenliste → Bearbeiten → Listen** an: ein Name und die Belohnung aus deinem Kanal. Die Wahl hängt an der Belohnung selbst, nicht an ihrem Namen – umbenennen in Twitch ist kein Problem. Löschst du sie in Twitch, zeigt die Liste das an, bis du eine andere wählst.
 
 **Eine Bestenliste** zählt jede Einlösung ihrer Belohnung. Im Chat sagt der Bot dazu nichts und die Alert-Tafel bleibt still: Das Overlay **Bestenliste** blendet bei jeder Einlösung für ein paar Sekunden die Top 3 der Liste ein, die Zeile der Person leuchtet auf; wer nicht in den Top 3 steht, bekommt eine vierte Zeile mit seinem Platz. **Rangwechsel** meldet Überholer zusätzlich. \`!stats\` zeigt den eigenen Stand in jeder Liste, \`!stats <Name>\` den eines anderen. Dafür reicht eine Browserquelle: Das Overlay zeigt immer die Liste, in der gerade eingelöst wurde, mit ihrem Namen im Kopf. Soll eine Quelle nur eine bestimmte Liste zeigen, hängst du \`?type=<Schlüssel>\` an die Adresse.
 
@@ -323,18 +323,16 @@ Alle Zahlen und den Namen der Währung stellst du unter **Verdienen → Einstell
     title: 'Overlays',
     content: `Overlays werden als **Browser Source** in OBS eingebunden.
 
-**Die Werkstatt:** Unter Overlays & Alerts ist jedes Overlay eine Karte, sortiert nach Immer da, Mitmachen, Heute im Stream, Bestenlisten und Meldungen. Oben steht, wie viele **einsatzbereit** sind. Ein Overlay wird in drei Schritten einsatzbereit – **Einstellungen**, **In OBS**, **Testen** – und bringt dann **+20 EP** für deine Stufe. Die Striche auf der Karte zeigen, wie weit es ist („1 von 3“, grün mit „★ Einsatzbereit“, sobald alles erledigt ist). Wartet ein Entwurf aus Figma, trägt die Karte ein lila Schildchen.
+**Eine Liste:** Unter Overlays & Alerts steht jedes Overlay in einer Zeile – Name, ein Satz dazu und wo es in OBS liegt („In OBS: Malen“ in Grün oder „Noch nicht in OBS“). Darüber eine Leiste: links der **Stil** mit seinen Farben und „Ändern“, daneben der Stand von OBS – wie viele Overlays schon darin liegen, oder „OBS nicht verbunden“ mit „Verbinden“ –, rechts **+ Eigenes Overlay**.
+- **In OBS anlegen** steht nur in Zeilen, die noch fehlen. Das Tool legt die Browserquelle in der richtigen Größe in die Szene, die gerade läuft; Platz und Größe änderst du danach in OBS. Start-, Pausen- und Endbild bekommen eigene Szenen („start“, „brb“, „end“). Ein eigenes Overlay klappt auf und zeigt die Adresse – die legst du in OBS selbst an.
+- **Bearbeiten** klappt die Zeile auf: links die Vorschau mit Beispieldaten, rechts je eine Zeile für **was drinsteht**, das **Aussehen** und die **Adresse für OBS** (Kopieren). Was drinsteht, öffnet bei den Alerts Text und Ton je Anlass, beim Meilenstein deine Meilensteine, bei Bestenliste und Rangwechsel deine Listen. Bei Live-Overlays (Glücksrad, Ziel, Projekt, Abstimmung, Musik, Eintragskarte) bringt dich **Hingehen** zu ihrer Karte unter „Im Stream“.
+- **Im Stream testen** steht darunter, sobald das Overlay in OBS liegt – auch deine Zuschauer sehen den Test. Wo es keinen Test gibt, sagst du mit **Sitzt in OBS und sieht gut aus**, dass es passt.
+- **Einsatzbereit** ist ein Overlay, wenn es eingestellt ist, in OBS liegt und getestet ist – dann gibt es **+20 EP**.
+- **Aussehen → Ändern:** wie alle oder eigene Farben und Grundgröße, mit Vorschau. Unten im Dialog **HTML bearbeiten** – dort auch zurücksetzen, und ein eigenes Overlay löschen.
 
-Ein Klick auf eine Karte öffnet ihre Werkstatt: links die Vorschau, rechts die drei Schritte. Die Schritte sind zugleich die Reiter – ein Klick öffnet einen; erledigte sind grün, eine Zeile darunter sagt, was als Nächstes zu tun ist.
-- **Einstellungen:** was drinsteht – bei den Alerts Text und Ton je Anlass, beim Meilenstein deine Meilensteine, bei Bestenliste und Rangwechsel deine Listen. „Weiter: In OBS“ hakt den Schritt ab. Bei Live-Overlays (Glücksrad, Ziel, Projekt, Abstimmung, Musik, Eintragskarte) heißt er **Live** und ist von Anfang an erledigt: Was sie zeigen, steuerst du unter „Im Stream“ – „Zu „Im Stream““ bringt dich zu ihrer Karte. Beim Chat und bei Start-, Pausen- und Endbild gibt es nichts einzustellen.
-- **In OBS:** Szene wählen, **In OBS anlegen** – das Tool legt die Browserquelle in der richtigen Größe selbst an. Start-, Pausen- und Endbild bekommen eigene Szenen („start“, „brb“, „end“). Darunter steht die Adresse, falls du sie lieber selbst anlegst. Erledigt ist der Schritt, sobald das Overlay in einer Szene liegt – das Tool sieht es in OBS.
-- **Testen:** **Im Stream testen** zeigt das Overlay einmal im Stream – auch deine Zuschauer sehen den Test. Wo es keinen Test gibt, schaust du in OBS nach und klickst **Sieht gut aus**.
-- **Aussehen** steht abgesetzt daneben, ist freiwillig und zählt nicht zu den drei Schritten: **Wie alle** oder **Eigener Stil** mit eigenen Farben und Grundgröße.
-- Unter **⋯ Mehr**: Adresse kopieren, groß im Browser ansehen, HTML bearbeiten oder zurücksetzen, ein eigenes Overlay löschen.
+**Die Vorschau** zeigt immer Beispieldaten – auch wenn das Overlay einen eigenen Stil hat – und jede Änderung an Farben, Schrift und Größe sofort, noch bevor sie gespeichert ist. Gespeichert wird von selbst nach einem Augenblick; erst dann gilt es auch in OBS.
 
-**Die Vorschau** zeigt immer Beispieldaten – auch wenn das Overlay einen eigenen Stil hat – und jede Änderung an Farben, Schrift und Größe sofort, noch bevor sie gespeichert ist. Gespeichert wird von selbst nach einem Augenblick; erst dann gilt es auch in OBS. Mit echten Daten zeigt es „⋯ Mehr“ → „Groß im Browser ansehen“.
-
-**Stil für alle** (oben rechts auf der Seite): ein Stil, Farben und Schriften für alle Overlays, die keinen eigenen Stil haben – links drei Overlays nebeneinander, die jede Änderung sofort zeigen. Dort warten auch die **Entwürfe aus Figma**; der Knopf zeigt, wie viele offen sind.
+**Stil** (links in der Leiste oben) → **Ändern**: ein Stil, Farben und Schriften für alle Overlays, die keinen eigenen Stil haben – links drei Overlays nebeneinander, die jede Änderung sofort zeigen. Dort warten auch die **Entwürfe aus Figma**; die Zeile sagt, wie viele offen sind.
 
 **Eingebaute Overlays:**
 | Overlay | URL | Beschreibung |

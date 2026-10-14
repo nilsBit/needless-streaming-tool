@@ -27,7 +27,12 @@ export default function Dialog({ title, sentence, onClose, children, footer, wid
   useEffect(() => {
     // An autoFocus field inside wins; otherwise the dialog itself takes focus.
     if (!ref.current?.contains(document.activeElement)) ref.current?.focus();
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close.current(); };
+    // Only the topmost dialog closes — one opened from another keeps the first.
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      const overlays = document.querySelectorAll('.dialog-overlay');
+      if (overlays[overlays.length - 1] === ref.current?.parentElement) close.current();
+    };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, []);

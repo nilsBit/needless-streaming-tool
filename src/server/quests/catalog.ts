@@ -170,7 +170,7 @@ export const GUIDE: Record<string, QuestGuide> = {
   choose: { chapter: 1, why: 'Damit dir das Tool nur zeigt, was du wirklich brauchst.', how: ['Einstellungen → Programm', 'Funktionen an- und ausschalten'] },
   twitch: { chapter: 1, why: 'Ohne Twitch antwortet kein Bot, und es kommen keine Alerts.', how: ['Einstellungen → Verbindungen', '„Mit Twitch verbinden“', 'Im Browser bestätigen'] },
   obs: { chapter: 1, why: 'Damit das Tool Overlays in OBS anlegt und weiß, was gerade zu sehen ist.', how: ['In OBS: Werkzeuge → WebSocket-Servereinstellungen, Server an', 'Passwort hier eintragen', '„Verbinden“'] },
-  overlay: { chapter: 1, why: 'Deine Zuschauer sehen, was im Stream passiert.', how: ['Overlays & Alerts → eine Karte wählen', 'Schritt 2 „In OBS“ → „In OBS anlegen“', 'In OBS an die richtige Stelle schieben'], needs: 'obs', blockedBy: 'Braucht OBS' },
+  overlay: { chapter: 1, why: 'Deine Zuschauer sehen, was im Stream passiert.', how: ['Overlays & Alerts', 'In einer Zeile „In OBS anlegen“', 'In OBS an die richtige Stelle schieben'], needs: 'obs', blockedBy: 'Braucht OBS' },
   command: { chapter: 1, why: 'Du musst nicht jeden Stream neu erklären, wann du live bist und womit du arbeitest – der Chat fragt einfach.', how: ['Chat & Bot → Befehle', '„+ Neuer Befehl“ – der Weg führt dich', 'Im Chat ausprobieren'] },
   stream: { chapter: 1, why: 'Alles zusammen im echten Einsatz.', how: ['Tool offen lassen', 'In OBS „Stream starten“'], needs: 'obs', blockedBy: 'Braucht OBS' },
   commands5: { chapter: 2, why: 'Je mehr der Chat selbst nachlesen kann, desto weniger musst du erklären.', how: ['Chat & Bot → Befehle', 'Weitere Befehle über „+ Neuer Befehl“'], needs: 'command', blockedBy: 'Erst einen Befehl' },

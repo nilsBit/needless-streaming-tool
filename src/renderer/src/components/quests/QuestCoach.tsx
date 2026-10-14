@@ -12,7 +12,7 @@ const TARGETS: Record<string, string> = {
   twitch: '[data-connection="twitch"]',
   obs: '[data-connection="obs"]',
   discord: '[data-connection="discord"]',
-  alertSound: '.panel.alerts',
+  alertSound: '[data-quest-target="alertSound"]',
   topics3: 'input[aria-label="Neues Thema"]',
   spin: '[data-quest-target="spin"]',
   moment: '[data-quest-target="moment"]',

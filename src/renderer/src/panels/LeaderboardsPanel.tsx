@@ -17,13 +17,13 @@ const n = (count: number, one: string, many: string) => `${count} ${count === 1 
 // reward, how many viewers — and, opened, its ranking with corrections.
 // A list hangs on one Twitch reward, chosen from the channel's rewards and
 // kept by its id; a reward gone from Twitch is said so until another is chosen.
-export default function LeaderboardsPanel() {
+export default function LeaderboardsPanel({ startWithPath = false }: { startWithPath?: boolean }) {
   const { data: lists, refetch: refetchLists } = useApi<Leaderboard[]>('/leaderboards');
   const { data: rewardsData } = useApi<{ rewards: TwitchReward[]; error?: string }>('/auth/twitch/rewards');
   const { data: botStatus } = useApi<{ connected: boolean }>('/settings/bot-status');
   const [openKey, setOpenKey] = useState<string | null>(null);
   // New lists are made on a Quest-Pfad.
-  const [path, setPath] = useState(false);
+  const [path, setPath] = useState(startWithPath);
   useQuestPath(['leaderboard'], () => setPath(true));
 
   const rewards = rewardsData?.rewards ?? [];

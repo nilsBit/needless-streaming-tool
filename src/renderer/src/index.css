@@ -53,7 +53,7 @@ body {
 .shell-nav-divider { height: 1px; background: var(--border-subtle); margin: 12px 0; }
 
 .shell-page { display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; }
-.page-header { padding: 28px 32px 0; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.page-header { padding: 28px 32px 12px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 12px; }
 .page-header h1 { font-size: 26px; font-weight: 700; }
 .page-header p { margin-top: 4px; color: var(--muted); font-size: 14px; }
 .page-header-aside { padding-top: 8px; }
@@ -74,7 +74,7 @@ body {
 }
 .sub-tab:hover { color: var(--text); background: rgba(255,255,255,0.04); border-color: var(--border); }
 .sub-tab.active, .sub-tab.active:hover { color: var(--accent); border-color: var(--accent); background: rgba(230,126,34,0.08); font-weight: 600; }
-.shell-main { flex: 1; min-height: 0; overflow: auto; padding: 22px 32px 40px; }
+.shell-main { flex: 1; min-height: 0; overflow: auto; padding: 16px 32px 40px; }
 .page-sentence { color: var(--text-secondary); font-size: 14px; margin-bottom: 16px; max-width: 820px; line-height: 1.45; }
 .page-panels { display: flex; flex-direction: column; gap: 24px; }
 .page-panel { min-width: 0; }
@@ -290,11 +290,44 @@ body {
 .selbst-row-text span { color: var(--text-secondary); }
 .onoff { min-width: 64px; min-height: 40px; border: 1.5px solid var(--border); border-radius: 6px; background: none; color: var(--muted); font: inherit; font-weight: 700; cursor: pointer; }
 .onoff[aria-pressed="true"] { border-color: #6ee7a0; color: #6ee7a0; }
+.ovl-head { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; padding: 12px 16px; background: var(--bg-hover); border: 1px solid var(--border-subtle); border-radius: 10px; }
+.ovl-head-group { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.ovl-head-muted { color: var(--muted); }
+.ovl-head-on { color: #6ee7a0; }
+.ovl-head-sep { width: 1px; height: 28px; background: var(--border-subtle); }
+.ovl-head-fill { flex: 1; }
+.ovl-swatches { display: inline-flex; }
+.ovl-swatches > span { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--bg-hover); }
+.ovl-swatches > span + span { margin-left: -6px; }
+.ovl-dot { width: 9px; height: 9px; border-radius: 50%; background: #e0201b; }
+.ovl-dot.on { background: #6ee7a0; }
+.ovl { container-type: inline-size; }
+.ovl-item { border: 1px solid var(--border-subtle); border-radius: 8px; }
+.ovl-item.open { border-color: var(--accent); }
+.ovl-line { display: grid; grid-template-columns: 150px minmax(0, 1fr) 200px auto; gap: 12px; align-items: center; padding: 8px 12px; }
+.ovl-where { color: var(--muted); font-size: 13px; min-width: 0; }
+.ovl-where.on { color: #6ee7a0; }
+.ovl-open { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; padding: 4px 12px 14px; }
+.ovl-open-preview { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.ovl-open-rows { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.ovl-box-text { display: flex; flex-direction: column; min-width: 0; }
+.ovl-box-text .ovl-url { flex: none; padding: 6px 8px; margin-top: 4px; }
+.ovl-test { align-self: flex-start; }
+/* A narrow window (14.10.): name and button on top, the sentence and OBS below; opened, one column. */
+@container (max-width: 820px) {
+  .ovl-line { grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; }
+  .ovl-line > :last-child { grid-column: 2; grid-row: 1; }
+  .ovl-line .chat-row-text, .ovl-line .ovl-where { grid-column: 1 / -1; }
+  .ovl-open { grid-template-columns: minmax(0, 1fr); }
+}
+.ovl-look { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; align-items: start; }
 @media (max-width: 640px) {
   .chat-row, .reward-line { grid-template-columns: minmax(0, 1fr) auto; }
   .chat-row-kind { display: none; }
 }
 [data-theme="light"] .reward-line-cost { color: #a16207; }
+[data-theme="light"] .ovl-where.on, [data-theme="light"] .ovl-head-on { color: #1e7d4a; }
+[data-theme="light"] .ovl-dot.on { background: #1e7d4a; }
 [data-theme="light"] .onoff[aria-pressed="true"] { border-color: #1e7d4a; color: #1e7d4a; }
 [data-theme="light"] .chat-bot-line b { color: #6d28d9; }
 [data-theme="light"] .segmented button[aria-checked="true"] { color: #fff; }

@@ -100,14 +100,14 @@ export const AREAS: readonly Area[] = [
   {
     key: 'overlays',
     label: 'Overlays & Alerts',
-    sentence: 'Hier richtest du ein, was in deinem Stream erscheint – einmal. Gesteuert wird live unter „Im Stream“.',
+    sentence: 'Was in deinem Stream erscheint. Einmal einrichten – gesteuert wird unter „Im Stream“.',
     keywords: ['Overlays', 'Alerts', 'Meilensteine', 'Bestenlisten', 'Stil für alle', 'Start-, Pausen- und Endbild'],
     group: 'main',
     subTabs: [
       {
         key: 'overlays',
         label: 'Overlays',
-        sentence: 'Jedes Overlay wird in drei Schritten einsatzbereit: einstellen, in OBS anlegen, testen.',
+        sentence: '',
         panels: ['overlays'],
       },
     ],

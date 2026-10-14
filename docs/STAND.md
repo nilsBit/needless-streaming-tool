@@ -159,6 +159,27 @@ braucht den Bot.
 
 ## Wo wir stehen geblieben sind
 
+**Hier aufgehört (14.10. mittags, Mac)**
+
+- „Overlays & Alerts“ aufgeräumt nach Leinwand-Entwurf „A · Eine Liste“ und
+  Kopfleiste A (Bretter `BildA`/`BildKopf`, y=32290/33410):
+  - Keine Schritt-Reiter mehr. Eine Liste, eine Zeile je Overlay: Name, Satz,
+    wo es in OBS liegt, ein Knopf („In OBS anlegen“ oder „Bearbeiten“).
+    Aufgeklappt: Vorschau, was angezeigt wird, Aussehen, Adresse für OBS,
+    „Im Stream testen“ bzw. „Sitzt in OBS und sieht gut aus“.
+  - Kopfleiste: Stil mit Farbtupfern und „Ändern“, OBS-Stand („x von y
+    Overlays in OBS“ oder „Verbinden“), „+ Eigenes Overlay“.
+  - Einsatzbereit/+EP bleibt: Einstellungen schließen zählt als „eingestellt“,
+    Test oder „Sitzt in OBS“ als „getestet“. Quests (Bestenliste,
+    Alert-Ton) zeigen weiter auf die richtige Stelle.
+  - Responsiv über Container-Query (≤ 820 px: Knopf neben dem Namen,
+    Vorschau über volle Breite).
+  - Abweichungen vom Entwurf: „In OBS anlegen“ legt in die aktuelle Szene
+    (keine Szenenwahl); Bestenliste und Rangwechsel bleiben zwei Zeilen.
+  - Escape schließt nur noch den obersten Dialog.
+- **Offen:** Update-Prüfung alle paar Stunden (1.0.4), Seed neu bereinigen,
+  Issue #29 schließen, wenn Nils die Overlays-Seite im Alltag abnimmt.
+
 **Hier aufgehört (14.10. morgens, unter Windows)**
 
 - Zwei Discords: der Welt-Server (`discord.gg/CNJD83hB7N`, „Workingtitle:
