@@ -171,7 +171,7 @@ Alle eingebauten Befehle lassen sich unter Chat & Bot → Befehle → Eingebaut 
     title: 'Erklär-Commands',
     content: `Erklär-Commands sind Chat-Befehle, deren Antwort du selbst schreibst — für alles, was du sonst in jedem Stream neu erklärst: Woran arbeitest du gerade? Was passiert hier? Wann bist du live?
 
-**Anlegen:** Chat & Bot → Befehle → „+ Neuer Befehl“. Im Dialog stehen Name, Antwort, der Satz für Zuschauer, Zweitnamen und die Pause beisammen; „In !befehle vorn nennen“ stellt ihn dort an den Anfang, „An“ schaltet ihn aus und wieder ein. Den Text fürs Twitch-Panel findest du unter der Liste. Oben auf derselben Seite, unter „Ausprobieren“, siehst du die Antwort, ohne live zu sein. Die Liste zeigt **Alle**, nur **Eigene**, nur **Eingebaut** oder, wenn es welche gibt, was **Ausgeschaltet** ist.
+**Anlegen:** Chat & Bot → Befehle → „+ Neuer Befehl“. Im Dialog stehen Name, Antwort, Zweitnamen und die Pause beisammen; den Satz für „!befehle“ schreibt das Tool selbst; „In !befehle vorn nennen“ stellt ihn dort an den Anfang, „An“ schaltet ihn aus und wieder ein. Den Text fürs Twitch-Panel findest du unter der Liste. Oben auf derselben Seite, unter „Ausprobieren“, siehst du die Antwort, ohne live zu sein. Die Liste zeigt **Alle**, nur **Eigene**, nur **Eingebaut** oder, wenn es welche gibt, was **Ausgeschaltet** ist.
 - **Befehl:** ein Wort, z. B. !zeitplan. Das ! kannst du weglassen.
 - **Text:** was der Chat lesen soll. Darunter siehst du, in wie viele Chat-Nachrichten er aufgeteilt wird — höchstens 3.
 - **Cooldown:** so viele Sekunden antwortet der Befehl nach einer Antwort nicht noch einmal. Mods und du selbst sind davon ausgenommen und starten ihn auch nicht.

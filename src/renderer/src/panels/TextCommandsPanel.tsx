@@ -257,7 +257,6 @@ export default function TextCommandsPanel() {
   };
 
   const artOptions = (current: string) => Array.from(new Set([...(arten ?? []), ...(current ? [current] : [])]));
-  const derivedSentence = (d: Draft) => (list?.commands ?? []).find((c) => c.group === d.kind && c.id === String(d.id))?.description;
   const pauses = (current: number) => Array.from(new Set([...PAUSES, current])).sort((a, b) => a - b);
 
   if (loading && !texts) return <div className="panel"><p className="empty">Laden …</p></div>;
@@ -403,11 +402,6 @@ export default function TextCommandsPanel() {
               </div>
             </>
           )}
-
-          <div className="dialog-field">
-            <label htmlFor="cmd-sentence">Ein Satz für Zuschauer – steht in „!befehle“ und im Twitch-Panel</label>
-            <input id="cmd-sentence" type="text" maxLength={300} placeholder={derivedSentence(draft) ?? 'Leer lassen, dann schreibt das Tool einen.'} value={draft.description} onChange={(e) => setDraft({ ...draft, description: e.target.value })} />
-          </div>
 
           {draft.id !== null && (
             <label className="card-check">
