@@ -167,7 +167,7 @@ braucht den Bot.
   `docs/superpowers/plans/2026-10-14-belohnungen-bausteine.md`. Schema 37
   (Idee und Musik sind jetzt Alert).
 - Bausteine: Alert, Glücksrad, Szene, **Timer** und **Ton**. Der Timer läuft
-  als Countdown über „Ziel für heute“ (Pause, Beenden, Neustart, das eigene Ziel
+  als Countdown über „Ziel für heute“ (Pause, Beenden; übersteht einen Neustart der App, das eigene Ziel
   kommt zurück; nur einer zur Zeit, ein zweiter wird zurückerstattet). Der Text
   des Zuschauers steht im Alert (höchstens 100 Zeichen, Links werden
   „[Link]“); der Ton einer Ton-Belohnung läuft im Alert.
@@ -175,7 +175,7 @@ braucht den Bot.
   Punkte kosten ein Zehntel), „+ Eigene Belohnung“ Schritt für Schritt,
   schlanker Bearbeiten-Dialog. Hilfe ist angepasst.
 - Offen: im echten Programm ansehen; Nils nimmt im Alltag ab; „Quelle kurz
-  einblenden“ später; die Datei `C:	mp_out.txt` hat ein Helfer liegen
+  einblenden“ später; die Datei `C:\tmp_out.txt` hat ein Helfer liegen
   lassen – Nils löscht sie.
 
 **Hier aufgehört (14.10. abends, unter Windows)**
