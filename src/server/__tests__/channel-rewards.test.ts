@@ -96,6 +96,11 @@ describe('Twitch rewards from the app', () => {
     expect(calls.find((c) => c.method === 'POST')?.body).toEqual({ title: 'Vorschlag', cost: 500, prompt: 'Was soll passieren?', is_user_input_required: true });
   });
 
+  it("keeps a timer reward's task and minutes", async () => {
+    const made = (await request(app).post('/api/channel-rewards').set(auth()).send({ title: 'Nur Pistole', cost: 500, action: 'timer', minutes: 3 }).expect(201)).body;
+    expect(made).toMatchObject({ action: 'timer', task: 'Nur Pistole', minutes: 3, sound: null });
+  });
+
   it('edits and deletes a reward it made, also when only the action changes', async () => {
     const made = (await request(app).post('/api/channel-rewards').set(auth()).send({ title: 'Licht aus', cost: 300, action: 'alert' }).expect(201)).body;
     expect((await request(app).patch(`/api/channel-rewards/${made.id}`).set(auth()).send({ cost: 250, enabled: false }).expect(200)).body).toMatchObject({ cost: 250, enabled: false });

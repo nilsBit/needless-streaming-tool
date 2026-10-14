@@ -1,4 +1,5 @@
 import { triggerRoulette } from './api/actions';
+import { listSounds } from './bot/alerts';
 import { changeScene, getCurrentScene, getSceneMappings, type SceneMapping } from './obs/index';
 
 /**
@@ -93,6 +94,31 @@ export function sceneOfReward(action: ActionKey | undefined, sceneName: unknown,
   if (seconds === undefined || seconds === null) return { scene_name: name, scene_seconds: 30 };
   if (!Number.isInteger(seconds) || (seconds as number) < 0 || (seconds as number) > SCENE_SECONDS_MAX) return { error: `scene_seconds must be from 0 to ${SCENE_SECONDS_MAX}` };
   return { scene_name: name, scene_seconds: seconds as number };
+}
+
+export const TASK_MAX = 60;
+export const TIMER_MINUTES_MAX = 60;
+export const TIMER_MINUTES_DEFAULT = 5;
+
+/**
+ * The fields of a timer or a sound reward as the app sends them; null for any
+ * other block. A timer without a task takes the reward's name (the caller
+ * passes it as `fallbackTask`); a sound must be one of the alert sounds.
+ */
+export function extrasOfReward(action: ActionKey | undefined, task: unknown, minutes: unknown, sound: unknown, fallbackTask = ''):
+  { task: string | null; minutes: number | null; sound: string | null } | { error: string } {
+  if (action === 'timer') {
+    const t = typeof task === 'string' && task.trim() ? task.trim() : fallbackTask.trim();
+    if (!t || t.length > TASK_MAX) return { error: `task must be 1 to ${TASK_MAX} characters` };
+    const m = minutes === undefined || minutes === null ? TIMER_MINUTES_DEFAULT : minutes;
+    if (!Number.isInteger(m) || (m as number) < 1 || (m as number) > TIMER_MINUTES_MAX) return { error: `minutes must be from 1 to ${TIMER_MINUTES_MAX}` };
+    return { task: t, minutes: m as number, sound: null };
+  }
+  if (action === 'sound') {
+    if (typeof sound !== 'string' || !listSounds().includes(sound)) return { error: 'sound must be one of the alert sounds' };
+    return { task: null, minutes: null, sound };
+  }
+  return { task: null, minutes: null, sound: null };
 }
 
 /** Runs one action. A reason comes back when it did not happen, so the caller can refund. */

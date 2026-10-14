@@ -1,6 +1,6 @@
 import { getDb } from './db/index';
 import { helixRequest, type HelixReply } from './twitch-helix';
-import { actionFromTitle, isActionKey, sceneOfReward, type ActionKey } from './reward-actions';
+import { actionFromTitle, extrasOfReward, isActionKey, sceneOfReward, type ActionKey } from './reward-actions';
 
 /**
  * Twitch channel-point rewards, made and edited from the app (#24). Twitch
@@ -22,6 +22,9 @@ export interface ChannelReward {
   action: ActionKey | null;
   scene_name: string | null;
   scene_seconds: number | null;
+  task: string | null;
+  minutes: number | null;
+  sound: string | null;
   /** A dashboard reward: what its title makes it do, or null for an alert only. */
   by_name: ActionKey | null;
 }
@@ -48,11 +51,11 @@ async function broadcasterId(): Promise<string | RewardError> {
   return typeof id === 'string' && id ? id : failure(reply);
 }
 
-interface Bound { action: ActionKey; scene_name: string | null; scene_seconds: number | null }
+interface Bound { action: ActionKey; scene_name: string | null; scene_seconds: number | null; task: string | null; minutes: number | null; sound: string | null }
 
 function boundAction(id: string): Bound | null {
-  const row = getDb().prepare('SELECT action, scene_name, scene_seconds FROM twitch_reward_actions WHERE reward_id = ?').get(id) as { action: string; scene_name: string | null; scene_seconds: number | null } | undefined;
-  return row && isActionKey(row.action) ? { action: row.action, scene_name: row.scene_name, scene_seconds: row.scene_seconds } : null;
+  const row = getDb().prepare('SELECT action, scene_name, scene_seconds, task, minutes, sound FROM twitch_reward_actions WHERE reward_id = ?').get(id) as (Omit<Bound, 'action'> & { action: string }) | undefined;
+  return row && isActionKey(row.action) ? { ...row, action: row.action } : null;
 }
 
 /** The action a redemption of this reward runs — looked up by id, before any name convention. */
@@ -74,6 +77,9 @@ function fromHelix(r: Record<string, unknown>, manageable: boolean): ChannelRewa
     action: bound?.action ?? null,
     scene_name: bound?.scene_name ?? null,
     scene_seconds: bound?.scene_seconds ?? null,
+    task: bound?.task ?? null,
+    minutes: bound?.minutes ?? null,
+    sound: bound?.sound ?? null,
     by_name: manageable ? null : actionFromTitle(String(r.title ?? '')),
   };
 }
@@ -103,6 +109,7 @@ export async function listChannelRewards(): Promise<ChannelReward[] | RewardErro
 interface Draft {
   title?: string; cost?: number; prompt?: string; input_required?: boolean; enabled?: boolean;
   action?: ActionKey; scene_name?: string | null; scene_seconds?: number | null;
+  task?: string | null; minutes?: number | null; sound?: string | null;
 }
 
 /** Checks what the app sends; `creating` makes title, cost and action required. */
@@ -134,6 +141,11 @@ function validate(input: unknown, creating: boolean): Draft | RewardError {
     if ('error' in scene) return { status: 400, error: scene.error };
     d.scene_name = scene.scene_name;
     d.scene_seconds = scene.scene_seconds;
+    const extras = extrasOfReward(d.action, b.task, b.minutes, b.sound, typeof b.title === 'string' ? b.title : '');
+    if ('error' in extras) return { status: 400, error: extras.error };
+    d.task = extras.task;
+    d.minutes = extras.minutes;
+    d.sound = extras.sound;
   }
   return d;
 }
@@ -148,7 +160,8 @@ const toHelix = (d: Draft) => ({
 
 function bind(id: string, d: Draft): void {
   if (!d.action) return;
-  getDb().prepare('INSERT OR REPLACE INTO twitch_reward_actions (reward_id, action, scene_name, scene_seconds) VALUES (?, ?, ?, ?)').run(id, d.action, d.scene_name ?? null, d.scene_seconds ?? null);
+  getDb().prepare('INSERT OR REPLACE INTO twitch_reward_actions (reward_id, action, scene_name, scene_seconds, task, minutes, sound) VALUES (?, ?, ?, ?, ?, ?, ?)')
+    .run(id, d.action, d.scene_name ?? null, d.scene_seconds ?? null, d.task ?? null, d.minutes ?? null, d.sound ?? null);
 }
 
 export async function createChannelReward(input: unknown): Promise<ChannelReward | RewardError> {
