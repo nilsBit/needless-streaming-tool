@@ -45,5 +45,5 @@ export function streamPreview(block: Block, name: string, o: { minutes?: number;
   if (block === 'sound') return `Lena · ${name}${o.sound ? ` – mit Ton „${o.sound.replace(/\.[a-z0-9]+$/i, '')}“` : ''}`;
   if (block === 'roulette') return 'Das Rad dreht sich und bleibt auf einem Thema stehen.';
   if (block === 'scene') return 'Die Szene läuft für die gewählte Zeit, dann kommt die vorige zurück.';
-  return o.withText ? `Lena · ${name} – „Wie bist du darauf gekommen?“` : `Lena löst „${name}“ ein.`;
+  return o.withText ? `Lena · ${name} – „…dein Text…“` : `Lena löst „${name}“ ein.`;
 }

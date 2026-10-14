@@ -1,29 +1,26 @@
 import React, { useEffect, useState } from 'react';
-import { apiFetch, apiDelete, useApi } from '../hooks/useApi';
+import { apiFetch, useApi } from '../hooks/useApi';
 import { useToast } from '../contexts/ToastContext';
 import Dialog from '../components/ux/Dialog';
 import RewardSteps, { type Step } from '../components/rewards/RewardSteps';
 import RewardStart from '../components/rewards/RewardStart';
 import RewardQuestPath, { type RewardDraft } from '../components/rewards/RewardQuestPath';
 import ScenePicker from '../components/rewards/ScenePicker';
+import BlockFields from '../components/rewards/BlockFields';
+import { BLOCKS, type Block } from '../components/rewards/rewardBlocks';
 import { useQuestPath } from '../components/quests/questStart';
 import { useFeatures } from '../contexts/FeaturesContext';
 import type { FeatureKey } from '../../../shared/features';
 
-type Action = 'roulette' | 'feature_request' | 'change_music' | 'scene' | 'alert';
+type Action = Block;
 interface Reward {
   id: string; title: string; cost: number; prompt: string; input_required: boolean; enabled: boolean;
   manageable: boolean; action: Action | null; scene_name: string | null; scene_seconds: number | null; by_name: Action | null;
+  task: string | null; minutes: number | null; sound: string | null;
 }
 type Draft = Omit<Reward, 'id' | 'manageable' | 'action' | 'by_name'> & { id?: string; action: Action };
 
-const ACTIONS: Record<Action, string> = {
-  alert: 'Nur ein Alert',
-  roulette: 'Glücksrad drehen',
-  feature_request: 'Vorschlag einreichen',
-  change_music: 'Musik wechseln',
-  scene: 'Szene wechseln',
-};
+const ACTIONS = Object.fromEntries(BLOCKS.map((b) => [b.value, b.title])) as Record<Action, string>;
 
 
 const POINTS = new Intl.NumberFormat('de-DE');
@@ -93,7 +90,7 @@ export default function ChannelRewardsPanel() {
       <span className="reward-line-cost">{POINTS.format(r.cost)} Punkte</span>
       <span className="chat-row-text">
         {r.manageable
-          ? <>{r.action ? ACTIONS[r.action] : 'Ohne Aktion'}{r.action === 'scene' && r.scene_name ? ` „${r.scene_name}“${r.scene_seconds ? `, ${r.scene_seconds} s` : ''}` : ''}{r.input_required ? ' · mit Text' : ''}</>
+          ? <>{r.action ? ACTIONS[r.action] : 'Ohne Aktion'}{r.action === 'scene' && r.scene_name ? ` „${r.scene_name}“${r.scene_seconds ? `, ${r.scene_seconds} s` : ''}` : ''}{r.action === 'timer' && r.minutes ? ` „${r.task}“, ${r.minutes} Min` : ''}{r.action === 'sound' && r.sound ? ` – ${r.sound.replace(/\.[a-z0-9]+$/i, '')}` : ''}{r.input_required ? ' · mit Text' : ''}</>
           : r.by_name ? `Im Creator-Dashboard angelegt · am Namen erkannt: ${ACTIONS[r.by_name]}` : 'Im Creator-Dashboard angelegt · nur ein Alert'}
       </span>
       {r.manageable
@@ -138,7 +135,7 @@ function RewardDialog({ draft: initial, onClose, onSaved }: { draft: Draft; onCl
 
   const save = async () => {
     setBusy(true);
-    const body = { title: draft.title, cost: Number(draft.cost), prompt: draft.prompt, input_required: draft.input_required, enabled: draft.enabled, action: draft.action, scene_name: draft.scene_name, scene_seconds: draft.scene_seconds };
+    const body = { title: draft.title, cost: Number(draft.cost), action: draft.action, scene_name: draft.scene_name, scene_seconds: draft.scene_seconds, task: draft.task, minutes: draft.minutes, sound: draft.sound, input_required: draft.action === 'alert' && draft.input_required, enabled: draft.enabled };
     const res = await apiFetch(isNew ? '/channel-rewards' : `/channel-rewards/${encodeURIComponent(draft.id!)}`, { method: isNew ? 'POST' : 'PATCH', body: JSON.stringify(body) });
     setBusy(false);
     if (!res.ok) { toast.error((await res.json().catch(() => ({}))).error ?? 'Nicht gespeichert'); return; }
@@ -146,7 +143,8 @@ function RewardDialog({ draft: initial, onClose, onSaved }: { draft: Draft; onCl
   };
   const remove = async () => {
     if (!window.confirm(`„${initial.title}“ in Twitch löschen? Zuschauer sehen die Belohnung danach nicht mehr.`)) return;
-    if (!(await apiDelete(`/channel-rewards/${encodeURIComponent(draft.id!)}`))) { toast.error('Nicht gelöscht'); return; }
+    const res = await apiFetch(`/channel-rewards/${encodeURIComponent(draft.id!)}`, { method: 'DELETE' });
+    if (!res.ok) { toast.error((await res.json().catch(() => ({}))).error ?? 'Nicht gelöscht'); return; }
     onSaved();
   };
 
@@ -160,7 +158,7 @@ function RewardDialog({ draft: initial, onClose, onSaved }: { draft: Draft; onCl
         {!isNew && <button type="button" className="card-link" onClick={remove}>In Twitch löschen</button>}
         <span style={{ flex: 1 }} />
         <button type="button" className="card-secondary" onClick={onClose}>Abbrechen</button>
-        <button type="button" className="card-primary" onClick={save} disabled={busy || !draft.title.trim() || (draft.action === 'scene' && !draft.scene_name)}>{busy ? 'Speichert …' : isNew ? 'Anlegen' : 'Speichern'}</button>
+        <button type="button" className="card-primary" onClick={save} disabled={busy || !draft.title.trim() || (draft.action === 'scene' && !draft.scene_name) || (draft.action === 'sound' && !draft.sound) || (draft.action === 'timer' && !(draft.task ?? '').trim())}>{busy ? 'Speichert …' : isNew ? 'Anlegen' : 'Speichern'}</button>
       </>}
     >
       <div className="dialog-grid">
@@ -176,8 +174,8 @@ function RewardDialog({ draft: initial, onClose, onSaved }: { draft: Draft; onCl
         {draft.action === 'scene' && (
           <ScenePicker scene={draft.scene_name} seconds={draft.scene_seconds} onChange={(scene, seconds) => setDraft({ ...draft, scene_name: scene, scene_seconds: seconds })} onLeave={onClose} />
         )}
-        <div className="dialog-field"><label htmlFor="cr-prompt">Text für Zuschauer (optional)</label><input id="cr-prompt" type="text" maxLength={200} value={draft.prompt} onChange={(e) => setDraft({ ...draft, prompt: e.target.value })} /></div>
-        <label className="card-check"><input type="checkbox" checked={draft.input_required} onChange={(e) => setDraft({ ...draft, input_required: e.target.checked })} /><span>Zuschauer muss etwas dazuschreiben</span></label>
+        {(draft.action === 'timer' || draft.action === 'sound') && <BlockFields block={draft.action} task={draft.task ?? ''} minutes={draft.minutes ?? 5} sound={draft.sound} onChange={(p) => setDraft({ ...draft, ...p })} />}
+        {draft.action === 'alert' && <label className="card-check"><input type="checkbox" checked={draft.input_required} onChange={(e) => setDraft({ ...draft, input_required: e.target.checked })} /><span>Zuschauer schreibt etwas dazu – steht im Alert</span></label>}
         <label className="card-check"><input type="checkbox" checked={draft.enabled} onChange={(e) => setDraft({ ...draft, enabled: e.target.checked })} /><span>An</span></label>
       </div>
     </Dialog>

@@ -10,10 +10,12 @@ export default function BlockFields({ block, task, minutes, sound, onChange }: {
   onChange: (p: { task?: string; minutes?: number; sound?: string | null }) => void;
 }) {
   const [sounds, setSounds] = useState<string[] | null>(null);
+  const [failed, setFailed] = useState(false);
   useEffect(() => {
     if (block !== 'sound') return;
     void apiGet<{ sounds: string[] }>('/alerts').then((r) => {
-      const list = r?.sounds ?? [];
+      if (!r) { setFailed(true); return; }
+      const list = r.sounds ?? [];
       setSounds(list);
       if (!sound && list[0]) onChange({ sound: list[0] });
     });
@@ -38,6 +40,7 @@ export default function BlockFields({ block, task, minutes, sound, onChange }: {
   );
 
   if (block === 'sound') {
+    if (failed) return <p className="dialog-hint" role="alert">Töne konnten nicht geladen werden.</p>;
     if (sounds && sounds.length === 0) return <p className="dialog-hint" role="alert">Noch keine Töne – unter Overlays &amp; Alerts → Alerts hochladen.</p>;
     const play = (name: string) => { try { void new Audio(`http://localhost:${getServerPort()}/public/alert-sound/${encodeURIComponent(name)}`).play(); } catch { /* nothing to hear */ } };
     return (

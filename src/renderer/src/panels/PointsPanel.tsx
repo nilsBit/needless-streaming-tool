@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useApi, apiFetch, apiPost, apiDelete } from '../hooks/useApi';
+import { useApi, apiFetch, apiPost } from '../hooks/useApi';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { useToast } from '../contexts/ToastContext';
 import Dialog from '../components/ux/Dialog';
@@ -8,6 +8,8 @@ import RewardSteps, { type Step } from '../components/rewards/RewardSteps';
 import RewardStart from '../components/rewards/RewardStart';
 import RewardQuestPath, { type RewardDraft } from '../components/rewards/RewardQuestPath';
 import ScenePicker from '../components/rewards/ScenePicker';
+import BlockFields from '../components/rewards/BlockFields';
+import { BLOCKS, type Block } from '../components/rewards/rewardBlocks';
 import { useQuestPath } from '../components/quests/questStart';
 import { useFeatures } from '../contexts/FeaturesContext';
 import type { FeatureKey } from '../../../shared/features';
@@ -16,17 +18,11 @@ interface Config {
   currency: string; watch_points: number; watch_minutes: number; chat_points: number;
   follow_points: number; sub_points: number; raid_points: number; bits_per_point: number; bots: string[];
 }
-type Action = 'roulette' | 'feature_request' | 'change_music' | 'scene' | 'alert';
-interface Reward { id: number; name: string; cost: number; action: Action; scene_name: string | null; scene_seconds: number | null; needs_input: boolean; cooldown_seconds: number; enabled: boolean }
+type Action = Block;
+interface Reward { id: number; name: string; cost: number; action: Action; scene_name: string | null; scene_seconds: number | null; task: string | null; minutes: number | null; sound: string | null; needs_input: boolean; cooldown_seconds: number; enabled: boolean }
 interface Viewer { user_name: string; display_name: string; balance: number; total: number; stream_total: number; rank: number }
 
-const ACTIONS: Record<Action, string> = {
-  alert: 'Nur ein Alert',
-  roulette: 'Glücksrad drehen',
-  feature_request: 'Vorschlag einreichen',
-  change_music: 'Musik wechseln',
-  scene: 'Szene wechseln',
-};
+const ACTIONS = Object.fromEntries(BLOCKS.map((b) => [b.value, b.title])) as Record<Action, string>;
 
 /** The earning numbers, in the order and words of the settings card. */
 const RATES: Array<[keyof Config, string, string]> = [
@@ -90,7 +86,7 @@ export default function PointsPanel() {
     {
       title: 'Belohnungen anlegen',
       text: 'Was es dafür gibt. Fang mit einer Vorlage an.',
-      state: count ? `${count} ${count === 1 ? 'Belohnung' : 'Belohnungen'} an` : 'Noch keine – unten eine Vorlage wählen',
+      state: count ? `${count} ${count === 1 ? 'Belohnung' : 'Belohnungen'} an` : 'Noch keine – „+ Neue Belohnung“ zeigt Vorlagen',
       done: count > 0,
     },
     {
@@ -126,7 +122,7 @@ export default function PointsPanel() {
               <li key={r.id} className={`chat-row reward-line ${r.enabled ? '' : 'off'}`}>
                 <span className="chat-row-name">{r.name}{r.enabled ? '' : ' (aus)'}</span>
                 <span className="reward-line-cost">{POINTS.format(r.cost)} {currency}</span>
-                <span className="chat-row-text">{ACTIONS[r.action]}{r.action === 'scene' && r.scene_name ? ` „${r.scene_name}“${r.scene_seconds ? `, ${r.scene_seconds} s` : ''}` : ''}{r.needs_input ? ' · mit Text' : ''}{r.cooldown_seconds ? ` · Sperre ${r.cooldown_seconds} s` : ''}</span>
+                <span className="chat-row-text">{ACTIONS[r.action]}{r.action === 'scene' && r.scene_name ? ` „${r.scene_name}“${r.scene_seconds ? `, ${r.scene_seconds} s` : ''}` : ''}{r.action === 'timer' && r.minutes ? ` „${r.task}“, ${r.minutes} Min` : ''}{r.action === 'sound' && r.sound ? ` – ${r.sound.replace(/\.[a-z0-9]+$/i, '')}` : ''}{r.needs_input ? ' · mit Text' : ''}{r.cooldown_seconds ? ` · Sperre ${r.cooldown_seconds} s` : ''}</span>
                 <button type="button" className="card-secondary" onClick={() => setEditingReward(r)}>Bearbeiten</button>
               </li>
             ))}
@@ -252,14 +248,15 @@ function RewardDialog({ reward, currency, onClose, onSaved }: {
   const isNew = draft.id === undefined;
 
   const save = async () => {
-    const body = { name: draft.name, cost: Number(draft.cost), action: draft.action, scene_name: draft.scene_name, scene_seconds: draft.scene_seconds, needs_input: draft.needs_input, cooldown_seconds: Number(draft.cooldown_seconds), enabled: draft.enabled };
+    const body = { name: draft.name, cost: Number(draft.cost), action: draft.action, scene_name: draft.scene_name, scene_seconds: draft.scene_seconds, task: draft.task, minutes: draft.minutes, sound: draft.sound, needs_input: draft.action === 'alert' && draft.needs_input, cooldown_seconds: Number(draft.cooldown_seconds), enabled: draft.enabled };
     const res = await apiFetch(isNew ? '/points/rewards' : `/points/rewards/${draft.id}`, { method: isNew ? 'POST' : 'PATCH', body: JSON.stringify(body) });
     if (!res.ok) { toast.error(`Nicht gespeichert – ${(await res.json().catch(() => ({}))).error ?? 'Fehler'}`); return; }
     toast.success(isNew ? `„${draft.name.trim()}“ angelegt` : 'Gespeichert'); onSaved(); onClose();
   };
   const remove = async () => {
     if (!window.confirm(`Die Belohnung „${reward.name}“ löschen?`)) return;
-    if (!(await apiDelete(`/points/rewards/${draft.id}`))) { toast.error('Nicht gelöscht'); return; }
+    const res = await apiFetch(`/points/rewards/${draft.id}`, { method: 'DELETE' });
+    if (!res.ok) { toast.error((await res.json().catch(() => ({}))).error ?? 'Nicht gelöscht'); return; }
     toast.success('Gelöscht'); onSaved(); onClose();
   };
 
@@ -273,7 +270,7 @@ function RewardDialog({ reward, currency, onClose, onSaved }: {
         {!isNew && <button type="button" className="card-link" onClick={remove}>Löschen</button>}
         <span style={{ flex: 1 }} />
         <button type="button" className="card-secondary" onClick={onClose}>Abbrechen</button>
-        <button type="button" className="card-primary" onClick={save} disabled={!draft.name.trim() || (draft.action === 'scene' && !draft.scene_name)}>{isNew ? 'Anlegen' : 'Speichern'}</button>
+        <button type="button" className="card-primary" onClick={save} disabled={!draft.name.trim() || (draft.action === 'scene' && !draft.scene_name) || (draft.action === 'sound' && !draft.sound) || (draft.action === 'timer' && !(draft.task ?? '').trim())}>{isNew ? 'Anlegen' : 'Speichern'}</button>
       </>}
     >
       <div className="dialog-grid">
@@ -288,8 +285,9 @@ function RewardDialog({ reward, currency, onClose, onSaved }: {
         {draft.action === 'scene' && (
           <ScenePicker scene={draft.scene_name} seconds={draft.scene_seconds} onChange={(scene, seconds) => setDraft({ ...draft, scene_name: scene, scene_seconds: seconds })} onLeave={onClose} />
         )}
+        {(draft.action === 'timer' || draft.action === 'sound') && <BlockFields block={draft.action} task={draft.task ?? ''} minutes={draft.minutes ?? 5} sound={draft.sound} onChange={(p) => setDraft({ ...draft, ...p })} />}
         <div className="dialog-field"><label htmlFor="pr-cooldown">Sperre je Zuschauer (Sekunden)</label><input id="pr-cooldown" type="number" min={0} value={String(draft.cooldown_seconds)} onChange={(e) => setDraft({ ...draft, cooldown_seconds: Number(e.target.value) })} style={{ width: 120 }} /></div>
-        <label className="card-check"><input type="checkbox" checked={draft.needs_input} onChange={(e) => setDraft({ ...draft, needs_input: e.target.checked })} /><span>Zuschauer schreibt einen Text dazu (erscheint im Alert)</span></label>
+        {draft.action === 'alert' && <label className="card-check"><input type="checkbox" checked={draft.needs_input} onChange={(e) => setDraft({ ...draft, needs_input: e.target.checked })} /><span>Zuschauer schreibt einen Text dazu (erscheint im Alert)</span></label>}
         <label className="card-check"><input type="checkbox" checked={draft.enabled} onChange={(e) => setDraft({ ...draft, enabled: e.target.checked })} /><span>An</span></label>
       </div>
     </Dialog>

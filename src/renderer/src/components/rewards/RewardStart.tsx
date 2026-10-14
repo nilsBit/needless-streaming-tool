@@ -32,15 +32,16 @@ export default function RewardStart({ mode, currency, existing, isOn, onClose, o
   const create = async () => {
     if (!picked) return;
     setBusy(true);
+    try {
     const common = { cost, action: picked.block, task: picked.block === 'timer' ? task : undefined, minutes: picked.block === 'timer' ? minutes : undefined, sound: picked.block === 'sound' ? sound : undefined, enabled: true };
     const res = mode === 'points'
       ? await apiFetch('/points/rewards', { method: 'POST', body: JSON.stringify({ ...common, name: name.trim(), needs_input: !!picked.needsInput, cooldown_seconds: 0 }) })
-      : await apiFetch('/channel-rewards', { method: 'POST', body: JSON.stringify({ ...common, title: name.trim(), input_required: !!picked.needsInput }) });
-    setBusy(false);
+      : await apiFetch('/channel-rewards', { method: 'POST', body: JSON.stringify({ ...common, title: name.trim(), input_required: !!picked.needsInput, prompt: picked.needsInput ? 'Schreib deinen Text dazu.' : undefined }) });
     if (res.status === 401 && mode === 'twitch') { onNeedsReconnect?.(); toast.error('Dem Twitch-Login fehlt das Recht, Belohnungen anzulegen.'); return; }
     if (!res.ok) { toast.error((await res.json().catch(() => ({}))).error ?? 'Nicht angelegt'); return; }
     toast.success(`„${name.trim()}“ ist da!`);
     onCreated();
+    } catch { toast.error('Nicht angelegt'); } finally { setBusy(false); }
   };
 
   if (!picked) return (

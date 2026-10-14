@@ -64,7 +64,7 @@ export default function RewardQuestPath({ mode, currency, initial, onClose, onCr
     const extras = { task: action === 'timer' ? (task.trim() || name.trim()) : undefined, minutes: action === 'timer' ? minutes : undefined, sound: action === 'sound' ? sound : undefined };
     const res = mode === 'points'
       ? await apiFetch('/points/rewards', { method: 'POST', body: JSON.stringify({ name: name.trim(), cost, action, scene_name: scene, scene_seconds: sceneSeconds, ...extras, needs_input: action === 'alert' && withText, cooldown_seconds: 0, enabled: true }) })
-      : await apiFetch('/channel-rewards', { method: 'POST', body: JSON.stringify({ title: name.trim(), cost, action, scene_name: scene, scene_seconds: sceneSeconds, ...extras, input_required: action === 'alert' && withText, enabled: true }) });
+      : await apiFetch('/channel-rewards', { method: 'POST', body: JSON.stringify({ title: name.trim(), cost, action, scene_name: scene, scene_seconds: sceneSeconds, ...extras, input_required: action === 'alert' && withText, prompt: action === 'alert' && withText ? 'Schreib deinen Text dazu.' : undefined, enabled: true }) });
     if (res.status === 401 && mode === 'twitch') { onNeedsReconnect?.(); toast.error('Dem Twitch-Login fehlt das Recht, Belohnungen anzulegen.'); return false; }
     if (!res.ok) { toast.error((await res.json().catch(() => ({}))).error ?? 'Nicht angelegt'); return false; }
     onCreated();
