@@ -196,8 +196,8 @@ braucht den Bot.
   Repo, also auf Mac und Windows): prüfen, Stand hier eintragen, committen,
   pushen.
 - **Was noch zu tun ist:**
-  1. Seed unter Windows neu bereinigen (dort liegt die aktuelle `stream.db`;
-     Vorgehen unter „Auf einem neuen Rechner einrichten“).
+  1. ~~Seed unter Windows neu bereinigen~~ – erledigt 14.10. abends
+     (`f9ee9a3`, Schema 36, nur `!welt`).
   2. 1.0.4 veröffentlichen (Nils:
      `npm version 1.0.4 -m "chore: version %s" && git push origin main --follow-tags`),
      dann unter Windows beobachten, ob das Auto-Update von 1.0.3 greift.
@@ -935,7 +935,7 @@ aus dem Wurzelverzeichnis trägt mit npm 10.3 das Hauptprojekt als Abhängigkeit
 
 Die Einstellungen liegen in `data/stream.db` und sind **nicht** im Repo —
 Erklär-Commands, Nachschlage-Commands, Spoiler-Schalter, Settings. Im Repo liegt
-stattdessen **`data/stream.seed.db`**: eine Kopie vom 30. September 2026 mit
+stattdessen **`data/stream.seed.db`**: eine Kopie vom 14. Oktober 2026 mit
 allen Commands, der Overlay-Palette, den Einstellungen und Clips, aber **ohne
 Zugangsdaten** (Twitch-Token, Notion-Token, Discord-Webhook, `api_token`,
 `design_token` sind entfernt — das Repo ist öffentlich). Auf einem neuen
