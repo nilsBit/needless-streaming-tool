@@ -8,6 +8,7 @@ import { sayInParts } from './chat-message';
 import { builtinKeyOf, triggerOf, canonicalTrigger, getCommandNames } from './command-names';
 import { commandEnabled } from '../features';
 import { answerChatMessage } from './chat-answers';
+import { feedBotAnswer } from './chat-feed';
 import { builtinCooldownSeconds, INFO_BUILTINS, passCooldown } from './cooldown';
 import { botHelix, shoutoutText } from './shoutout';
 import { adjustReply } from '../points/chat';
@@ -183,10 +184,14 @@ export function registerCommands(client: Client) {
       }
 
       // `!befehle`, `!datenschutz`, Text Commands and Lookup Commands: the same path the app's "try it" box takes.
+      // Their answers also stand in the chat overlay; the bare command does not.
       case 'commands':
       default: {
         const answer = await answerChatMessage(message, isPrivileged(tags), tags.username);
-        for (const reply of answer.replies ?? []) say(reply);
+        for (const reply of answer.replies ?? []) {
+          say(reply);
+          feedBotAnswer(client.getUsername(), reply);
+        }
         break;
       }
     }

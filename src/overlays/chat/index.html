@@ -55,6 +55,10 @@
       overflow-wrap: anywhere;
     }
 
+    /* The bot answering a command (14.10.): set apart, so it reads as the channel's answer. */
+    .chat-line.bot .chat-user::before { content: '↳ '; }
+    .chat-line.bot .chat-text { font-style: italic; }
+
     .chat-emote {
       height: 1.6em;
       vertical-align: middle;
@@ -87,7 +91,7 @@
     // Text goes in as text, never as HTML — this is what anyone in chat can type.
     function lineElement(line) {
       const li = document.createElement('li');
-      li.className = 'chat-line';
+      li.className = line.bot ? 'chat-line bot' : 'chat-line';
       li.dataset.id = line.id;
 
       const user = document.createElement('span');

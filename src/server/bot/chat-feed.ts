@@ -8,8 +8,9 @@ import { broadcast } from '../websocket/index';
  * removes on Twitch is taken back from the overlay too — a deleted message
  * must not stay on stream.
  *
- * Commands stay out: the bot answers them with up to 500 characters, and a
- * box of eight lines would show nothing else.
+ * Commands stay out — a bare `!story` tells nobody anything. The bot's answer
+ * to one comes in instead (feedBotAnswer), marked as the bot's; what the bot
+ * says on its own (reminders, confirmations) stays out (14.10.).
  */
 
 export const CHAT_FEED_SIZE = 20;
@@ -24,6 +25,8 @@ export interface ChatLine {
   user: string;
   color: string | null;
   parts: ChatPart[];
+  /** The bot answering a command — the overlay sets it apart. */
+  bot?: true;
 }
 
 /** The part of tmi.js's tags this needs. */
@@ -95,6 +98,24 @@ export function feedChatMessage(tags: ChatTags, message: string): void {
     user: tags['display-name'] || tags.username,
     color: tags.color || null,
     parts: parseChatParts(message, tags.emotes),
+  };
+  lines = [...lines, line].slice(-CHAT_FEED_SIZE);
+  broadcast('chat-message', line);
+}
+
+let botAnswers = 0;
+
+/** The bot's answer to a command, for the overlay. Twitch gives the bot's own messages no id, so it gets one here. */
+export function feedBotAnswer(botName: string, text: string): void {
+  if (!text.trim()) return;
+  botAnswers += 1;
+  const line: ChatLine = {
+    id: `bot-${Date.now()}-${botAnswers}`,
+    login: botName.toLowerCase(),
+    user: botName,
+    color: null,
+    bot: true,
+    parts: [{ type: 'text', text }],
   };
   lines = [...lines, line].slice(-CHAT_FEED_SIZE);
   broadcast('chat-message', line);

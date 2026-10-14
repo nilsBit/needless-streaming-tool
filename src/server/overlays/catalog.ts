@@ -69,7 +69,7 @@ export const GROUP_LABELS: Record<CatalogGroup, string> = {
 
 const META: Record<string, { label: string; sentence: string; group: CatalogGroup; preview: string }> = {
   character: { label: 'Eintragskarte', sentence: 'Der Welt-Eintrag, den du im Worldbuilder offen hast.', group: 'always', preview: 'with-portrait' },
-  chat: { label: 'Chat', sentence: 'Die letzten Nachrichten, ohne Befehle und Bot-Antworten.', group: 'always', preview: 'gespraech' },
+  chat: { label: 'Chat', sentence: 'Die letzten Nachrichten, mit den Antworten des Bots auf Befehle.', group: 'always', preview: 'gespraech' },
   song: { label: 'Musik', sentence: 'Der Song, der gerade läuft, mit Cover – nur dieser eine Titel.', group: 'always', preview: 'playing' },
   roulette: { label: 'Glücksrad', sentence: 'Dreht über deine gesammelten Themen.', group: 'join', preview: 'winner' },
   poll: { label: 'Abstimmung', sentence: 'Vorschläge, Balken und am Ende das Ergebnis.', group: 'join', preview: 'open' },

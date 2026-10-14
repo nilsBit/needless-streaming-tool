@@ -343,7 +343,7 @@ Alle Zahlen und den Namen der Währung stellst du unter **Verdienen → Einstell
 | Milestone | /overlay/milestone/index.html | Achievement-Benachrichtigungen |
 | Alerts | /overlay/alerts/index.html | Follower, Abos, Geschenk-Abos, Raids, Bits, Kanalpunkte |
 | Song | /overlay/song/index.html | Aktueller Song |
-| Chat | /overlay/chat/index.html | Die letzten acht Chat-Nachrichten, ohne Befehle; was Mods löschen, verschwindet auch hier |
+| Chat | /overlay/chat/index.html | Die letzten acht Chat-Nachrichten; statt der Befehle steht die Antwort des Bots darauf, mit „↳“ vor dem Namen. Was Mods löschen, verschwindet auch hier |
 | Start | /overlay/start/index.html | Füllt den ganzen Stream davor: „Gleich geht’s los.“, der zuletzt aufgeschlagene Eintrag und der Hinweis auf !welt und !story |
 | Pause | /overlay/pause/index.html | Füllt den ganzen Stream in der Pause: „Gleich zurück.“ und der zuletzt aufgeschlagene Eintrag |
 | Ende | /overlay/end/index.html | Füllt den ganzen Stream zum Schluss: „Bis zum nächsten Mal.“, der zuletzt aufgeschlagene Eintrag und der Hinweis auf !discord |

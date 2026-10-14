@@ -51,7 +51,8 @@ export function registerEvents(client: Client) {
   });
 
   // The chat overlay: what viewers write, and what moderators take back.
-  // The bot's own answers (`self`) stay out, like the commands they answer.
+  // The bot's own messages (`self`) stay out here; its answers to commands
+  // come in through commands.ts (feedBotAnswer).
   client.on('message', (_channel, tags, message, self) => {
     if (self) return;
     feedChatMessage(tags, message);

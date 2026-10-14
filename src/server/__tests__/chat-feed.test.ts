@@ -6,6 +6,7 @@ import { createApp } from '../index';
 import {
   CHAT_FEED_SIZE,
   clearChatFeed,
+  feedBotAnswer,
   feedChatMessage,
   parseChatParts,
   recentChat,
@@ -57,6 +58,28 @@ describe('the chat feed', () => {
 
     expect(recentChat()).toEqual([]);
     expect(events).toEqual([]);
+  });
+
+  it('shows the bot’s answer to a command, marked as the bot’s', () => {
+    feedChatMessage(tags(), '!story');
+    feedBotAnswer('Chain_Des', '📖 Mila findet ein Viertel, das in keinem Stadtplan steht.');
+
+    expect(recentChat()).toEqual([
+      { id: expect.stringMatching(/^bot-/), login: 'chain_des', user: 'Chain_Des', color: null, bot: true, parts: [{ type: 'text', text: '📖 Mila findet ein Viertel, das in keinem Stadtplan steht.' }] },
+    ]);
+    expect(events).toEqual([{ event: 'chat-message', data: recentChat()[0] }]);
+  });
+
+  it('gives every answer its own id, so two answers both stay', () => {
+    feedBotAnswer('chain_des', 'eins');
+    feedBotAnswer('chain_des', 'zwei');
+    const [a, b] = recentChat();
+    expect(a.id).not.toBe(b.id);
+  });
+
+  it('leaves out an empty answer', () => {
+    feedBotAnswer('chain_des', '   ');
+    expect(recentChat()).toEqual([]);
   });
 
   it('drops a message it cannot take back later', () => {
