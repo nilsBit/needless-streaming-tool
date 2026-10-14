@@ -37,6 +37,7 @@ export default function ChallengePanel() {
   const countdown = state?.timer_ends_at != null || state?.timer_paused_left != null;
   useEffect(() => {
     if (state?.timer_ends_at == null) return;
+    setNow(Date.now());
     const id = setInterval(() => setNow(Date.now()), 500);
     return () => clearInterval(id);
   }, [state?.timer_ends_at]);

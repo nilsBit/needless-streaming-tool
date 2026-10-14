@@ -98,6 +98,8 @@
         tickInterval = setInterval(function() { timerEl.textContent = formatTime(remaining()); }, 250);
         return;
       }
+      // A paused countdown must never fall through to the own-goal count-up.
+      if (endsAt !== null || pausedLeft !== null) return;
       if (!timerRunning) return;
       tickInterval = setInterval(function() {
         currentSeconds++;
@@ -139,6 +141,7 @@
         timerEl.style.display = done ? 'none' : '';
         timerEl.textContent = formatTime(remaining());
         timerEl.classList.toggle('paused', pausedLeft !== null);
+        timerRunning = false;
         if (done) stopTicking(); else startTicking();
         return;
       }
