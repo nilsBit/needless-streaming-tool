@@ -99,4 +99,25 @@ describe('reward timer', () => {
     vi.advanceTimersByTime(600_000);
     expect(state().challenge_title).toBeNull();
   });
+  it('a count-up started during the countdown does not survive it (goal saved and running)', async () => {
+    await request(app).patch('/api/stream-state').set(auth()).send({ challenge_title: 'Eigenes', challenge_status: 'in_progress', timer_seconds: 100, timer_running: 1 }).expect(200);
+    startRewardTimer({ task: 'Nur Pistole', minutes: 1, who: 'Lena' });
+    await request(app).patch('/api/stream-state').set(auth()).send({ timer_running: 1 }).expect(200);
+    vi.advanceTimersByTime(60_000 + REWARD_TIMER_DONE_MS);
+    const s = state();
+    expect(s).toMatchObject({ challenge_title: 'Eigenes', timer_running: 1 });
+    expect(s.timer_seconds as number).toBe(165);
+    vi.advanceTimersByTime(3000);
+    await request(app).patch('/api/stream-state').set(auth()).send({ timer_running: 0 });
+    expect(state().timer_seconds).toBe(168);
+  });
+
+  it('a count-up started during the countdown stops with it (no goal saved)', async () => {
+    startRewardTimer({ task: 'Nur Pistole', minutes: 1, who: 'Lena' });
+    await request(app).patch('/api/stream-state').set(auth()).send({ timer_running: 1 }).expect(200);
+    vi.advanceTimersByTime(60_000 + REWARD_TIMER_DONE_MS);
+    expect(state()).toMatchObject({ timer_running: 0, timer_seconds: 0 });
+    vi.advanceTimersByTime(30_000);
+    expect(state()).toMatchObject({ timer_running: 0, timer_seconds: 0 });
+  });
 });

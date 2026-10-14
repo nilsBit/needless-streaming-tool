@@ -62,6 +62,8 @@ export function endRewardTimer(now: number = Date.now()): void {
   cancel();
   const r = row();
   if (r.timer_ends_at === null && r.timer_paused_left === null && r.saved_challenge === null) return;
+  // A count-up started meanwhile ("Weiter" in the app) must not outlive the countdown
+  stopServerTimer();
   const saved = r.saved_challenge ? JSON.parse(r.saved_challenge) as Saved : null;
   const seconds = saved ? saved.timer_seconds + (saved.timer_running ? Math.floor((now - saved.saved_at) / 1000) : 0) : 0;
   getDb().prepare(`UPDATE stream_state SET challenge_title = ?, challenge_status = ?, timer_seconds = ?, timer_running = ?,
