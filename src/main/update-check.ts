@@ -23,6 +23,9 @@ function compareVersions(current: string, latest: string): boolean {
   return false;
 }
 
+// The check repeats every few hours; each new version is announced only once.
+let announced: string | null = null;
+
 export function checkForUpdates(mainWindow: BrowserWindow): void {
   const currentVersion = app.getVersion();
 
@@ -39,6 +42,8 @@ export function checkForUpdates(mainWindow: BrowserWindow): void {
           return;
         }
         if (compareVersions(currentVersion, release.tag_name)) {
+          if (announced === release.tag_name || mainWindow.isDestroyed()) return;
+          announced = release.tag_name;
           console.log(`[Update] New version available: ${release.tag_name} (current: ${currentVersion})`);
           mainWindow.webContents.send('update-available', {
             version: release.tag_name.replace(/^v/, ''),

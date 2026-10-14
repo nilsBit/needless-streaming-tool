@@ -72,7 +72,7 @@ Oben unter **Heute dabei** tippst du an, welche Karten du heute brauchst. Die an
   },
   {
     title: 'Daten: was gespeichert wird, was den Rechner verlässt',
-    content: `Alles liegt in einer Datenbank auf deinem Rechner. Das Tool hat keinen eigenen Server, keine Telemetrie, keine Werbe-IDs. Die einzige Verbindung nach draußen, die es von sich aus aufbaut, ist die Update-Prüfung bei GitHub – ohne Daten von dir.
+    content: `Alles liegt in einer Datenbank auf deinem Rechner. Das Tool hat keinen eigenen Server, keine Telemetrie, keine Werbe-IDs. Die einzige Verbindung nach draußen, die es von sich aus aufbaut, ist die Update-Prüfung bei GitHub – beim Start und danach alle vier Stunden, ohne Daten von dir.
 
 **Über Zuschauer gespeichert:** der Twitch-Login mit der Zahl seiner Einlösungen je Bestenliste, mit eingeschalteten eigenen Punkten sein Guthaben und Beitrag, Songwünsche, Themen und Vorschläge. Für **Nach dem Stream** zählt das Tool pro Stream, wer wie oft geschrieben hat (je Minute), wer gefolgt ist und wer welchen Befehl oder welche Belohnung genutzt hat – nie, was geschrieben wurde. Chatzeilen bleiben nur im Speicher und sind nach dem Neustart weg.
 
