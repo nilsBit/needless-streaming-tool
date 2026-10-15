@@ -36,7 +36,7 @@ export async function answerChatMessage(message: string, privileged: boolean, vi
     if (group !== undefined) return { replies: splitForChat(groupReply(group, names)) };
     if (wanted) {
       const command = describeCommand(wanted);
-      return { replies: splitForChat(command ? `${withAliases(command)} — ${command.description}` : `❓ „${wanted.slice(0, 40)}“ kenne ich nicht. ${featuredReply(names)}`) };
+      return { replies: splitForChat(command ? `${withAliases(command)} — ${command.description}` : `❓ Den Befehl kenne ich nicht. ${featuredReply(names)}`) };
     }
     return { replies: splitForChat(featuredReply(names)) };
   }

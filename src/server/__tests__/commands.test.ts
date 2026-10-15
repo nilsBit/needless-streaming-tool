@@ -89,6 +89,8 @@ describe('the command list', () => {
     expect(await chat('!befehle !welt')).toBe('!welt — Zeigt einen Eintrag aus der Welt — z. B. !welt <Name>.');
     expect(await chat('!befehle !story')).toContain('Wir schreiben eine Welt.');
     expect(await chat('!befehle quatsch')).toMatch(/kenne ich nicht.*📜/);
+    // Never repeats what the viewer typed – the bot's line would outlive a timeout (security review 15.10.).
+    expect(await chat('!befehle scam.gg')).not.toContain('scam');
     // The plain call: the usual ways in — here only !welt and !story exist of them — and how to get the rest.
     const few = await chat('!befehle');
     expect(few).toBe('📜 Neu hier? !welt <Name> · !story — alle Befehle: !befehle alle · was einer macht: !befehle <Name>');

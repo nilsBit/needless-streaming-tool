@@ -16,7 +16,10 @@ export const ACTION_KEYS = ['alert', 'roulette', 'scene', 'timer', 'sound'] as c
 export type ActionKey = (typeof ACTION_KEYS)[number];
 
 export const ALERT_TEXT_MAX = 100;
-const LINK = /\b(?:https?:\/\/\S+|www\.\S+|[a-z0-9-]+\.[a-z]{2,}\/\S*)/gi;
+// A link with a path, or a bare domain on a common ending – also spaced out as
+// "bit . ly" (security review 15.10.). A word after a full stop ("gut.Danke") stays.
+const TLDS = 'com|net|org|de|gg|tv|ly|io|co|me|xyz|ru|info|biz|app|link|shop|site|live|at|ch|eu|uk|us|to|cc|gl|gd';
+const LINK = new RegExp(`\\b(?:https?:\\/\\/\\S+|www\\.\\S+|[a-z0-9-]+ ?\\. ?(?:[a-z]{2,}\\/\\S*|(?:${TLDS})\\b(?:\\/\\S*)?))`, 'gi');
 
 /**
  * What a viewer wrote, as it may stand in the alert on stream: one line, links

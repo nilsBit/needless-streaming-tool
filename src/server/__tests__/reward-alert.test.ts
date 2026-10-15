@@ -15,6 +15,9 @@ vi.mock('../websocket/index', async (importOriginal) => ({
 describe('what a reward\'s alert shows', () => {
   it('cuts the viewer\'s text to 100 characters and hides links', () => {
     expect(alertText('Schau mal https://evil.example/x und www.spam.de oder kauf.shop/jetzt')).toBe('Schau mal [Link] und [Link] oder [Link]');
+    // Bare domains and spaced-out ones too (security review 15.10.); a sentence end stays.
+    expect(alertText('Geh auf scam.gg oder free-vbucks.com, bit . ly/abc')).toBe('Geh auf [Link] oder [Link], [Link]');
+    expect(alertText('Das war gut.Danke! z.B. so')).toBe('Das war gut.Danke! z.B. so');
     expect(alertText('a'.repeat(120))).toBe(`${'a'.repeat(99)}…`);
     expect(alertText('  Zeile\n\nzwei  ')).toBe('Zeile zwei');
     expect(alertText('   ')).toBeUndefined();
