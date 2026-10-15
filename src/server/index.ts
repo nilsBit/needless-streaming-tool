@@ -263,7 +263,8 @@ export function createApp(): express.Express {
   });
 
   app.get('/public/reward-stats/top', (req, res) => {
-    const type = (req.query.type as string) || '';
+    if (req.query.type !== undefined && typeof req.query.type !== 'string') { res.status(400).json({ error: 'type must be one word' }); return; }
+    const type = req.query.type || '';
     const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 3, 1), 10);
     res.json({ type, title: type ? boardTitle(type) : null, leaderboard: type ? getTopRewards(type, limit) : [] });
   });
@@ -280,6 +281,15 @@ export function createApp(): express.Express {
   app.use('/overlay/custom', express.static(customOverlayPath));
   app.use('/overlay', express.static(overlayOverridePath));
   app.use('/overlay', express.static(builtinOverlayPath));
+
+  // Last stop for anything a route threw: a plain sentence, never the stack
+  // (Express' default page showed it, with paths and the user name – 15.10.).
+  app.use((err: unknown, _req: express.Request, res: express.Response, next: express.NextFunction) => {
+    if (res.headersSent) { next(err); return; }
+    const status = typeof (err as { status?: unknown })?.status === 'number' ? (err as { status: number }).status : 500;
+    if (status >= 500) console.error('[Server] Unhandled error:', err);
+    res.status(status).json({ error: status >= 500 ? 'Interner Fehler' : 'Anfrage nicht verstanden' });
+  });
 
   return app;
 }
