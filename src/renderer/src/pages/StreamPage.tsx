@@ -6,7 +6,7 @@ import { useNavigate } from '../NavigationContext';
 import { PANEL_REGISTRY } from '../panelRegistry';
 import { PANEL_LABELS, findArea } from '../navigation';
 import type { PanelKey } from '../panelKeys';
-import { useApi, apiPost } from '../hooks/useApi';
+import { useApi } from '../hooks/useApi';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { useFeatures } from '../contexts/FeaturesContext';
 import { useCompact } from '../hooks/useCompact';
@@ -53,48 +53,21 @@ export default function StreamPage() {
     .map((key, i) => ({ key, i, scene: sceneOf((CARDS[key] ?? { overlays: [] }).overlays) }))
     .sort((a, b) => rank(a.scene) - rank(b.scene) || a.i - b.i);
 
-  // "Heute dabei" (12.10., canvas draft C): the streamer picks the cards for
-  // today; the rest waits in the strip. What is stored is the cards set aside,
-  // so a feature switched on later shows up at once.
-  const { data: asideSetting, refetch: refetchAside } = useApi<{ value: string | null }>(`/settings/get/${ASIDE_KEY}`);
-  const aside = parseAside(asideSetting?.value ?? null);
-  const isToday = (key: PanelKey) => !aside.includes(key);
-  const toggleToday = async (key: PanelKey) => {
-    const next = isToday(key) ? [...aside, key] : aside.filter((k) => k !== key);
-    await apiPost('/settings/set', { key: ASIDE_KEY, value: JSON.stringify(next) });
-    refetchAside();
-  };
-  const shown = ordered.filter(({ key }) => isToday(key));
+  // 15.10.: "Heute dabei" is gone – every card whose feature is on shows. It
+  // was a second choice on top of "Was dein Stream kann", and a goal card set
+  // aside hid Pause/Beenden of a running reward timer.
 
-  // Small window (12.10.): "Heute dabei" folds into one button, each card is
-  // a row with its main button; "Moment merken" sits in the bar on top.
+  // Small window (12.10.): each card is a row with its main button;
+  // "Moment merken" sits in the bar on top.
   const compact = useCompact();
-  const [todayOpen, setTodayOpen] = React.useState(false);
   const [openRow, setOpenRow] = React.useState<PanelKey | null>(null);
-  const chips = (
-    <div className="stream-today-chips">
-      {panels.map((key) => (
-        <button key={key} type="button" className={`stream-today-chip${isToday(key) ? ' on' : ''}`} aria-pressed={isToday(key)} onClick={() => void toggleToday(key)}>
-          {isToday(key) ? '✓ ' : ''}{PANEL_LABELS[key]}
-        </button>
-      ))}
-    </div>
-  );
 
   if (compact) {
     return (
       <div className="stream-page compact">
-        {panels.length > 0 && (
-          <div className="compact-today">
-            <button type="button" className="compact-today-btn" aria-expanded={todayOpen} onClick={() => setTodayOpen(!todayOpen)}>
-              Heute: {shown.length} {todayOpen ? '▴' : '▾'}
-            </button>
-            <SceneHint />
-          </div>
-        )}
-        {todayOpen && chips}
+        {panels.length > 0 && <SceneHint />}
         <div className="compact-rows">
-          {shown.map(({ key, scene }) => {
+          {ordered.map(({ key, scene }) => {
             const Component = PANEL_REGISTRY[key];
             return (
               <CompactRow key={key} panel={key} title={PANEL_LABELS[key]} onScreen={scene?.state === 'on'} open={openRow === key} onToggle={() => setOpenRow(openRow === key ? null : key)}>
@@ -108,28 +81,14 @@ export default function StreamPage() {
         {panels.length === 0 && !isOn('momente') && (
           <p className="empty">Nichts gewählt. Unter Einstellungen → Programm → „Was dein Stream kann“ schaltest du Funktionen an.</p>
         )}
-        {panels.length > 0 && shown.length === 0 && (
-          <p className="empty">Für heute ist nichts gewählt. „Heute“ antippen und auswählen.</p>
-        )}
       </div>
     );
   }
 
   return (
     <div className="stream-page">
-      {panels.length > 0 && (
-        <div className="stream-top">
-          <section className="stream-today" aria-labelledby="stream-today-title">
-            <div className="stream-today-head">
-              <h2 id="stream-today-title">Heute dabei</h2>
-              <span>Bleibt so, bis du es änderst. Der Rest wartet hier.</span>
-            </div>
-            {chips}
-          </section>
-        </div>
-      )}
     <div className="stream-cards">
-      {shown.map(({ key, scene }: { key: PanelKey; scene: SceneState }) => {
+      {ordered.map(({ key, scene }: { key: PanelKey; scene: SceneState }) => {
         const Component = PANEL_REGISTRY[key];
         const card = CARDS[key] ?? { sentence: '', overlays: [] };
         const place = card.overlays[0] ? () => { go({ area: 'overlays', subTab: 'overlays' }); openAt('overlay', `${card.overlays[0]}:obs`); } : undefined;
@@ -145,21 +104,6 @@ export default function StreamPage() {
       {panels.length === 0 && (
         <p className="empty">Nichts gewählt. Unter Einstellungen → Programm → „Was dein Stream kann“ schaltest du Funktionen an.</p>
       )}
-      {panels.length > 0 && shown.length === 0 && (
-        <p className="empty">Für heute ist nichts gewählt. Tipp oben an, was du im Stream brauchst.</p>
-      )}
     </div>
   );
-}
-
-const ASIDE_KEY = 'stream_set_aside';
-
-function parseAside(raw: string | null): string[] {
-  if (!raw) return [];
-  try {
-    const parsed: unknown = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed.filter((k): k is string => typeof k === 'string') : [];
-  } catch {
-    return [];
-  }
 }

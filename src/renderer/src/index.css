@@ -146,17 +146,7 @@ body {
 .stream-card-body .panel { border: none; border-radius: 0; padding: 0; background: transparent; }
 .stream-card-body .panel > .panel-desc { display: none; }
 
-/* "Im Stream" top: "Heute dabei" picks today's cards */
 .stream-page { display: flex; flex-direction: column; gap: 16px; }
-.stream-top { display: flex; flex-wrap: wrap; gap: 16px; align-items: stretch; }
-.stream-today { flex: 999 1 420px; min-width: 0; border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
-.stream-today-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 12px; }
-.stream-today-head h2 { font-size: 15px; font-weight: 600; }
-.stream-today-head span { color: var(--muted); font-size: 13px; }
-.stream-today-chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.stream-today-chip { min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1.5px solid var(--border-strong); background: none; color: var(--text-secondary); font: inherit; font-weight: 600; cursor: pointer; }
-.stream-today-chip:hover { background: var(--bg-hover); }
-.stream-today-chip.on { border-color: var(--accent); color: var(--accent); }
 
 /* Slim cards on "Im Stream": one field, one button, one line of state, word links */
 .card-slim { gap: 10px; }
@@ -3814,9 +3804,6 @@ button.character-active { width: 100%; color: var(--text); text-align: left; cur
 .shell.compact .readiness-banner { padding: 8px 12px; margin-bottom: 10px; font-size: 13px; }
 
 .stream-page.compact { gap: 10px; }
-.compact-today { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
-.compact-today-btn { min-height: 36px; padding: 0 12px; border: 1px solid var(--border-strong); border-radius: 999px; background: none; color: var(--text-secondary); font: inherit; font-weight: 600; cursor: pointer; }
-.compact-today-btn:hover { background: var(--bg-hover); }
 .compact-rows { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
 @media (min-width: 560px) { .compact-rows { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .compact-row { border: 1px solid var(--border); border-radius: 10px; background: var(--bg-panel, #1a1a1a); min-width: 0; }

@@ -66,9 +66,9 @@ Links stehen die Bereiche nach Situation: **Im Stream** (alles, was du live ausl
 
 Die Kästen lassen sich nicht mehr verschieben, anpinnen oder ausblenden — jedes Panel hat genau einen Ort. Welcher Bereich und welches Thema zuletzt offen waren, merkt sich das Tool.
 
-Auf „Im Stream“ steht an jeder Karte, ob ihr Overlay in der laufenden OBS-Szene an ist — sobald OBS verbunden ist. **In der Szene** ist grün umrandet mit pulsierendem Punkt, und diese Karten stehen vorne. Danach kommen die mit **Nicht in der Szene** (darunter steht, in welcher Szene sie liegen), zuletzt die mit **Nicht in OBS** – „In OBS anlegen“ bringt dich zu seiner Zeile unter Overlays & Alerts. Wechselst du die Szene, ordnen sich die Karten neu; oben rechts der Name der Szene. „Moment merken“ setzt dort eine Marke für später (Nach dem Stream → Content planen).
+Auf „Im Stream“ steht an jeder Karte, ob ihr Overlay in der laufenden OBS-Szene an ist — sobald OBS verbunden ist. **In der Szene** ist grün umrandet mit pulsierendem Punkt, und diese Karten stehen vorne. Danach kommen die mit **Nicht in der Szene** (darunter steht, in welcher Szene sie liegen), zuletzt die mit **Nicht in OBS** – „In OBS anlegen“ bringt dich zu seiner Zeile unter Overlays & Alerts. Wechselst du die Szene, ordnen sich die Karten neu; oben rechts der Name der Szene.
 
-Oben unter **Heute dabei** tippst du an, welche Karten du heute brauchst. Die anderen verschwinden von der Seite, bis du sie wieder antippst – gelöscht wird nichts, und die Auswahl bleibt, bis du sie änderst.`,
+Welche Karten dort stehen, bestimmst du unter Einstellungen → „Was dein Stream kann“: jede eingeschaltete Funktion hat ihre Karte. „Moment merken“ geht übers Stream Deck oder im kleinen Fenster oben in der Leiste.`,
   },
   {
     title: 'Daten: was gespeichert wird, was den Rechner verlässt',
