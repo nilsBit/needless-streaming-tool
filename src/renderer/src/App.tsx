@@ -21,7 +21,7 @@ export default function App() {
       });
     };
     api.onUpdateAvailable(handler);
-    // Windows: the update is already downloaded and installs on quit anyway.
+    // Windows: the update is downloaded and installs only on this click.
     api.onUpdateDownloaded?.((data) => {
       toast.update({
         message: `Update v${data.version} ist bereit`,
