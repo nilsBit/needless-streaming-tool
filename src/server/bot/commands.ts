@@ -12,7 +12,7 @@ import { feedBotAnswer } from './chat-feed';
 import { builtinCooldownSeconds, INFO_BUILTINS, passCooldown } from './cooldown';
 import { botHelix, shoutoutText } from './shoutout';
 import { adjustReply } from '../points/chat';
-import { parseRedeem, redeem } from '../points/redeem';
+import { mayAnswerRefusal, parseRedeem, redeem } from '../points/redeem';
 
 /** Built-ins that answer through answerChatMessage, which applies the info cooldown itself. */
 const ANSWERED_IN_CHAT_ANSWERS: ReadonlySet<string> = new Set(['commands', 'privacy', 'points', 'rewards_list', 'progress']);
@@ -177,9 +177,10 @@ export function registerCommands(client: Client) {
       case 'redeem': {
         if (!tags.username) break;
         const { name, input } = parseRedeem(message.trim().replace(/^\S+\s*/, ''));
-        if (!name) { say(`@${tags['display-name'] ?? tags.username} !einlösen <Name> — !belohnungen zeigt, was es gibt.`); break; }
+        // A refusal answers once in 30 s per viewer; a redemption that works always does.
+        if (!name) { if (mayAnswerRefusal(tags.username)) say(`@${tags['display-name'] ?? tags.username} !einlösen <Name> — !belohnungen zeigt, was es gibt.`); break; }
         const result = await redeem(tags.username, tags['display-name'] ?? tags.username, name, input);
-        say(result.message);
+        if (result.ok || mayAnswerRefusal(tags.username)) say(result.message);
         break;
       }
 

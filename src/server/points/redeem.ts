@@ -27,10 +27,27 @@ export type RedeemResult =
 
 const INPUT_MAX = 200;
 const lastRedeemed = new Map<string, number>();
+const lastRefusalAnswer = new Map<string, number>();
+const REFUSAL_GAP_MS = 30_000;
 
 /** For tests: start without any running cooldown. */
 export function clearRedeemCooldowns(): void {
   lastRedeemed.clear();
+  lastRefusalAnswer.clear();
+}
+
+/**
+ * Whether the bot answers a refused `!einlösen` of this viewer: once in 30
+ * seconds, so typing it over and over does not fill the chat or use up the
+ * bot's send limit (security review 15.10.). A redemption that works always answers.
+ */
+export function mayAnswerRefusal(login: string, now: number = Date.now()): boolean {
+  const key = login.toLowerCase();
+  const last = lastRefusalAnswer.get(key);
+  if (last !== undefined && now - last < REFUSAL_GAP_MS) return false;
+  lastRefusalAnswer.set(key, now);
+  if (lastRefusalAnswer.size > 1000) lastRefusalAnswer.delete(lastRefusalAnswer.keys().next().value as string);
+  return true;
 }
 
 /**

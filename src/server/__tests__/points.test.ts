@@ -6,7 +6,7 @@ import { generateApiToken } from '../auth-token';
 import { createApp } from '../index';
 import { onBits, onChatMessage, onFollow, onGift, onRaid, onSub, setLive, watchTick, type PagedHelix } from '../points/earn';
 import { privacySentence } from '../privacy-text';
-import { clearRedeemCooldowns, parseRedeem } from '../points/redeem';
+import { clearRedeemCooldowns, mayAnswerRefusal, parseRedeem } from '../points/redeem';
 
 /**
  * Eigene Punkte (spec 2026-10-08): the tool's own currency next to Twitch
@@ -309,6 +309,15 @@ describe('own points', () => {
       expect(rad.body.message).toContain('sind zurück');
       await redeemFor('mila', { reward: 'Wald' }).expect(502);
       expect((await of('mila'))?.balance).toBe(50);
+    });
+
+    // Security review 15.10.: "!einlösen x" over and over got an answer each time.
+    it('answers a refused !einlösen once in 30 seconds per viewer', () => {
+      clearRedeemCooldowns();
+      expect(mayAnswerRefusal('mila', 1_000)).toBe(true);
+      expect(mayAnswerRefusal('mila', 20_000)).toBe(false);
+      expect(mayAnswerRefusal('tom', 20_000)).toBe(true);
+      expect(mayAnswerRefusal('mila', 31_001)).toBe(true);
     });
 
     it('splits what follows !einlösen into the name, spaces and all, and the text', async () => {
