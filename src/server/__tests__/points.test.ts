@@ -52,6 +52,16 @@ describe('own points', () => {
       await request(app).put('/api/points/config').set(auth()).send({ currency: '' }).expect(400);
       await request(app).put('/api/points/config').set(auth()).send({ watch_minutes: 0 }).expect(400);
     });
+
+    // Security review 15.10.: a gap past ~25 days overflows setTimeout to 1 ms
+    // and the watch tick would ask Twitch without pause.
+    it('keep the watch tick at most a day apart, also when stored by another way', async () => {
+      await request(app).put('/api/points/config').set(auth()).send({ watch_minutes: 1441 }).expect(400);
+      await request(app).put('/api/points/config').set(auth()).send({ watch_minutes: 1440 }).expect(200);
+      await request(app).post('/api/settings/set').set(auth()).send({ key: 'points_config', value: JSON.stringify({ watch_minutes: 999999, raid_points: 5_000_000 }) }).expect(200);
+      const res = await request(app).get('/api/points/config').set(auth()).expect(200);
+      expect(res.body).toMatchObject({ watch_minutes: 1440, raid_points: 1_000_000 });
+    });
   });
 
   describe('earning', () => {

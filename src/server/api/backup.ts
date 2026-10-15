@@ -1,7 +1,10 @@
 import { Router } from 'express';
 import express from 'express';
 import { getDb } from '../db/index';
-import { isSecretSetting, withoutSecrets } from '../secret-settings';
+import { isLocalSetting, isSecretSetting, withoutSecrets } from '../secret-settings';
+
+/** Settings rows a backup carries: no secrets, nothing tied to this machine. */
+const travelling = <T extends { key?: unknown }>(rows: T[]): T[] => withoutSecrets(rows).filter((row) => !isLocalSetting(row.key as string));
 
 const router = Router();
 
@@ -27,7 +30,7 @@ router.get('/export', (_req, res) => {
     const rows = db.prepare(`SELECT * FROM ${table}`).all() as Array<Record<string, unknown>>;
     // Tokens, the OBS password, the Discord webhook: a backup is for the
     // streamer's data, not for the keys to the accounts.
-    backup[table] = table === 'settings' ? withoutSecrets(rows) : rows;
+    backup[table] = table === 'settings' ? travelling(rows) : rows;
   }
 
   res.setHeader('Content-Disposition', 'attachment; filename=nst-backup.json');
@@ -59,7 +62,7 @@ router.post('/import', (req, res) => {
         // A backup never brings keys in, and never removes the ones this machine has.
         const kept = withoutSecrets(rows);
         secretsSkipped += rows.length - kept.length;
-        rows = kept;
+        rows = travelling(kept);
         if (rows.length === 0) continue;
       }
 
@@ -73,7 +76,7 @@ router.post('/import', (req, res) => {
       if (table === 'settings') {
         const existing = db.prepare('SELECT key FROM settings').all() as Array<{ key: string }>;
         const remove = db.prepare('DELETE FROM settings WHERE key = ?');
-        for (const row of existing) if (!isSecretSetting(row.key)) remove.run(row.key);
+        for (const row of existing) if (!isSecretSetting(row.key) && !isLocalSetting(row.key)) remove.run(row.key);
       } else {
         db.prepare(`DELETE FROM ${table}`).run();
       }

@@ -13,12 +13,28 @@ const VALID_KEYS = new Set([
 export function getOverlayConfig(): { global: Record<string, string>; overrides: Record<string, Record<string, string>> } {
   const row = getDb().prepare('SELECT value FROM settings WHERE key = ?').get('overlay_config') as { value: string } | undefined;
   if (!row) return { global: {}, overrides: {} };
+  let stored: unknown;
   try {
-    return JSON.parse(row.value);
+    stored = JSON.parse(row.value);
   } catch {
     return { global: {}, overrides: {} };
   }
+  // Checked when read as well (security review 15.10.): /api/settings/set and a
+  // backup write this key past the routes below.
+  const isObject = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
+  if (!isObject(stored)) return { global: {}, overrides: {} };
+  const overrides: Record<string, Record<string, string>> = {};
+  if (isObject(stored.overrides)) {
+    for (const [name, vars] of Object.entries(stored.overrides)) {
+      if (!OVERLAY_NAME.test(name) || !isObject(vars)) continue;
+      const cleaned = validateVars(vars as Record<string, string>);
+      if (Object.keys(cleaned).length > 0) overrides[name] = cleaned;
+    }
+  }
+  return { global: isObject(stored.global) ? validateVars(stored.global as Record<string, string>) : {}, overrides };
 }
+
+const OVERLAY_NAME = /^[a-z0-9][a-z0-9/_-]{0,80}$/;
 
 export function isOverlayVar(key: string): boolean {
   return VALID_KEYS.has(key);
@@ -71,7 +87,7 @@ router.post('/', (req, res) => {
 // the style for all again.
 router.put('/overrides/:name(*)', (req, res) => {
   const name = req.params.name;
-  if (!/^[a-z0-9][a-z0-9/_-]{0,80}$/.test(name)) { res.status(400).json({ error: 'invalid overlay name' }); return; }
+  if (!OVERLAY_NAME.test(name)) { res.status(400).json({ error: 'invalid overlay name' }); return; }
   const vars = (req.body ?? {}).vars;
   if (!vars || typeof vars !== 'object' || Array.isArray(vars)) { res.status(400).json({ error: 'vars must be an object' }); return; }
   const config = getOverlayConfig();

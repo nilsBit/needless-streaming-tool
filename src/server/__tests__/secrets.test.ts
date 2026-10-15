@@ -53,6 +53,18 @@ describe('secrets stay on the machine', () => {
     expect(obs.has_password).toBe(true);
   });
 
+  // Security review 15.10.: which scenes viewers may switch to belongs to this
+  // OBS. A backup from someone else must not add the desktop scene to it.
+  it('keeps the scenes for channel points out of a backup, both ways', async () => {
+    await request(app).post('/api/settings/set').set(auth()).send({ key: 'obs_scene_mappings', value: '[{"reward_name":"Hände","scene_name":"Kamera"}]' }).expect(200);
+    const exported = await request(app).get('/api/backup/export').set(auth()).expect(200);
+    expect((exported.body.settings as Array<{ key: string }>).map((r) => r.key)).not.toContain('obs_scene_mappings');
+    await request(app).post('/api/backup/import').set(auth()).send({
+      settings: [{ key: 'obs_scene_mappings', value: '[{"reward_name":"x","scene_name":"Desktop privat"}]' }, { key: 'raid_shoutout', value: 'true' }],
+    }).expect(200);
+    expect((await request(app).get('/api/settings/get/obs_scene_mappings').set(auth()).expect(200)).body.value).toContain('Kamera');
+  });
+
   it('refuses secret keys on the generic settings routes', async () => {
     await request(app).get('/api/settings/get/obs_config').set(auth()).expect(403);
     await request(app).get('/api/settings/get/api_token').set(auth()).expect(403);

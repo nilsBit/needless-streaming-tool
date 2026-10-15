@@ -15,3 +15,14 @@ export function isSecretSetting(key: string): boolean {
 export function withoutSecrets<T extends { key?: unknown }>(rows: T[]): T[] {
   return rows.filter((row) => typeof row.key === 'string' && !isSecretSetting(row.key));
 }
+
+/**
+ * Not secret, but tied to this machine's OBS: the scenes viewers may switch to
+ * by channel point. A backup neither carries nor replaces them, so a file from
+ * someone else cannot add a private scene (security review 15.10.).
+ */
+const LOCAL_KEYS = new Set(['obs_scene_mappings']);
+
+export function isLocalSetting(key: string): boolean {
+  return LOCAL_KEYS.has(key.toLowerCase());
+}

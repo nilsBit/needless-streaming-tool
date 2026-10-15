@@ -41,6 +41,9 @@ const KEY = 'points_config';
 const NUMBERS = ['watch_points', 'watch_minutes', 'chat_points', 'follow_points', 'sub_points', 'raid_points', 'bits_per_point'] as const;
 const CURRENCY_MAX = 30;
 const NUMBER_MAX = 1_000_000;
+// A day at most: past ~25 days setTimeout overflows to 1 ms (security review 15.10.).
+const WATCH_MINUTES_MAX = 1440;
+const maxOf = (key: (typeof NUMBERS)[number]) => (key === 'watch_minutes' ? WATCH_MINUTES_MAX : NUMBER_MAX);
 
 export function getPointsConfig(): PointsConfig {
   const row = getDb().prepare('SELECT value FROM settings WHERE key = ?').get(KEY) as { value: string } | undefined;
@@ -50,10 +53,11 @@ export function getPointsConfig(): PointsConfig {
     if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) stored = parsed as Partial<PointsConfig>;
   } catch { /* the defaults */ }
   const config: PointsConfig = { ...DEFAULT_POINTS_CONFIG, bots: [...DEFAULT_POINTS_CONFIG.bots] };
-  if (typeof stored.currency === 'string' && stored.currency.trim()) config.currency = stored.currency.trim();
+  if (typeof stored.currency === 'string' && stored.currency.trim()) config.currency = stored.currency.trim().slice(0, CURRENCY_MAX);
   for (const key of NUMBERS) {
     const value = stored[key];
-    if (Number.isInteger(value) && (value as number) >= 0) config[key] = value as number;
+    // Read as strictly as saved: the generic settings route and a backup write this key too.
+    if (Number.isInteger(value) && (value as number) >= 0) config[key] = Math.min(value as number, maxOf(key));
   }
   if (Array.isArray(stored.bots)) config.bots = stored.bots.filter((b): b is string => typeof b === 'string');
   return config;
@@ -72,8 +76,8 @@ export function savePointsConfig(input: unknown): { config: PointsConfig } | { e
   for (const key of NUMBERS) {
     if (!(key in body)) continue;
     const value = body[key];
-    if (!Number.isInteger(value) || (value as number) < 0 || (value as number) > NUMBER_MAX) {
-      return { error: `${key} must be a whole number from 0 to ${NUMBER_MAX}` };
+    if (!Number.isInteger(value) || (value as number) < 0 || (value as number) > maxOf(key)) {
+      return { error: `${key} must be a whole number from 0 to ${maxOf(key)}` };
     }
     next[key] = value as number;
   }
