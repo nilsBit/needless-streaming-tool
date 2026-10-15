@@ -159,6 +159,50 @@ braucht den Bot.
 
 ## Wo wir stehen geblieben sind
 
+**Hier aufgehört (15.10., unter Windows)** – alles gepusht
+
+- **Belohnungen als Kacheln** (`da45aee`, `6180f8e`): Nils fand die Übersicht
+  „insgesamt unruhig“. Drei Entwürfe auf der Leinwand (Reihe „Belohnungen – die
+  Übersicht ruhiger“, `UebersichtA/B/C`), gewählt **B · Karten**. Neue
+  Komponente `components/rewards/RewardCards.tsx` für Kanalpunkte und eigene
+  Punkte: Symbol des Bausteins, Preis, Name, eine Zeile („Timer · 5 Min“,
+  „Alert · Creator-Dashboard“, „Glücksrad · am Namen erkannt“). Aus dem Tool
+  orange, aus dem Dashboard grau (Klick sagt, dass man sie nur dort ändert),
+  „+ Neue Belohnung“ als letzte Kachel. Die drei Schritte (`RewardSteps`) und
+  der lange Hinweis zu Dashboard-Namen sind weg, dafür eine Zeile „Mit Twitch
+  verbunden …“. Kein Kasten mehr um die Kacheln. Eigene Punkte: „Verdienen“
+  steht jetzt immer oben.
+- **Neu-Verbinden-Hinweis** (`6ee516f`): „Dem Twitch-Login fehlt das Recht …“
+  blieb nach dem neuen Login stehen, bis das Fenster neu lud. Die Seite hört
+  jetzt auf `bot-status` und fragt Twitch neu. Mit Nils' neuem Login klappt das
+  Anlegen.
+- **Im Stream entrümpelt:** „Moment merken“ samt Notizfeld ist von der Seite
+  weg (`97c9451`; Kompakt-Leiste und Stream-Deck-Taste bleiben). „Heute dabei“
+  ist ganz raus (`0f562b3`): es war eine zweite Auswahl über „Was dein Stream
+  kann“, und eine beiseitegelegte Ziel-Karte versteckte Pause/Beenden eines
+  Belohnungs-Timers. Jede eingeschaltete Funktion hat ihre Karte; das Setting
+  `stream_set_aside` liegt noch in der DB, wird aber nicht mehr gelesen. Hilfe
+  angepasst.
+- **Ziel-Karte** (`5fe5abc`): Pause/Beenden eines Belohnungs-Timers stehen unter
+  der Zeit – nebeneinander lief „Beenden“ aus der Karte.
+- **Belohnungen im echten Programm angesehen:** „Handicap: 5 Minuten“ bei
+  Kanalpunkten angelegt (bleibt stehen); über eigene Punkte „Für jemanden
+  einlösen“ – Countdown im Overlay (`/overlay/challenge`, „von chain_des“) und
+  auf der Ziel-Karte, Pause von Nils geprüft, Test-Belohnung gelöscht.
+- Projekt-Overlay zeigt bei „Schritt 1 von 4“ einen leeren Balken (zählt nur
+  fertige Schritte) – Nils will das so lassen.
+- Liegen geblieben: Die Quest „Ersten Moment merken“ zeigt im großen Fenster auf
+  keinen Knopf mehr (erledigt wird sie übers Stream Deck oder im kleinen
+  Fenster). „Beenden“ am Timer nur im Code, nicht von Nils gedrückt.
+- Tests: 544 grün, Typecheck und Lint sauber.
+- **Was noch zu tun ist:**
+  1. 1.0.4 veröffentlichen (Nils:
+     `npm version 1.0.4 -m "chore: version %s" && git push origin main --follow-tags`).
+  2. Nils nimmt „Overlays & Alerts“ und die Belohnungen im Alltag ab, danach
+     Issue #29 schließen.
+  3. Später: Baustein „Quelle kurz einblenden“; nächster Bereich auf der
+     Leinwand („Im Stream“, „Nach dem Stream“ oder „Einstellungen“).
+
 **Hier aufgehört (14.10. spät, unter Windows)** – alles gepusht
 
 - **Belohnungen aus Bausteinen** – in main (`08ba5a4`…`0a6825f`), gebaut mit
