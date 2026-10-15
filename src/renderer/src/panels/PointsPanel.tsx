@@ -4,7 +4,7 @@ import { useWebSocket } from '../hooks/useWebSocket';
 import { useToast } from '../contexts/ToastContext';
 import Dialog from '../components/ux/Dialog';
 import SearchField from '../components/ux/SearchField';
-import RewardSteps, { type Step } from '../components/rewards/RewardSteps';
+import RewardCards, { blockDetail, type RewardCard } from '../components/rewards/RewardCards';
 import RewardStart from '../components/rewards/RewardStart';
 import RewardQuestPath, { type RewardDraft } from '../components/rewards/RewardQuestPath';
 import ScenePicker from '../components/rewards/ScenePicker';
@@ -37,11 +37,10 @@ const RATES: Array<[keyof Config, string, string]> = [
 
 
 // Eigene Punkte under Chat & Bot → Belohnungen: the tool's own points next to
-// Twitch channel points (spec 2026-10-08-eigene-punkte), laid out as design B
-// (08.10.): until the first reward, three steps that say where the streamer
-// stands and templates to start from (13.10.: then the list comes first),
-// the rewards, how points are earned, who contributed and a corner to try
-// it out — with give, take and "Für jemanden einlösen" on each viewer.
+// Twitch channel points (spec 2026-10-08-eigene-punkte): how points are earned,
+// the rewards as tiles (15.10., the three steps are gone), who contributed and
+// a corner to try it out — with give, take and "Für jemanden einlösen" on each
+// viewer.
 export default function PointsPanel() {
   const { toast } = useToast();
   const { isOn } = useFeatures();
@@ -54,7 +53,6 @@ export default function PointsPanel() {
   const [tried, setTried] = useState<number | null>(null);
   const [viewersKey, setViewersKey] = useState(0);
   const currency = config?.currency ?? 'Punkte';
-  const count = rewards?.filter((r) => r.enabled).length ?? 0;
   const firstReward = rewards?.find((r) => r.enabled);
 
   // New rewards start from a template sheet; an own one goes step by step on a Quest-Pfad.
@@ -75,60 +73,22 @@ export default function PointsPanel() {
     setViewersKey((k) => k + 1);
   };
 
-  const steps: Step[] = [
-    {
-      title: 'Verdienen',
-      text: `Zuschauen, Chatten, Follow, Sub, Raid und Bits bringen ${currency} – nur, solange du live bist.`,
-      state: status?.live ? 'Läuft gerade – du bist live' : 'Läuft in deinem nächsten Stream',
-      done: true,
-      action: { label: 'Einstellen', onClick: () => setEditingConfig(true) },
-    },
-    {
-      title: 'Belohnungen anlegen',
-      text: 'Was es dafür gibt. Fang mit einer Vorlage an.',
-      state: count ? `${count} ${count === 1 ? 'Belohnung' : 'Belohnungen'} an` : 'Noch keine – „+ Neue Belohnung“ zeigt Vorlagen',
-      done: count > 0,
-    },
-    {
-      title: 'Im Chat einlösen',
-      text: 'Zuschauer schreiben !einlösen Name. !belohnungen zeigt die Liste, !punkte den eigenen Stand.',
-      state: count ? 'Bereit' : 'Wartet auf Schritt 2',
-      done: count > 0,
-    },
-  ];
-
-  // The steps and templates help to start; once there is a reward, the list comes first.
-  const starting = rewards !== null && rewards.length === 0;
+  const cards: RewardCard[] = (rewards ?? []).map((r) => ({
+    key: r.id, name: r.name, cost: `${POINTS.format(r.cost)} ${currency}`, block: r.action, enabled: r.enabled,
+    detail: blockDetail({ ...r, withText: r.needs_input, cooldown: r.cooldown_seconds }),
+    onOpen: () => setEditingReward(r),
+  }));
 
   return (
     <div className="panel card-slim rewards">
-      {starting && <RewardSteps steps={steps} label="So laufen die Punkte" />}
-      {!starting && config && (
+      {config && (
         <div className="chat-box-row">
-          <div><b>Verdienen</b> <span>· {earning(config)}</span></div>
+          <div><b>Verdienen</b> <span>· {earning(config)}{status?.live ? ' – läuft gerade' : ' – nur, solange du live bist'}</span></div>
           <button type="button" className="card-secondary" onClick={() => setEditingConfig(true)}>Ändern</button>
         </div>
       )}
 
-      <section aria-label="Belohnungen" className="rewards-switch-page">
-        <div className="chat-list-head">
-          <h2>Belohnungen</h2>
-          <button type="button" className="card-primary" onClick={() => setStart(true)}>+ Neue Belohnung</button>
-        </div>
-        {rewards && rewards.length === 0 && <p className="dialog-empty">Noch keine. „+ Neue Belohnung“ zeigt Vorlagen für jeden Stream.</p>}
-        {(rewards?.length ?? 0) > 0 && (
-          <ul className="chat-list">
-            {(rewards ?? []).map((r) => (
-              <li key={r.id} className={`chat-row reward-line ${r.enabled ? '' : 'off'}`}>
-                <span className="chat-row-name">{r.name}{r.enabled ? '' : ' (aus)'}</span>
-                <span className="reward-line-cost">{POINTS.format(r.cost)} {currency}</span>
-                <span className="chat-row-text">{ACTIONS[r.action]}{r.action === 'scene' && r.scene_name ? ` „${r.scene_name}“${r.scene_seconds ? `, ${r.scene_seconds} s` : ''}` : ''}{r.action === 'timer' && r.minutes ? ` „${r.task}“, ${r.minutes} Min` : ''}{r.action === 'sound' && r.sound ? ` – ${r.sound.replace(/\.[a-z0-9]+$/i, '')}` : ''}{r.needs_input ? ' · mit Text' : ''}{r.cooldown_seconds ? ` · Sperre ${r.cooldown_seconds} s` : ''}</span>
-                <button type="button" className="card-secondary" onClick={() => setEditingReward(r)}>Bearbeiten</button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      {rewards && <RewardCards cards={cards} onNew={() => setStart(true)} />}
 
       <div className="reward-columns">
         <div className="reward-main"><ViewerList key={viewersKey} currency={currency} onOpen={setOpenViewer} /></div>

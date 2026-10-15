@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { apiFetch, useApi } from '../hooks/useApi';
 import { useToast } from '../contexts/ToastContext';
 import Dialog from '../components/ux/Dialog';
-import RewardSteps, { type Step } from '../components/rewards/RewardSteps';
+import RewardCards, { blockDetail, blockName, type RewardCard } from '../components/rewards/RewardCards';
 import RewardStart from '../components/rewards/RewardStart';
 import RewardQuestPath, { type RewardDraft } from '../components/rewards/RewardQuestPath';
 import ScenePicker from '../components/rewards/ScenePicker';
@@ -55,54 +55,24 @@ export default function ChannelRewardsPanel() {
   const [start, setStart] = useState(false);
   useQuestPath(['channelReward'], () => setPath({}));
 
-  const ownCount = (rewards ?? []).filter((r) => r.manageable && r.enabled).length;
-  // The steps and templates help to start; once one reward is made here, the list comes first.
-  const starting = rewards !== null && !rewards.some((r) => r.manageable);
-  const steps: Step[] = [
-    {
-      title: 'Verbinden',
-      text: 'Das Tool braucht das Recht, in deinem Kanal Belohnungen anzulegen. Kanalpunkte gibt es mit Affiliate oder Partner.',
-      state: needsReconnect ? 'Recht fehlt – einmal neu verbinden' : error ? 'Twitch antwortet nicht' : 'Verbunden',
-      done: !needsReconnect && !error,
-      action: needsReconnect || error ? { label: 'Neu mit Twitch verbinden', onClick: reconnect } : undefined,
-    },
-    {
-      title: 'Belohnung anlegen',
-      text: 'Sie erscheint sofort bei deinen Zuschauern. Fang mit einer Vorlage an.',
-      state: ownCount ? `${ownCount} aus dem Tool an` : 'Noch keine aus dem Tool',
-      done: ownCount > 0,
-    },
-    {
-      title: 'Zuschauer lösen ein',
-      text: 'Im Kanalpunkte-Fenster unter dem Chat. Klappt die Aktion nicht, gibt es die Punkte zurück.',
-      state: ownCount ? 'Bereit' : 'Wartet auf Schritt 2',
-      done: ownCount > 0,
-    },
-  ];
-
   // Made here first, then those from the Creator Dashboard, which can only be looked at.
   const list = [...(rewards ?? []).filter((r) => r.manageable), ...(rewards ?? []).filter((r) => !r.manageable)];
   const fromDashboard = list.some((r) => !r.manageable);
 
-  const row = (r: Reward) => (
-    <li key={r.id} className={`chat-row reward-line ${r.enabled ? '' : 'off'}`}>
-      <span className="chat-row-name">{r.title}{r.enabled ? '' : ' (aus)'}</span>
-      <span className="reward-line-cost">{POINTS.format(r.cost)} Punkte</span>
-      <span className="chat-row-text">
-        {r.manageable
-          ? <>{r.action ? ACTIONS[r.action] : 'Ohne Aktion'}{r.action === 'scene' && r.scene_name ? ` „${r.scene_name}“${r.scene_seconds ? `, ${r.scene_seconds} s` : ''}` : ''}{r.action === 'timer' && r.minutes ? ` „${r.task}“, ${r.minutes} Min` : ''}{r.action === 'sound' && r.sound ? ` – ${r.sound.replace(/\.[a-z0-9]+$/i, '')}` : ''}{r.input_required ? ' · mit Text' : ''}</>
-          : r.by_name ? `Im Creator-Dashboard angelegt · am Namen erkannt: ${ACTIONS[r.by_name]}` : 'Im Creator-Dashboard angelegt · nur ein Alert'}
-      </span>
-      {r.manageable
-        ? <button type="button" className="card-secondary" onClick={() => setDraft({ ...r, action: r.action ?? 'alert' })}>Bearbeiten</button>
-        : <span className="chat-row-kind">nur ansehen</span>}
-    </li>
-  );
+  const cards: RewardCard[] = list.map((r) => r.manageable
+    ? {
+      key: r.id, name: r.title, cost: `${POINTS.format(r.cost)} Punkte`, block: r.action, enabled: r.enabled,
+      detail: r.action ? blockDetail({ ...r, action: r.action, withText: r.input_required }) : 'Ohne Aktion',
+      onOpen: () => setDraft({ ...r, action: r.action ?? 'alert' }),
+    }
+    : {
+      key: r.id, name: r.title, cost: `${POINTS.format(r.cost)} Punkte`, block: r.by_name, enabled: r.enabled, foreign: true,
+      detail: r.by_name ? `${blockName(r.by_name)} · am Namen erkannt` : 'Alert · Creator-Dashboard',
+      onOpen: () => toast.info(`„${r.title}“ ist im Creator-Dashboard angelegt – ändern und löschen geht nur dort. Soll sie etwas anderes tun, lege sie hier neu an.`),
+    });
 
   return (
     <div className="panel card-slim rewards">
-      {starting && <RewardSteps steps={steps} label="So laufen die Kanalpunkte" />}
-
       {needsReconnect && (
         <div className="reward-banner" role="alert">
           <span>Dem Twitch-Login fehlt das Recht, Belohnungen anzulegen. Ein Klick, dann bestätigst du bei Twitch.</span>
@@ -110,14 +80,14 @@ export default function ChannelRewardsPanel() {
         </div>
       )}
 
-      <div className="chat-list-head">
-        <h2>Belohnungen</h2>
-        <button type="button" className="card-primary" onClick={() => setStart(true)} disabled={!!error && !needsReconnect}>+ Neue Belohnung</button>
-      </div>
       {error && !needsReconnect && <p className="dialog-hint" role="alert">{error}</p>}
-      {rewards && !error && rewards.length === 0 && <p className="dialog-empty">Noch keine Belohnung in deinem Kanal. Lege hier eine an – sie erscheint sofort bei den Zuschauern.</p>}
-      {list.length > 0 && <ul className="chat-list" aria-label="Belohnungen">{list.map(row)}</ul>}
-      {fromDashboard && <p className="dialog-hint">Was im Creator-Dashboard angelegt ist, änderst und löschst du nur dort. Was es tut, erkennt das Tool am Namen: „Roulette“, „Feature“, „Musik“ oder „Song“, „Szene“ oder „Scene“. Soll eine davon etwas anderes tun, lege sie hier neu an.</p>}
+      {rewards && <RewardCards cards={cards} onNew={() => setStart(true)} newDisabled={!!error && !needsReconnect} />}
+      {rewards && !error && (
+        <p className="reward-status">
+          <span className="reward-status-dot" aria-hidden="true" />
+          Mit Twitch verbunden.{fromDashboard ? ' Graue Karten kommen aus dem Creator-Dashboard – ändern geht nur dort.' : ''}
+        </p>
+      )}
 
       {start && <RewardStart mode="twitch" currency="Kanalpunkte" existing={(rewards ?? []).map((r) => r.title)} isOn={(f) => isOn(f as FeatureKey)}
         onClose={() => setStart(false)} onCreated={() => { setStart(false); void load(); }} onOwn={() => { setStart(false); setPath({}); }} onNeedsReconnect={() => setNeedsReconnect(true)} />}

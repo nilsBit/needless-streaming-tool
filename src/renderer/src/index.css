@@ -274,8 +274,6 @@ body {
 .chat-row-text { color: var(--text-secondary); min-width: 0; }
 .chat-row-kind { color: var(--muted); font-size: 12px; white-space: nowrap; }
 .chat-row-name { font-weight: 600; min-width: 0; }
-.reward-line { grid-template-columns: minmax(0, 1fr) 130px minmax(0, 1fr) auto; }
-.reward-line-cost { color: #f0c35e; font-weight: 600; }
 .chat-list-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; }
 .chat-box-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 14px; background: var(--bg-hover); border: 1px solid var(--border-subtle); border-radius: 8px; }
 .chat-box-row span { color: var(--text-secondary); }
@@ -324,10 +322,9 @@ body {
 }
 .ovl-look { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; align-items: start; }
 @media (max-width: 640px) {
-  .chat-row, .reward-line { grid-template-columns: minmax(0, 1fr) auto; }
+  .chat-row { grid-template-columns: minmax(0, 1fr) auto; }
   .chat-row-kind { display: none; }
 }
-[data-theme="light"] .reward-line-cost { color: #a16207; }
 [data-theme="light"] .ovl-where.on, [data-theme="light"] .ovl-head-on { color: #1e7d4a; }
 [data-theme="light"] .ovl-dot.on { background: #1e7d4a; }
 [data-theme="light"] .onoff[aria-pressed="true"] { border-color: #1e7d4a; color: #1e7d4a; }
@@ -639,18 +636,27 @@ body {
 .quest-dot { flex: none; width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border-strong); display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; }
 .quest-dot.done { background: var(--accent); border-color: var(--accent); color: #161616; }
 
-/* Punkte and Kanalpunkte, design B (08.10.): three steps, then templates */
-.reward-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 12px; }
-.reward-step { border: 1px solid var(--border); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 6px; background: var(--bg-panel); }
-.reward-step.waiting { border-color: var(--accent); }
-.reward-step-head { display: flex; align-items: center; gap: 10px; }
-.reward-step-n { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border); display: inline-flex; align-items: center; justify-content: center; font-weight: 700; color: var(--muted); flex: none; }
-.reward-step.waiting .reward-step-n { border-color: var(--accent); color: var(--accent); }
-.reward-step-title { font-weight: 700; color: var(--text); }
-.reward-step-text { font-size: 13px; color: var(--text-secondary); }
-.reward-step-state { font-size: 13px; font-weight: 600; color: #4caf50; }
-.reward-step.waiting .reward-step-state { color: var(--accent); }
-.reward-step-action { align-self: flex-start; margin-top: 4px; }
+/* Punkte and Kanalpunkte as tiles (15.10., Leinwand "B · Karten"); templates below */
+.reward-cards { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr)); gap: 12px; }
+.reward-cards > li { display: flex; }
+.reward-card { flex: 1; min-height: 132px; display: flex; flex-direction: column; gap: 10px; padding: 16px; text-align: left; font: inherit; color: var(--text); cursor: pointer; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border)); background: color-mix(in srgb, var(--accent) 7%, var(--bg-panel)); }
+.reward-card:hover { border-color: var(--accent); }
+.reward-card.foreign { border-color: var(--border-subtle); background: var(--bg-panel); }
+.reward-card.foreign:hover { border-color: var(--border); }
+.reward-card.off { opacity: 0.6; }
+.reward-card-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.reward-card-icon { width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; color: var(--accent); background: color-mix(in srgb, var(--accent) 18%, var(--bg-panel)); }
+.reward-card.foreign .reward-card-icon { color: var(--muted); background: var(--bg-hover); }
+.reward-card-cost { color: #f0c35e; font-weight: 600; white-space: nowrap; }
+[data-theme="light"] .reward-card-cost { color: #a16207; }
+.reward-card-name { font-weight: 700; font-size: 15px; overflow-wrap: anywhere; }
+.reward-card-detail { margin-top: auto; color: var(--muted); font-size: 13px; }
+.reward-card-new { justify-content: center; gap: 4px; border: 1.5px dashed var(--border); background: none; }
+.reward-card-new .reward-card-name { color: var(--accent); }
+.reward-card-new .reward-card-detail { margin-top: 0; }
+.reward-card-new:disabled { opacity: 0.5; cursor: not-allowed; }
+.reward-status { margin: 0; color: var(--muted); font-size: 13px; display: flex; align-items: center; gap: 8px; }
+.reward-status-dot { width: 8px; height: 8px; border-radius: 50%; background: #3fb950; flex: none; }
 .reward-template-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr)); gap: 10px; }
 .reward-template { border: 1px solid var(--border); border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 8px; text-align: left; font: inherit; color: inherit; cursor: pointer; background: none; }
 .reward-template:disabled { opacity: .55; cursor: default; }
