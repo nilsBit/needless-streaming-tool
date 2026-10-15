@@ -142,8 +142,9 @@ describe('Twitch rewards from the app', () => {
   });
 
   describe('a redemption', () => {
+    let n = 0;
     const redeem = (reward: { id: string; title: string }) =>
-      handleRedemption({ id: 'red-1', user_name: 'Mila', user_login: 'mila', reward, user_input: '' });
+      handleRedemption({ id: `red-mila-${++n}`, user_name: 'Mila', user_login: 'mila', reward, user_input: '' });
     const queue = async () => (await request(app).get('/api/rewards').set(auth()).expect(200)).body as Array<{ reward_type: string }>;
 
     it('runs the action its id is bound to, whatever its name', async () => {
@@ -173,6 +174,20 @@ describe('Twitch rewards from the app', () => {
       // A refused, refunded timer is no alert and no queue row
       expect(alerts.filter((e) => e === 'reward-redeemed')).toHaveLength(1);
       expect(await queue()).toHaveLength(rows);
+      await request(app).post('/api/stream-state/reward-timer/end').set(auth()).expect(200);
+    });
+
+    // Security review 15.10.: Twitch may deliver an EventSub message twice. The
+    // second run failed (timer already running) and refunded a redemption that ran.
+    it('runs a redemption Twitch delivers twice only once, and refunds nothing', async () => {
+      const made = (await request(app).post('/api/channel-rewards').set(auth()).send({ title: 'Ohne Maus', cost: 500, action: 'timer', minutes: 5 }).expect(201)).body;
+      alerts.length = 0;
+      calls = [];
+      const twice = { id: 'red-twice', user_name: 'Mila', user_login: 'mila', reward: { id: made.id, title: made.title }, user_input: '' };
+      await handleRedemption(twice);
+      await handleRedemption({ ...twice });
+      expect(alerts.filter((e) => e === 'reward-redeemed')).toHaveLength(1);
+      expect(calls.some((c) => c.path === '/channel_points/custom_rewards/redemptions')).toBe(false);
       await request(app).post('/api/stream-state/reward-timer/end').set(auth()).expect(200);
     });
 

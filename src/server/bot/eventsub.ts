@@ -75,7 +75,24 @@ async function subscribeToEvents(token: string, clientId: string, userId: string
   await subscribe(token, clientId, 'stream.offline', '1', { broadcaster_user_id: userId }, 'stream offline');
 }
 
+// Twitch may deliver an EventSub message more than once. A repeat ran the
+// action again, it failed (timer already running) and refunded a redemption
+// that had run (security review 15.10.). The last few hundred ids are enough.
+const SEEN_MAX = 500;
+const seen = new Set<string>();
+
+/** True the first time an id comes, false for a repeat. Empty ids always pass. */
+export function firstDelivery(id: string): boolean {
+  if (!id) return true;
+  if (seen.has(id)) return false;
+  seen.add(id);
+  if (seen.size > SEEN_MAX) seen.delete(seen.values().next().value as string);
+  return true;
+}
+
 export async function handleRedemption(event: Record<string, unknown>) {
+  const redemptionId = String(event?.id ?? '');
+  if (redemptionId && !firstDelivery(`redemption:${redemptionId}`)) return;
   const userName = (event.user_name as string) || 'Unknown';
   // Twitch sends the login in lower case and the name as typed; counts go by login.
   const login = (event.user_login as string) || userName;
@@ -200,6 +217,10 @@ function openSocket(url: string, auth: { token: string; clientId: string; userId
         }
         resolve(true);
       }
+
+      // A follow or a live switch delivered twice would alert or count twice.
+      const messageId = String(msg.metadata?.message_id ?? '');
+      if (type === 'notification' && messageId && !firstDelivery(`message:${messageId}`)) return;
 
       if (type === 'notification') {
         const subType = msg.metadata?.subscription_type;
