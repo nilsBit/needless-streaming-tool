@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { apiFetch, useApi } from '../hooks/useApi';
+import { apiFetch } from '../hooks/useApi';
+import { useWebSocket } from '../hooks/useWebSocket';
 import { useToast } from '../contexts/ToastContext';
 import Dialog from '../components/ux/Dialog';
 import RewardCards, { blockDetail, blockName, type RewardCard } from '../components/rewards/RewardCards';
@@ -44,9 +45,15 @@ export default function ChannelRewardsPanel() {
     setError(null); setRewards(body);
   };
   useEffect(() => { void load(); }, []);
+  // A new Twitch login (after "Neu mit Twitch verbinden") clears the hint and asks Twitch again.
+  useWebSocket((event) => {
+    if (event !== 'bot-status') return;
+    setNeedsReconnect(false);
+    void load();
+  });
 
   const reconnect = async () => {
-    try { await apiFetch('/auth/twitch/open', { method: 'POST' }); toast.success('Twitch ist im Browser offen – bestätigen, dann diese Seite neu öffnen.'); }
+    try { await apiFetch('/auth/twitch/open', { method: 'POST' }); toast.success('Twitch ist im Browser offen – bestätigen, dann geht es hier von selbst weiter.'); }
     catch { toast.error('Twitch ließ sich nicht öffnen'); }
   };
 
