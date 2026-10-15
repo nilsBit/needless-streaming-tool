@@ -194,10 +194,28 @@ braucht den Bot.
 - Liegen geblieben: Die Quest „Ersten Moment merken“ zeigt im großen Fenster auf
   keinen Knopf mehr (erledigt wird sie übers Stream Deck oder im kleinen
   Fenster). „Beenden“ am Timer nur im Code, nicht von Nils gedrückt.
-- Tests: 544 grün, Typecheck und Lint sauber.
+- **1.0.4 veröffentlicht** (`ba428b0`).
+- **Sicherheitsprüfung (15.10., abends)** der Änderungen seit `89ccaf4`, drei
+  Prüfer (API/Daten, Chat/Overlays, Electron/Anbindungen): nichts Schweres,
+  `npm audit --omit=dev` leer. Behoben (`e12b5f5`…`7532a58`): Windows-Updates
+  installieren nur noch auf Klick „Jetzt neu starten“ (unsigniert – kein
+  stilles Installieren beim Beenden), Release-Aktionen auf Commit-SHAs;
+  `!befehle <x>` wiederholt den Text nicht mehr; Link-Filter in Alerts fängt
+  nackte Domains („scam.gg“, „bit . ly/x“); Fehlerantworten ohne Stack (eigener
+  Error-Handler am Ende von `createApp`); `overlay_config` und `points_config`
+  werden auch beim Lesen geprüft (`watch_minutes` höchstens 1440);
+  `obs_scene_mappings` bleibt auf dem Rechner (Sicherung trägt und ersetzt sie
+  nicht, `isLocalSetting`); EventSub-Nachrichten und Einlösungen werden nur
+  einmal ausgeführt (`firstDelivery`); abgelehntes `!einlösen` antwortet einmal
+  in 30 s je Zuschauer; Raid-Punkte und Raid-Gruß nach Login (`bot/raid.ts`);
+  Tastenkürzel-Reste (Route, Typen, Feld `hotkeys`) entfernt. Offen: signierte
+  Releases (Zertifikat), `!hype`/`!vote` ohne Abklingzeit (älter).
+- Tests: 551 grün, Typecheck und Lint sauber.
 - **Was noch zu tun ist:**
-  1. 1.0.4 veröffentlichen (Nils:
-     `npm version 1.0.4 -m "chore: version %s" && git push origin main --follow-tags`).
+  1. 1.0.5 mit den Sicherheits-Fixes veröffentlichen (Nils:
+     `npm version 1.0.5 -m "chore: version %s" && git push origin main --follow-tags`).
+     Erst ab 1.0.5 wartet das Update auf den Klick – 1.0.4 installiert 1.0.5
+     noch still beim Beenden.
   2. Nils nimmt „Overlays & Alerts“ und die Belohnungen im Alltag ab, danach
      Issue #29 schließen.
   3. Später: Baustein „Quelle kurz einblenden“; nächster Bereich auf der
