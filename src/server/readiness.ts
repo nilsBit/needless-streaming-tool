@@ -2,7 +2,6 @@ import { getDb } from './db/index';
 import { getBotStatus } from './bot/index';
 import { getObsStatus, getScenes, getOverlayScenes } from './obs/index';
 import { SCREENS } from './obs/screens';
-import { characterSource } from './api/characters';
 import { loadWorld } from './api/worldbuilder';
 import { ALERT_SLOTS, getAlertSettings } from './bot/alerts';
 import { getFeatures } from './features';
@@ -40,7 +39,7 @@ export interface ReadinessItem {
 export interface ReadinessInput {
   bot: { connected: boolean; channel: string | null };
   obs: { connected: boolean; scenes: string[] | null; overlaysPlaced: number | null };
-  world: { source: 'notion' | 'worldbuilder'; reachable: boolean | null; name: string | null };
+  world: { reachable: boolean | null; name: string | null };
   enabledCommands: number;
   alerts: { slots: number; withSound: number };
   /** The chosen features ("Was dein Stream kann"); every feature when left out. Checks of features that are off are dropped. */
@@ -96,25 +95,15 @@ export function assessReadiness(input: ReadinessInput): Readiness {
       consequence: 'Kein Overlay erscheint im Stream – weder Chat noch Musik noch die Eintragskarte.',
       target: { area: 'overlays', subTab: 'overlays' },
     },
-    input.world.source === 'worldbuilder'
-      ? {
-          id: 'worldbuilder',
-          ok: input.world.reachable,
-          severity: 'error',
-          title: input.world.name ? `Worldbuilder erreichbar („${input.world.name}“)` : 'Worldbuilder erreichbar',
-          problem: 'Der Worldbuilder ist nicht erreichbar.',
-          consequence: 'Die Eintragskarte bleibt leer, und !welt findet nichts.',
-          target: { area: 'stream' },
-        }
-      : {
-          id: 'worldbuilder',
-          ok: false,
-          severity: 'hint',
-          title: 'Worldbuilder als Quelle gewählt',
-          problem: 'Als Quelle für die Welt ist Notion gewählt, nicht der Worldbuilder.',
-          consequence: 'Die Karte folgt nicht dem offenen Eintrag; Notion wird nicht mehr ausgebaut.',
-          target: { area: 'stream' },
-        },
+    {
+      id: 'worldbuilder',
+      ok: input.world.reachable,
+      severity: 'error',
+      title: input.world.name ? `Worldbuilder erreichbar („${input.world.name}“)` : 'Worldbuilder erreichbar',
+      problem: 'Der Worldbuilder ist nicht erreichbar.',
+      consequence: 'Die Eintragskarte bleibt leer, und !welt findet nichts.',
+      target: { area: 'stream' },
+    },
     {
       id: 'commands',
       ok: input.enabledCommands > 0,
@@ -150,14 +139,9 @@ export async function readinessInput(): Promise<ReadinessInput> {
   const scenes = obs.connected ? await getScenes() : null;
   const overlaysPlaced = obs.connected ? Object.keys((await getOverlayScenes()).byOverlay).length : null;
 
-  const source = characterSource();
-  let reachable: boolean | null = null;
-  let name: string | null = null;
-  if (source === 'worldbuilder') {
-    const world = await loadWorld();
-    reachable = 'name' in world;
-    name = 'name' in world ? world.name : null;
-  }
+  const world = await loadWorld();
+  const reachable = 'name' in world;
+  const name = 'name' in world ? world.name : null;
 
   const row = getDb().prepare('SELECT COUNT(*) AS n FROM text_commands WHERE enabled = 1').get() as { n: number };
   const settings = getAlertSettings();
@@ -167,7 +151,7 @@ export async function readinessInput(): Promise<ReadinessInput> {
   return {
     bot,
     obs: { connected: obs.connected, scenes, overlaysPlaced },
-    world: { source, reachable, name },
+    world: { reachable, name },
     enabledCommands: row.n,
     alerts: { slots, withSound },
     features: getFeatures(),

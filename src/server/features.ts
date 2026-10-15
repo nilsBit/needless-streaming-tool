@@ -1,6 +1,5 @@
 import { getDb } from './db/index';
 import { isWorldbuilderAvailable } from './api/worldbuilder';
-import { characterSource } from './api/characters';
 import {
   DEFAULT_FEATURES, FEATURE_KEYS, OWNER_CHANNEL, PERSONAL_FEATURES, isFeatureKey,
   commandVisible, overlayVisible, type FeatureKey,
@@ -17,6 +16,7 @@ import {
 
 const FEATURES_KEY = 'features';
 const SETUP_KEY = 'setup_done';
+const WORLDBUILDER_KEY = 'worldbuilder_known';
 
 function readSetting(key: string): string | null {
   const row = getDb().prepare('SELECT value FROM settings WHERE key = ?').get(key) as { value: string } | undefined;
@@ -36,16 +36,20 @@ export function markSetupDone(): void {
 }
 
 /**
- * The Worldbuilder is set up on this machine: it has announced itself (its
- * connection file exists — only while it runs), or it is the chosen source for
- * the world. Asked on every chat command, so the file is read at most every
- * few seconds; the setting is a cheap read.
+ * The Worldbuilder is set up on this machine: it announces itself (its
+ * connection file exists — only while it runs), or it has done so before.
+ * Seen once, it is remembered, so closing it does not take !welt and the
+ * Entry Card away. Asked on every chat command, so the file is read at most
+ * every few seconds; the setting is a cheap read.
  */
 let worldbuilderSeen: { at: number; value: boolean } | null = null;
 export function worldbuilderInstalled(): boolean {
   const now = Date.now();
-  if (!worldbuilderSeen || now - worldbuilderSeen.at > 5_000) worldbuilderSeen = { at: now, value: isWorldbuilderAvailable() };
-  return worldbuilderSeen.value || characterSource() === 'worldbuilder';
+  if (!worldbuilderSeen || now - worldbuilderSeen.at > 5_000) {
+    worldbuilderSeen = { at: now, value: isWorldbuilderAvailable() };
+    if (worldbuilderSeen.value && readSetting(WORLDBUILDER_KEY) !== '1') writeSetting(WORLDBUILDER_KEY, '1');
+  }
+  return worldbuilderSeen.value || readSetting(WORLDBUILDER_KEY) === '1';
 }
 
 /** Forget the cached answer — for tests that create or remove the file. */

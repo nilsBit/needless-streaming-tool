@@ -32,13 +32,12 @@ describe.skipIf(!process.env.WORLDBUILDER_E2E)('Durchstich gegen das echte Schau
     initDatabase(':memory:');
     token = generateApiToken();
     app = createApp();
-    await request(app).post('/api/characters/source').set(auth()).send({ source: 'worldbuilder' });
   });
 
   it('ist mit einer offenen Welt verbunden und nennt sie', async () => {
     const res = await request(app).get('/api/characters/source').set(auth()).expect(200);
     console.log('  QUELLE:', JSON.stringify(res.body));
-    expect(res.body.source).toBe('worldbuilder');
+    expect(res.body.error).toBeUndefined();
     // Der Name bleibt offen: Es zählt, dass eine Welt drübersteht, nicht welche.
     expect(res.body.world).toBeTruthy();
   });

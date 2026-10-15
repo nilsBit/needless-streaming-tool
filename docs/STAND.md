@@ -78,8 +78,8 @@ braucht den Bot.
 
 ## Entschieden
 
-- **Quelle ist der Worldbuilder.** Notion bleibt als alte Quelle drin, wird
-  aber nicht mehr ausgebaut.
+- **Quelle ist der Worldbuilder.** Notion ist seit 15.10. ganz raus (Schema 38
+  löscht Token und Notion-Einstellungen).
 - **Erklären im Chat: beides** — eigene Texte und Nachschlagen in der Welt.
 - **Einblendung: automatisch folgen und festpinnen.** Die Karte folgt dem
   offenen Eintrag nach einer Wartezeit (Standard 1 s); wer per Hand auswählt,
@@ -195,6 +195,14 @@ braucht den Bot.
   keinen Knopf mehr (erledigt wird sie übers Stream Deck oder im kleinen
   Fenster). „Beenden“ am Timer nur im Code, nicht von Nils gedrückt.
 - **1.0.4 veröffentlicht** (`ba428b0`).
+- **Notion raus** (nach der Sicherheitsprüfung): Notion-Karte, Quellen-Wahl,
+  `/api/settings/notion`, `api/notion.ts` und die Zeit-Rückschreibung sind weg.
+  Die Eintragskarte liest nur aus dem Worldbuilder. Schema **38** löscht
+  `notion_token`, `notion_characters_db`, `notion_clips_db`, `character_source`
+  und das alte `active_character`; „Worldbuilder eingerichtet“ merkt sich jetzt
+  `worldbuilder_known` (gesetzt, sobald er einmal lief), damit `!welt` und die
+  Karte nicht verschwinden, wenn er zu ist. `notion_token` bleibt in
+  `SECRET_KEYS`. Nils' `stream.db` ist auf 38.
 - **Sicherheitsprüfung (15.10., abends)** der Änderungen seit `89ccaf4`, drei
   Prüfer (API/Daten, Chat/Overlays, Electron/Anbindungen): nichts Schweres,
   `npm audit --omit=dev` leer. Behoben (`e12b5f5`…`7532a58`): Windows-Updates
@@ -1089,7 +1097,7 @@ Rechner, bevor die App das erste Mal startet:
 1. `data/stream.seed.db` nach `data/stream.db` kopieren
    (`cp data/stream.seed.db data/stream.db`).
 2. `npm run dev`, dann im Tool Twitch neu verbinden.
-3. Notion-Token und Discord-Webhook (*Settings → Discord — Live-Meldung*)
+3. Discord-Webhook (*Einstellungen → Verbindungen → Discord*)
    wieder eintragen, OBS und den Stream-Deck-Token prüfen.
 
 Die Kopie zieht sich nicht selbst nach — nach Änderungen an Commands oder

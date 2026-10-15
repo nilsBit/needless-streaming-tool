@@ -39,12 +39,12 @@ describe('reward building blocks (v37)', () => {
     ]);
     for (const table of ['point_rewards', 'twitch_reward_actions']) expect(columns(table)).toEqual(expect.arrayContaining(['task', 'minutes', 'sound']));
     expect(columns('stream_state')).toEqual(expect.arrayContaining(['timer_ends_at', 'timer_task_by', 'timer_paused_left', 'saved_challenge']));
-    expect((getDb().prepare('SELECT MAX(version) AS version FROM schema_version').get() as { version: number }).version).toBe(37);
+    expect((getDb().prepare('SELECT MAX(version) AS version FROM schema_version').get() as { version: number }).version).toBe(SCHEMA_VERSION);
   });
 
-  it('starts a fresh database at v37', () => {
+  it('starts a fresh database at v37 or later', () => {
     initDatabase(':memory:');
-    expect(SCHEMA_VERSION).toBe(37);
+    expect(SCHEMA_VERSION).toBeGreaterThanOrEqual(37);
     expect(columns('point_rewards')).toEqual(expect.arrayContaining(['task', 'minutes', 'sound']));
   });
 

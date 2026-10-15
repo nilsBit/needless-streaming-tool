@@ -246,7 +246,7 @@ export function createApp(): express.Express {
     res.json({ character: activeCharacter() });
   });
 
-  // Portraits copied out of the source — Notion's URLs expire, Worldbuilder's want a token.
+  // Portraits copied out of Worldbuilder, whose URLs want a token.
   app.use('/public/character-image', express.static(CHARACTER_IMAGE_DIR));
 
   // The streamer's alert sounds — the Alerts overlay plays them as an alert appears.

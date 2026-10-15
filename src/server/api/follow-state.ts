@@ -17,8 +17,6 @@ export interface FollowState {
   held: boolean;
   /** How long an entry must stay open before the card switches to it. */
   settleSeconds: number;
-  /** Following needs Worldbuilder as the source — Notion has nothing open. */
-  available: boolean;
 }
 
 const DEFAULT_SETTLE_SECONDS = 1;
@@ -39,7 +37,6 @@ export function followState(): FollowState {
     enabled: getSetting('follow_enabled') !== '0',
     held: getSetting('follow_held') === '1',
     settleSeconds: settle !== null && Number.isInteger(Number(settle)) ? Number(settle) : DEFAULT_SETTLE_SECONDS,
-    available: getSetting('character_source') === 'worldbuilder',
   };
 }
 

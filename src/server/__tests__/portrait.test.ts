@@ -63,7 +63,6 @@ describe('portraits', () => {
   it('gives up on a portrait the world never sends, and pins the entry without it', async () => {
     const entry = {
       id: 'e-still',
-      source: 'worldbuilder',
       title: 'Die Stille',
       art: 'Figur',
       artColor: null,

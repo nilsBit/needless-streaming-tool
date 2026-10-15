@@ -4,7 +4,6 @@ import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
 import { getUserDataPath } from '../paths';
 import { fold } from '../fold';
-import { notionFetch } from './notion';
 import { holdCard } from './follow-state';
 import { portraitHeaders } from './worldbuilder';
 import type { Character } from './characters';
@@ -28,8 +27,6 @@ export interface EntryField {
 
 export interface Entry {
   id: string;
-  /** Decides whether time is banked back: only Notion takes anything in. */
-  source: 'notion' | 'worldbuilder';
   title: string;
   art: string;
   artColor: string | null;
@@ -163,11 +160,10 @@ export function toLegacyCharacter(entry: Entry): Character {
   return { id: card.id, name: card.title, role: card.role, status: card.maturity, summary: card.body, image: card.image };
 }
 
-/** A Character as an Entry — for Notion, and for snapshots from before Entries existed. */
-export function characterToEntry(character: Character, source: Entry['source']): Entry {
+/** A Character as an Entry — for the Stream Deck's older route, which sends one whole. */
+export function characterToEntry(character: Character): Entry {
   return {
     id: character.id,
-    source,
     title: character.name,
     art: characterArt(),
     artColor: null,
@@ -188,19 +184,9 @@ export function characterToEntry(character: Character, source: Entry['source']):
 
 export function getActiveEntry(): Entry | null {
   const raw = getSetting('active_entry');
-  if (raw) {
-    try {
-      return JSON.parse(raw) as Entry;
-    } catch {
-      return null;
-    }
-  }
-
-  // Pinned before Entries existed: that Active Character still shows.
-  const legacy = getSetting('active_character');
-  if (!legacy) return null;
+  if (!raw) return null;
   try {
-    return characterToEntry(JSON.parse(legacy) as Character, 'notion');
+    return JSON.parse(raw) as Entry;
   } catch {
     return null;
   }
@@ -217,7 +203,7 @@ export function activeCharacter(): Character | null {
 }
 
 export function activeSince(): string | null {
-  return getSetting('active_entry_since') ?? getSetting('active_character_since');
+  return getSetting('active_entry_since');
 }
 
 /** Tells every listener. `character-changed` stays for the shipped Stream Deck plugin. */
@@ -227,31 +213,28 @@ function announce(entry: Entry | null): void {
 }
 
 /**
- * Puts an Entry on the Overlay: banks the time spent on the previous one,
- * copies the portrait locally, stores the snapshot and tells every listener.
+ * Puts an Entry on the Overlay: copies the portrait locally, stores the
+ * snapshot and tells every listener.
  *
  * Shared by the panel, the Stream Deck's cycle button, the older character
- * route and Follow Mode, so all of them behave the same — time tracking
- * included. Anything but Follow Mode is a pick by hand, and holds the card.
+ * route and Follow Mode, so all of them behave the same. Anything but Follow
+ * Mode is a pick by hand, and holds the card.
  */
 export async function pinEntry(entry: Entry, by: 'hand' | 'follow' = 'hand'): Promise<Entry> {
-  await flushTrackedTime();
-
   let pinned = entry;
-  // No source's URL is fit to reach an overlay directly — Notion's expires,
-  // Worldbuilder's needs a token the browser will not send.
+  // Worldbuilder's URL is not fit to reach an overlay directly: it needs a
+  // token the browser will not send.
   if (entry.image) {
     const cached = await cachePortrait(entry.id, entry.image);
-    // Falling back to the original only helps for Notion, whose URL at least
-    // works for an hour. A Worldbuilder URL an overlay cannot follow would put
-    // a broken image on stream, so it drops to no portrait at all.
+    // A Worldbuilder URL an overlay cannot follow would put a broken image on
+    // stream, so it drops to no portrait at all. Any other URL — one the Stream
+    // Deck sent along — is left to the overlay to try.
     const fallback = portraitHeaders(entry.image) ? null : entry.image;
     pinned = { ...entry, image: cached ?? fallback };
   }
 
   setSetting('active_entry', JSON.stringify(pinned));
   setSetting('active_entry_since', String(Date.now()));
-  getDb().prepare('DELETE FROM settings WHERE key = ?').run('active_character');
   announce(pinned);
   if (by === 'hand') holdCard();
   return pinned;
@@ -259,46 +242,9 @@ export async function pinEntry(entry: Entry, by: 'hand' | 'follow' = 'hand'): Pr
 
 /** Clears the Overlay. That is a choice by hand too, and holds the empty card. */
 export async function clearActiveEntry(): Promise<void> {
-  await flushTrackedTime();
-  getDb().prepare('DELETE FROM settings WHERE key IN (?, ?)').run('active_entry', 'active_character');
+  getDb().prepare('DELETE FROM settings WHERE key IN (?, ?)').run('active_entry', 'active_entry_since');
   announce(null);
   holdCard();
-}
-
-/**
- * Adds the minutes since the Entry was pinned to its Notion page, then clears
- * the clock.
- *
- * Only for Notion: Worldbuilder has no way in, by design. Failure here must
- * never block picking an Entry — anything that goes wrong is logged and
- * swallowed, and the clock is reset either way so a broken write can't be
- * counted twice.
- */
-async function flushTrackedTime(): Promise<void> {
-  const active = getActiveEntry();
-  const since = activeSince();
-  getDb().prepare('DELETE FROM settings WHERE key IN (?, ?)').run('active_entry_since', 'active_character_since');
-  if (!active || !since || active.source !== 'notion') return;
-
-  const minutes = Math.round((Date.now() - Number(since)) / 60_000);
-  if (!Number.isFinite(minutes) || minutes < 1) return;
-
-  try {
-    const pageRes = await notionFetch(`/v1/pages/${active.id}`, { method: 'GET' });
-    if (!pageRes.ok) return;
-    const page = (await pageRes.json()) as { properties?: Record<string, { number?: number | null }> };
-    const previous = page.properties?.['Zeit investiert (Min)']?.number ?? 0;
-
-    await notionFetch(`/v1/pages/${active.id}`, {
-      method: 'PATCH',
-      body: JSON.stringify({
-        properties: { 'Zeit investiert (Min)': { number: previous + minutes } },
-      }),
-    });
-    console.log(`[Entries] +${minutes} min auf ${active.title}`);
-  } catch (err) {
-    console.warn('[Entries] Zeit konnte nicht nach Notion geschrieben werden:', err);
-  }
 }
 
 // ---------- Portraits ----------
@@ -311,7 +257,7 @@ export const CHARACTER_IMAGE_DIR = getUserDataPath('character-images');
  * Pinning waits for this copy, so a silent source would otherwise hold the
  * Overlay — the stall the rest of the world client already rules out. Five
  * seconds, because Worldbuilder answers over loopback in milliseconds, but a
- * Notion portrait comes off the internet and deserves the longer rope.
+ * portrait the Stream Deck sends along may come off the internet.
  */
 const PORTRAIT_TIMEOUT_MS = 5000;
 
@@ -326,10 +272,8 @@ const EXTENSION_BY_TYPE: Record<string, string> = {
 /**
  * Copies a portrait onto disk.
  *
- * Both sources need this, for different reasons. Notion's file URLs are signed
- * and expire after about an hour, and a pinned Entry can stay on screen far
- * longer than that. Worldbuilder's never expire, but they sit behind a token
- * and refuse cross-origin reads — an overlay in OBS cannot follow one.
+ * Worldbuilder's URLs never expire, but they sit behind a token and refuse
+ * cross-origin reads — an overlay in OBS cannot follow one.
  *
  * Returns a local path served by /public/character-image, or null so the
  * caller can fall back to whatever the source gave.
@@ -338,8 +282,7 @@ async function cachePortrait(entryId: string, url: string): Promise<string | nul
   const safeId = entryId.replace(/[^a-zA-Z0-9-]/g, '');
   if (!safeId) return null;
   try {
-    // Worldbuilder wants its token; Notion's signed URL carries its own
-    // credentials and gets no header.
+    // Worldbuilder wants its token; any other URL gets no header.
     const res = await fetch(url, { headers: portraitHeaders(url), signal: AbortSignal.timeout(PORTRAIT_TIMEOUT_MS) });
     if (!res.ok) return null;
     const type = (res.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();

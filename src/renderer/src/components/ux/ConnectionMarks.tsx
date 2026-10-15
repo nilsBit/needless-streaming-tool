@@ -7,7 +7,7 @@ import { useVisibleInterval } from '../../hooks/useVisibleInterval';
 
 interface BotStatus { connected: boolean; channel: string | null; error?: string | null }
 interface ObsStatus { connected: boolean }
-interface SourceInfo { source: 'notion' | 'worldbuilder'; world?: string | null; error?: string; message?: string }
+interface WorldInfo { world?: string | null; error?: string; message?: string }
 
 type Tone = 'ok' | 'off' | 'bad';
 
@@ -19,7 +19,7 @@ export default function ConnectionMarks({ compact = false }: { compact?: boolean
   const { worldbuilder } = useFeatures();
   const { data: bot, refetch: refetchBot } = useApi<BotStatus>('/settings/bot-status');
   const { data: obs, refetch: refetchObs } = useApi<ObsStatus>('/obs/status');
-  const { data: world, refetch: refetchWorld } = useApi<SourceInfo>('/characters/source');
+  const { data: world, refetch: refetchWorld } = useApi<WorldInfo>('/characters/source');
 
   useWebSocket((event) => {
     if (event === 'bot-status') refetchBot();
@@ -31,7 +31,7 @@ export default function ConnectionMarks({ compact = false }: { compact?: boolean
   // is set up, and only while the window is seen.
   useVisibleInterval(refetchWorld, 30_000, worldbuilder);
 
-  const worldTone: Tone = !world ? 'off' : world.source !== 'worldbuilder' ? 'off' : world.error ? 'bad' : 'ok';
+  const worldTone: Tone = !world ? 'off' : world.error ? 'bad' : 'ok';
   const marks: Array<{ key: string; label: string; detail: string; tone: Tone; onClick: () => void }> = [
     {
       key: 'twitch',
@@ -51,7 +51,6 @@ export default function ConnectionMarks({ compact = false }: { compact?: boolean
       key: 'world',
       label: 'Worldbuilder',
       detail: !world ? '…'
-        : world.source !== 'worldbuilder' ? 'Notion ist die Quelle'
         : world.error ? 'nicht erreichbar'
         : world.world ? `„${world.world}“` : 'erreichbar',
       tone: worldTone,

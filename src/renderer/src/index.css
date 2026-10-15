@@ -3086,8 +3086,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 }
 
 
-/* ---------- Notion DB Picker ---------- */
-
 /* ---------- Clips Panel ---------- */
 .clips-panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 10px; }
 .auto-sync-toggle {
@@ -3509,8 +3507,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   font-size: 0.8rem;
   opacity: 0.5;
 }
-
-/* Notion Setup Modal */
 
 /* ---------- Figuren ---------- */
 .character-active {

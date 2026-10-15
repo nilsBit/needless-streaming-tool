@@ -109,7 +109,6 @@ describe('entries', () => {
   beforeEach(async () => {
     initDatabase(':memory:');
     process.env.WORLDBUILDER_ANSCHLUSS = CONNECTION;
-    await request(app).post('/api/characters/source').set(auth()).send({ source: 'worldbuilder' }).expect(200);
   });
 
   describe('listing', () => {
@@ -133,12 +132,6 @@ describe('entries', () => {
 
     it('leaves out discarded entries, so they cannot be put on stream', async () => {
       expect((await list('Figur')).map((entry) => entry.title)).toEqual(['Aldric', 'Mila']);
-    });
-
-    it('still reports a Notion source that is not set up', async () => {
-      await request(app).post('/api/characters/source').set(auth()).send({ source: 'notion' }).expect(200);
-      const res = await request(app).get('/api/entries').set(auth()).expect(400);
-      expect(res.body.error).toBe('no_database');
     });
   });
 
@@ -257,14 +250,6 @@ describe('entries', () => {
   });
 
   describe('what came before', () => {
-    it('still shows a character pinned before Entries existed', async () => {
-      const character = { id: 'old', name: 'Mila', role: 'Protagonistin', status: 'In Arbeit', summary: 'Von früher.', image: null };
-      await request(app).post('/api/settings/set').set(auth()).send({ key: 'active_character', value: JSON.stringify(character) }).expect(200);
-
-      expect(await card()).toMatchObject({ title: 'Mila', role: 'Protagonistin', body: 'Von früher.' });
-      expect((await request(app).get('/public/character').expect(200)).body.character).toMatchObject({ name: 'Mila' });
-    });
-
     it('lets the Stream Deck cycle through the characters', async () => {
       const first = await request(app).post('/api/characters/cycle').set(auth()).expect(200);
       const second = await request(app).post('/api/characters/cycle').set(auth()).expect(200);

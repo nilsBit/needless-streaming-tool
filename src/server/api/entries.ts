@@ -1,9 +1,8 @@
 import { Router } from 'express';
-import { characterSource, isFailure, loadFromNotion, sendFailure } from './characters';
+import { isFailure, sendFailure } from './characters';
 import {
   activeSince,
   characterArt,
-  characterToEntry,
   clearActiveEntry,
   getActiveEntry,
   hiddenFieldsOf,
@@ -35,7 +34,6 @@ function readEntry(body: Record<string, unknown> | undefined): Entry | null {
 
   return {
     id,
-    source: body.source === 'notion' ? 'notion' : 'worldbuilder',
     title,
     art: text(body.art)?.trim() ?? characterArt(),
     artColor: text(body.artColor),
@@ -59,12 +57,8 @@ function readEntry(body: Record<string, unknown> | undefined): Entry | null {
   };
 }
 
-// GET /arten — the Arten there are to pick from. Notion only knows characters.
+// GET /arten — the Arten there are to pick from.
 router.get('/arten', async (_req, res) => {
-  if (characterSource() !== 'worldbuilder') {
-    res.json([{ name: characterArt(), color: null }]);
-    return;
-  }
   const arten = await loadArtenFromWorld();
   if (isFailure(arten)) { sendFailure(res, arten); return; }
   res.json(arten);
@@ -73,18 +67,9 @@ router.get('/arten', async (_req, res) => {
 // GET /?art= — every Entry of one Art, each with its Hidden Fields.
 router.get('/', async (req, res) => {
   const art = text(req.query.art)?.trim() ?? characterArt();
-
-  if (characterSource() === 'worldbuilder') {
-    const entries = await loadWorldEntries(art);
-    if (isFailure(entries)) { sendFailure(res, entries); return; }
-    res.json(entries.map(withHidden));
-    return;
-  }
-
-  if (art !== characterArt()) { res.json([]); return; }
-  const characters = await loadFromNotion();
-  if (isFailure(characters)) { sendFailure(res, characters); return; }
-  res.json(characters.map((character) => withHidden(characterToEntry(character, 'notion'))));
+  const entries = await loadWorldEntries(art);
+  if (isFailure(entries)) { sendFailure(res, entries); return; }
+  res.json(entries.map(withHidden));
 });
 
 router.get('/active', (_req, res) => {

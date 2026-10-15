@@ -1,30 +1,39 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import type { Express } from 'express';
+import os from 'os';
+import path from 'path';
 import { initDatabase } from '../db/index';
 import { generateApiToken } from '../auth-token';
 import { createApp } from '../index';
 
 /**
- * Characters come from Notion, so these tests deliberately cover only what can
- * be observed without contacting it: the failure modes when nothing is
- * configured, and the active-character snapshot, which is pure local state.
+ * Characters come from Worldbuilder, which is not running here — so these
+ * tests cover what can be observed without it: the failure mode when it is
+ * closed, and the active-character snapshot, which is pure local state.
+ * Reading a running Worldbuilder is `worldbuilder.test.ts`.
  */
 describe('characters', () => {
   let app: Express;
   let token: string;
 
   beforeAll(() => {
+    // Never the real announcement file a running Worldbuilder may have written.
+    process.env.WORLDBUILDER_ANSCHLUSS = path.join(os.tmpdir(), `wb-none-${process.pid}.json`);
     initDatabase(':memory:');
     token = generateApiToken();
     app = createApp();
   });
 
+  afterAll(() => {
+    delete process.env.WORLDBUILDER_ANSCHLUSS;
+  });
+
   const auth = () => ({ Authorization: `Bearer ${token}` });
 
-  it('reports a missing database instead of calling Notion', async () => {
-    const res = await request(app).get('/api/characters').set(auth()).expect(400);
-    expect(res.body.error).toBe('no_database');
+  it('reports a closed Worldbuilder as not running', async () => {
+    const res = await request(app).get('/api/characters').set(auth()).expect(503);
+    expect(res.body.error).toBe('worldbuilder_not_running');
   });
 
   it('has no active character before one is picked', async () => {
@@ -95,14 +104,12 @@ describe('characters', () => {
     expect(active.body.since).toBeNull();
   });
 
-  it('reports a missing database when cycling too', async () => {
-    const res = await request(app).post('/api/characters/cycle').set(auth()).expect(400);
-    expect(res.body.error).toBe('no_database');
+  it('reports a closed Worldbuilder when cycling too', async () => {
+    const res = await request(app).post('/api/characters/cycle').set(auth()).expect(503);
+    expect(res.body.error).toBe('worldbuilder_not_running');
   });
 
-  it('still switches characters when Notion cannot be reached', async () => {
-    // No token is configured here, so flushing the tracked time fails. Picking
-    // the next character must succeed regardless — the stream comes first.
+  it('switches from one picked character to the next', async () => {
     await request(app).post('/api/characters/active').set(auth()).send({ id: 'a', name: 'Erste' }).expect(200);
     await request(app).post('/api/characters/active').set(auth()).send({ id: 'b', name: 'Zweite' }).expect(200);
 

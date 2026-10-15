@@ -11,11 +11,11 @@ import { generateApiToken } from '../auth-token';
 import { createApp } from '../index';
 
 /**
- * Reading characters out of Worldbuilder instead of Notion.
+ * Reading characters out of Worldbuilder.
  *
  * The far side is stood in for here by a stub speaking the same routes. That
- * makes this a test of *this* half — the mapping, the failure modes, the source
- * switch — and deliberately not proof that both halves agree on the protocol.
+ * makes this a test of *this* half — the mapping, the failure modes — and
+ * deliberately not proof that both halves agree on the protocol.
  * Only running the two real programs against each other shows that, and the
  * shapes below were copied from a run that did.
  */
@@ -106,10 +106,6 @@ function json(res: http.ServerResponse, body: unknown, status = 200): void {
   res.end(text);
 }
 
-function useWorldbuilder(): Promise<unknown> {
-  return request(app).post('/api/characters/source').set(auth()).send({ source: 'worldbuilder' });
-}
-
 const auth = () => ({ Authorization: `Bearer ${token}` });
 
 beforeAll(async () => {
@@ -129,27 +125,17 @@ afterAll(async () => {
 });
 
 beforeEach(() => {
-  getDb().prepare('DELETE FROM settings WHERE key IN (?, ?)').run('character_source', 'worldbuilder_art');
+  getDb().prepare('DELETE FROM settings WHERE key = ?').run('worldbuilder_art');
   process.env.WORLDBUILDER_ANSCHLUSS = CONNECTION;
 });
 
 describe('characters from Worldbuilder', () => {
-  it('stays on Notion until the source is switched', async () => {
-    // An existing setup must not change behaviour because this code shipped.
-    const res = await request(app).get('/api/characters/source').set(auth()).expect(200);
-    expect(res.body.source).toBe('notion');
-  });
-
-  it('reads the world once switched over', async () => {
-    await useWorldbuilder();
-
+  it('reads the characters of the open world', async () => {
     const res = await request(app).get('/api/characters').set(auth()).expect(200);
     expect(res.body.map((c: { name: string }) => c.name)).toEqual(['Aldric', 'Mila', 'Selma']);
   });
 
   it('maps Reifegrad to status and the Rolle field to role', async () => {
-    await useWorldbuilder();
-
     const res = await request(app).get('/api/characters').set(auth()).expect(200);
     expect(res.body[0]).toMatchObject({
       name: 'Aldric',
@@ -160,16 +146,12 @@ describe('characters from Worldbuilder', () => {
   });
 
   it('falls back to the kind when the world has no Rolle field', async () => {
-    await useWorldbuilder();
-
     const res = await request(app).get('/api/characters').set(auth()).expect(200);
     // Mila carries no fields — "Figur" is a truer answer than an empty line.
     expect(res.body[1]).toMatchObject({ name: 'Mila', role: 'Figur', summary: null });
   });
 
   it('takes the summary from the Kurzbeschreibung field, where imported worlds keep it', async () => {
-    await useWorldbuilder();
-
     const res = await request(app).get('/api/characters').set(auth()).expect(200);
     expect(res.body[2]).toMatchObject({
       name: 'Selma',
@@ -179,14 +161,11 @@ describe('characters from Worldbuilder', () => {
   });
 
   it('names the connected world, so nobody streams the wrong one', async () => {
-    await useWorldbuilder();
-
     const res = await request(app).get('/api/characters/source').set(auth()).expect(200);
-    expect(res.body).toMatchObject({ source: 'worldbuilder', world: 'Solmora', kind: 'Figur' });
+    expect(res.body).toEqual({ world: 'Solmora', kind: 'Figur' });
   });
 
   it('copies the portrait locally instead of pointing the overlay at Worldbuilder', async () => {
-    await useWorldbuilder();
     const list = await request(app).get('/api/characters').set(auth()).expect(200);
     const aldric = list.body.find((c: { name: string }) => c.name === 'Aldric');
 
@@ -198,7 +177,6 @@ describe('characters from Worldbuilder', () => {
   });
 
   it('reads a closed Worldbuilder as "not running", not as a fault', async () => {
-    await useWorldbuilder();
     process.env.WORLDBUILDER_ANSCHLUSS = path.join(os.tmpdir(), 'nothing-here.json');
 
     const res = await request(app).get('/api/characters').set(auth()).expect(503);
@@ -209,7 +187,6 @@ describe('characters from Worldbuilder', () => {
     // A failure below the protocol reaches this app as a bare "fetch failed",
     // with everything worth knowing tucked away in the error's cause. Issue #22
     // is a suite that hit exactly this and had nothing to go on afterwards.
-    await useWorldbuilder();
     const garbled = net.createServer((socket) => {
       socket.on('data', () => socket.end('NOT-HTTP\r\n\r\n'));
     });
@@ -232,20 +209,8 @@ describe('characters from Worldbuilder', () => {
     }
   });
 
-  it('refuses a source it does not have', async () => {
-    await request(app)
-      .post('/api/characters/source')
-      .set(auth())
-      .send({ source: 'obsidian' })
-      .expect(400);
-  });
-
-  it('takes the kind of entry to read along with the source', async () => {
-    await request(app)
-      .post('/api/characters/source')
-      .set(auth())
-      .send({ source: 'worldbuilder', kind: 'Fraktion' })
-      .expect(200);
+  it('names the kind of entry that counts as characters', async () => {
+    getDb().prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('worldbuilder_art', 'Fraktion');
 
     const res = await request(app).get('/api/characters/source').set(auth()).expect(200);
     expect(res.body.kind).toBe('Fraktion');

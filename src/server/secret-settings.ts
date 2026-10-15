@@ -3,6 +3,9 @@
  * or the sync folder, a backup never brings foreign ones in, and the generic
  * settings routes neither read nor write them — each secret has its own route
  * that gives back at most a preview. (Security review of 2026-10-06, H1/M2.)
+ *
+ * `notion_token` stays although Notion is gone (v38 deletes it): a backup or
+ * an older database copied in may still carry one, and it must not travel.
  */
 const SECRET_KEYS = new Set(['api_token', 'design_token', 'notion_token', 'github_token', 'discord_live_webhook', 'obs_config', 'twitch_config']);
 

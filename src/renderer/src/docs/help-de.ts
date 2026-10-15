@@ -5,12 +5,12 @@ export const HELP_SECTIONS_DE = [
     title: 'Erste Schritte',
     content: `Das Stream Toolkit ist deine Zentrale für Streaming. Hier steuerst du alles — Overlays, Ziele, Projekte, Clips, Milestones und mehr.
 
-Links stehen die Bereiche nach Situation: **Im Stream** (alles, was du live auslöst), **Chat & Bot**, **Overlays & Alerts**, **Nach dem Stream**, darunter **Einstellungen** und **Hilfe**. Unten in der Leiste siehst du immer, ob Twitch, OBS und der Worldbuilder verbunden sind. Fehlt vor dem Stream etwas, steht es oben auf „Im Stream“ in einem Balken – mit dem, was es im Stream bedeutet, und einem Knopf, der dich hinbringt. Alle Verbindungen richtest du unter **Einstellungen → Verbindungen** ein — Twitch, OBS, Notion, Discord; die Sicherung und den Zugang für eigene Werkzeuge findest du unter **Einstellungen → Daten**.
+Links stehen die Bereiche nach Situation: **Im Stream** (alles, was du live auslöst), **Chat & Bot**, **Overlays & Alerts**, **Nach dem Stream**, darunter **Einstellungen** und **Hilfe**. Unten in der Leiste siehst du immer, ob Twitch, OBS und der Worldbuilder verbunden sind. Fehlt vor dem Stream etwas, steht es oben auf „Im Stream“ in einem Balken – mit dem, was es im Stream bedeutet, und einem Knopf, der dich hinbringt. Alle Verbindungen richtest du unter **Einstellungen → Verbindungen** ein — Twitch, OBS, Worldbuilder, Discord; die Sicherung und den Zugang für eigene Werkzeuge findest du unter **Einstellungen → Daten**.
 
 **Voraussetzungen:**
 - OBS Studio (Version 28+) mit aktiviertem WebSocket Server
 - Twitch-Account mit einer App auf dev.twitch.tv
-- Optional: Notion-Account, wenn deine Figuren aus Notion kommen`,
+- Optional: der Worldbuilder, wenn die Eintragskarte deine Welt zeigen soll`,
   },
   {
     title: 'Einrichtung: Was dein Stream kann',
@@ -79,7 +79,6 @@ Welche Karten dort stehen, bestimmst du unter Einstellungen → „Was dein Stre
 **Wie lange:** Erledigte Songwünsche löscht das Tool nach 90 Tagen von selbst. Wer ein Jahr nicht eingelöst hat, verschwindet aus der Bestenliste, wer ein Jahr keine Punkte verdient hat, mit seinen Punkten. Ein Stream mit allem, was dazu gezählt wurde, bleibt ein Jahr. Was ein Zuschauer beim Einlösen dazuschreibt, steht nur im Alert und wird nicht gespeichert. Bei einem Zuschauer unter **Chat & Bot → Belohnungen → Eigene Punkte** oder in einer Bestenliste verschwindet mit **Zuschauer vergessen** alles, was unter seinem Namen gespeichert ist, sofort – auch in den Streams.
 
 **Was den Rechner verlässt – nur wenn du es anschließt:**
-- **Notion:** nur Abfragen deiner Figuren, wenn Notion die Quelle der Eintragskarte ist. Notion ist ein US-Anbieter.
 - **Discord:** nur die Live-Meldung mit deinem Kanalnamen. Keine Zuschauerdaten.
 - **Sync-Ordner:** die ganze Datenbank, also auch alle Zuschauerdaten – ohne Zugangsdaten. Liegt der Ordner in Dropbox oder iCloud, liegt sie dort.
 - **Sicherung:** dieselbe Datenbank als Datei, ohne Zugangsdaten. Du entscheidest, wo sie hinkommt.
@@ -206,7 +205,7 @@ Alle eingebauten Befehle lassen sich unter Chat & Bot → Befehle → Eingebaut 
 **In OBS:** Browser-Quelle mit http://localhost:4000/overlay/character/index.html (dieselbe URL wie früher das Figuren-Overlay), etwa 800 × 700 groß.
 
 **Wo:** Im Stream → Eintrag aus der Welt
-- **Quelle:** Worldbuilder oder Notion. Notion kennt nur Figuren.
+- **Quelle:** der Worldbuilder – die Welt, die dort gerade offen ist.
 - **Reiter:** eine Art pro Reiter, mit ihrer Farbe aus dem Worldbuilder. Darunter die Suche.
 - **▶** bringt einen Eintrag sofort ins Overlay. **✕ Overlay leeren** blendet die Karte aus.
 - **Klick auf einen Eintrag** zeigt alles, was auf der Karte landen könnte — jedes mit einem Schalter.
@@ -402,7 +401,7 @@ Auth-Header: Authorization: Bearer <token>
 - GET /api/entries/follow — POST /api/entries/follow — { enabled?, held?, settleSeconds? }
 - POST /api/entries/follow/toggle-hold — festpinnen oder wieder folgen (Stream Deck)
 - POST /api/entries/follow/check — einmal in den Worldbuilder schauen und die Karte wechseln, wenn es passt
-- GET /api/characters/source — POST /api/characters/source — { source: "worldbuilder" | "notion" }
+- GET /api/characters/source — welche Welt im Worldbuilder offen ist und welche Art als Figur gilt; ist er nicht erreichbar, mit error
 - POST /api/characters/cycle — nächste Figur ins Overlay (Stream Deck)
 
 **Erklär-Commands:**

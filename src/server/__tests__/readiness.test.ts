@@ -15,7 +15,7 @@ import { assessReadiness, type ReadinessInput } from '../readiness';
 const complete: ReadinessInput = {
   bot: { connected: true, channel: 'chain_des' },
   obs: { connected: true, scenes: ['main', 'Camera', 'start', 'brb', 'end'], overlaysPlaced: 9 },
-  world: { source: 'worldbuilder', reachable: true, name: 'Die Verborgene Stadt' },
+  world: { reachable: true, name: 'Die Verborgene Stadt' },
   enabledCommands: 3,
   alerts: { slots: 7, withSound: 7 },
 };
@@ -95,8 +95,8 @@ describe('readiness', () => {
     expect(result.ready).toBe(false);
   });
 
-  it('treats an unreachable Worldbuilder as an error when it is the chosen source', () => {
-    const result = assessReadiness({ ...complete, world: { source: 'worldbuilder', reachable: false, name: null } });
+  it('treats an unreachable Worldbuilder as an error', () => {
+    const result = assessReadiness({ ...complete, world: { reachable: false, name: null } });
     const world = result.items.find((i) => i.id === 'worldbuilder');
     expect(world?.severity).toBe('error');
     expect(world?.ok).toBe(false);

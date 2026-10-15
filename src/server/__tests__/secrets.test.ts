@@ -40,14 +40,14 @@ describe('secrets stay on the machine', () => {
       settings: [
         { key: 'api_token', value: 'fremd' },
         { key: 'obs_config', value: '{"host":"evil","port":1,"password":"x"}' },
-        { key: 'notion_auto_sync', value: 'true' },
+        { key: 'raid_shoutout', value: 'true' },
       ],
     }).expect(200);
     expect(res.body.secretsSkipped).toBe(2);
 
     const after = (await request(app).get('/api/settings/api-token').set(auth()).expect(200)).body.token;
     expect(after).toBe(before);
-    expect((await request(app).get('/api/settings/get/notion_auto_sync').set(auth()).expect(200)).body.value).toBe('true');
+    expect((await request(app).get('/api/settings/get/raid_shoutout').set(auth()).expect(200)).body.value).toBe('true');
     const obs = (await request(app).get('/api/obs/config').set(auth()).expect(200)).body;
     expect(obs.host).toBe('localhost');
     expect(obs.has_password).toBe(true);

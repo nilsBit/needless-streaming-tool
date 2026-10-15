@@ -70,23 +70,6 @@ router.post('/bot/disconnect', async (_req, res) => {
   }
 });
 
-// Notion token
-router.get('/notion', (_req, res) => {
-  const row = getDb().prepare('SELECT value FROM settings WHERE key = ?').get('notion_token') as { value: string } | undefined;
-  res.json({ configured: !!row?.value, preview: row?.value ? row.value.substring(0, 8) + '...' : null });
-});
-
-router.post('/notion', (req, res) => {
-  const { token } = req.body;
-  if (token === undefined) { res.status(400).json({ error: 'token required' }); return; }
-  if (token) {
-    getDb().prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('notion_token', token);
-  } else {
-    getDb().prepare('DELETE FROM settings WHERE key = ?').run('notion_token');
-  }
-  res.json({ success: true });
-});
-
 // Discord live announcement — the webhook URL goes in, never out
 router.get('/discord-live', (_req, res) => {
   res.json(getLiveSettings());

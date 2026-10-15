@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import request from 'supertest';
 import type { Express } from 'express';
-import { initDatabase } from '../db/index';
+import { getDb, initDatabase } from '../db/index';
 import { generateApiToken } from '../auth-token';
 import { createApp } from '../index';
 import { builtinKeyOf } from '../bot/command-names';
@@ -29,13 +29,13 @@ describe('the command list', () => {
     token = generateApiToken();
     app = createApp();
     // The starter lookup (!welt) only exists where the Worldbuilder is set up.
-    await request(app).post('/api/characters/source').set(auth()).send({ source: 'worldbuilder' }).expect(200);
+    getDb().prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('worldbuilder_known', '1')").run();
     await request(app).post('/api/text-commands').set(auth())
       .send({ trigger: '!story', response: 'Wir schreiben eine Welt. Jede Woche ein Stück mehr.' }).expect(201);
   });
 
   it('leaves out the lookups where no Worldbuilder is set up', async () => {
-    await request(app).post('/api/characters/source').set(auth()).send({ source: 'notion' }).expect(200);
+    getDb().prepare("DELETE FROM settings WHERE key = 'worldbuilder_known'").run();
     expect(await find('!welt')).toBeUndefined();
     expect(await chat('!befehle alle')).not.toContain('Aus der Welt');
     expect(await chat('!welt Mila')).toBe('');

@@ -436,6 +436,20 @@ function runMigrations(from: number, to: number) {
     console.log('[DB] Migrated: reward timer and sound');
   }
 
+  if (from < 38) {
+    // Notion is gone (15.10.): the Worldbuilder is the only source of the
+    // world. A Worldbuilder chosen as the source stays known as set up, so
+    // !welt and the Entry Card do not vanish while it is closed. The Active
+    // Character from before Entries existed is no longer read either.
+    const source = db.prepare("SELECT value FROM settings WHERE key = 'character_source'").get() as { value: string } | undefined;
+    if (source?.value === 'worldbuilder') db.prepare("INSERT OR IGNORE INTO settings (key, value) VALUES ('worldbuilder_known', '1')").run();
+    db.prepare(`DELETE FROM settings WHERE key IN (
+      'notion_token', 'notion_characters_db', 'notion_clips_db', 'character_source',
+      'active_character', 'active_character_since'
+    )`).run();
+    console.log('[DB] Migrated: Notion removed');
+  }
+
   // Safety check: ensure experiment_* columns were renamed to challenge_*
   // (can be missed if DB was copied from an older version after migration ran)
   try {

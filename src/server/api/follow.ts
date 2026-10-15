@@ -33,7 +33,7 @@ export interface FollowStep {
 export async function followStep(now = Date.now()): Promise<FollowStep> {
   const state = followState();
   // The Entry Card switched off ("Was dein Stream kann") follows nothing either.
-  if (!state.enabled || !state.available || !featureOn('welt')) return { outcome: 'off' };
+  if (!state.enabled || !featureOn('welt')) return { outcome: 'off' };
   if (state.held) return { outcome: 'held' };
 
   const focus = await loadFocusFromWorld();

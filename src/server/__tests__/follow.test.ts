@@ -88,12 +88,11 @@ describe('follow mode', () => {
     focus = null;
     // The Entry Card is Nils's own: it exists only on his Twitch channel.
     getDb().prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('twitch_config', JSON.stringify({ channel: 'chain_des', username: 'chain_des', oauth_token: '' }));
-    await request(app).post('/api/characters/source').set(auth()).send({ source: 'worldbuilder' }).expect(200);
   });
 
-  it('is on by default once Worldbuilder is the source', async () => {
+  it('is on by default', async () => {
     const res = await request(app).get('/api/entries/follow').set(auth()).expect(200);
-    expect(res.body).toEqual({ enabled: true, held: false, settleSeconds: 1, available: true });
+    expect(res.body).toEqual({ enabled: true, held: false, settleSeconds: 1 });
   });
 
   it('puts what is open on the Overlay once it has stayed open for the settle time', async () => {
@@ -197,13 +196,6 @@ describe('follow mode', () => {
 
       expect((await check()).outcome).toBe('off');
       expect(await shownTitle()).toBeNull();
-    });
-
-    it('does nothing with Notion as the source', async () => {
-      await request(app).post('/api/characters/source').set(auth()).send({ source: 'notion' }).expect(200);
-      focus = openFor('e-mila', 10);
-
-      expect((await check()).outcome).toBe('off');
     });
 
     it('releases a leftover hold when following is switched back on', async () => {

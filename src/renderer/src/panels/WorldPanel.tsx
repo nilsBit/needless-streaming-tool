@@ -12,7 +12,6 @@ interface EntryField {
 
 interface Entry {
   id: string;
-  source: 'notion' | 'worldbuilder';
   title: string;
   art: string;
   artColor: string | null;
@@ -32,7 +31,6 @@ interface Art {
 }
 
 interface SourceInfo {
-  source: 'notion' | 'worldbuilder';
   kind?: string;
   world?: string | null;
 }
@@ -41,7 +39,6 @@ interface FollowState {
   enabled: boolean;
   held: boolean;
   settleSeconds: number;
-  available: boolean;
 }
 
 interface LoadError {
@@ -61,9 +58,6 @@ function hint(failure: LoadError): string {
     case 'worldbuilder_not_running': return 'Der Worldbuilder läuft nicht – öffne ihn und schalte unter Verwalten das Schaufenster an.';
     case 'worldbuilder_no_world': return 'Im Worldbuilder ist keine Welt offen.';
     case 'worldbuilder_timeout': return 'Der Worldbuilder antwortet nicht.';
-    case 'no_database': return 'Keine Figuren-Datenbank in Notion eingerichtet.';
-    case 'no_token': return 'Kein Notion-Token hinterlegt – unter Einstellungen → Verbindungen.';
-    case 'notion_error': return 'Notion antwortet, kennt die Datenbank aber nicht. Teile die Seite mit deiner Integration.';
     default: return failure.message || 'Die Quelle ist gerade nicht erreichbar.';
   }
 }
@@ -97,8 +91,8 @@ function switchableParts(entry: Entry): Array<{ key: string; label: string; valu
 }
 
 // "Eintrag aus der Welt" on "Im Stream": which entry the card in the overlay
-// shows, and whether it follows the Worldbuilder or is held. Picking an entry,
-// switching the source and the spoiler switches sit behind "Eintrag wählen".
+// shows, and whether it follows the Worldbuilder or is held. Picking an entry
+// and the spoiler switches sit behind "Eintrag wählen".
 export default function WorldPanel() {
   const { toast } = useToast();
   const [source, setSource] = useState<SourceInfo | null>(null);
@@ -177,16 +171,6 @@ export default function WorldPanel() {
     setReloadKey((key) => key + 1);
   };
 
-  const switchSource = async (next: SourceInfo['source']) => {
-    if (source?.source === next) return;
-    const result = await apiPost('/characters/source', { source: next });
-    if (!result) { toast.error('Quelle konnte nicht umgestellt werden'); return; }
-    setArt(null);
-    setEntries([]);
-    setSelectedId(null);
-    refresh();
-  };
-
   const changeFollow = async (change: Partial<Pick<FollowState, 'enabled' | 'held' | 'settleSeconds'>>) => {
     const result = await apiPost<FollowState>('/entries/follow', change);
     if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
@@ -225,8 +209,8 @@ export default function WorldPanel() {
 
   const selected = entries.find((e) => e.id === selectedId) ?? (active?.id === selectedId ? active : null);
 
-  const following = !!follow?.available && follow.enabled && !follow.held;
-  const followLine = !follow?.available
+  const following = !!follow && follow.enabled && !follow.held;
+  const followLine = !follow
     ? null
     : !follow.enabled ? 'Folgt dem Worldbuilder nicht'
     : follow.held ? 'Festgepinnt'
@@ -246,7 +230,7 @@ export default function WorldPanel() {
         )}
       </div>
 
-      {follow?.available && (
+      {follow && (
         <div className="card-line">
           <label className="card-check">
             <input type="checkbox" checked={follow.enabled} onChange={(e) => changeFollow({ enabled: e.target.checked })} />
@@ -276,16 +260,8 @@ export default function WorldPanel() {
           </>}
         >
           <div className="card-line card-wrap">
-            <span className="dialog-field-label">Quelle</span>
-            <div className="card-row">
-              {(['worldbuilder', 'notion'] as const).map((s) => (
-                <button key={s} type="button" className={`card-secondary ${source?.source === s ? 'active' : ''}`} onClick={() => switchSource(s)}>
-                  {s === 'worldbuilder' ? 'Worldbuilder' : 'Notion'}
-                </button>
-              ))}
-            </div>
-            {source?.source === 'worldbuilder' && source.world && <span className="dialog-hint">Welt: „{source.world}“</span>}
-            {follow?.available && follow.enabled && !follow.held && (
+            {source?.world && <span className="dialog-hint">Welt: „{source.world}“</span>}
+            {follow && follow.enabled && !follow.held && (
               <label className="dialog-hint">
                 Folgt nach{' '}
                 <select value={follow.settleSeconds} onChange={(e) => changeFollow({ settleSeconds: Number(e.target.value) })}>
@@ -329,9 +305,7 @@ export default function WorldPanel() {
                         onClick={() => setSelectedId(selectedId === e.id ? null : e.id)}
                         onKeyDown={(ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); setSelectedId(selectedId === e.id ? null : e.id); } }}
                       >
-                        {e.image && e.source === 'notion'
-                          ? <img className="character-row-portrait" src={e.image} alt="" />
-                          : <span className="character-row-portrait placeholder" style={{ color: e.artColor ?? undefined }}>{initials(e.title)}</span>}
+                        <span className="character-row-portrait placeholder" style={{ color: e.artColor ?? undefined }}>{initials(e.title)}</span>
                         <span className="character-row-body">
                           <span className="character-row-name">{e.title}</span>
                           {subline(e) && <span className="character-row-summary">{subline(e)}</span>}

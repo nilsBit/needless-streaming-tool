@@ -1,4 +1,4 @@
-export const SCHEMA_VERSION = 37;
+export const SCHEMA_VERSION = 38;
 
 export const SCHEMA = `
 CREATE TABLE IF NOT EXISTS schema_version (

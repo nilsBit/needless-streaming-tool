@@ -132,11 +132,16 @@ describe('setup and features', () => {
     expect((await request(app).get('/api/setup').set(auth()).expect(200)).body.features).toEqual(['welt', 'bilder', 'momente', 'autoclips']);
   });
 
-  it('also counts the Worldbuilder as set up once it is the chosen source for the world', async () => {
-    await request(app).post('/api/characters/source').set(auth()).send({ source: 'worldbuilder' }).expect(200);
-    const res = await request(app).get('/api/setup').set(auth()).expect(200);
-    expect(res.body.worldbuilder).toBe(true);
-    await request(app).post('/api/characters/source').set(auth()).send({ source: 'notion' }).expect(200);
+  it('keeps counting the Worldbuilder as set up once it has been seen, while it is closed', async () => {
+    // A machine that has never seen it — the test above already did.
+    getDb().prepare("DELETE FROM settings WHERE key = 'worldbuilder_known'").run();
+    forgetWorldbuilder();
     expect((await request(app).get('/api/setup').set(auth()).expect(200)).body.worldbuilder).toBe(false);
+    fs.writeFileSync(anschluss, JSON.stringify({ port: 1, token: 'x' }));
+    forgetWorldbuilder();
+    expect((await request(app).get('/api/setup').set(auth()).expect(200)).body.worldbuilder).toBe(true);
+    fs.unlinkSync(anschluss);
+    forgetWorldbuilder();
+    expect((await request(app).get('/api/setup').set(auth()).expect(200)).body.worldbuilder).toBe(true);
   });
 });

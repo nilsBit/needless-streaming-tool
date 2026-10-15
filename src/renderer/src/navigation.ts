@@ -145,13 +145,13 @@ export const AREAS: readonly Area[] = [
     key: 'settings',
     label: 'Einstellungen',
     sentence: 'Verbindungen, Programm und Daten.',
-    keywords: ['Twitch', 'OBS', 'Discord', 'Notion', 'Backup'],
+    keywords: ['Twitch', 'OBS', 'Discord', 'Worldbuilder', 'Backup'],
     group: 'secondary',
     subTabs: [
       {
         key: 'verbindungen',
         label: 'Verbindungen',
-        sentence: 'Twitch, OBS, Notion, Discord und GitHub – was verbunden ist und was noch fehlt.',
+        sentence: 'Twitch, OBS, Worldbuilder und Discord – was verbunden ist und was noch fehlt.',
         panels: ['settings-connections'],
       },
       {

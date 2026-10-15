@@ -167,7 +167,6 @@ export interface Clip {
   stream_timecode: string | null;
   recording_timecode: string | null;
   confidence: 'high' | 'medium' | null;
-  notion_page_id: string | null;
   /** Where the moment stands on the content board. */
   status: ClipStatus;
   /** Where it is meant to go: 'tiktok', 'shorts', 'reels', 'discord', … */

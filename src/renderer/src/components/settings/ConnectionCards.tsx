@@ -9,15 +9,15 @@ import type { ConnectionKey } from '../../../../shared/features';
 
 // The connections as cards — one building block for Einstellungen →
 // Verbindungen (every card) and the setup's step "Verbinden" (`only` the
-// ones the chosen features need). Twitch, OBS, Worldbuilder and Discord belong
-// to features; Notion is a setting only.
+// ones the chosen features need). Twitch, OBS, Worldbuilder and Discord each
+// belong to features.
 
 interface Props {
   /** The setup passes what its choice needs; the settings show everything. */
   only?: readonly ConnectionKey[];
 }
 
-interface SourceInfo { source: 'notion' | 'worldbuilder'; world?: string | null; error?: string; message?: string }
+interface WorldInfo { world?: string | null; error?: string; message?: string }
 
 const OK = '#2ecc71';
 const BAD = '#e74c3c';
@@ -50,14 +50,12 @@ export default function ConnectionCards({ only }: Props) {
   const { toast } = useToast();
   const { worldbuilder } = useFeatures();
   const show = (key: ConnectionKey) => !only || only.includes(key);
-  const settingsOnly = !only;
 
   const { data: botStatus, refetch: refetchBot } = useApi<BotStatus>('/settings/bot-status');
   const { data: obsConfig, refetch: refetchObs } = useApi<{ configured: boolean; host?: string; port?: number; has_password?: boolean }>('/obs/config');
   const { data: obsStatus, refetch: refetchObsStatus } = useApi<{ connected: boolean }>('/obs/status');
-  const { data: notionInfo, refetch: refetchNotion } = useApi<{ configured: boolean; preview: string | null }>('/settings/notion');
   const { data: discordLive, refetch: refetchDiscordLive } = useApi<{ configured: boolean; message: string }>('/settings/discord-live');
-  const { data: world, refetch: refetchWorld } = useApi<SourceInfo>('/characters/source');
+  const { data: world, refetch: refetchWorld } = useApi<WorldInfo>('/characters/source');
   // Start, pause and end are scenes of their own; the check only exists while that feature is on.
   const { data: readiness, refetch: refetchReadiness } = useApi<{ items: Array<{ id: string; ok: boolean | null; problem: string }> }>('/readiness');
   const scenesMissing = readiness?.items.find((i) => i.id === 'scenes' && i.ok === false);
@@ -69,7 +67,6 @@ export default function ConnectionCards({ only }: Props) {
   const [obsHost, setObsHost] = useState('localhost');
   const [obsPort, setObsPort] = useState('4455');
   const [obsPassword, setObsPassword] = useState('');
-  const [notionToken, setNotionToken] = useState('');
   const [discordWebhook, setDiscordWebhook] = useState('');
   const [discordMessage, setDiscordMessage] = useState<string | null>(null);
 
@@ -105,12 +102,6 @@ export default function ConnectionCards({ only }: Props) {
     if (connectResult) refetchObsStatus();
   };
 
-  const saveNotionToken = async () => {
-    const result = await apiPost('/settings/notion', { token: notionToken.trim() });
-    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
-    setNotionToken(''); setExpanded(null); refetchNotion();
-  };
-
   const saveDiscordLive = async () => {
     const body: { webhook_url?: string; message?: string } = {};
     if (discordWebhook.trim() !== '') body.webhook_url = discordWebhook.trim();
@@ -126,17 +117,10 @@ export default function ConnectionCards({ only }: Props) {
     refetchDiscordLive();
   };
 
-  const useWorldbuilder = async () => {
-    const result = await apiPost('/characters/source', { source: 'worldbuilder' });
-    if (!result) { toast.error('Aktion fehlgeschlagen'); return; }
-    refetchWorld();
-  };
-
   const worldStatus = !world ? '…'
-    : world.source !== 'worldbuilder' ? 'Notion ist die Quelle'
     : world.error ? 'Nicht erreichbar – ist der Worldbuilder offen?'
     : world.world ? `Erreichbar · „${world.world}“` : 'Erreichbar';
-  const worldColor = !world || world.source !== 'worldbuilder' ? OFF : world.error ? BAD : OK;
+  const worldColor = !world ? OFF : world.error ? BAD : OK;
 
   return (
     <>
@@ -188,25 +172,7 @@ export default function ConnectionCards({ only }: Props) {
           id="worldbuilder" title="Worldbuilder" expanded={false}
           note={only ? 'Eintragskarte aus der Welt' : undefined}
           status={worldStatus} statusColor={worldColor}
-          action={world && world.source !== 'worldbuilder' ? 'Worldbuilder als Quelle' : undefined}
-          onAction={useWorldbuilder}
         />
-      )}
-
-      {settingsOnly && (
-        <Card
-          id="notion" title="Notion" expanded={expanded === 'notion'}
-          status={notionInfo?.configured ? `Token: ${notionInfo.preview}` : 'Nicht verbunden'}
-          statusColor={notionInfo?.configured ? OK : OFF}
-          action={notionInfo?.configured ? 'Token ändern' : 'Einrichten'}
-          actionColor={notionInfo?.configured ? 'ghost' : 'primary'}
-          onAction={() => toggle('notion')}
-        >
-          <div className="s-card-inputs">
-            <input type="text" placeholder="Notion Internal Integration Token (ntn_...)" value={notionToken} onChange={(e) => setNotionToken(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && saveNotionToken()} />
-            <button type="button" className="s-card-action primary" onClick={saveNotionToken}>Speichern</button>
-          </div>
-        </Card>
       )}
 
       {show('discord') && (

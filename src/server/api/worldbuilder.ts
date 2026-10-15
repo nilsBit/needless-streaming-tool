@@ -8,10 +8,8 @@ import type { Entry } from './active-entry';
  * Reads the world out of Worldbuilder — the desktop tool where the world this
  * stream is about actually gets written.
  *
- * Three things read it: the character list (as the second source next to
- * Notion — which one is used is a setting, and Notion stays untouched), the
- * Entries the Overlay can show, and Lookup Commands, which let chat look up
- * any entry by name.
+ * Three things read it: the character list, the Entries the Overlay can
+ * show, and Lookup Commands, which let chat look up any entry by name.
  *
  * ## How it connects
  *
@@ -303,7 +301,6 @@ export function toEntry(
 ): Entry {
   return {
     id: detail.id,
-    source: 'worldbuilder',
     title: detail.titel,
     art: detail.art,
     artColor: extras.artColor,
@@ -382,7 +379,7 @@ function toCharacter(connection: Connection, entry: EntryDetail): Character {
  * The auth header a portrait URL needs.
  *
  * Worldbuilder's image route is behind the same token as everything else, so
- * the plain fetch that works for a Notion URL does not work here.
+ * a plain fetch does not work here.
  */
 export function portraitHeaders(url: string): Record<string, string> | undefined {
   const connection = readConnection();
