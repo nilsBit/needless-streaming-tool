@@ -122,12 +122,17 @@ export default function ChallengePanel() {
         <span className="card-goal-state">{statusLabel}</span>
       </div>
       {countdown ? (
-        <div className="card-line">
-          <span className="card-timer">{state?.challenge_status === 'done' ? 'Zeit um!' : countdownDisplay}</span>
-          {state?.timer_task_by && <span className="dialog-hint">von {state.timer_task_by}</span>}
-          {state?.challenge_status !== 'done' && <button type="button" className="card-secondary" onClick={pauseCountdown}>{state?.timer_paused_left != null ? 'Weiter' : 'Pause'}</button>}
-          <button type="button" className="card-secondary" onClick={endCountdown}>Beenden</button>
-        </div>
+        <>
+          {/* Time and who on one line, the buttons below – side by side they ran out of the card (15.10.) */}
+          <div className="card-line card-countdown">
+            <span className="card-timer">{state?.challenge_status === 'done' ? 'Zeit um!' : countdownDisplay}</span>
+            {state?.timer_task_by && <span className="dialog-hint">von {state.timer_task_by}</span>}
+          </div>
+          <div className="card-row">
+            {state?.challenge_status !== 'done' && <button type="button" className="card-secondary" onClick={pauseCountdown}>{state?.timer_paused_left != null ? 'Weiter' : 'Pause'}</button>}
+            <button type="button" className="card-secondary" onClick={endCountdown}>Beenden</button>
+          </div>
+        </>
       ) : (
         <>
       <div className="card-line">
