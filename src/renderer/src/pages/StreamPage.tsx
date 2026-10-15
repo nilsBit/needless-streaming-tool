@@ -3,7 +3,6 @@ import ErrorBoundary from '../components/ErrorBoundary';
 import StreamCard, { type SceneState } from '../components/ux/StreamCard';
 import { openAt } from '../components/ux/openAt';
 import { useNavigate } from '../NavigationContext';
-import MomentCard from '../components/stream/MomentCard';
 import { PANEL_REGISTRY } from '../panelRegistry';
 import { PANEL_LABELS, findArea } from '../navigation';
 import type { PanelKey } from '../panelKeys';
@@ -118,18 +117,15 @@ export default function StreamPage() {
 
   return (
     <div className="stream-page">
-      {(panels.length > 0 || isOn('momente')) && (
+      {panels.length > 0 && (
         <div className="stream-top">
-          {panels.length > 0 && (
-            <section className="stream-today" aria-labelledby="stream-today-title">
-              <div className="stream-today-head">
-                <h2 id="stream-today-title">Heute dabei</h2>
-                <span>Bleibt so, bis du es änderst. Der Rest wartet hier.</span>
-              </div>
-              {chips}
-            </section>
-          )}
-          {isOn('momente') && <MomentCard />}
+          <section className="stream-today" aria-labelledby="stream-today-title">
+            <div className="stream-today-head">
+              <h2 id="stream-today-title">Heute dabei</h2>
+              <span>Bleibt so, bis du es änderst. Der Rest wartet hier.</span>
+            </div>
+            {chips}
+          </section>
         </div>
       )}
     <div className="stream-cards">
@@ -146,7 +142,7 @@ export default function StreamPage() {
         );
       })}
     </div>
-      {panels.length === 0 && !isOn('momente') && (
+      {panels.length === 0 && (
         <p className="empty">Nichts gewählt. Unter Einstellungen → Programm → „Was dein Stream kann“ schaltest du Funktionen an.</p>
       )}
       {panels.length > 0 && shown.length === 0 && (
