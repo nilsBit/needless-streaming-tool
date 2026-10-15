@@ -110,11 +110,9 @@ describe('navigation', () => {
     expect(findSubTab(chat, 'ausprobieren').key).toBe('befehle');
   });
 
-  it('claims only panels that exist, each overlay and hotkey once', () => {
+  it('claims only panels that exist, each overlay once', () => {
     const overlays = FEATURES.flatMap((f) => f.overlays);
-    const hotkeys = FEATURES.flatMap((f) => f.hotkeys);
     for (const f of FEATURES) for (const p of f.panels) expect(PANEL_KEYS as readonly string[], `feature "${f.key}" claims unknown panel "${p}"`).toContain(p);
     expect(new Set(overlays).size).toBe(overlays.length);
-    expect(new Set(hotkeys).size).toBe(hotkeys.length);
   });
 });

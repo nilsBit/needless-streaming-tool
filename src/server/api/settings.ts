@@ -9,8 +9,6 @@ import { getFixedToken } from '../auth-token';
 import { getDb } from '../db/index';
 import path from 'path';
 import fs from 'fs';
-import { DEFAULT_HOTKEYS } from '../../shared/types';
-import { isAccelerator } from '../hotkey-accelerator';
 import { getUserDataPath } from '../paths';
 import { getSyncStatus, syncToRemoteManual, readSyncConfig, writeSyncConfig } from '../sync';
 import { getLiveSettings, saveLiveSettings } from '../discord/live';
@@ -133,35 +131,6 @@ router.post('/reminder', (req, res) => {
 router.get('/api-token', (_req, res) => {
   const token = getFixedToken();
   res.json({ token: token || null });
-});
-
-// Hotkeys config
-router.get('/hotkeys', (_req, res) => {
-  const row = getDb().prepare('SELECT value FROM settings WHERE key = ?').get('hotkeys') as { value: string } | undefined;
-  if (row?.value) {
-    try {
-      res.json(JSON.parse(row.value));
-    } catch {
-      res.json(DEFAULT_HOTKEYS);
-    }
-  } else {
-    res.json(DEFAULT_HOTKEYS);
-  }
-});
-
-router.post('/hotkeys', (req, res) => {
-  const config = req.body as Record<string, unknown> | null;
-  if (!config || typeof config !== 'object' || Array.isArray(config)) {
-    res.status(400).json({ error: 'hotkey config object required' });
-    return;
-  }
-  // Known keys only, each a shortcut Electron can register (or empty for none).
-  const unknown = Object.keys(config).filter((k) => !(k in DEFAULT_HOTKEYS));
-  if (unknown.length) { res.status(400).json({ error: `unknown hotkey: ${unknown.join(', ')}` }); return; }
-  const bad = Object.entries(config).filter(([, v]) => !isAccelerator(v)).map(([k]) => k);
-  if (bad.length) { res.status(400).json({ error: `not a shortcut: ${bad.join(', ')}` }); return; }
-  getDb().prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('hotkeys', JSON.stringify(config));
-  res.json({ success: true });
 });
 
 // Autostart

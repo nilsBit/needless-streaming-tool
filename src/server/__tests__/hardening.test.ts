@@ -7,7 +7,6 @@ import { createApp } from '../index';
 import { csvCell, csvRow } from '../csv';
 import { allowedOrigin } from '../origins';
 import { looksLikeSound } from '../sound-sniff';
-import { isAccelerator } from '../hotkey-accelerator';
 import { pruneViewerData } from '../retention';
 
 // Security review of 2026-10-06, block 4: exact origins, plain hardening
@@ -59,19 +58,6 @@ describe('sound files', () => {
   });
 });
 
-describe('hotkey accelerators', () => {
-  it('accepts what Electron registers and refuses the rest', () => {
-    expect(isAccelerator('CommandOrControl+Shift+E')).toBe(true);
-    expect(isAccelerator('Ctrl+Alt+F12')).toBe(true);
-    expect(isAccelerator('Shift+num7')).toBe(true);
-    expect(isAccelerator('')).toBe(true);
-    expect(isAccelerator('CommandOrControl+')).toBe(false);
-    expect(isAccelerator('Strg+E')).toBe(false);
-    expect(isAccelerator('E; rm -rf')).toBe(false);
-    expect(isAccelerator(42)).toBe(false);
-  });
-});
-
 describe('hardened routes', () => {
   let app: Express;
   let token: string;
@@ -105,14 +91,6 @@ describe('hardened routes', () => {
     const res = await request(app).post('/api/settings/autostart').set(auth()).send({ enabled: true }).expect(500);
     expect(res.body.error).toBe('Autostart nicht verfügbar');
     expect(res.body.details).toBeUndefined();
-  });
-
-  it('refuses hotkeys that are not shortcuts and keys it does not know', async () => {
-    await request(app).post('/api/settings/hotkeys').set(auth()).send({ hype_moment: 'Strg+C' }).expect(400);
-    await request(app).post('/api/settings/hotkeys').set(auth()).send({ open_calc: 'CommandOrControl+C' }).expect(400);
-    await request(app).post('/api/settings/hotkeys').set(auth()).send({ hype_moment: 'CommandOrControl+Shift+H', roulette: '' }).expect(200);
-    const saved = await request(app).get('/api/settings/hotkeys').set(auth()).expect(200);
-    expect(saved.body.hype_moment).toBe('CommandOrControl+Shift+H');
   });
 
   it('refuses a sync folder that is relative, missing or ours', async () => {

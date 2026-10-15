@@ -151,11 +151,6 @@ describe('projects', () => {
     const res = await request(app).post('/api/text-commands').set(auth()).send({ trigger: '!projekt', response: 'Mein Text' });
     expect(res.status).toBe(409);
   });
-
-  it('takes a shortcut for "Projekt weiter"', async () => {
-    await request(app).post('/api/settings/hotkeys').set(auth()).send({ project_forward: 'CommandOrControl+Alt+P' }).expect(200);
-    expect((await request(app).get('/api/settings/hotkeys').set(auth()).expect(200)).body.project_forward).toBe('CommandOrControl+Alt+P');
-  });
 });
 
 describe('projects from the old "Fortschritt"', () => {

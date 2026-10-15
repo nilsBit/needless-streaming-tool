@@ -1,6 +1,6 @@
 // What a stream can do — the one list the setup asks from ("Was soll dein
 // Stream können?", 06.10.2026) and the app shows by. A feature names what it
-// needs connected, which overlays, built-in commands, panels, hotkeys and
+// needs connected, which overlays, built-in commands, panels and
 // readiness checks belong to it. Pure data: the server filters by it, the
 // renderer hides by it, and the navigation test reads it under Node.
 //
@@ -37,8 +37,6 @@ export interface Feature {
   commands: string[];
   /** Panel keys that show only while this (or another claiming feature) is on. */
   panels: string[];
-  /** Keys of HotkeyConfig. */
-  hotkeys: string[];
   readiness: ReadinessId[];
 }
 
@@ -51,28 +49,28 @@ export const FEATURE_GROUPS: readonly FeatureGroup[] = [
 ];
 
 export const FEATURES: readonly Feature[] = [
-  { key: 'befehle', group: 'chat', label: 'Erklär-Befehle', sentence: 'Der Chat fragt !zeitplan oder !setup, der Bot antwortet mit deinem Text.', needs: ['twitch'], overlays: [], commands: [], panels: [], hotkeys: [], readiness: ['commands'] },
-  { key: 'rad', group: 'chat', label: 'Glücksrad', sentence: 'Du sammelst Themen, das Rad entscheidet. Der Chat sieht sie mit !themen.', needs: ['twitch', 'obs'], overlays: ['roulette'], commands: ['issues'], panels: ['issues'], hotkeys: ['roulette'], readiness: [] },
-  { key: 'vote', group: 'chat', label: 'Abstimmung', sentence: 'Du sammelst Vorschläge, der Chat stimmt mit !vote ab.', needs: ['twitch', 'obs'], overlays: ['poll'], commands: ['vote', 'design'], panels: ['designs'], hotkeys: [], readiness: [] },
-  { key: 'shoutout', group: 'chat', label: 'Raid-Gruß von selbst', sentence: 'Wer dich raidet, bekommt vom Bot einen Gruß mit Link zum Kanal.', needs: ['twitch'], overlays: [], commands: ['shoutout'], panels: [], hotkeys: [], readiness: [] },
-  { key: 'punkte', group: 'chat', label: 'Eigene Punkte', sentence: 'Zuschauer sammeln Punkte fürs Zuschauen, Chatten und Unterstützen – neben den Kanalpunkten von Twitch – und lösen sie mit !einlösen ein. Wer am meisten beiträgt, steht oben.', needs: ['twitch'], overlays: [], commands: ['points', 'rewards_list', 'redeem'], panels: ['rewards'], hotkeys: [], readiness: [] },
+  { key: 'befehle', group: 'chat', label: 'Erklär-Befehle', sentence: 'Der Chat fragt !zeitplan oder !setup, der Bot antwortet mit deinem Text.', needs: ['twitch'], overlays: [], commands: [], panels: [], readiness: ['commands'] },
+  { key: 'rad', group: 'chat', label: 'Glücksrad', sentence: 'Du sammelst Themen, das Rad entscheidet. Der Chat sieht sie mit !themen.', needs: ['twitch', 'obs'], overlays: ['roulette'], commands: ['issues'], panels: ['issues'], readiness: [] },
+  { key: 'vote', group: 'chat', label: 'Abstimmung', sentence: 'Du sammelst Vorschläge, der Chat stimmt mit !vote ab.', needs: ['twitch', 'obs'], overlays: ['poll'], commands: ['vote', 'design'], panels: ['designs'], readiness: [] },
+  { key: 'shoutout', group: 'chat', label: 'Raid-Gruß von selbst', sentence: 'Wer dich raidet, bekommt vom Bot einen Gruß mit Link zum Kanal.', needs: ['twitch'], overlays: [], commands: ['shoutout'], panels: [], readiness: [] },
+  { key: 'punkte', group: 'chat', label: 'Eigene Punkte', sentence: 'Zuschauer sammeln Punkte fürs Zuschauen, Chatten und Unterstützen – neben den Kanalpunkten von Twitch – und lösen sie mit !einlösen ein. Wer am meisten beiträgt, steht oben.', needs: ['twitch'], overlays: [], commands: ['points', 'rewards_list', 'redeem'], panels: ['rewards'], readiness: [] },
 
-  { key: 'chat', group: 'overlays', label: 'Chat im Stream', sentence: 'Die letzten Nachrichten, mit den Antworten des Bots auf Befehle.', needs: ['twitch', 'obs'], overlays: ['chat'], commands: [], panels: [], hotkeys: [], readiness: [] },
-  { key: 'song', group: 'overlays', label: 'Musik mit Cover', sentence: 'Der Titel, der gerade läuft, mit Bild.', needs: ['obs'], overlays: ['song'], commands: ['song'], panels: ['song'], hotkeys: [], readiness: [] },
-  { key: 'ziel', group: 'overlays', label: 'Ziel für heute', sentence: 'Ein Satz, dazu läuft eine Uhr.', needs: ['obs'], overlays: ['challenge'], commands: ['challenge'], panels: ['challenge'], hotkeys: ['challenge_toggle', 'timer_toggle', 'challenge_done', 'challenge_failed'], readiness: [] },
-  { key: 'fortschritt', group: 'overlays', label: 'Projekt', sentence: 'Woran du über mehrere Streams arbeitest und wie weit es ist – im Overlay und mit !projekt.', needs: ['obs'], overlays: ['progress'], commands: ['progress'], panels: ['progress'], hotkeys: ['project_forward'], readiness: [] },
-  { key: 'alerts', group: 'overlays', label: 'Alerts', sentence: 'Tafel mit Ton bei Follow, Abo, Geschenk, Raid und Bits.', needs: ['twitch', 'obs'], overlays: ['alerts'], commands: [], panels: [], hotkeys: [], readiness: ['alertSounds'] },
+  { key: 'chat', group: 'overlays', label: 'Chat im Stream', sentence: 'Die letzten Nachrichten, mit den Antworten des Bots auf Befehle.', needs: ['twitch', 'obs'], overlays: ['chat'], commands: [], panels: [], readiness: [] },
+  { key: 'song', group: 'overlays', label: 'Musik mit Cover', sentence: 'Der Titel, der gerade läuft, mit Bild.', needs: ['obs'], overlays: ['song'], commands: ['song'], panels: ['song'], readiness: [] },
+  { key: 'ziel', group: 'overlays', label: 'Ziel für heute', sentence: 'Ein Satz, dazu läuft eine Uhr.', needs: ['obs'], overlays: ['challenge'], commands: ['challenge'], panels: ['challenge'], readiness: [] },
+  { key: 'fortschritt', group: 'overlays', label: 'Projekt', sentence: 'Woran du über mehrere Streams arbeitest und wie weit es ist – im Overlay und mit !projekt.', needs: ['obs'], overlays: ['progress'], commands: ['progress'], panels: ['progress'], readiness: [] },
+  { key: 'alerts', group: 'overlays', label: 'Alerts', sentence: 'Tafel mit Ton bei Follow, Abo, Geschenk, Raid und Bits.', needs: ['twitch', 'obs'], overlays: ['alerts'], commands: [], panels: [], readiness: ['alertSounds'] },
 
-  { key: 'bestenliste', group: 'rewards', label: 'Bestenlisten', sentence: 'Wer eine Belohnung am öftesten einlöst – je Liste eine Belohnung. Als Overlay, mit Rangwechsel-Meldung und !stats.', needs: ['twitch', 'obs'], overlays: ['reward-leaderboard', 'reward-rankchange'], commands: ['rewardstats'], panels: [], hotkeys: [], readiness: [] },
-  { key: 'belohnungen', group: 'rewards', label: 'Belohnungen auslösen', sentence: 'Kanalpunkte drehen das Rad, wechseln kurz die Szene, ändern die Musik oder reichen einen Vorschlag ein.', needs: ['twitch', 'obs'], overlays: [], commands: [], panels: ['rewards'], hotkeys: [], readiness: [] },
+  { key: 'bestenliste', group: 'rewards', label: 'Bestenlisten', sentence: 'Wer eine Belohnung am öftesten einlöst – je Liste eine Belohnung. Als Overlay, mit Rangwechsel-Meldung und !stats.', needs: ['twitch', 'obs'], overlays: ['reward-leaderboard', 'reward-rankchange'], commands: ['rewardstats'], panels: [], readiness: [] },
+  { key: 'belohnungen', group: 'rewards', label: 'Belohnungen auslösen', sentence: 'Kanalpunkte drehen das Rad, wechseln kurz die Szene, ändern die Musik oder reichen einen Vorschlag ein.', needs: ['twitch', 'obs'], overlays: [], commands: [], panels: ['rewards'], readiness: [] },
 
-  { key: 'momente', group: 'personal', label: 'Momente merken', sentence: 'Ein Klick setzt eine Marke. Nach dem Stream steht sie im Ablauf, mit Uhrzeit.', needs: [], overlays: [], commands: ['hype'], panels: [], hotkeys: ['hype_moment'], readiness: [] },
-  { key: 'autoclips', group: 'personal', label: 'Hype von selbst erkennen', sentence: 'Wenn der Chat explodiert, setzt das Tool die Marke für dich.', needs: ['twitch'], overlays: [], commands: [], panels: [], hotkeys: [], readiness: [] },
-  { key: 'meilensteine', group: 'after', label: 'Meilensteine feiern', sentence: 'Ein abgehakter Meilenstein wird groß gefeiert, über allem anderen.', needs: ['obs'], overlays: ['milestone'], commands: [], panels: [], hotkeys: ['milestone_minor', 'milestone_major', 'milestone_epic'], readiness: [] },
-  { key: 'discord', group: 'after', label: 'Live-Meldung nach Discord', sentence: 'Wenn du live gehst, postet das Tool eine Nachricht in deinen Server.', needs: ['discord'], overlays: [], commands: [], panels: [], hotkeys: [], readiness: [] },
+  { key: 'momente', group: 'personal', label: 'Momente merken', sentence: 'Ein Klick setzt eine Marke. Nach dem Stream steht sie im Ablauf, mit Uhrzeit.', needs: [], overlays: [], commands: ['hype'], panels: [], readiness: [] },
+  { key: 'autoclips', group: 'personal', label: 'Hype von selbst erkennen', sentence: 'Wenn der Chat explodiert, setzt das Tool die Marke für dich.', needs: ['twitch'], overlays: [], commands: [], panels: [], readiness: [] },
+  { key: 'meilensteine', group: 'after', label: 'Meilensteine feiern', sentence: 'Ein abgehakter Meilenstein wird groß gefeiert, über allem anderen.', needs: ['obs'], overlays: ['milestone'], commands: [], panels: [], readiness: [] },
+  { key: 'discord', group: 'after', label: 'Live-Meldung nach Discord', sentence: 'Wenn du live gehst, postet das Tool eine Nachricht in deinen Server.', needs: ['discord'], overlays: [], commands: [], panels: [], readiness: [] },
 
-  { key: 'welt', group: 'personal', label: 'Eintragskarte aus der Welt', sentence: 'Die Karte zeigt den Eintrag, den du im Worldbuilder offen hast.', needs: ['obs', 'worldbuilder'], overlays: ['character'], commands: [], panels: ['world'], hotkeys: [], readiness: ['worldbuilder'] },
-  { key: 'bilder', group: 'personal', label: 'Start-, Pausen- und Endbild', sentence: 'Füllen den ganzen Stream – davor, zwischendurch und danach, mit eigenen Szenen in OBS.', needs: ['obs'], overlays: ['start', 'pause', 'end'], commands: [], panels: [], hotkeys: [], readiness: ['scenes'] },
+  { key: 'welt', group: 'personal', label: 'Eintragskarte aus der Welt', sentence: 'Die Karte zeigt den Eintrag, den du im Worldbuilder offen hast.', needs: ['obs', 'worldbuilder'], overlays: ['character'], commands: [], panels: ['world'], readiness: ['worldbuilder'] },
+  { key: 'bilder', group: 'personal', label: 'Start-, Pausen- und Endbild', sentence: 'Füllen den ganzen Stream – davor, zwischendurch und danach, mit eigenen Szenen in OBS.', needs: ['obs'], overlays: ['start', 'pause', 'end'], commands: [], panels: [], readiness: ['scenes'] },
 ];
 
 export const FEATURE_KEYS: readonly FeatureKey[] = FEATURES.map((f) => f.key);
@@ -119,7 +117,6 @@ function claimed<T>(on: ReadonlySet<string>, pick: (f: Feature) => readonly T[],
 export const panelVisible = (on: ReadonlySet<string>, panel: string) => claimed(on, (f) => f.panels, panel);
 export const commandVisible = (on: ReadonlySet<string>, commandKey: string) => claimed(on, (f) => f.commands, commandKey);
 export const overlayVisible = (on: ReadonlySet<string>, overlay: string) => claimed(on, (f) => f.overlays, overlay);
-export const hotkeyVisible = (on: ReadonlySet<string>, hotkey: string) => claimed(on, (f) => f.hotkeys, hotkey);
 
 /** The feature an overlay belongs to, or null for one that belongs to none (custom overlays). */
 export function featureOfOverlay(overlay: string): FeatureKey | null {
