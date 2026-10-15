@@ -6,6 +6,7 @@ import { botHelix, raidShoutoutEnabled, shoutoutText } from './shoutout';
 import { reminder } from './index';
 import { onBits, onChatMessage, onGift, onRaid, onSub } from '../points/earn';
 import { noteChat, noteConnection } from '../stream-report/log';
+import { raider } from './raid';
 
 /** A raid's crowd arrives a moment after the notice; the shoutout waits for them. */
 const RAID_SHOUTOUT_DELAY_MS = 4000;
@@ -36,15 +37,18 @@ export function registerEvents(client: Client) {
     sendAlert('subgift', { user: username, count: numbOfSubs });
     onGift(userstate?.login ?? username, Number(numbOfSubs) || 0, username);
   });
-  client.on('raided', (channel, username, viewers) => {
-    sendAlert('raid', { user: username, viewers });
-    onRaid(username);
+  // tmi.js passes the tags as a fourth argument; its types leave them out.
+  client.on('raided', ((channel: string, username: string, viewers: number, tags?: unknown) => {
+    const { login, name } = raider(username, tags as Record<string, unknown> | undefined);
+    sendAlert('raid', { user: name, viewers });
+    onRaid(login, name);
     if (!raidShoutoutEnabled()) return;
     setTimeout(async () => {
       const helix = botHelix() ?? (async () => null);
-      void sayInParts(client, channel, await shoutoutText(username, helix));
+      // By login: a display name in another script is no channel address.
+      void sayInParts(client, channel, await shoutoutText(login, helix));
     }, RAID_SHOUTOUT_DELAY_MS);
-  });
+  }) as (channel: string, username: string, viewers: number) => void);
   client.on('cheer', (_channel, userstate, message) => {
     sendAlert('cheer', { user: userstate['display-name'] ?? userstate.username, bits: userstate.bits, message });
     if (userstate.username) onBits(userstate.username, Number(userstate.bits) || 0, userstate['display-name']);
