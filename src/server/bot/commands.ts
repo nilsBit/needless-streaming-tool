@@ -1,6 +1,6 @@
 import { Client } from 'tmi.js';
 import { getDb } from '../db/index';
-import { startVote, castVote, getActiveVote, endVote } from './voting';
+import { startVote, castVote, getActiveVote, endVote, numbered } from './voting';
 import { StreamState, Issue } from '../../shared/types';
 import { broadcast } from '../websocket/index';
 import { standingsText } from '../leaderboards';
@@ -20,11 +20,6 @@ const ANSWERED_IN_CHAT_ANSWERS: ReadonlySet<string> = new Set(['commands', 'priv
 /** Broadcaster and mods — the people allowed to steer the stream from chat. */
 function isPrivileged(tags: { mod?: boolean; badges?: { broadcaster?: string } | null }): boolean {
   return !!tags.mod || tags.badges?.broadcaster === '1';
-}
-
-/** Options the way chat votes on them: "1 rote tür | 2 blaue tür". */
-function numbered(options: string[]): string {
-  return options.map((option, i) => `${i + 1} ${option}`).join(' | ');
 }
 
 export function registerCommands(client: Client) {
@@ -104,7 +99,7 @@ export function registerCommands(client: Client) {
         const args = message.trim().split(/\s+/).slice(1);
         const subCommand = args[0]?.toLowerCase();
         // Replies name the commands as the streamer has them, not as they were once called.
-        const { design: self, vote: voteName } = getCommandNames();
+        const { design: self } = getCommandNames();
 
         if (subCommand === 'start') {
           const duration = parseInt(args[1], 10) || 60;
@@ -113,21 +108,11 @@ export function registerCommands(client: Client) {
             say(`❌ Mindestens 2 Optionen: ${self} start 60 option1 option2 ...`);
             break;
           }
-          const success = startVote('🗳️ Abstimmung', options, duration);
-          if (success) {
-            say(`🗳️ ABSTIMMUNG! Schreibt ${voteName} <Nummer> — ${numbered(options)} — ${duration}s Zeit!`);
-          } else {
-            say('❌ Es läuft bereits eine Abstimmung!');
-          }
+          // A vote that starts announces itself, as one from the app does.
+          if (!startVote('🗳️ Abstimmung', options, duration)) say('❌ Es läuft bereits eine Abstimmung!');
         } else if (subCommand === 'end') {
-          const result = endVote();
-          if (result) {
-            const sorted = Object.entries(result.counts).sort((a, b) => b[1] - a[1]);
-            const resultText = sorted.map(([opt, count]) => `${opt}: ${count}`).join(' | ');
-            say(`🗳️ ERGEBNIS: ${resultText} — Gewinner: ${result.winner} 🏆`);
-          } else {
-            say('❌ Keine aktive Abstimmung.');
-          }
+          // The result goes to chat from endVote, however the vote ends.
+          if (!endVote()) say('❌ Keine aktive Abstimmung.');
         } else if (subCommand === 'status') {
           const vote = getActiveVote();
           if (vote) {

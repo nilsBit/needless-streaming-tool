@@ -3,6 +3,7 @@ import { getDb } from '../db/index';
 import { broadcast } from '../websocket/index';
 import { VALID_CHALLENGE_STATUS } from '../../shared/types';
 import { validateEnum } from './validate';
+import { announce } from '../bot/announce';
 import { dropRewardTimer, endRewardTimer, rewardTimerActive, toggleRewardTimerPause } from '../reward-timer';
 
 const router = Router();
@@ -96,6 +97,7 @@ router.patch('/', (req, res) => {
   // Resetting the goal ends a reward countdown with no way back
   if (challenge_status === 'idle') dropRewardTimer();
 
+  const before = db.prepare('SELECT challenge_status FROM stream_state WHERE id = 1').get() as { challenge_status: string } | undefined;
   db.prepare(`UPDATE stream_state SET ${fields.join(', ')} WHERE id = 1`).run(...values);
 
   // Start/stop server-side timer based on timer_running changes
@@ -104,11 +106,23 @@ router.patch('/', (req, res) => {
     else stopServerTimer();
   }
 
-  const state = db.prepare('SELECT * FROM stream_state WHERE id = 1').get();
+  const state = db.prepare('SELECT * FROM stream_state WHERE id = 1').get() as { challenge_title: string | null; challenge_status: string; timer_seconds: number };
+
+  // Only the step from running to an end is news; saving an ended goal again is not.
+  if (before?.challenge_status === 'in_progress' && state.challenge_title && (state.challenge_status === 'done' || state.challenge_status === 'failed')) {
+    announce(goalEndLine(state.challenge_title, state.challenge_status, state.timer_seconds));
+  }
 
   broadcast('stream-state', state);
   res.json(state);
 });
+
+/** How the goal for today ended, for chat — with the time it took, once it took a minute. */
+export function goalEndLine(title: string, status: 'done' | 'failed', seconds: number): string {
+  if (status === 'failed') return `❌ Ziel nicht geschafft: ${title}`;
+  const minutes = Math.floor(seconds / 60);
+  return minutes > 0 ? `✅ Ziel geschafft: ${title} – nach ${minutes} min` : `✅ Ziel geschafft: ${title}`;
+}
 
 router.post('/reward-timer/end', (_req, res) => {
   endRewardTimer();

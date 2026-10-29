@@ -1,5 +1,7 @@
 import { broadcast } from '../websocket/index';
 import { noteActivity } from '../stream-report/log';
+import { announce } from './announce';
+import { getCommandNames } from './command-names';
 
 interface Vote {
   options: string[];
@@ -62,8 +64,9 @@ export function startVote(
     endVote();
   }, durationSeconds * 1000);
 
-  // Broadcast poll start to overlays
+  // Broadcast poll start to overlays, and tell chat how to vote
   broadcastPoll();
+  announce(startLine(activeVote.options, durationSeconds));
   noteActivity('poll', title);
 
   return true;
@@ -93,11 +96,31 @@ export function endVote(): { winner: string; counts: Record<string, number> } | 
   const result = { winner, counts, title: activeVote.title, designId: activeVote.designId, total: activeVote.votes.size };
 
   broadcast('vote-result', result);
+  announce(resultLine(activeVote.options, counts));
   noteActivity('poll', null, result.total);
   broadcast('poll-close', {});
 
   activeVote = null;
   return { winner, counts };
+}
+
+/** Options the way chat votes on them: "1 rote tür | 2 blaue tür". */
+export function numbered(options: string[], counts?: Record<string, number>): string {
+  return options.map((option, i) => (counts ? `${i + 1} ${option} ${counts[option] || 0}` : `${i + 1} ${option}`)).join(' | ');
+}
+
+/** What chat reads when a vote starts — from the app or from `!abstimmung start`. */
+export function startLine(options: string[], durationSeconds: number): string {
+  return `🗳️ ABSTIMMUNG! Schreibt ${getCommandNames().vote} <Nummer> — ${numbered(options)} — ${durationSeconds}s Zeit!`;
+}
+
+/** What chat reads when a vote is over — ended by hand or by its time. Several on top share it. */
+export function resultLine(options: string[], counts: Record<string, number>): string {
+  const most = Math.max(0, ...options.map((o) => counts[o] || 0));
+  if (most === 0) return '🗳️ Abstimmung vorbei — keine Stimmen.';
+  const winners = options.filter((o) => (counts[o] || 0) === most);
+  const verdict = winners.length > 1 ? `Gleichstand: ${winners.join(', ')}` : `Gewinner: ${winners[0]} 🏆`;
+  return `🗳️ ERGEBNIS: ${numbered(options, counts)} — ${verdict}`;
 }
 
 export function cancelVote(): void {

@@ -6,6 +6,7 @@ import { refreshLive } from '../points/earn';
 import { registerCommands } from './commands';
 import { sayInParts } from './chat-message';
 import { registerEvents } from './events';
+import { setChatSender } from './announce';
 import { connectEventSub, disconnectEventSub } from './eventsub';
 import { broadcast } from '../websocket/index';
 import { createReminder, getReminderSettings } from './reminder';
@@ -100,6 +101,7 @@ export function sayInChat(message: string) {
     void sayInParts(client, config.channel, message);
   }
 }
+setChatSender(sayInChat);
 
 export async function disconnectBot(): Promise<void> {
   disconnectEventSub();

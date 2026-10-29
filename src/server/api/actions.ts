@@ -8,6 +8,7 @@ import { getAutoDetectSetting, setAutoDetectSetting, isSMTCSupported, isSMTCRunn
 import { activeCard, type EntryCard } from './active-entry';
 import { noteActivity } from '../stream-report/log';
 import { publicProject } from '../projects';
+import { announce } from '../bot/announce';
 
 const router = Router();
 
@@ -24,7 +25,10 @@ function announceWinner(issues: Array<{ id: number; title: string }>, winner: { 
   markQuestFlag('spin');
   noteActivity('wheel', winner.title);
   broadcast('roulette-spin', { issues, winner_id: winner.id });
-  setTimeout(() => broadcast('roulette-result', { title: winner.title, id: winner.id }), RESULT_AFTER_MS);
+  setTimeout(() => {
+    broadcast('roulette-result', { title: winner.title, id: winner.id });
+    announce(`🎡 Das Rad hat entschieden: ${winner.title}`);
+  }, RESULT_AFTER_MS);
 }
 
 // POST compile & pray
