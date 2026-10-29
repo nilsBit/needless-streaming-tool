@@ -71,6 +71,15 @@
       color: var(--color-text);
     }
 
+    /* The number chat votes with: !vote 2. */
+    .poll-number {
+      position: relative;
+      z-index: 1;
+      font-family: var(--font-display);
+      font-size: 1rem;
+      color: var(--color-secondary);
+    }
+
     .poll-count {
       position: relative;
       z-index: 1;
@@ -151,7 +160,7 @@
       const total = data.options.reduce((sum, o) => sum + o.votes, 0) || 1;
 
       optionsEl.innerHTML = '';
-      data.options.forEach(o => {
+      data.options.forEach((o, i) => {
         const opt = document.createElement('div');
         opt.className = 'poll-option';
         const barWrap = document.createElement('div');
@@ -164,9 +173,13 @@
         const label = document.createElement('span');
         label.className = 'poll-label';
         label.textContent = o.label;
+        const number = document.createElement('span');
+        number.className = 'poll-number';
+        number.textContent = String(i + 1);
         const count = document.createElement('span');
         count.className = 'poll-count';
         count.textContent = String(o.votes);
+        opt.appendChild(number);
         opt.appendChild(label);
         opt.appendChild(count);
         optionsEl.appendChild(opt);

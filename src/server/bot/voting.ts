@@ -71,8 +71,11 @@ export function startVote(
 
 export function castVote(username: string, option: string): boolean {
   if (!activeVote) return false;
-  const normalized = option.toLowerCase();
-  if (!activeVote.options.includes(normalized)) return false;
+  // The option's own words first, then its number — so options that are numbers still count as words.
+  const typed = option.trim().toLowerCase();
+  const place = /^\d+$/.test(typed) ? Number(typed) : 0;
+  const normalized = activeVote.options.includes(typed) ? typed : activeVote.options[place - 1];
+  if (!normalized) return false;
 
   activeVote.votes.set(username.toLowerCase(), normalized);
   broadcastPoll();

@@ -22,6 +22,11 @@ function isPrivileged(tags: { mod?: boolean; badges?: { broadcaster?: string } |
   return !!tags.mod || tags.badges?.broadcaster === '1';
 }
 
+/** Options the way chat votes on them: "1 rote tür | 2 blaue tür". */
+function numbered(options: string[]): string {
+  return options.map((option, i) => `${i + 1} ${option}`).join(' | ');
+}
+
 export function registerCommands(client: Client) {
   client.on('message', async (channel, tags, message, self) => {
     if (self) return;
@@ -110,7 +115,7 @@ export function registerCommands(client: Client) {
           }
           const success = startVote('🗳️ Abstimmung', options, duration);
           if (success) {
-            say(`🗳️ ABSTIMMUNG! Schreibt ${voteName} <option> — Optionen: ${options.join(', ')} — ${duration}s Zeit!`);
+            say(`🗳️ ABSTIMMUNG! Schreibt ${voteName} <Nummer> — ${numbered(options)} — ${duration}s Zeit!`);
           } else {
             say('❌ Es läuft bereits eine Abstimmung!');
           }
@@ -141,7 +146,7 @@ export function registerCommands(client: Client) {
         const option = message.trim().split(/\s+/).slice(1).join(' ');
         const username = tags['display-name'] || tags.username || 'anon';
         if (!option) {
-          say(`❌ Schreib ${getCommandNames().vote} <option>`);
+          say(`❌ Schreib ${getCommandNames().vote} <Nummer>`);
           break;
         }
         const success = castVote(username, option);
@@ -150,7 +155,7 @@ export function registerCommands(client: Client) {
           if (!vote) {
             say('❌ Keine aktive Abstimmung.');
           } else {
-            say(`❌ Ungültige Option. Wähle: ${vote.options.join(', ')}`);
+            say(`❌ Ungültige Option. Wähle: ${numbered(vote.options)}`);
           }
         }
         break;

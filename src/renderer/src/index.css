@@ -138,6 +138,9 @@ body {
 @media (prefers-reduced-motion: reduce) { .stream-chip.on .stream-chip-dot { animation: none; } }
 .stream-card-where { margin: -4px 0 0; color: var(--muted); font-size: 13px; align-self: flex-start; }
 .stream-card-sentence { color: var(--muted); font-size: 14px; line-height: 1.45; min-height: 2.9em; }
+.stream-card-commands { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; margin: -4px 0 0; color: var(--muted); font-size: 13px; }
+.stream-card-commands code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; padding: 1px 6px; border-radius: 4px; background: var(--bg-input); border: 1px solid var(--border-subtle); color: var(--text); user-select: all; }
+.compact-rows .stream-card-commands { margin: 0 0 8px; }
 .stream-card-body { min-width: 0; flex: 1; display: flex; flex-direction: column; }
 .stream-card-body > [data-panel] { flex: 1; display: flex; flex-direction: column; }
 .stream-card-body .panel { flex: 1; }
@@ -1066,6 +1069,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .vote-bar-row { display: flex; align-items: center; gap: 8px; }
 .vote-label { font-size: 14px; min-width: 60px; color: var(--text); }
+.vote-number { display: inline-block; min-width: 1.4em; color: var(--muted); font-variant-numeric: tabular-nums; }
 .vote-bar-bg { flex: 1; height: 8px; background: var(--bg-hover); border-radius: 4px; overflow: hidden; }
 .vote-bar-fill { height: 100%; background: #e67e22; border-radius: 4px; transition: width 0.3s; }
 .vote-count { font-size: 14px; color: #e67e22; font-weight: 700; min-width: 20px; text-align: right; }

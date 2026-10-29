@@ -1,6 +1,6 @@
 import React from 'react';
 import ErrorBoundary from '../components/ErrorBoundary';
-import StreamCard, { type SceneState } from '../components/ux/StreamCard';
+import StreamCard, { ChatCommands, type SceneState } from '../components/ux/StreamCard';
 import { openAt } from '../components/ux/openAt';
 import { useNavigate } from '../NavigationContext';
 import { PANEL_REGISTRY } from '../panelRegistry';
@@ -15,17 +15,32 @@ import SceneHint from '../components/ux/SceneHint';
 
 interface VisibleOverlays { scene: string | null; overlays: string[] }
 interface OverlayScenes { connected: boolean; byOverlay: Record<string, string[]> }
+interface CommandList { commands: Array<{ trigger: string; group: 'text' | 'lookup' | 'builtin'; id: string }> }
 
-// One sentence per card, and which overlay sources belong to it — the names
-// are the overlay folders under src/overlays, as their OBS url carries them.
-const CARDS: Record<string, { sentence: string; overlays: string[] }> = {
-  challenge: { sentence: 'Ein Satz, dazu läuft eine Uhr. Der Chat sieht es mit !challenge.', overlays: ['challenge'] },
-  issues: { sentence: 'Du sammelst Themen, das Rad entscheidet. Der Chat sieht sie mit !themen.', overlays: ['roulette'] },
-  designs: { sentence: 'Du sammelst Vorschläge, der Chat stimmt mit !vote ab.', overlays: ['poll'] },
-  progress: { sentence: 'Woran du über mehrere Streams arbeitest und wie weit es ist. Der Chat fragt mit !projekt.', overlays: ['progress'] },
-  song: { sentence: 'Zeigt im Stream nur den Titel, der gerade läuft.', overlays: ['song'] },
+// One sentence per card, which overlay sources belong to it — the names are
+// the overlay folders under src/overlays, as their OBS url carries them — and
+// which built-ins chat uses for it, by key, with what follows the trigger.
+const CARDS: Record<string, { sentence: string; overlays: string[]; commands?: Array<[string, string]> }> = {
+  challenge: { sentence: 'Ein Satz, dazu läuft eine Uhr.', overlays: ['challenge'], commands: [['challenge', '']] },
+  issues: { sentence: 'Du sammelst Themen, das Rad entscheidet.', overlays: ['roulette'], commands: [['issues', '']] },
+  designs: { sentence: 'Du sammelst Vorschläge, der Chat stimmt ab.', overlays: ['poll'], commands: [['vote', ' <Nummer>']] },
+  progress: { sentence: 'Woran du über mehrere Streams arbeitest und wie weit es ist.', overlays: ['progress'], commands: [['progress', '']] },
+  song: { sentence: 'Zeigt im Stream nur den Titel, der gerade läuft.', overlays: ['song'], commands: [['song', '']] },
   world: { sentence: 'Die Karte im Stream zeigt den Eintrag, den du im Worldbuilder offen hast.', overlays: ['character'] },
 };
+
+/**
+ * A card's commands as chat types them: the built-ins under their current
+ * name, only those switched on; the world card gets every lookup.
+ */
+function commandsOf(key: string, list: CommandList | null): string[] {
+  if (!list) return [];
+  if (key === 'world') return list.commands.filter((c) => c.group === 'lookup').map((c) => `${c.trigger} <Name>`);
+  return (CARDS[key]?.commands ?? []).flatMap(([id, rest]) => {
+    const found = list.commands.find((c) => c.group === 'builtin' && c.id === id);
+    return found ? [found.trigger + rest] : [];
+  });
+}
 
 // "Im Stream": every trigger on one page, as cards. The order comes from
 // navigation.ts, so the panel test still sees one place per panel — except
@@ -37,6 +52,7 @@ export default function StreamPage() {
   const go = useNavigate();
   const { data: visible, refetch } = useApi<VisibleOverlays>('/obs/visible-overlays');
   const { data: placement, refetch: refetchPlacement } = useApi<OverlayScenes>('/obs/overlay-scenes');
+  const { data: commandList } = useApi<CommandList>('/commands');
   useWebSocket((event) => {
     if (event === 'obs-scene-changed' || event === 'obs-status') { refetch(); refetchPlacement(); }
   });
@@ -72,6 +88,7 @@ export default function StreamPage() {
             return (
               <CompactRow key={key} panel={key} title={PANEL_LABELS[key]} onScreen={scene?.state === 'on'} open={openRow === key} onToggle={() => setOpenRow(openRow === key ? null : key)}>
                 <ErrorBoundary fallback={PANEL_LABELS[key]} errorTitle="Fehler" errorMessage="Etwas ist schiefgelaufen." retryLabel="Nochmal versuchen">
+                  <ChatCommands commands={commandsOf(key, commandList)} />
                   <div data-panel={key}><Component /></div>
                 </ErrorBoundary>
               </CompactRow>
@@ -93,7 +110,7 @@ export default function StreamPage() {
         const card = CARDS[key] ?? { sentence: '', overlays: [] };
         const place = card.overlays[0] ? () => { go({ area: 'overlays', subTab: 'overlays' }); openAt('overlay', `${card.overlays[0]}:obs`); } : undefined;
         return (
-          <StreamCard key={key} title={PANEL_LABELS[key]} sentence={card.sentence} scene={scene} onPlace={place}>
+          <StreamCard key={key} title={PANEL_LABELS[key]} sentence={card.sentence} commands={commandsOf(key, commandList)} scene={scene} onPlace={place}>
             <ErrorBoundary fallback={PANEL_LABELS[key]} errorTitle="Fehler" errorMessage="Etwas ist schiefgelaufen." retryLabel="Nochmal versuchen">
               <div data-panel={key}><Component /></div>
             </ErrorBoundary>

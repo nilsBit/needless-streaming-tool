@@ -83,13 +83,13 @@ export default function DesignsPanel() {
           <span className="card-timer">{countdown} s</span>
         </div>
         <div className="vote-results">
-          {vote.options!.map((opt) => {
+          {vote.options!.map((opt, i) => {
             const count = vote.counts?.[opt] || 0;
             const total = vote.total || 1;
             const pct = Math.round((count / total) * 100) || 0;
             return (
               <div key={opt} className="vote-bar-row">
-                <span className="vote-label">{opt}</span>
+                <span className="vote-label"><span className="vote-number">{i + 1}</span>{opt}</span>
                 <div className="vote-bar-bg"><div className="vote-bar-fill" style={{ width: `${pct}%` }} /></div>
                 <span className="vote-count">{count}</span>
               </div>
