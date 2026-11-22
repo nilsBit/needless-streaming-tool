@@ -156,7 +156,7 @@ Läuft der Stream noch, füllt sich die Seite einmal pro Minute. Oben rechts wä
 | !projekt (auch !progress) | Woran gerade gearbeitet wird, wie weit es ist und der wievielte Stream daran |
 | !stats [name] | Zeigt eingelöste Rewards |
 | !vote <Nummer> | Stimme bei Abstimmung ab – mit der Nummer oder dem Namen der Option |
-| !abstimmung start/end/status | Chat-Abstimmung (früher !design) |
+| !abstimmung start 60 Pizza Burger | Nur Mods: startet eine Abstimmung – 60 Sekunden, danach die Antworten (je ein Wort, mindestens 2). \`!abstimmung ende\` beendet sie früher, \`!abstimmung stand\` zeigt den Zwischenstand (früher !design) |
 | !stats [Name] | Stand in jeder Bestenliste |
 | !datenschutz (auch !privacy) | Sagt, was das Tool über Zuschauer speichert, wie lange, und dass es auf Wunsch gelöscht wird |
 | !punkte [Name] | Guthaben, Beitrag und Platz bei den eigenen Punkten |

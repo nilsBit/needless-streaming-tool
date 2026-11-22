@@ -69,7 +69,7 @@ const BUILTIN_LABELS: Record<string, string> = {
 /** The built-ins for mods: never in `!befehle`, so their sentence lives here, for the app only. */
 const MOD_DESCRIPTIONS: Record<string, string> = {
   shoutout: 'Empfiehlt einen anderen Kanal: !so <Name>.',
-  design: 'Startet, beendet und zeigt eine Abstimmung: !abstimmung start 60 A B …, !abstimmung end, !abstimmung status.',
+  design: 'Startet eine Abstimmung im Chat, z. B. !abstimmung start 60 Pizza Burger (60 Sekunden, Antworten je ein Wort). Früher beenden: !abstimmung ende · Zwischenstand: !abstimmung stand.',
 };
 
 export interface BuiltinInfo {

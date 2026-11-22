@@ -99,21 +99,22 @@ export function registerCommands(client: Client) {
         const args = message.trim().split(/\s+/).slice(1);
         const subCommand = args[0]?.toLowerCase();
         // Replies name the commands as the streamer has them, not as they were once called.
-        const { design: self } = getCommandNames();
+        const { design: self, vote: voteName } = getCommandNames();
+        const example = `${self} start 60 Pizza Burger`;
 
         if (subCommand === 'start') {
           const duration = parseInt(args[1], 10) || 60;
           const options = args.slice(2);
           if (options.length < 2) {
-            say(`❌ Mindestens 2 Optionen: ${self} start 60 option1 option2 ...`);
+            say(`❌ Es braucht mindestens 2 Antworten, zum Beispiel: ${example}`);
             break;
           }
           // A vote that starts announces itself, as one from the app does.
           if (!startVote('🗳️ Abstimmung', options, duration)) say('❌ Es läuft bereits eine Abstimmung!');
-        } else if (subCommand === 'end') {
+        } else if (subCommand === 'end' || subCommand === 'ende') {
           // The result goes to chat from endVote, however the vote ends.
           if (!endVote()) say('❌ Keine aktive Abstimmung.');
-        } else if (subCommand === 'status') {
+        } else if (subCommand === 'status' || subCommand === 'stand') {
           const vote = getActiveVote();
           if (vote) {
             const countsText = vote.options.map((o) => `${o}: ${vote.counts[o] || 0}`).join(' | ');
@@ -122,7 +123,8 @@ export function registerCommands(client: Client) {
             say('❌ Keine aktive Abstimmung.');
           }
         } else {
-          say(`🗳️ Befehle: ${self} start <sekunden> <opt1> <opt2> ... | ${self} end | ${self} status`);
+          // Explained by one example, not by a syntax line: the streamer reads this mid-stream.
+          say(`🗳️ So startest du eine Abstimmung: ${example} – das heißt 60 Sekunden, Antworten Pizza und Burger (je ein Wort, mindestens 2). Der Chat stimmt mit ${voteName} 1 oder ${voteName} 2 ab. Früher beenden: ${self} ende · Zwischenstand: ${self} stand`);
         }
         break;
       }
